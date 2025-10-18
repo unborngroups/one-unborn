@@ -40,27 +40,30 @@
         <textarea name="address" class="form-control" rows="2"><?php echo e(old('address', $company->address ?? '')); ?></textarea>
     </div>
 
+    
     <div class="col-md-4 mb-3">
         <label class="form-label">Billing Logo</label>
         <input type="file" name="billing_logo" class="form-control">
         <?php if(!empty($company->billing_logo)): ?>
-            <img src="<?php echo e(asset('storage/'.$company->billing_logo)); ?>" class="mt-2" width="80">
+            <img src="<?php echo e(asset('images/logos/' . $company->billing_logo)); ?>" class="mt-2 border rounded" width="80">
         <?php endif; ?>
     </div>
 
+    
     <div class="col-md-4 mb-3">
         <label class="form-label">Normal Sign</label>
         <input type="file" name="billing_sign_normal" class="form-control">
         <?php if(!empty($company->billing_sign_normal)): ?>
-            <img src="<?php echo e(asset('storage/'.$company->billing_sign_normal)); ?>" class="mt-2" width="80">
+            <img src="<?php echo e(asset('images/n_signs/' . $company->billing_sign_normal)); ?>" class="mt-2 border rounded" width="80">
         <?php endif; ?>
     </div>
 
+    
     <div class="col-md-4 mb-3">
         <label class="form-label">Digital Sign</label>
         <input type="file" name="billing_sign_digital" class="form-control">
         <?php if(!empty($company->billing_sign_digital)): ?>
-            <img src="<?php echo e(asset('storage/'.$company->billing_sign_digital)); ?>" class="mt-2" width="80">
+            <img src="<?php echo e(asset('images/d_signs/' . $company->billing_sign_digital)); ?>" class="mt-2 border rounded" width="80">
         <?php endif; ?>
     </div>
 

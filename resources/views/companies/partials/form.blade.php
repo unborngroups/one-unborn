@@ -40,27 +40,30 @@
         <textarea name="address" class="form-control" rows="2">{{ old('address', $company->address ?? '') }}</textarea>
     </div>
 
+    {{-- ✅ Billing Logo --}}
     <div class="col-md-4 mb-3">
         <label class="form-label">Billing Logo</label>
         <input type="file" name="billing_logo" class="form-control">
         @if(!empty($company->billing_logo))
-            <img src="{{ asset('storage/'.$company->billing_logo) }}" class="mt-2" width="80">
+            <img src="{{ asset('images/logos/' . $company->billing_logo) }}" class="mt-2 border rounded" width="80">
         @endif
     </div>
 
+    {{-- ✅ Normal Sign --}}
     <div class="col-md-4 mb-3">
         <label class="form-label">Normal Sign</label>
         <input type="file" name="billing_sign_normal" class="form-control">
         @if(!empty($company->billing_sign_normal))
-            <img src="{{ asset('storage/'.$company->billing_sign_normal) }}" class="mt-2" width="80">
+            <img src="{{ asset('images/n_signs/' . $company->billing_sign_normal) }}" class="mt-2 border rounded" width="80">
         @endif
     </div>
 
+    {{-- ✅ Digital Sign --}}
     <div class="col-md-4 mb-3">
         <label class="form-label">Digital Sign</label>
         <input type="file" name="billing_sign_digital" class="form-control">
         @if(!empty($company->billing_sign_digital))
-            <img src="{{ asset('storage/'.$company->billing_sign_digital) }}" class="mt-2" width="80">
+            <img src="{{ asset('images/d_signs/' . $company->billing_sign_digital) }}" class="mt-2 border rounded" width="80">
         @endif
     </div>
 

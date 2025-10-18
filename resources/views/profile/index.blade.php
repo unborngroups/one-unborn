@@ -42,7 +42,7 @@
                 <th>Aadhaar Upload</th>
                 <td>
                     @if(!empty($profile->aadhaar_upload))
-                        <a href="{{ asset('storage/' . $profile->aadhaar_upload) }}" target="_blank">View Aadhaar</a>
+                        <a href="{{ asset($profile->aadhaar_upload) }}" target="_blank">View Aadhaar</a>
                     @else
                         Not Uploaded
                     @endif
@@ -55,7 +55,7 @@
                 <th>PAN Upload</th>
                 <td>
                     @if(!empty($profile->pan_upload))
-                        <a href="{{ asset('storage/' . $profile->pan_upload) }}" target="_blank">View PAN</a>
+                        <a href="{{ asset($profile->pan_upload) }}" target="_blank">View PAN</a>
                     @else
                         Not Uploaded
                     @endif

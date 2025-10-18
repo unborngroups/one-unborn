@@ -59,17 +59,11 @@ public function index()
         ]);
 
         $data = $request->except(['billing_logo', 'billing_sign_normal', 'billing_sign_digital']);
+// ✅ Upload images to public/images/...
+        $data['billing_logo'] = $this->uploadImage($request, 'billing_logo', 'logos');
+        $data['billing_sign_normal'] = $this->uploadImage($request, 'billing_sign_normal', 'n_signs');
+        $data['billing_sign_digital'] = $this->uploadImage($request, 'billing_sign_digital', 'd_signs');
 
-// ✅ Save each uploaded file and store path directly in $data
-if ($request->hasFile('billing_logo')) {
-    $data['billing_logo'] = $request->file('billing_logo')->store('logos', 'public');
-}
-if ($request->hasFile('billing_sign_normal')) {
-    $data['billing_sign_normal'] = $request->file('billing_sign_normal')->store('signs', 'public');
-}
-if ($request->hasFile('billing_sign_digital')) {
-    $data['billing_sign_digital'] = $request->file('billing_sign_digital')->store('signs', 'public');
-}
 
         Company::create($data);
 
@@ -101,30 +95,21 @@ if ($request->hasFile('billing_sign_digital')) {
 
         $data = $request->except(['billing_logo', 'billing_sign_normal', 'billing_sign_digital']);
 
-    if ($request->hasFile('billing_logo')) {
-        if ($company->billing_logo) Storage::disk('public')->delete($company->billing_logo);
-        $data['billing_logo'] = $request->file('billing_logo')->store('logos', 'public');
-    }
-    if ($request->hasFile('billing_sign_normal')) {
-        if ($company->billing_sign_normal) Storage::disk('public')->delete($company->billing_sign_normal);
-        $data['billing_sign_normal'] = $request->file('billing_sign_normal')->store('signs', 'public');
-    }
-    if ($request->hasFile('billing_sign_digital')) {
-        if ($company->billing_sign_digital) Storage::disk('public')->delete($company->billing_sign_digital);
-        $data['billing_sign_digital'] = $request->file('billing_sign_digital')->store('signs', 'public');
-    }
+    // ✅ Replace images if new uploaded
+        $data['billing_logo'] = $this->updateImage($request, $company->billing_logo, 'billing_logo', 'logos');
+        $data['billing_sign_normal'] = $this->updateImage($request, $company->billing_sign_normal, 'billing_sign_normal', 'n_signs');
+        $data['billing_sign_digital'] = $this->updateImage($request, $company->billing_sign_digital, 'billing_sign_digital', 'd_signs');
 
         $company->update($data);
 
         return redirect()->route('companies.index')->with('success', 'Company updated successfully!');
     }
-
+    
     public function destroy(Company $company)
     {
-        // Delete files before deleting company
-        if ($company->billing_logo) Storage::disk('public')->delete($company->billing_logo);
-        if ($company->billing_sign_normal) Storage::disk('public')->delete($company->billing_sign_normal);
-        if ($company->billing_sign_digital) Storage::disk('public')->delete($company->billing_sign_digital);
+        $this->deleteImage('images/logos/' . $company->billing_logo);
+        $this->deleteImage('images/signs/' . $company->billing_sign_normal);
+        $this->deleteImage('images/signs/' . $company->billing_sign_digital);
 
         $company->delete();
 
@@ -136,7 +121,6 @@ if ($request->hasFile('billing_sign_digital')) {
  public function toggleStatus($id)
 {
     $company = Company::findOrFail($id);
-
     // Toggle Active/Inactive
     $company->status = $company->status === 'Active' ? 'Inactive' : 'Active';
     $company->save();
@@ -144,8 +128,6 @@ if ($request->hasFile('billing_sign_digital')) {
     return redirect()->route('companies.index')
                      ->with('success', 'company status updated successfully.');
 }
-
-
 
     public function templates($id)
  {
@@ -188,7 +170,6 @@ public function saveEmailConfig(Request $request, $id)
             CompanySetting::query()->update(['is_default' => 0]);
             $data['is_default'] = 1;
         }
-
     // Save or update in company_settings table
     \App\Models\CompanySetting::updateOrCreate(
         ['company_id' => $company->id],
@@ -197,4 +178,40 @@ public function saveEmailConfig(Request $request, $id)
 
     return redirect()->route('companies.index')->with('success', 'Email configuration saved successfully.');
 }
+
+ // 🔧 Helper methods
+    private function uploadImage($request, $field, $folder)
+    {
+        if ($request->hasFile($field)) {
+            $file = $request->file($field);
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path("images/{$folder}"), $filename);
+            return $filename;
+        }
+        return null;
+    }
+
+    private function updateImage($request, $oldFile, $field, $folder)
+    {
+        if ($request->hasFile($field)) {
+            $oldPath = public_path("images/{$folder}/{$oldFile}");
+            if ($oldFile && file_exists($oldPath)) {
+                unlink($oldPath);
+            }
+
+            $file = $request->file($field);
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path("images/{$folder}"), $filename);
+            return $filename;
+        }
+        return $oldFile;
+    }
+
+    private function deleteImage($path)
+    {
+         $fullPath = public_path($path);
+        if ($path && file_exists($fullPath)) {
+            unlink($fullPath);
+        }
+    }
 }

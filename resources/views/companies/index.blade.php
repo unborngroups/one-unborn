@@ -99,32 +99,23 @@
                             <td>{{ $company->tan_number }}</td>
             
                             <td>
-                                <!-- @if($company->billing_logo)
-                                    <img src="{{ asset('storage/'.$company->billing_logo) }}" width="50">
-                                @endif -->
                                 @if($company->billing_logo)
-                                    <img src="{{ asset('storage/'.$company->billing_logo) }}" alt="Logo" class="rounded-circle border" width="40" height="40">
+                                    <img src="{{ asset('images/logos/'.$company->billing_logo) }}" alt="Logo" class="rounded-circle border" width="40" height="40">
                                 @else
                                     <span class="text-muted small">No logo</span>
                                 @endif
 
                             </td>
                             <td>
-                                <!-- @if($company->billing_sign_normal)
-                                    <img src="{{ asset('storage/'.$company->billing_sign_normal) }}" width="50">
-                                @endif -->
                                  @if($company->billing_sign_normal)
-                                    <img src="{{ asset('storage/'.$company->billing_sign_normal) }}" alt="Logo" class="rounded-circle border" width="40" height="40">
+                                    <img src="{{ asset('images/n_signs/'.$company->billing_sign_normal) }}" alt="Normal Sign" class="rounded-circle border" width="40" height="40">
                                 @else
                                     <span class="text-muted small">No sign</span>
                                 @endif
                             </td>
                             <td>
-                                <!-- @if($company->billing_sign_digital)
-                                    <img src="{{ asset('storage/'.$company->billing_sign_digital) }}" width="50">
-                                @endif -->
                                 @if($company->billing_sign_digital)
-                                    <img src="{{ asset('storage/'.$company->billing_sign_digital) }}" alt="Logo" class="rounded-circle border" width="40" height="40">
+                                    <img src="{{ asset('images/d_signs/'.$company->billing_sign_digital) }}" alt="Digital Sign" class="rounded-circle border" width="40" height="40">
                                 @else
                                     <span class="text-muted small">No sign</span>
                                 @endif
@@ -133,9 +124,6 @@
                                 <span class="badge bg-{{ $company->status === 'Active' ? 'success' : 'danger' }}">
                                     {{ $company->status }}
                                 </span>
-                             <!-- <a href="{{ route('companies.email.config', $company->id) }}" class="btn btn-sm btn-warning">
-                                <i class="bi bi-envelope"></i> Email Config
-                                </a> -->
                             </td>
                         </tr>
                     @empty

@@ -100,32 +100,23 @@
                             <td><?php echo e($company->tan_number); ?></td>
             
                             <td>
-                                <!-- <?php if($company->billing_logo): ?>
-                                    <img src="<?php echo e(asset('storage/'.$company->billing_logo)); ?>" width="50">
-                                <?php endif; ?> -->
                                 <?php if($company->billing_logo): ?>
-                                    <img src="<?php echo e(asset('storage/'.$company->billing_logo)); ?>" alt="Logo" class="rounded-circle border" width="40" height="40">
+                                    <img src="<?php echo e(asset('images/logos/'.$company->billing_logo)); ?>" alt="Logo" class="rounded-circle border" width="40" height="40">
                                 <?php else: ?>
                                     <span class="text-muted small">No logo</span>
                                 <?php endif; ?>
 
                             </td>
                             <td>
-                                <!-- <?php if($company->billing_sign_normal): ?>
-                                    <img src="<?php echo e(asset('storage/'.$company->billing_sign_normal)); ?>" width="50">
-                                <?php endif; ?> -->
                                  <?php if($company->billing_sign_normal): ?>
-                                    <img src="<?php echo e(asset('storage/'.$company->billing_sign_normal)); ?>" alt="Logo" class="rounded-circle border" width="40" height="40">
+                                    <img src="<?php echo e(asset('images/n_signs/'.$company->billing_sign_normal)); ?>" alt="Normal Sign" class="rounded-circle border" width="40" height="40">
                                 <?php else: ?>
                                     <span class="text-muted small">No sign</span>
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <!-- <?php if($company->billing_sign_digital): ?>
-                                    <img src="<?php echo e(asset('storage/'.$company->billing_sign_digital)); ?>" width="50">
-                                <?php endif; ?> -->
                                 <?php if($company->billing_sign_digital): ?>
-                                    <img src="<?php echo e(asset('storage/'.$company->billing_sign_digital)); ?>" alt="Logo" class="rounded-circle border" width="40" height="40">
+                                    <img src="<?php echo e(asset('images/d_signs/'.$company->billing_sign_digital)); ?>" alt="Digital Sign" class="rounded-circle border" width="40" height="40">
                                 <?php else: ?>
                                     <span class="text-muted small">No sign</span>
                                 <?php endif; ?>
@@ -135,9 +126,6 @@
                                     <?php echo e($company->status); ?>
 
                                 </span>
-                             <!-- <a href="<?php echo e(route('companies.email.config', $company->id)); ?>" class="btn btn-sm btn-warning">
-                                <i class="bi bi-envelope"></i> Email Config
-                                </a> -->
                             </td>
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>

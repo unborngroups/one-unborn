@@ -53,23 +53,22 @@ class ProfileController extends Controller
                 $validated['Date_of_Birth'] = Carbon::createFromFormat('d-m-Y', $request->Date_of_Birth)->format('Y-m-d');
             }
         }
-
-        // ✅ Handle file uploads
+        // ✅ Handle file uploads and save to public/images/...
         if ($request->hasFile('aadhaar_upload')) {
-            $aadhaarPath = $request->file('aadhaar_upload')->store('uploads/aadhaar', 'public');
-            $validated['aadhaar_upload'] = $aadhaarPath;
+            $aadhaarFile = $request->file('aadhaar_upload');
+            $aadhaarName = time() . '_aadhaar_' . $aadhaarFile->getClientOriginalName();
+            $aadhaarFile->move(public_path('images/aadhaar'), $aadhaarName);
+            $validated['aadhaar_upload'] = 'images/aadhaar/' . $aadhaarName;
         }
 
         if ($request->hasFile('pan_upload')) {
-            $panPath = $request->file('pan_upload')->store('uploads/pan', 'public');
-            $validated['pan_upload'] = $panPath;
+            $panFile = $request->file('pan_upload');
+            $panName = time() . '_pan_' . $panFile->getClientOriginalName();
+            $panFile->move(public_path('images/pan'), $panName);
+            $validated['pan_upload'] = 'images/pan/' . $panName;
         }
-           /** @var \App\Models\User $user */
 
-        // // ✅ Update user profile
-        // $user->update(array_merge($validated, [
-        //     'profile_created' => true,
-        // ]));
+           /** @var \App\Models\User $user */
         
     // ✅ Create profile
     $user->profile()->create($validated);
