@@ -5,6 +5,7 @@
     <h3 class="mb-3 text-primary">View User Details</h3>
 
     <div class="card shadow border-0 p-4">
+         {{-- 🟢 Row 1: Basic Details (Name, User Type) --}}
         <div class="row mb-3">
             <div class="col-md-6">
                 <label class="fw-bold">Name:</label>
@@ -17,6 +18,7 @@
             </div>
         </div>
 
+        {{-- 🟢 Row 2: Emails (Official & Personal) --}}
         <div class="row mb-3">
             <div class="col-md-6">
                 <label class="fw-bold">Official Email:</label>
@@ -28,6 +30,7 @@
             </div>
         </div>
 
+        {{-- 🟢 Row 3: Mobile & Company --}}
         <div class="row mb-3">
             <div class="col-md-6">
                 <label class="fw-bold">Mobile:</label>
@@ -41,12 +44,13 @@
                             <span class="badge bg-primary">{{ $company->company_name }}</span>
                         @endforeach
                     @else
-                        -
+                        - {{-- ✅ Show “-” if no company assigned --}}
                     @endif
                 </div>
             </div>
         </div>
 
+        {{-- 🟢 Row 4: Dates (Birth & Joining) --}}
         <div class="row mb-3">
             <div class="col-md-6">
                 <label class="fw-bold">Date of Birth:</label>
@@ -58,6 +62,7 @@
             </div>
         </div>
 
+        {{-- 🟢 Status Display --}}
         <div class="mb-3">
             <label class="fw-bold">Status:</label>
             <div>
@@ -69,6 +74,7 @@
             </div>
         </div>
 
+        {{-- 🟢 Action Buttons --}}
         <div class="mt-3">
             <a href="{{ route('users.index') }}" class="btn btn-secondary">Back</a>
             <a href="{{ route('users.edit', $user) }}" class="btn btn-warning">Edit</a>

@@ -21,7 +21,8 @@
                 <table class="table table-bordered align-middle text-center shadow-sm">
                     <thead class="table-primary">
                         <tr>
-                            <!-- <th></th> -->
+                            <th></th>
+                            <th>Module Name</th>
                             <th>Menu Name</th>
                             <th>Menu</th>
                             <th>Add</th>
@@ -33,6 +34,7 @@
                     </thead>
 
                     <tbody>
+                        
                         {{-- 🔹 Show only menus (no module headers) --}}
                         @foreach ($menus as $menu)
                             @php
@@ -41,6 +43,12 @@
                             <tr>
                                  <!-- <td><input type="checkbox" name="privileges[{{ $menu->id }}][can_menu]" value="1" -->
                                     <!-- class="perm-checkbox"></td> -->
+                                     <td> 
+                                        
+                                     </td>
+                                     <td>
+
+                                     </td>
 
                                 <td class="fw-semibold text-start ps-4">{{ ucfirst($menu->name) }}</td>
 

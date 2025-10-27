@@ -28,7 +28,7 @@
         <div class="card-body table-responsive">
             <!-- <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search..."> -->
             <table class="table table-bordered table-hover align-middle" id="userTable">
-                <thead class="table-light">
+                <thead class="table-primary">
                     <tr>
                         <th><input type="checkbox" id="selectAll"></th>
                         <th>S.No</th>
@@ -71,13 +71,15 @@
                                 </form>
                                    @endif
 
+                                   {{-- Toggle Status --}}
                                 <form action="{{ route('clients.toggle-status', $client->id) }}" method="POST" class="d-inline">
-    @csrf
-    @method('PATCH')
-    <button type="submit" class="btn btn-sm {{ $client->status == 'Active' ? 'btn-success' : 'btn-secondary' }}">
-        {{ $client->status }}
-    </button>
-</form>
+                                    @csrf
+                                    @method('PATCH')
+                                     <button type="submit" class="btn btn-sm {{ $client->status == 'Active' ? 'btn-success' : 'btn-secondary' }}">
+                                {{ $client->status }}
+                                    </button>
+                                </form>
+
                                 {{-- View --}}
                                    @if($permissions->can_view)
                                    <a href="{{ route('clients.view', $client->id) }}" class="btn btn-sm btn-warning">
@@ -97,10 +99,10 @@
                             <td>{{ $client->invoice_cc ?? '-' }}</td>   
                             <td>{{ $client->support_spoc_name ?? '-' }}</td>
                             <td>
-    <span class="badge {{ $client->status == 'Active' ? 'bg-success' : 'bg-danger' }}">
-        {{ $client->status }}
-    </span>
-</td>
+                                <span class="badge {{ $client->status == 'Active' ? 'bg-success' : 'bg-danger' }}">
+                                {{ $client->status }}
+                                </span>
+                            </td>
                         </tr>
                     @empty
                         <tr>

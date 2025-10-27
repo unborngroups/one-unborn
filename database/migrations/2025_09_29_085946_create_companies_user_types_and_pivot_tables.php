@@ -14,21 +14,51 @@ return new class extends Migration
          // 1️⃣ Companies Table
         Schema::create('companies', function (Blueprint $table) {
             $table->id();
-            $table->string('company_name');
-            $table->string('cin_llpin')->nullable();
-            $table->string('contact_no')->nullable(); // Landline/Phone combined
-            $table->string('phone_no')->nullable();
-            $table->string('email_1')->nullable();
-            $table->string('email_2')->nullable();
-            $table->text('address')->nullable();
+             // 🏷️ Basic Details
+            $table->string('trade_name')->nullable();              // Trade/Brand Name
+            $table->string('company_name');                        // Company Name
+            $table->string('cin_llpin')->nullable();               // Business Number (CIN / LLPIN)
+
+            // ☎️ Contact Details
+            $table->string('company_phone')->nullable();           // Company Phone (landline)
+            $table->string('alternative_contact')->nullable();     // Alternative contact number
+            $table->string('email_1')->nullable();                 // Company Email
+            $table->string('email_2')->nullable();                 // Secondary email (optional)
+            $table->string('website')->nullable();                 // Company Website
+
+            // 🏢 Address & Registration
+            $table->string('gst_no')->nullable();                  // GSTIN (fetched via API)
+            $table->string('pan_number')->nullable();              // PAN Number
+            $table->text('address')->nullable();                   // Address (fetched or typed manually)
+
+            // 📍 Branch & Social Media
+            $table->string('branch_locations')->nullable();        // Store Location URL / Google Place ID
+            $table->string('instagram')->nullable();
+            $table->string('youtube')->nullable();
+            $table->string('facebook')->nullable();
+            $table->string('linkedin')->nullable();
+
+            // 🏦 Bank Details
+            $table->string('acc_number')->nullable();
+            $table->string('ifsc_code')->nullable();
+            $table->string('branch_name')->nullable();
+            $table->string('bank_name')->nullable();
+
+            // 💳 UPI Details
+            $table->string('upi_id')->nullable();
+            $table->string('upi_number')->nullable();
+            $table->decimal('opening_balance', 15, 2)->nullable();
+
+            // 🧾 Branding (Logos / Signatures)
             $table->string('billing_logo')->nullable();
             $table->string('billing_sign_normal')->nullable();
             $table->string('billing_sign_digital')->nullable();
-            $table->string('gst_no')->nullable();
-            $table->string('pan_number')->nullable();
-            $table->string('tan_number')->nullable();
-             $table->string('color')->default('#333333');
-        $table->string('logo')->nullable();
+
+            // 🎨 Theme
+            $table->string('color')->default('#333333');
+            $table->string('logo')->nullable();
+
+            // ⚙️ Status
        
             $table->enum('status', ['Active', 'Inactive'])->default('Active');
             $table->timestamps();

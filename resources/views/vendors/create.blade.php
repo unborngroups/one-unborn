@@ -16,8 +16,19 @@
             </div>
         @endif
 
+        {{--  Vendor Creation Form --}}
         <form action="{{ route('vendors.store') }}" method="POST">
             @csrf
+             {{-- 🌟 Vendor Creation Form --}}
+             <div class="col-md-4">
+    <label class="form-label">PAN Number</label>
+    <input type="text" id="pan_number" name="pan_number" class="form-control" 
+           placeholder="Enter PAN Number">
+           <!-- Button commented out (optional verification trigger) -->
+           <!-- <button type="button" id="verifyPanBtn" class="btn btn-primary">Verify</button> -->
+</div>
+<!--  PAN status message area -->
+  <small id="panStatus" class="text-muted mt-1 d-block"></small>
 
             {{-- Basic Details --}}
             <h5 class="text-secondary">Basic Details</h5>
@@ -33,13 +44,14 @@
                 </div>
             </div>
 
+            {{-- 🏢 Business Display Name --}}
             <div class="mb-3">
                 <label class="form-label">Business Display Name</label>
                 <input type="text" name="business_display_name" class="form-control"
                        value="{{ old('business_display_name') }}">
             </div>
 
-            {{-- Address --}}
+            {{-- Address Section--}}
             <h5 class="text-secondary mt-3">Address</h5>
             <input type="text" name="address1" class="form-control mb-2" placeholder="Address Line 1"
                    value="{{ old('address1') }}">
@@ -48,6 +60,7 @@
             <input type="text" name="address3" class="form-control mb-2" placeholder="Address Line 3"
                    value="{{ old('address3') }}">
             
+                   {{-- City, State, Country Dropdowns --}}
              <div class="row">
     <div class="col-md-4">
         <label class="form-label">City</label>
@@ -83,7 +96,7 @@
             <input type="text" name="pincode" class="form-control mb-3" placeholder="Pincode"
                    value="{{ old('pincode') }}">
 
-            {{-- Contact Person --}}
+            {{-- Contact Person Section --}}
             <h5 class="text-secondary mt-3">Contact Person</h5>
             <div class="row">
                 <div class="col-md-4">
@@ -100,7 +113,7 @@
                 </div>
             </div>
 
-            {{-- Legal Details --}}
+            {{-- Legal Details Section --}}
             <h5 class="text-secondary mt-3">Legal Details</h5>
             <div class="row">
                 <div class="col-md-6">
@@ -121,7 +134,7 @@
                 </div>
             </div>
 
-            {{-- Status --}}
+            {{-- Status Dropdown--}}
             <div class="mb-3">
                 <label>Status</label>
                 <select name="status" class="form-control">
@@ -130,46 +143,96 @@
                 </select>
             </div>
 
+            {{-- Submit Button --}}
             <button type="submit" class="btn btn-success mt-3">Save Vendor</button>
             <a href="{{ route('vendors.index') }}" class="btn btn-secondary mt-3">Cancel</a>
         </form>
     </div>
 </div>
+{{--JavaScript Section --}}
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    const gstInput = document.querySelector('[name="gstin"]');
 
+    // ✅ GST Auto-Fill
+    const gstInput = document.querySelector('[name="gstin"]');
     gstInput.addEventListener('blur', function() {
         let gstin = this.value.trim();
         if (gstin.length === 15) {
             fetch(`/gst/fetch/${gstin}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        document.querySelector('[name="business_display_name"]').value = data.data.tradeNam || '';
+                        document.querySelector('[name="pan_no"]').value = data.pan || '';
+
+                        if (data.data.pradr && data.data.pradr.addr) {
+                            let addr = data.data.pradr.addr;
+                            document.querySelector('[name="address1"]').value = (addr.bnm || '') + ' ' + (addr.st || '');
+                            document.querySelector('[name="city"]').value = addr.loc || '';
+                            document.querySelector('[name="state"]').value = addr.stcd || '';
+                        }
+                        alert("✅ Company details filled successfully!");
+                    } else {
+                        alert("❌ Invalid GST Number");
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("⚠️ Error fetching GST details");
+                });
+        }
+    });
+
+    // ✅ Verify PAN button click
+    const verifyPanBtn = document.getElementById('verifyPanBtn');
+    const panInput = document.getElementById('pan_number');
+    const panStatus = document.getElementById('panStatus');
+
+    verifyPanBtn.addEventListener('click', function() {
+        let pan = panInput.value.trim().toUpperCase();
+        // 🧩 Basic validation (PAN must be 10 chars)
+        if (pan.length !== 10) {
+            panStatus.innerHTML = '<span class="text-danger">⚠️ Enter a valid 10-character PAN number</span>';
+            return;
+        }
+
+        // 🕐 Disable button while verifying
+        verifyPanBtn.disabled = true;
+        verifyPanBtn.textContent = "Verifying...";
+        panStatus.textContent = "";
+
+        // 🌐 Call Laravel route for PAN check
+        fetch(`/company/fetch/${pan}`)
             .then(res => res.json())
             .then(data => {
+                verifyPanBtn.disabled = false;
+                verifyPanBtn.textContent = "Verify";
+
                 if (data.success) {
-                    // ✅ Autofill form fields
-                    document.querySelector('[name="business_display_name"]').value = data.data.tradeNam || '';
-                    document.querySelector('[name="pan_no"]').value = data.pan || '';
+                    // ✅ Fill data from company table
+                    let c = data.data;
+                    document.querySelector('[name="gstin"]').value = c.gst_no || '';
+                    document.querySelector('[name="business_display_name"]').value = c.company_name || '';
+                    document.querySelector('[name="contact_person_email"]').value = c.email_1 || '';
+                    document.querySelector('[name="address1"]').value = c.address_line1 || '';
 
-                    // ✅ Address fill (if available)
-                    if (data.data.pradr && data.data.pradr.addr) {
-                        let addr = data.data.pradr.addr;
-                        document.querySelector('[name="address1"]').value = (addr.bnm || '') + ' ' + (addr.st || '');
-                        document.querySelector('[name="city"]').value = addr.loc || '';
-                        document.querySelector('[name="state"]').value = addr.stcd || '';
-                    }
-
-                    alert("✅ Company details filled successfully!");
+                    panStatus.innerHTML = '<span class="text-success">✅ PAN Verified & details filled!</span>';
                 } else {
-                    alert("❌ Invalid GST Number");
+                    panStatus.innerHTML = '<span class="text-danger">❌ No company found for this PAN</span>';
                 }
             })
             .catch(err => {
+                verifyPanBtn.disabled = false;
+                verifyPanBtn.textContent = "Verify";
                 console.error(err);
-                alert("⚠️ Error fetching GST details");
+                panStatus.innerHTML = '<span class="text-danger">⚠️ Error verifying PAN number</span>';
             });
-        }
     });
+
 });
 </script>
+
+{{-- Optional external JS --}}
+<script src="{{ asset('js/gst_pan_autofill.js') }}"></script>
 
 @endsection

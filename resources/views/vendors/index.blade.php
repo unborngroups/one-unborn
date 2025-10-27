@@ -4,7 +4,7 @@
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="fw-bold text-primary">Vendor Master</h3>
-         {{-- Add --}}
+         {{-- ✅ Show “Add Vendor” button only if user has permission --}}
         @if($permissions->can_add)
         <a href="{{ route('vendors.create') }}" class="btn btn-success">
             <i class="bi bi-plus-circle"></i> Add New Vendor
@@ -12,6 +12,7 @@
          @endif
     </div>
 
+    {{-- ✅ Success message after create/update/delete --}}
     {{-- Success Message --}}
     @if(session('success'))
         <div class="alert alert-success">
@@ -19,15 +20,18 @@
         </div>
     @endif
 
-    {{-- Vendor Table --}}
+     {{-- 🧾 Vendor Table Section --}}
     <div class="card shadow border-0">
+          {{-- 🔍 Search box --}}
         <div class="card-header bg-light d-flex justify-content-between">
             <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search...">
         </div>
+        {{-- 📊 Table with vendor data --}}
         <div class="card-body table-responsive">
             <table class="table table-bordered table-hover align-middle" id="vendorTable">
-                <thead class="table-light">
+                <thead class="table-primary">
                     <tr>
+                        {{-- ✅ Checkbox for bulk select --}}
                         <th><input type="checkbox" id="selectAll"></th>
                         <th>S.No</th>
                         <th>Action</th>
@@ -50,14 +54,14 @@
                             <td><input type="checkbox" class="rowCheckbox" value="{{ $vendor->id }}"></td>
                             <td class="text-center">{{ $key+1 }}</td>
                             <td class="text-center d-flex justify-content-center gap-1">
-                                {{-- Edit --}}
+                                 {{-- ✏️ Edit button (only if permission allowed) --}}
                                 @if($permissions->can_edit)
                                 <a href="{{ route('vendors.edit', $vendor) }}" class="btn btn-sm btn-primary">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 @endif
 
-                                {{-- Delete --}}
+                               {{-- 🗑️ Delete button --}}
                                  @if($permissions->can_delete)
                                 <form action="{{ route('vendors.destroy', $vendor) }}" method="POST" class="d-inline">
                                     @csrf
@@ -68,6 +72,7 @@
                                 </form>
                                 @endif
 
+                                {{-- 🔁 Toggle Active/Inactive --}}
                                 <form action="{{ route('vendors.toggle-status', $vendor->id) }}" method="POST" class="d-inline">
                                     @csrf
                                     @method('PATCH')
@@ -75,7 +80,7 @@
                                         {{ $vendor->status }}
                                     </button>
                                 </form>
-                                 {{-- View --}}
+                                 {{-- View button --}}
                                    @if($permissions->can_view)
                                 <!-- view path -->
                                    <a href="{{ route('vendors.view', $vendor->id) }}" class="btn btn-sm btn-warning">
@@ -94,6 +99,7 @@
                             <td>{{ $vendor->pan_no ?? '-' }}</td>
                             <td>{{ $vendor->bank_account_no ?? '-'}}</td>
                             <td>{{ $vendor->ifsc_code ?? '-'}}</td>
+                            {{-- 🟢🔴 Status Badge --}}
                             <td>
                                 <span class="badge {{ $vendor->status == 'Active' ? 'bg-success' : 'bg-danger' }}">
                                     {{ $vendor->status }}
@@ -110,7 +116,7 @@
         </div>
     </div>
 </div>
-
+ {{-- 🔍 Table Search & Select All Script --}}
 <script>
 document.getElementById('tableSearch').addEventListener('keyup', function() {
     let value = this.value.toLowerCase();
@@ -119,6 +125,7 @@ document.getElementById('tableSearch').addEventListener('keyup', function() {
     });
 });
 
+// ✅ Select / Deselect all checkboxes
 document.getElementById('selectAll').addEventListener('change', function(){
     let isChecked = this.checked;
     document.querySelectorAll('.rowCheckbox').forEach(cb => cb.checked = isChecked);

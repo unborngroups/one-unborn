@@ -13,7 +13,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\CompanySettingsController;
 use App\Http\Controllers\TaxInvoiceSettingsController;
+use App\Http\Controllers\FeasibilityStatusController;
 use App\Http\Controllers\SystemSettingsController;
+use App\Http\Controllers\FeasibilityController;
 use App\Http\Controllers\GSTController;
 use App\Http\Middleware\CheckProfileCreated;
 use Illuminate\Http\Request;
@@ -37,8 +39,7 @@ Route::get('/', function () {
         return redirect()->route('welcome'); // logged-in users → dashboard
     }
     return redirect()->route('login'); // guests → login
-});
-
+}); 
 //
 // 🔐 AUTH ROUTES
 //
@@ -49,8 +50,17 @@ Route::post('/login', [AuthController::class, 'login']);
 // Logout route
 Route::post('/logout', function () {
     Auth::logout();
+    session()->invalidate();        // clears all session data
+    session()->regenerateToken();   // prevents CSRF token issues
     return redirect()->route('login');
 })->name('logout');
+
+
+// Route::post('/logout', function () {
+//     Auth::logout();
+//     return redirect()->route('login');
+// })->name('logout');
+
 // 🔑 PASSWORD RESET ROUTES (public)
 Route::get('forgot-password', function () {
     return view('auth.forgot-password');
@@ -98,11 +108,14 @@ Route::post('reset-password', function (Request $request) {
 //
 // 👤 PROFILE CREATION — allowed for all logged-in users
 //
-Route::middleware('auth')->group(function () {
-    
-Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
     Route::get('/profile/create', [ProfileController::class, 'create'])->name('profile.create');
-    Route::post('/profile/store', [ProfileController::class, 'store'])->name('profile.store');
+    Route::post('/profile', [ProfileController::class, 'store'])->name('profile.store');
+    Route::get('/profile/{id}/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile/{id}', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/{id}/view', [ProfileController::class, 'view'])->name('profile.view');
 });
 
 //
@@ -190,6 +203,9 @@ Route::post('/menus/privileges/{userId}', [MenuController::class, 'updatePrivile
     Route::patch('/companies/{company}/toggle-status', [CompanyController::class, 'toggleStatus'])->name('companies.toggle-status');
     Route::get('/companies/{id}/email-config', [CompanyController::class, 'emailConfig'])->name('companies.email.config');
     Route::post('/companies/{id}/email-config', [CompanyController::class, 'saveEmailConfig'])->name('companies.save.email.config');
+    
+    // 🔍 Company PAN Fetch for Client Form
+    Route::get('/company/fetch/{pan}', [CompanyController::class, 'fetchByPan'])->name('company.fetch-by-pan');
 
     // 📧 Template Toggle
     Route::patch('/templates/{id}/toggle-status', [EmailTemplateController::class, 'toggleStatus'])->name('templates.toggle-status');
@@ -209,27 +225,28 @@ Route::post('/menus/privileges/{userId}', [MenuController::class, 'updatePrivile
 //     });
 //     return 'Email sent!';
 // });
+    // 🧾 GST & PAN Fetch Routes
+    // Route::get('/gst/fetch/{gstin}', [GSTController::class, 'fetch']);
+    // Route::get('/company/fetch/{pan}', [GSTController::class, 'fetchByPAN']);
 
-Route::get('/gst/fetch/{gstin}', [GSTController::class, 'fetchGSTDetails'])->name('gst.fetch');
+    // ✅ Feasibility Module
+    Route::resource('feasibility', FeasibilityController::class);
+    Route::patch('/feasibility/{id}/toggle-status', [FeasibilityController::class, 'toggleStatus'])->name('feasibility.toggle-status');
+    Route::get('/feasibility/{id}/view', [FeasibilityController::class, 'view'])->name('feasibility.view');
+    Route::get('/get-client-details/{id}', [ClientController::class, 'getDetails']);
 
-Route::get('/company/fetch/{pan}', function ($pan) {
-    $company = Company::where('pan_number', strtoupper($pan))->first();
-
-    if ($company) {
-        return response()->json([
-            'success' => true,
-            'data' => $company
-        ]);
-    }
-
-    return response()->json([
-        'success' => false,
-        'message' => 'No company found for this PAN.'
-    ]);
-});
-// Fallback route to handle undefined routes
-Route::fallback(function () {
-    return redirect('/welcome');
+    Route::prefix('operations/feasibility-status')->group(function () {
+    Route::get('/{status?}', [App\Http\Controllers\FeasibilityStatusController::class, 'index'])->name('feasibility.status.index');
+    Route::get('/view/{id}', [App\Http\Controllers\FeasibilityStatusController::class, 'show'])->name('feasibility.status.view');
+    Route::post('/update/{id}', [App\Http\Controllers\FeasibilityStatusController::class, 'update'])->name('feasibility.status.update');
+    
 });
 
-});
+
+    // Fallback route to handle undefined routes
+    Route::fallback(function () {
+        return redirect('/welcome');
+    });
+
+}
+);

@@ -48,30 +48,30 @@
                             <td class="text-center">{{ $index + 1 }}</td>
 
                             {{-- ✅ Action Buttons --}}
-<td class="text-center d-flex justify-content-center gap-1">
-    @php
-        $role = strtolower(auth()->user()->userType->name ?? '');
-        $canManage = in_array($role, ['superadmin', 'admin']);
-    @endphp
- {{-- Edit --}}
+                            <td class="text-center d-flex justify-content-center gap-1">
+                                @php
+                                $role = strtolower(auth()->user()->userType->name ?? '');
+                                $canManage = in_array($role, ['superadmin', 'admin']);
+                                @endphp
+
+                                {{-- Edit --}}
                                 @if($permissions && $permissions->can_edit)
-        <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-primary">
-            <i class="bi bi-pencil"></i>
-        </a>
-    @endif
+                            <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-primary">
+                            <i class="bi bi-pencil"></i>
+                            </a>
+                                @endif
 
-   {{-- Delete --}}
+                            {{-- Delete --}}
                                  @if($permissions && $permissions->can_delete)
-        <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline">
-            @csrf
-            @method('DELETE')
-            <button class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this user?')">
-                <i class="bi bi-trash"></i>
-            </button>
-        </form>
-    @endif          
+                            <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline">
+                                 @csrf
+                                 @method('DELETE')
+                            <button class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this user?')">
+                            <i class="bi bi-trash"></i>
+                            </button>
+                            </form>
+                                @endif          
                                 
-
                                 {{-- Toggle Status --}}
                                 @php
                                 $role = strtolower(auth()->user()->userType->name);
@@ -88,7 +88,6 @@
 
                                     {{-- View --}}
                                    @if($permissions && $permissions->can_view)
-                                    <!-- view path -->
                                    <a href="{{ route('users.view', $user->id) }}" class="btn btn-sm btn-warning">
                                     <i class="bi bi-eye"></i>
                                     </a>

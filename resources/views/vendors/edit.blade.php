@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    {{-- ✅ Show Validation Errors --}}
+   {{-- ✅ Display validation errors if any --}}
         @if ($errors->any())
             <div class="alert alert-danger">
                 <ul class="mb-0">
@@ -14,11 +14,24 @@
 <div class="container py-4">
     <h3 class="mb-3 text-primary">Edit Vendor</h3>
     <div class="card shadow border-0 p-4">
+        {{-- 📝 Form for updating vendor --}}
         <form action="{{ route('vendors.update', $vendor->id) }}" method="POST">
             @csrf
             @method('PUT')
+            
+             {{-- 🌟 Vendor Creation Form --}}
+             <div class="col-md-4">
+    <label class="form-label">PAN Number</label>
+    <input type="text" id="pan_number" name="pan_number" class="form-control" 
+           placeholder="Enter PAN Number">
+           <!-- Button commented out (optional verification trigger) -->
+           <button type="button" id="verifyPanBtn" class="btn btn-primary">Verify</button>
+</div>
+<!--  PAN status message area -->
+  <small id="panStatus" class="text-muted mt-1 d-block"></small>
 
-            {{-- Basic Details --}}
+
+            {{-- Basic Details Section --}}
             <h5 class="text-secondary">Basic Details</h5>
             <div class="row mb-3">
                 <div class="col-md-6">
@@ -33,13 +46,14 @@
                 </div>
             </div>
 
+             {{-- 🏢 Business Display Name --}}
             <div class="mb-3">
                 <label class="form-label">Business Display Name</label>
                 <input type="text" name="business_display_name" class="form-control"
                        value="{{ old('business_display_name', $vendor->business_display_name) }}">
             </div>
 
-            {{-- Address --}}
+            {{-- 📍 Address Section --}}
             <h5 class="text-secondary mt-3">Address</h5>
             <input type="text" name="address1" class="form-control mb-2" placeholder="Address Line 1"
                    value="{{ old('address1', $vendor->address1) }}">
@@ -47,7 +61,7 @@
                    value="{{ old('address2', $vendor->address2) }}">
             <input type="text" name="address3" class="form-control mb-2" placeholder="Address Line 3"
                    value="{{ old('address3', $vendor->address3) }}">
-            
+            {{-- 🗺️ City, State, Country dropdowns --}}
             <div class="row">
     <div class="col-md-4">
         <label class="form-label">City</label>
@@ -83,7 +97,7 @@
             <input type="text" name="pincode" class="form-control mb-3" placeholder="Pincode"
                    value="{{ old('pincode', $vendor->pincode) }}">
 
-            {{-- Contact Person --}}
+            {{-- Contact Person Section--}}
             <h5 class="text-secondary mt-3">Contact Person</h5>
             <div class="row">
                 <div class="col-md-4">
@@ -100,7 +114,7 @@
                 </div>
             </div>
 
-            {{-- Legal Details --}}
+            {{-- Legal Details Section--}}
             <h5 class="text-secondary mt-3">Legal Details</h5>
             <div class="row">
                 <div class="col-md-6">
@@ -121,7 +135,7 @@
                 </div>
             </div>
 
-            {{-- Status --}}
+            {{-- Status Dropdown--}}
             <div class="mb-3">
                 <label>Status</label>
                 <select name="status" class="form-control">
@@ -130,11 +144,13 @@
                 </select>
             </div>
 
+            {{-- Buttons --}}
             <button type="submit" class="btn btn-primary mt-3">Update Vendor</button>
             <a href="{{ route('vendors.index') }}" class="btn btn-secondary mt-3">Cancel</a>
         </form>
     </div>
 </div>
+{{-- ⚙️ JS section for GST autofill using external API --}}
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const gstInput = document.querySelector('[name="gstin"]');
@@ -170,5 +186,51 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 });
+ // ✅ Verify PAN button click
+    const verifyPanBtn = document.getElementById('verifyPanBtn');
+    const panInput = document.getElementById('pan_number');
+    const panStatus = document.getElementById('panStatus');
+
+    verifyPanBtn.addEventListener('click', function() {
+        let pan = panInput.value.trim().toUpperCase();
+        // 🧩 Basic validation (PAN must be 10 chars)
+        if (pan.length !== 10) {
+            panStatus.innerHTML = '<span class="text-danger">⚠️ Enter a valid 10-character PAN number</span>';
+            return;
+        }
+
+        // 🕐 Disable button while verifying
+        verifyPanBtn.disabled = true;
+        verifyPanBtn.textContent = "Verifying...";
+        panStatus.textContent = "";
+
+        // 🌐 Call Laravel route for PAN check
+        fetch(`/company/fetch/${pan}`)
+            .then(res => res.json())
+            .then(data => {
+                verifyPanBtn.disabled = false;
+                verifyPanBtn.textContent = "Verify";
+
+                if (data.success) {
+                    // ✅ Fill data from company table
+                    let c = data.data;
+                    document.querySelector('[name="gstin"]').value = c.gst_no || '';
+                    document.querySelector('[name="business_display_name"]').value = c.company_name || '';
+                    document.querySelector('[name="contact_person_email"]').value = c.email_1 || '';
+                    document.querySelector('[name="address1"]').value = c.address_line1 || '';
+
+                    panStatus.innerHTML = '<span class="text-success">✅ PAN Verified & details filled!</span>';
+                } else {
+                    panStatus.innerHTML = '<span class="text-danger">❌ No company found for this PAN</span>';
+                }
+            })
+            .catch(err => {
+                verifyPanBtn.disabled = false;
+                verifyPanBtn.textContent = "Verify";
+                console.error(err);
+                panStatus.innerHTML = '<span class="text-danger">⚠️ Error verifying PAN number</span>';
+            });
+    });
+
 </script>
 @endsection

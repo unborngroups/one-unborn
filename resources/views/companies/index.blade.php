@@ -22,7 +22,7 @@
         <div class="card-body table-responsive">
             <!-- <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search..."> -->
             <table class="table table-bordered table-hover align-middle" id="userTable">
-                <thead class="table-light">
+                <thead class="table-primary">
                     <tr>
                         <th><input type="checkbox" id="selectAll"></th>
                         <th>S.No</th>
@@ -33,10 +33,10 @@
                         <th>Email</th>
                         <th>GST No</th>
                         <th>PAN No</th>
-                        <th>TAN No</th>       
+                        <!-- <th>TAN No</th>       
                         <th>Logo</th>
                         <th>Normal Sign</th>
-                        <th>Digital Sign</th>
+                        <th>Digital Sign</th> -->
                         <th>Status</th>
                         
                     </tr>
@@ -89,16 +89,16 @@
                             <!-- <td>{{ $index + 1 }}</td> -->
                             <td>{{ $company->company_name }}</td>
                             <td>{{ $company->cin_llpin }}</td>
-                            <td>{{ $company->contact_no }}</td>
+                            <td>{{ $company->company_phone }}</td>
                             <td>
                                 {{ $company->email_1 }}<br>
                                 @if($company->email_2)<small>{{ $company->email_2 }}</small>@endif
                             </td>
                             <td>{{ $company->gst_no }}</td>
                             <td>{{ $company->pan_number }}</td>
-                            <td>{{ $company->tan_number }}</td>
+                            <!-- <td>{{ $company->tan_number }}</td> -->
             
-                            <td>
+                            <!-- <td>
                                 @if($company->billing_logo)
                                     <img src="{{ asset('images/logos/'.$company->billing_logo) }}" alt="Logo" class="rounded-circle border" width="40" height="40">
                                 @else
@@ -119,7 +119,7 @@
                                 @else
                                     <span class="text-muted small">No sign</span>
                                 @endif
-                            </td>
+                            </td> -->
                             <td>
                                 <span class="badge bg-{{ $company->status === 'Active' ? 'success' : 'danger' }}">
                                     {{ $company->status }}

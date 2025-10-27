@@ -21,7 +21,7 @@ class UserTypeController extends Controller
     'can_add' => true,
     'can_edit' => true,
     'can_delete' => true,
-    // 'can_view' => true,
+    'can_view' => true,
 ];
         return view('usertypetable.index', compact('usertypetable', 'permissions'));
     }

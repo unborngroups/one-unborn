@@ -173,5 +173,11 @@ Client::create($validated);
     return redirect()->route('clients.index')
                      ->with('success', 'Client status updated successfully.');
 }
+// Get Client Details for Feasibility
+public function getDetails($id)
+{
+    $client = Client::find($id);
+    return response()->json($client);
+}
 
 }

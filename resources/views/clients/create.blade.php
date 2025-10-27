@@ -24,7 +24,10 @@
     <label class="form-label">PAN Number</label>
     <input type="text" id="pan_number" name="pan_number" class="form-control" 
            placeholder="Enter PAN Number">
+           <!-- <button type="button" id="verifyPanBtn" class="btn btn-primary">Verify</button> -->
 </div>
+<!-- 👇 ADD THIS LINE (important!) -->
+  <small id="panStatus" class="text-muted mt-1 d-block"></small>
 
 
             {{--  Basic Details Section --}}
@@ -163,49 +166,94 @@
     </div>
 </div>
 <!-- GST API -->
-<script>    
-document.getElementById('gstin').addEventListener('blur', function() {
-    let gstin = this.value.trim();
-    if (gstin.length === 15) {
-        fetch(`/gst/fetch/${gstin}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert("Company Name: " + data.data.tradeNam + "\nPAN: " + data.pan);
-                // You can also auto-fill form fields here
-                // document.querySelector('[name="business_display_name"]').value = data.data.tradeNam;
-            } else {
-                alert("Invalid GST Number");
-            }
-        })
-        .catch(err => console.error(err));
-    }
-});
+<script>
+document.addEventListener("DOMContentLoaded", () => {
 
-/**
- * pan number fetch
- */
-document.getElementById('pan_number').addEventListener('blur', function() {
-    let pan = this.value.trim().toUpperCase();
-    if (pan.length === 10) {
-        fetch(`/company/fetch/${pan}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                let c = data.data;
-                alert("Company Found: " + c.company_name);
+    const gstInput = document.querySelector('[name="gstin"]');
+    const panInput = document.querySelector('[name="pan_number"]');
+    const verifyPanBtn = document.getElementById("verifyPanBtn");
+    const panStatus = document.getElementById("panStatus");
 
-                // Auto-fill matching fields
-                document.querySelector('[name="business_display_name"]').value = c.company_name ?? '';
-                document.querySelector('[name="address1"]').value = c.address ?? '';
-                document.querySelector('[name="gstin"]').value = c.gst_no ?? '';
-                document.querySelector('[name="billing_spoc_email"]').value = c.email_1 ?? '';
-            } else {
-                alert("No company found for this PAN");
-            }
-        })
-        .catch(err => console.error(err));
-    }
+    /**
+     * 🔹 GST Fetch & Auto-fill
+     */
+    gstInput?.addEventListener('blur', function() {
+        let gstin = this.value.trim();
+        if (gstin.length === 15) {
+            fetch(`/gst/fetch/${gstin}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // Auto-fill company info
+                        document.querySelector('[name="business_display_name"]').value = data.data.tradeNam || '';
+                        document.querySelector('[name="pan_number"]').value = data.pan || '';
+
+                        if (data.data.pradr && data.data.pradr.addr) {
+                            const addr = data.data.pradr.addr;
+                            document.querySelector('[name="address1"]').value = `${addr.bnm || ''} ${addr.st || ''}`.trim();
+                            document.querySelector('[name="city"]').value = addr.loc || '';
+                            document.querySelector('[name="state"]').value = addr.stcd || '';
+                        }
+
+                        alert("✅ GST details fetched successfully!");
+                    } else {
+                        alert("❌ Invalid GST Number");
+                    }
+                })
+                .catch(err => {
+                    console.error("GST Fetch Error:", err);
+                    alert("⚠️ Error fetching GST details");
+                });
+        }
+    });
+
+    /**
+     * 🔹 PAN Fetch & Auto-fill
+     */
+    const verifyPan = () => {
+        const pan = panInput.value.trim();
+        if (pan.length === 10) {
+            panStatus.innerHTML = "⏳ Verifying PAN...";
+            fetch(`/company/fetch/${pan}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const c = data.data;
+                        document.querySelector('[name="gstin"]').value = c.gst_no || '';
+                        document.querySelector('[name="business_display_name"]').value = c.company_name || '';
+                        document.querySelector('[name="billing_spoc_email"]').value = c.email_1 || '';
+                        document.querySelector('[name="address1"]').value = c.address || '';
+
+                        panStatus.innerHTML = "✅ Company details auto-filled!";
+                        panStatus.classList.add("text-success");
+                        panStatus.classList.remove("text-danger");
+                    } else {
+                        panStatus.innerHTML = "❌ No company found for this PAN";
+                        panStatus.classList.add("text-danger");
+                        panStatus.classList.remove("text-success");
+                    }
+                })
+                .catch(err => {
+                    console.error("PAN Fetch Error:", err);
+                    panStatus.innerHTML = "⚠️ Error verifying PAN";
+                    panStatus.classList.add("text-danger");
+                    panStatus.classList.remove("text-success");
+                });
+        } else {
+            panStatus.innerHTML = "⚠️ Enter valid 10-character PAN";
+            panStatus.classList.add("text-danger");
+        }
+    };
+
+    // 🔘 Click Verify button
+    verifyPanBtn?.addEventListener('click', verifyPan);
+
+    // 🧠 Also verify automatically on blur
+    panInput?.addEventListener('blur', verifyPan);
+
 });
 </script>
+<!-- GST & PAN Autofill Script -->
+<script src="{{ asset('js/gst_pan_autofill.js') }}"></script>
+
 @endsection
