@@ -7,22 +7,31 @@ t@extends('layouts.app')
     <div class="card shadow border-0 p-4">
         {{-- Feasibility Details Header --}}
         <div class="row mb-4">
+            {{-- Feasibility Request ID --}}
             <div class="col-md-6">
                 <h6 class="fw-semibold text-muted">Feasibility Request ID:</h6>
                 <p><span class="badge bg-info fs-6">{{ $record->feasibility->feasibility_request_id ?? 'N/A' }}</span></p>
             </div>
+
+            {{-- Client Name --}}
             <div class="col-md-6">
                 <h6 class="fw-semibold text-muted">Client:</h6>
                 <p>{{ $record->feasibility->client->client_name ?? 'N/A' }}</p>
             </div>
+
+            {{-- Type of Service --}}
             <div class="col-md-6">
                 <h6 class="fw-semibold text-muted">Feasibility Type:</h6>
                 <p>{{ $record->feasibility->type_of_service ?? 'N/A' }}</p>
             </div>
+
+            {{-- No of links --}}
             <div class="col-md-6">
                 <h6 class="fw-semibold text-muted">No. of Links:</h6>
                 <p>{{ $record->feasibility->no_of_links ?? 'N/A' }}</p>
             </div>
+
+            {{-- Current Status --}}
             <div class="col-md-6">
                 <h6 class="fw-semibold text-muted">Current Status:</h6>
                 <p>
@@ -39,16 +48,19 @@ t@extends('layouts.app')
 
         <hr>
 
-        {{-- Form with dynamic vendor sections based on links --}}
+                {{-- ✅ Main form - no action applied, JS sets action dynamically --}}
         <form id="feasibilityForm" method="POST">
             @csrf
 
             @php
+            // Number of links determines how many vendor sections are mandatory
                 $noOfLinks = $record->feasibility->no_of_links ?? 1;
+
+                // Always render 4 vendor sections
                 $maxVendors = 4; // Always show all 4 vendor sections
             @endphp
 
-            {{-- Dynamic Vendor Sections - Always show 4 vendors --}}
+            {{-- ✅ Vendor Sections Loop --}}
             @for($i = 1; $i <= $maxVendors; $i++)
                 <h5 class="fw-bold text-info mb-3">
                     Vendor {{ $i }}
@@ -62,19 +74,23 @@ t@extends('layouts.app')
                         <small class="text-muted">(Optional - Additional Vendor)</small>
                     @endif
                 </h5>
-                
+                {{-- ✅ Vendor Input Row --}}
                 <div class="row g-3 mb-4" id="vendor{{ $i }}_section">
+                    {{-- Vendor Name Dropdown --}}
                     <div class="col-md-3">
                         <label class="form-label fw-semibold">Name 
                             @if($i <= $noOfLinks)
                                 <span class="text-danger">*</span>
                             @endif
                         </label>
+
+                        {{-- Vendor dropdown with duplicate validation --}}
                         <select name="vendor{{ $i }}_name" 
                                 class="form-select vendor-dropdown" 
                                 data-vendor-number="{{ $i }}"
                                 @if($i <= $noOfLinks) required @endif>
                             <option value="">Select Vendor</option>
+                             {{-- Populate vendor list --}}
                             @foreach($vendors as $vendor)
                                 <option value="{{ $vendor->vendor_name }}" 
                                         @if($record->{'vendor' . $i . '_name'} == $vendor->vendor_name) selected @endif>
@@ -86,18 +102,22 @@ t@extends('layouts.app')
                             This vendor is already selected in another section.
                         </div>
                     </div>
+                    {{-- ARC --}}
                     <div class="col-md-2">
                         <label class="form-label fw-semibold">ARC</label>
                         <input type="text" name="vendor{{ $i }}_arc" class="form-control" value="{{ $record->{'vendor' . $i . '_arc'} }}">
                     </div>
+                     {{-- OTC --}}
                     <div class="col-md-2">
                         <label class="form-label fw-semibold">OTC</label>
                         <input type="text" name="vendor{{ $i }}_otc" class="form-control" value="{{ $record->{'vendor' . $i . '_otc'} }}">
                     </div>
+                    {{-- Static IP Cost --}}
                     <div class="col-md-2">
                         <label class="form-label fw-semibold">Static IP Cost</label>
                         <input type="text" name="vendor{{ $i }}_static_ip_cost" class="form-control" value="{{ $record->{'vendor' . $i . '_static_ip_cost'} }}">
                     </div>
+                    {{-- Delivery Timeline --}}
                     <div class="col-md-3">
                         <label class="form-label fw-semibold">Delivery Timeline</label>
                         <input type="text" name="vendor{{ $i }}_delivery_timeline" class="form-control" value="{{ $record->{'vendor' . $i . '_delivery_timeline'} }}">

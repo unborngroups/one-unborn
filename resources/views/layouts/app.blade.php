@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>One-Unborn</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/logo.jpg') }}">
+    <link rel="icon" type="image/png" width="20" height="20" href="{{ asset('images/logo.jpg') }}">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <!-- ✅ Flatpickr CSS -->

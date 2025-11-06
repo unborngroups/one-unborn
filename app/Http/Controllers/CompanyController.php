@@ -48,7 +48,7 @@ public function index()
         return view('companies.create');
     }
 
-    public function store(Request $request, Company $company)
+    public function store(Request $request)
     {
        $validated = $request->validate([
     'trade_name' => 'nullable|string|max:255',
@@ -62,6 +62,9 @@ public function index()
     'gstin' => 'nullable|string|max:15',
     'pan_number' => 'nullable|string|max:10',
     'address' => 'nullable|string',
+    'billing_logo' => 'nullable|image|max:2048',
+    'billing_sign_normal' => 'nullable|image|max:2048',
+    'billing_sign_digital' => 'nullable|image|max:2048',
     'branch_location' => 'nullable|string|max:255',
     'store_location_url' => 'nullable|string|max:255',
     'google_place_id' => 'nullable|string|max:255',
@@ -78,6 +81,11 @@ public function index()
     'opening_balance' => 'nullable|numeric',
      'status'           => 'required|in:Active,Inactive',
 ]);
+
+// ✅ Upload images to public/images/...
+        $validated['billing_logo'] = $this->uploadImage($request, 'billing_logo', 'logos');
+        $validated['billing_sign_normal'] = $this->uploadImage($request, 'billing_sign_normal', 'n_signs');
+        $validated['billing_sign_digital'] = $this->uploadImage($request, 'billing_sign_digital', 'd_signs');
 
 // ✅ Insert into database
     Company::create($validated);
@@ -111,6 +119,9 @@ public function index()
                 'gstin' => 'nullable|string|max:15',
                 'pan_number' => 'nullable|string|max:10',
                 'address' => 'nullable|string',
+                'billing_logo' => 'nullable|image|max:2048',
+                'billing_sign_normal' => 'nullable|image|max:2048',
+                'billing_sign_digital' => 'nullable|image|max:2048',
                 'branch_location' => 'nullable|string|max:255',
                 'store_location_url' => 'nullable|string|max:255',
                 'google_place_id' => 'nullable|string|max:255',
@@ -131,6 +142,11 @@ public function index()
             // Log for debugging
             Log::info('Company Update - ID: ' . $company->id . ', Data: ' . json_encode($validated));
             
+            // ✅ Replace images if new uploaded
+        $validated['billing_logo'] = $this->updateImage($request, $company->billing_logo, 'billing_logo', 'logos');
+        $validated['billing_sign_normal'] = $this->updateImage($request, $company->billing_sign_normal, 'billing_sign_normal', 'n_signs');
+        $validated['billing_sign_digital'] = $this->updateImage($request, $company->billing_sign_digital, 'billing_sign_digital', 'd_signs');
+
             // Update the existing company
             $company->update($validated);
             
@@ -150,6 +166,12 @@ public function index()
 {
     try {
         $company = Company::findOrFail($id);
+        
+        // Delete images before deleting company record
+        $this->deleteImage('images/logos/' . $company->billing_logo);
+        $this->deleteImage('images/n_signs/' . $company->billing_sign_normal);
+        $this->deleteImage('images/d_signs/' . $company->billing_sign_digital);
+
         $company->delete();
 
         return redirect()->route('companies.index')
@@ -408,6 +430,7 @@ private function tryGstIndiaCheck($gst)
     return null;
 }
 
+
 private function tryMasterGST($gst)
 {
     try {
@@ -443,5 +466,41 @@ private function tryMasterGST($gst)
     
     return null;
 }
+
+ // 🔧 Helper methods
+    private function uploadImage($request, $field, $folder)
+    {
+        if ($request->hasFile($field)) {
+            $file = $request->file($field);
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path("images/{$folder}"), $filename);
+            return $filename;
+        }
+        return null;
+    }
+
+    private function updateImage($request, $oldFile, $field, $folder)
+    {
+        if ($request->hasFile($field)) {
+            $oldPath = public_path("images/{$folder}/{$oldFile}");
+            if ($oldFile && file_exists($oldPath)) {
+                unlink($oldPath);
+            }
+
+            $file = $request->file($field);
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path("images/{$folder}"), $filename);
+            return $filename;
+        }
+        return $oldFile;
+    }
+
+    private function deleteImage($path)
+    {
+         $fullPath = public_path($path);
+        if ($path && file_exists($fullPath) && is_file($fullPath)) {
+            unlink($fullPath);
+        }
+    }
 
 }

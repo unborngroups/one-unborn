@@ -52,9 +52,9 @@ return new class extends Migration
             $table->decimal('opening_balance', 15, 2)->nullable();
 
             // 🧾 Branding (Logos / Signatures)
-            // $table->string('billing_logo')->nullable();
-            // $table->string('billing_sign_normal')->nullable();
-            // $table->string('billing_sign_digital')->nullable();
+            $table->string('billing_logo')->nullable();
+            $table->string('billing_sign_normal')->nullable();
+            $table->string('billing_sign_digital')->nullable();
 
             // 🎨 Theme
             $table->string('color')->default('#333333');

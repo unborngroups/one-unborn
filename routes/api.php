@@ -10,6 +10,9 @@ use App\Http\Controllers\PincodeLookupController;
 Route::get('fetch-gst/{gst}', [CompanyController::class, 'fetchGst'])->name('api.fetch-gst');
 Route::get('test-gst-api', [CompanyController::class, 'testGstApi'])->name('api.test-gst');
 
+
+Route::get('/gst/fetch/{pan}/{state}', [CompanyController::class, 'fetchGST']);
+
 // PAN Company Fetch Route
 Route::get('fetch-company-by-pan/{pan}', [CompanyController::class, 'fetchByPan'])->name('api.fetch-company-by-pan');
 

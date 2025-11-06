@@ -26,7 +26,7 @@
         </div>
         <div class="card-body table-responsive">
             <table class="table table-striped table-hover table-bordered align-middle mb-0" id="userTable">
-                <thead class="table-primary text-center">
+                <thead class="table-dark-primary text-center">
                     <tr>
                         <th><input type="checkbox" id="selectAll"></th>
                         <th>S.No</th>
@@ -124,7 +124,7 @@
                             <td><?php echo e($user->mobile ?? '-'); ?></td>
 
                             
-                            <td>
+                            <td class="date-col">
                                 <?php echo e($user->companies->pluck('company_name')->join(', ') ?: 'No Company Assigned'); ?>
 
                             </td>

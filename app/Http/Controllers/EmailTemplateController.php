@@ -74,10 +74,10 @@ class EmailTemplateController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit($email)
 {
     // Fetch the template by ID
-    $template = EmailTemplate::findOrFail($id);
+    $template = EmailTemplate::findOrFail($email);
 
     // Fetch all companies (for dropdown)
     $companies = Company::all();
@@ -89,7 +89,7 @@ class EmailTemplateController extends Controller
     /**
      * Update the specified resource in storage.
      */
-   public function update(Request $request, $id)
+   public function update(Request $request, $email)
 {
     $request->validate([
         'company_id' => 'required|exists:companies,id',
@@ -99,7 +99,7 @@ class EmailTemplateController extends Controller
     'footer'     => 'nullable|string',
     ]);
 
-    $template = EmailTemplate::findOrFail($id);
+    $template = EmailTemplate::findOrFail($email);
 
     $template->update([
         'company_id' => $request->company_id,
@@ -118,11 +118,22 @@ class EmailTemplateController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(EmailTemplate $emailTemplate)
+    public function destroy($email)
     {
-        $emailTemplate->delete();
+        try {
+            Log::info('🗑️ Delete request received for template ID: ' . $email);
+            
+            $emailTemplate = EmailTemplate::findOrFail($email);
+            Log::info('📧 Found template: ' . $emailTemplate->subject);
+            
+            $emailTemplate->delete();
+            Log::info('✅ Template deleted successfully');
 
-        return redirect()->route('emails.index')->with('success', 'Template deleted.');
+            return redirect()->route('emails.index')->with('success', 'Template deleted successfully.');
+        } catch (\Exception $e) {
+            Log::error('❌ Delete failed: ' . $e->getMessage());
+            return redirect()->route('emails.index')->with('error', 'Error deleting template: ' . $e->getMessage());
+        }
     }
 
      /**

@@ -48,9 +48,9 @@ class Company extends Model
         'opening_balance',
 
         // 🧾 Branding
-        // 'billing_logo',
-        // 'billing_sign_normal',
-        // 'billing_sign_digital',
+        'billing_logo',
+        'billing_sign_normal',
+        'billing_sign_digital',
 
         // 🎨 Theme
         'color',

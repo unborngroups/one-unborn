@@ -19,17 +19,30 @@
         
         <form action="<?php echo e(route('vendors.store')); ?>" method="POST">
             <?php echo csrf_field(); ?>
-             
-             <div class="col-md-4">
-    <label class="form-label">PAN Number</label>
-    <input type="text" id="pan_number" name="pan_number" class="form-control" 
-           placeholder="Enter PAN Number">
-           <!-- Button commented out (optional verification trigger) -->
-           <!-- <button type="button" id="verifyPanBtn" class="btn btn-primary">Verify</button> -->
-</div>
-<!--  PAN status message area -->
-  <small id="panStatus" class="text-muted mt-1 d-block"></small>
+              
+            <div class="col-md-4">
+                <label class="form-label">PAN Number</label>
+                <input type="text" id="pan_number" name="pan_number" class="form-control" placeholder="Enter PAN Number">
+            </div>
 
+            <small id="panStatus" class="text-muted mt-1 d-block"></small>
+
+            
+            <div class="col-md-4 mt-3">
+                <label class="form-label">Select GST State</label>
+                <select id="gst_state" class="form-select select2-tags">
+                    <option value="">-- Select State --</option>
+                    <option value="29">Karnataka</option>
+                    <option value="33">Tamil Nadu</option>
+                    <option value="36">Telangana</option>
+                    <option value="27">Maharashtra</option>
+                    <option value="07">Delhi</option>
+                </select>
+            </div>
+
+            <small id="gstStatus" class="mt-2 d-block text-muted"></small>
+
+            <hr>
             
             <h5 class="text-secondary">Basic Details</h5>
             <div class="row mb-3">
@@ -153,67 +166,45 @@
     </div>
 </div>
 
+
+
 <script>
-const panStatus = document.getElementById('panStatus');
-document.getElementById('pan_number').addEventListener('blur', function() {
-    let pan = this.value.trim();
-    panStatus.innerHTML = '';
+function fetchGST() {
+    let pan = document.getElementById("pan_number").value.trim();
+    let state = document.getElementById("gst_state").value;
+    let gstStatus = document.getElementById("gstStatus");
 
-    if (pan.length === 10) {
-        panStatus.innerHTML = "⏳ Verifying PAN...";
-        fetch(`/company/fetch/${pan}`)
-            .then(response => response.json())
-            .then(data => {
-                console.log('🔍 PAN Fetch Response:', data); // Debug log
-                
-                if (data.success) {
-                    // 🏢 Map company data to vendor fields
-                    const companyData = data.data;
-                    
-                    // Basic Details
-                    document.getElementById('vendor_name').value = companyData.company_name || '';
-                    document.getElementById('business_display_name').value = companyData.trade_name || companyData.company_name || '';
-                    
-                    // Address
-                    document.getElementById('address1').value = companyData.address || '';
-                    
-                    // Contact Details (Map to contact person fields)
-                    document.getElementById('contact_person_email').value = companyData.company_email || '';
-                    document.getElementById('contact_person_mobile').value = companyData.company_phone || '';
-                    
-                    // Legal Details
-                    document.getElementById('gstin').value = companyData.gstin || '';
-                    
-                    // Also fill the PAN field in legal details section if it exists
-                    const panNoField = document.querySelector('[name="pan_no"]');
-                    if (panNoField) {
-                        panNoField.value = pan;
-                    }
-
-                    panStatus.innerHTML = "✅ Company details auto-filled to vendor form!";
-                    panStatus.classList.remove("text-danger");
-                    panStatus.classList.add("text-success");
-                } else {
-                    panStatus.innerHTML = "❌ No company found for this PAN.";
-                    panStatus.classList.add("text-danger");
-                    panStatus.classList.remove("text-success");
-                }
-            })
-            .catch(err => {
-                console.error('❌ Error fetching company by PAN:', err);
-                panStatus.innerHTML = "⚠️ Server error verifying PAN.";
-                panStatus.classList.add("text-danger");
-                panStatus.classList.remove("text-success");
-            });
-    } else if (pan.length > 0) {
-        panStatus.innerHTML = "⚠️ Enter valid 10-character PAN.";
-        panStatus.classList.add("text-danger");
-        panStatus.classList.remove("text-success");
+    if (pan.length !== 10 || state === "") {
+        gstStatus.innerHTML = "⚠️ Enter valid PAN + Select State";
+        return;
     }
-});
 
-console.log('📋 Vendor PAN Auto-fill initialized');
+    gstStatus.innerHTML = "⏳ Fetching GST details...";
+
+    fetch(`/api/gst/fetch/${pan}/${state}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById("gstin").value = data.data.gstin;
+                document.getElementById("business_display_name").value = data.data.trade_name;
+                document.getElementById("address1").value = data.data.address;
+                document.getElementById("billing_spoc_email").value = data.data.company_email;
+                document.getElementById("billing_spoc_contact").value = data.data.company_phone;
+
+                gstStatus.innerHTML = "✅ GST Details Auto-filled!";
+            } else {
+                gstStatus.innerHTML = "❌ GST Not Found for this PAN + State";
+            }
+        })
+        .catch(() => {
+            gstStatus.innerHTML = "⚠️ Server Error";
+        });
+}
+
+document.getElementById("pan_number").addEventListener("blur", fetchGST);
+document.getElementById("gst_state").addEventListener("change", fetchGST);
 </script>
+
 <?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views/vendors/create.blade.php ENDPATH**/ ?>

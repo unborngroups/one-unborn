@@ -65,28 +65,6 @@
         <small class="text-muted">If GST not available, enter address manually</small>
     </div>
 
-    <!-- {{-- ✅ Pincode & Auto Fetch Area --}}
-    <div class="col-md-3 mb-3">
-        <label class="form-label">Pincode</label>
-        <input type="text" name="pincode" id="pincode" class="form-control"
-            value="{{ old('pincode', $company->pincode ?? '') }}">
-    </div>
-    <div class="col-md-3 mb-3">
-        <label class="form-label">Post Office Area</label>
-        <input type="text" name="area" id="area" class="form-control"
-            value="{{ old('area', $company->area ?? '') }}" readonly>
-    </div>
-    <div class="col-md-3 mb-3">
-        <label class="form-label">District</label>
-        <input type="text" name="district" id="district" class="form-control"
-            value="{{ old('district', $company->district ?? '') }}" readonly>
-    </div>
-    <div class="col-md-3 mb-3">
-        <label class="form-label">State</label>
-        <input type="text" name="state" id="state" class="form-control"
-            value="{{ old('state', $company->state ?? '') }}" readonly>
-    </div> -->
-
     {{-- ✅ Website --}}
     <div class="col-md-6 mb-3">
         <label class="form-label">Website</label>
@@ -178,6 +156,8 @@
             value="{{ old('ifsc_code', $company->ifsc_code ?? '') }}">
     </div>
 
+
+
     {{-- ✅ UPI Details --}}
     <div class="col-md-6 mb-3">
         <label class="form-label">UPI ID</label>
@@ -196,6 +176,33 @@
         <label class="form-label">Opening Balance</label>
         <input type="number" name="opening_balance" class="form-control"
             value="{{ old('opening_balance', $company->opening_balance ?? '') }}">
+    </div>
+
+    {{-- ✅ Billing Logo --}}
+    <div class="col-md-4 mb-3">
+        <label class="form-label">Billing Logo</label>
+        <input type="file" name="billing_logo" class="form-control">
+        @if(!empty($company->billing_logo))
+            <img src="{{ asset('images/logos/' . $company->billing_logo) }}" class="mt-2 border rounded" width="80">
+        @endif
+    </div>
+
+    {{-- ✅ Normal Sign --}}
+    <div class="col-md-4 mb-3">
+        <label class="form-label">Normal Sign</label>
+        <input type="file" name="billing_sign_normal" class="form-control">
+        @if(!empty($company->billing_sign_normal))
+            <img src="{{ asset('images/n_signs/' . $company->billing_sign_normal) }}" class="mt-2 border rounded" width="80">
+        @endif
+    </div>
+
+    {{-- ✅ Digital Sign --}}
+    <div class="col-md-4 mb-3">
+        <label class="form-label">Digital Sign</label>
+        <input type="file" name="billing_sign_digital" class="form-control">
+        @if(!empty($company->billing_sign_digital))
+            <img src="{{ asset('images/d_signs/' . $company->billing_sign_digital) }}" class="mt-2 border rounded" width="80">
+        @endif
     </div>
 
     {{-- ✅ Status --}}

@@ -5,14 +5,17 @@
     <div class="row">
         <div class="col-12">
             <div class="card shadow border-0">
+                {{-- ✅ Header Section --}}
                 <div class="card-header text-dark d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="bi bi-hourglass-split me-2"></i>Open Feasibilities</h5>
                 </div>
 
                 <div class="card-body">
+                    {{-- ✅ Check if any feasibility records exist --}}
                     @if($records->count() > 0)
                         <div class="table-responsive">
                             <table class="table table-striped table-hover">
+                                {{-- ✅ Table Headers --}}
                                 <thead class="table-dark-primary">
                                     <tr>
                                         <th>S.No</th>
@@ -26,28 +29,35 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    {{-- ✅ Loop through all records --}}
                                     @foreach($records as $index => $record)
                                         <tr>
+                                            {{-- Serial No --}}
                                             <td>{{ $index + 1 }}</td>
+                                            {{-- Request ID --}}
                                             <td>
                                                 <span class="">{{ $record->feasibility->feasibility_request_id ?? 'N/A' }}</span>
                                             </td>
+                                            {{-- Action Buttons (View only) --}}
                                             <td>
                                                 <div class="btn-group" role="group">
+                                                    {{-- View button --}}
                                                     <a href="{{ route('sm.feasibility.view', $record->id) }}" 
                                                        class="btn btn-info btn-sm" title="View">
                                                         <i class="bi bi-eye"></i> View
                                                     </a>
-                                                    <!-- <a href="{{ route('sm.feasibility.edit', $record->id) }}" 
-                                                       class="btn btn-warning btn-sm" title="Update">
-                                                        <i class="bi bi-pencil"></i> Update
-                                                    </a> -->
+                                                    
                                                 </div>
                                             </td>
+                                            {{-- Company Name --}}
                                             <td>{{ $record->feasibility->company->company_name ?? 'N/A' }}</td>
+                                            {{-- Client Name --}}
                                             <td>{{ $record->feasibility->client->client_name ?? 'N/A' }}</td>
+                                            {{-- Type of Service --}}
                                             <td>{{ $record->feasibility->type_of_service ?? 'N/A' }}</td>
+                                            {{-- Speed --}}
                                             <td>{{ $record->feasibility->speed ?? 'N/A' }}</td>
+                                            {{-- No of Links --}}
                                             <td>{{ $record->feasibility->no_of_links ?? 'N/A' }}</td>
                                         </tr>
                                     @endforeach
@@ -55,6 +65,7 @@
                             </table>
                         </div>
                     @else
+                    {{-- ✅ Show message when no records found --}}
                         <div class="text-center py-4">
                             <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
                             <h5 class="text-muted mt-3">No open feasibilities found</h5>

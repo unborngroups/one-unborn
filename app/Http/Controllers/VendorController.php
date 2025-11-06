@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Http;
 use App\Helpers\TemplateHelper;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
@@ -39,6 +40,7 @@ class VendorController extends Controller
     public function store(Request $request)
 {
     $request->validate([
+        'pan_number' => 'nullable|string|size:10',
        'vendor_name'          => 'required|string|max:255',
             'vendor_code'          => 'nullable|string|max:50|unique:vendor,vendor_code,' . ($vendor->id ?? 'null'),
             'business_display_name'=> 'nullable|string|max:255',
@@ -116,6 +118,7 @@ class VendorController extends Controller
     public function update(Request $request, Vendor $vendor)
     {
         $validated =  $request->validate([
+        'pan_number' => 'nullable|string|size:10',
        'vendor_name'          => 'required|string|max:255',
             'vendor_code'          => 'nullable|string|max:50|unique:vendor,vendor_code,' . ($vendor->id ?? 'null'),
             'business_display_name'=> 'nullable|string|max:255',
@@ -178,4 +181,64 @@ public function verifyPan(Request $request)
         return response()->json(['success' => false, 'message' => 'PAN not found']);
     }
 }
+// Fetch GST Details
+public function fetchGST($pan, $state)
+{
+    $pan = strtoupper($pan);
+    if (strlen($pan) !== 10) {
+        return response()->json(['success' => false, 'message' => 'Invalid PAN']);
+    }
+
+    // Step 1: Generate GSTIN without checksum
+    $partialGSTIN = $state . $pan . "1Z";
+
+    // Step 2: Generate checksum
+    $checksum = $this->getGSTChecksum($partialGSTIN);
+
+    // Final GSTIN
+    $gstin = $partialGSTIN . $checksum;
+
+    // Step 3: Call GST API
+    $url = "https://sheet.gstincheck.co.in/check/{$gstin}";
+    $response = Http::timeout(10)->get($url);
+
+    if ($response->failed() || !isset($response['tradeNam'])) {
+        return response()->json(['success' => false]);
+    }
+
+    $data = [
+        'gstin' => $gstin,
+        'trade_name' => $response['tradeNam'],
+        'address' => $response['pradr']['addr']['bno']
+                    . ", " . $response['pradr']['addr']['st']
+                    . ", " . $response['pradr']['addr']['dst'],
+        'company_email' => $response['pradr']['email'] ?? '',
+        'company_phone' => $response['pradr']['phone'] ?? '',
+    ];
+
+    return response()->json(['success' => true, 'data' => $data]);
 }
+
+/* Generate GSTIN Checksum */
+private function getGSTChecksum($input)
+{
+    $chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    $factor = 1;
+    $sum = 0;
+
+    for ($i = 0; $i < strlen($input); $i++) {
+        $codePoint = strpos($chars, $input[$i]);
+        $digit = $factor * $codePoint;
+
+        $factor = ($factor == 1) ? 2 : 1;
+
+        $digit = floor($digit / 36) + ($digit % 36);
+        $sum += $digit;
+    }
+
+    $checksumPoint = (36 - ($sum % 36)) % 36;
+    return $chars[$checksumPoint];
+}
+
+}
+

@@ -7,22 +7,31 @@
     <div class="card shadow border-0 p-4">
         
         <div class="row mb-4">
+            
             <div class="col-md-6">
                 <h6 class="fw-semibold text-muted">Feasibility Request ID:</h6>
                 <p><span class="badge bg-info fs-6"><?php echo e($record->feasibility->feasibility_request_id ?? 'N/A'); ?></span></p>
             </div>
+
+            
             <div class="col-md-6">
                 <h6 class="fw-semibold text-muted">Client:</h6>
                 <p><?php echo e($record->feasibility->client->client_name ?? 'N/A'); ?></p>
             </div>
+
+            
             <div class="col-md-6">
                 <h6 class="fw-semibold text-muted">Feasibility Type:</h6>
                 <p><?php echo e($record->feasibility->type_of_service ?? 'N/A'); ?></p>
             </div>
+
+            
             <div class="col-md-6">
                 <h6 class="fw-semibold text-muted">No. of Links:</h6>
                 <p><?php echo e($record->feasibility->no_of_links ?? 'N/A'); ?></p>
             </div>
+            
+            
             <div class="col-md-6">
                 <h6 class="fw-semibold text-muted">Current Status:</h6>
                 <p>
@@ -45,7 +54,9 @@
             <?php echo csrf_field(); ?>
 
             <?php
+            // Number of links determines how many vendor sections are mandatory
                 $noOfLinks = $record->feasibility->no_of_links ?? 1;
+                // Always render 4 vendor sections
                 $maxVendors = 4; // Always show all 4 vendor sections
             ?>
 
@@ -54,6 +65,7 @@
                 <h5 class="fw-bold text-primary mb-3">
                     Vendor <?php echo e($i); ?>
 
+                    
                     <?php if($i <= $noOfLinks): ?>
                         <?php if($noOfLinks == 1): ?>
                             <small class="text-success">(Required - Default Vendor)</small>
@@ -66,17 +78,21 @@
                 </h5>
                 
                 <div class="row g-3 mb-4" id="vendor<?php echo e($i); ?>_section">
+                    
                     <div class="col-md-3">
                         <label class="form-label fw-semibold">Name 
                             <?php if($i <= $noOfLinks): ?>
                                 <span class="text-danger">*</span>
                             <?php endif; ?>
                         </label>
+
+                        
                         <select name="vendor<?php echo e($i); ?>_name" 
                                 class="form-select vendor-dropdown" 
                                 data-vendor-number="<?php echo e($i); ?>"
                                 <?php if($i <= $noOfLinks): ?> required <?php endif; ?>>
                             <option value="">Select Vendor</option>
+                             
                             <?php $__currentLoopData = $vendors; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $vendor): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($vendor->vendor_name); ?>" 
                                         <?php if($record->{'vendor' . $i . '_name'} == $vendor->vendor_name): ?> selected <?php endif; ?>>
@@ -89,18 +105,22 @@
                             This vendor is already selected in another section.
                         </div>
                     </div>
+                    
                     <div class="col-md-2">
                         <label class="form-label fw-semibold">ARC</label>
                         <input type="text" name="vendor<?php echo e($i); ?>_arc" class="form-control" value="<?php echo e($record->{'vendor' . $i . '_arc'}); ?>">
                     </div>
+                     
                     <div class="col-md-2">
                         <label class="form-label fw-semibold">OTC</label>
                         <input type="text" name="vendor<?php echo e($i); ?>_otc" class="form-control" value="<?php echo e($record->{'vendor' . $i . '_otc'}); ?>">
                     </div>
+                    
                     <div class="col-md-2">
                         <label class="form-label fw-semibold">Static IP Cost</label>
                         <input type="text" name="vendor<?php echo e($i); ?>_static_ip_cost" class="form-control" value="<?php echo e($record->{'vendor' . $i . '_static_ip_cost'}); ?>">
                     </div>
+                    
                     <div class="col-md-3">
                         <label class="form-label fw-semibold">Delivery Timeline</label>
                         <input type="text" name="vendor<?php echo e($i); ?>_delivery_timeline" class="form-control" value="<?php echo e($record->{'vendor' . $i . '_delivery_timeline'}); ?>">
@@ -115,12 +135,17 @@
                 <div class="row">
                    
                     <div class="col-md-6 text-end">
+                        
                         <button type="button" class="btn btn-warning me-2" onclick="saveToInProgress()">
                             <i class="bi bi-save"></i> Save (Move to In Progress)
                         </button>
+
+                        
                         <button type="button" class="btn btn-success me-2" onclick="submitToClosed()">
                             <i class="bi bi-check-circle"></i> Submit (Move to Closed)
                         </button>
+
+                        
                         <?php if($record->status == 'Open'): ?>
                             <a href="<?php echo e(route('operations.feasibility.open')); ?>" class="btn btn-secondary">Cancel</a>
                         <?php elseif($record->status == 'InProgress'): ?>

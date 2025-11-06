@@ -38,22 +38,7 @@
                 <th>Address</th>
                 <td>{{ $company->address ?? '-' }}</td>
             </tr>
-            <!-- <tr>
-                <th>Pincode</th>
-                <td>{{ $company->pincode ?? '-' }}</td>
-            </tr>
-            <tr>
-                <th>Area</th>
-                <td>{{ $company->area ?? '-' }}</td>
-            </tr>
-            <tr>
-                <th>District</th>
-                <td>{{ $company->district ?? '-' }}</td>
-            </tr>
-            <tr>
-                <th>State</th>
-                <td>{{ $company->state ?? '-' }}</td>
-            </tr> -->
+           
             <tr> 
                 <th>Website</th>
                 <td>{{ $company->website ?? '-' }}</td>
@@ -122,8 +107,8 @@
                 <th>Opening Balance</th>
                 <td>{{ $company->opening_balance ?? '-' }}</td>
             </tr>
-
-           <!-- {{-- Billing Logo --}}
+            
+           {{-- Billing Logo --}}
               <tr>
                 <th>Billing Logo</th>
                 <td>
@@ -133,9 +118,9 @@
                         -
                     @endif
                 </td>
-            </tr> -->
+            </tr>
 
-            <!-- {{-- Normal Sign --}}
+            {{-- Normal Sign --}}
             <tr>
                 <th>Normal Sign</th>
                 <td>
@@ -145,9 +130,9 @@
                         -
                     @endif
                 </td>
-            </tr> -->
+            </tr>
 
-            <!-- {{-- Digital Sign --}}
+            {{-- Digital Sign --}}
             <tr>
                 <th>Digital Sign</th>
                 <td>
@@ -157,7 +142,7 @@
                         -
                     @endif
                 </td>
-            </tr> -->
+            </tr>
 
             <tr>
                 <th>Status</th>

@@ -87,8 +87,8 @@
                                 
                             </td>
                             <!-- <td>{{ $index + 1 }}</td> -->
-                            <td>{{ $company->company_name }}</td>
-                            <td>{{ $company->business_number }}</td>
+                            <td class="col">{{ $company->company_name }}</td>
+                            <td class="col">{{ $company->business_number }}</td>
                             <td>{{ $company->company_phone }}</td>
                             <td>
                                 {{ $company->company_email }}
@@ -151,4 +151,12 @@ document.getElementById('selectAll').addEventListener('change', function(){
 
 
 </script>
+
+
+<style>
+    .col {
+    width: 130px;
+    white-space: nowrap;
+}
+</style>
 @endsection

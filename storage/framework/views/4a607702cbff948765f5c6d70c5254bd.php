@@ -65,28 +65,6 @@
         <small class="text-muted">If GST not available, enter address manually</small>
     </div>
 
-    <!-- 
-    <div class="col-md-3 mb-3">
-        <label class="form-label">Pincode</label>
-        <input type="text" name="pincode" id="pincode" class="form-control"
-            value="<?php echo e(old('pincode', $company->pincode ?? '')); ?>">
-    </div>
-    <div class="col-md-3 mb-3">
-        <label class="form-label">Post Office Area</label>
-        <input type="text" name="area" id="area" class="form-control"
-            value="<?php echo e(old('area', $company->area ?? '')); ?>" readonly>
-    </div>
-    <div class="col-md-3 mb-3">
-        <label class="form-label">District</label>
-        <input type="text" name="district" id="district" class="form-control"
-            value="<?php echo e(old('district', $company->district ?? '')); ?>" readonly>
-    </div>
-    <div class="col-md-3 mb-3">
-        <label class="form-label">State</label>
-        <input type="text" name="state" id="state" class="form-control"
-            value="<?php echo e(old('state', $company->state ?? '')); ?>" readonly>
-    </div> -->
-
     
     <div class="col-md-6 mb-3">
         <label class="form-label">Website</label>
@@ -178,6 +156,8 @@
             value="<?php echo e(old('ifsc_code', $company->ifsc_code ?? '')); ?>">
     </div>
 
+
+
     
     <div class="col-md-6 mb-3">
         <label class="form-label">UPI ID</label>
@@ -196,6 +176,33 @@
         <label class="form-label">Opening Balance</label>
         <input type="number" name="opening_balance" class="form-control"
             value="<?php echo e(old('opening_balance', $company->opening_balance ?? '')); ?>">
+    </div>
+
+    
+    <div class="col-md-4 mb-3">
+        <label class="form-label">Billing Logo</label>
+        <input type="file" name="billing_logo" class="form-control">
+        <?php if(!empty($company->billing_logo)): ?>
+            <img src="<?php echo e(asset('images/logos/' . $company->billing_logo)); ?>" class="mt-2 border rounded" width="80">
+        <?php endif; ?>
+    </div>
+
+    
+    <div class="col-md-4 mb-3">
+        <label class="form-label">Normal Sign</label>
+        <input type="file" name="billing_sign_normal" class="form-control">
+        <?php if(!empty($company->billing_sign_normal)): ?>
+            <img src="<?php echo e(asset('images/n_signs/' . $company->billing_sign_normal)); ?>" class="mt-2 border rounded" width="80">
+        <?php endif; ?>
+    </div>
+
+    
+    <div class="col-md-4 mb-3">
+        <label class="form-label">Digital Sign</label>
+        <input type="file" name="billing_sign_digital" class="form-control">
+        <?php if(!empty($company->billing_sign_digital)): ?>
+            <img src="<?php echo e(asset('images/d_signs/' . $company->billing_sign_digital)); ?>" class="mt-2 border rounded" width="80">
+        <?php endif; ?>
     </div>
 
     

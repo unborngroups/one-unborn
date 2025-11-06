@@ -49,10 +49,10 @@
 
                                  
                                  <?php if($permissions->can_delete): ?>
-                                <form action="<?php echo e(route('emails.destroy', $template->id)); ?>" method="POST" style="display:inline-block;">
+                                <form action="<?php echo e(route('emails.destroy', $template->id)); ?>" method="POST" style="display:inline-block;" onsubmit="return confirm('Delete this template?')">
                                     <?php echo csrf_field(); ?> 
                                     <?php echo method_field('DELETE'); ?>
-                                    <button class="btn btn-sm btn-danger" onclick="return confirm('Delete this template?')">
+                                    <button type="submit" class="btn btn-sm btn-danger">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
@@ -67,9 +67,6 @@
                                     </button>
                                 </form>
                             </td>
-                          
-
-                            </td>
                              <td><?php echo e($template->company ? $template->company->company_name : '-'); ?></td>
                             <td><?php echo e($template->subject); ?></td>
                             <td class="text-center">
@@ -81,7 +78,7 @@
                          
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                        <tr><td colspan="4" class="text-center">No templates found.</td></tr>
+                        <tr><td colspan="6" class="text-center">No templates found.</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>

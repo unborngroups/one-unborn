@@ -15,6 +15,7 @@ return new class extends Migration
     $table->id();
     $table->string('client_code')->unique(); // auto-generate
     $table->string('client_name');
+    $table->string('pan_number', 10)->nullable();
     $table->string('business_display_name')->nullable();
 
     // Address

@@ -108,18 +108,31 @@ $doj = !empty($validated['Date_of_Joining'])
 $firstCompanyId = $validated['companies'][0] ?? 1;
 $firstCompany = Company::find($firstCompanyId);
 
-// ✅ Fetch template (company-specific or global)
+// ✅ CASE 1: Look for company-specific template only (no fallback to global)
 $template = EmailTemplate::where('company_id', $firstCompanyId)
     ->where('name', 'User Created')
-    ->first()
-    ?? EmailTemplate::where('company_id', 0)->where('name', 'User Created')->first();
+    ->first();
+
+// ✅ CASE 2: If no template exists, use system default content (don't create/store template)
+$useSystemDefault = false;
+if (!$template) {
+    Log::info('🔄 No template found for company: ' . $firstCompanyId . ' - Using system default welcome email');
+    $useSystemDefault = true;
     
-Log::info('🟡 Email Template Check:', ['template_found' => (bool)$template]);
+    // Create virtual template object with system default content
+    $template = (object) [
+        'subject' => 'Welcome to {company_name}, {name}!',
+        'body' => 'Hello {name},<br><br>Welcome to {company_name}!<br><br>Your login credentials:<br>Email: {email}<br>Password: {password}<br><br>Please login and update your profile.<br><br>Best regards,<br>Team {company_name}'
+    ];
+}
 
-
- if (!$template) {
-            return redirect()->route('users.index')->with('warning', 'User created but email template missing.');
-        }
+Log::info('🟡 Email Template Check:', [
+    'template_found' => (bool)$template,
+    'company_id' => $firstCompanyId,
+    'template_id' => $useSystemDefault ? 'system_default' : ($template ? $template->id : null),
+     'template_source' => $useSystemDefault ? 'System Default' : 'Template Master',
+    'template_body_preview' => $template ? substr($template->body, 0, 100) : 'No template found'
+]);
         // ✅ Replace placeholders in email
         $body = str_replace(
             ['{name}', '{company_name}', '{email}', '{joining_date}', '{password}'],
@@ -157,6 +170,12 @@ Log::info('🟡 Email Template Check:', ['template_found' => (bool)$template]);
                 : null,
             'password'     => $password,
         ];
+
+        // ✅ Only add template_body for CASE 1 (Template Master exists)
+        if (!$useSystemDefault) {
+            $emailData['template_body'] = $body; // Add processed Template Master content
+        }
+        // For CASE 2 (System Default), don't add template_body - this will show clean default layout
 
         // ✅ Load mail config for this company
         $companySetting = CompanySetting::where('company_id', $firstCompanyId)->first()

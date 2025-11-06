@@ -91,7 +91,7 @@
                             <!-- <td>{{ $key+1 }}</td> -->
                             <td>{{ $client->client_code }}</td>
                             <td>{{ $client->client_name }}</td>
-                            <td>{{ $client->business_display_name ?? '-' }}</td>
+                            <td class="col">{{ $client->business_display_name ?? '-' }}</td>
                             <td>{{ $client->billing_spoc_name }}</td>
                             <td>{{ $client->billing_spoc_email }}</td>
                             <td>{{ $client->gstin }}</td>
@@ -132,4 +132,11 @@ document.getElementById('selectAll').addEventListener('change', function(){
 
 
 </script>
+
+<style>
+    .col {
+    width: 130px;
+    white-space: nowrap;
+}
+</style>
 @endsection

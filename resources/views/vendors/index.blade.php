@@ -90,8 +90,8 @@
                                 
                             </td>
                             <td>{{ $vendor->vendor_code }}</td>
-                            <td>{{ $vendor->vendor_name }}</td>
-                            <td>{{ $vendor->business_display_name ?? '-' }}</td>
+                            <td class="col">{{ $vendor->vendor_name }}</td>
+                            <td class="col">{{ $vendor->business_display_name ?? '-' }}</td>
                             <td>{{ $vendor->contact_person_name ?? '-' }}</td>
                             <td>{{ $vendor->contact_person_email ?? '-' }}</td>
                             <td>{{ $vendor->contact_person_mobile ?? '-' }}</td>
@@ -131,4 +131,10 @@ document.getElementById('selectAll').addEventListener('change', function(){
     document.querySelectorAll('.rowCheckbox').forEach(cb => cb.checked = isChecked);
 });
 </script>
+<style>
+    .col {
+    width: 130px;
+    white-space: nowrap;
+}
+</style>
 @endsection

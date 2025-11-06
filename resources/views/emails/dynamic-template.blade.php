@@ -58,31 +58,44 @@
 
          <div class="content">
             @php
-    // Support both types of mail data
-    $name = $name ?? ($emailData['name'] ?? $emailData['user']['name'] ?? 'User');
-    $email = $email ?? ($emailData['email'] ?? $emailData['user']['email'] ?? '');
-    $password = $password ?? ($emailData['password'] ?? '');
-    $company = $company ?? ($emailData['company'] ?? config('app.name'));
-@endphp
-           
+                // Support both types of mail data
+                $name = $name ?? ($emailData['name'] ?? $emailData['user']['name'] ?? 'User');
+                $email = $email ?? ($emailData['email'] ?? $emailData['user']['email'] ?? '');
+                $password = $password ?? ($emailData['password'] ?? '');
+                $company = $company ?? ($emailData['company'] ?? config('app.name'));
+            @endphp
 
-            <!-- resources/views/emails/dynamic-template.blade.php -->
-<p>Hi {{ ucfirst($name) }},</p>
-<p>Welcome to {{ $company ?? config('app.name') }}!</p>
-<p>Your login email: <b>{{ $email }}</b></p>
-<p>Temporary password: <b>{{ $password }}</b></p>
+            {{-- Always show default welcome content first --}}
+            <p>Hi {{ ucfirst($name) }},</p>
+            <p>Welcome to {{ $company ?? config('app.name') }}!</p>
+            
+            <p><strong>Your Login Credentials:</strong></p>
+            <p>Email: <b>{{ $email }}</b></p>
+            <p>Temporary Password: <b>{{ $password }}</b></p>
 
-<p>Please login and create your profile.</p>
+            <p>Please login and update your profile.</p>
 
-<p>
-    <a href="{{ url('/login') }}" 
-       style="display:inline-block; background-color:#0d6efd; color:#fff; 
-              padding:10px 18px; text-decoration:none; border-radius:6px;">
-       Login Now
-    </a>
-</p>
+            <p>
+                <a href="{{ url('/login') }}" 
+                   style="display:inline-block; background-color:#6a1b9a; color:#fff; 
+                          padding:12px 25px; text-decoration:none; border-radius:6px; font-weight:bold;">
+                   Login Now
+                </a>
+            </p>
 
-<p>— HR Team</p>
+            <p>Best regards,<br>HR Team</p>
+
+            @if(isset($emailData['template_body']) && !empty($emailData['template_body']))
+                {{-- CASE 1: Add Template Master content below default content (no header, direct content) --}}
+                <div class="template-master-content" style="margin-top: 25px; padding: 20px; background-color: #f8f9fa; border-left: 4px solid #6a1b9a; border-radius: 4px;">
+                    {!! nl2br(e($emailData['template_body'])) !!}
+                </div>
+            @elseif(isset($template_body) && !empty($template_body))
+                {{-- CASE 1: Alternative template body format (no header, direct content) --}}
+                <div class="template-master-content" style="margin-top: 25px; padding: 20px; background-color: #f8f9fa; border-left: 4px solid #6a1b9a; border-radius: 4px;">
+                    {!! nl2br(e($template_body)) !!}
+                </div>
+            @endif
 
         </div>
 

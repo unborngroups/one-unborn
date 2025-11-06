@@ -13,13 +13,7 @@ class EmailTemplateSeeder extends Seeder
      */
     public function run(): void
     {
-         EmailTemplate::updateOrCreate(
-            ['name' => 'User Created', 'company_id' => 0],
-            [
-                'subject' => 'Welcome {name} to {company_name}',
-                'body' => 'Hello {name},<br><br>Welcome to {company_name}!<br>Your account has been created with the email: {email}.<br>Joining Date: {joining_date}<br><br>Thank you,<br>Team {company_name}',
-                'status' => 'Active',
-            ]
-        );
+        // Seeder content removed - templates will be created manually via Template Master
+        // This ensures company-specific templates from Template Master are used instead of default global templates
     }
 }

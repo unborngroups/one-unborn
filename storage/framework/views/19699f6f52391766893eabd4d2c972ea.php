@@ -11,7 +11,7 @@
             <!-- Logo -->
             <a class="navbar-brand fw-bold d-flex align-items-center" href="<?php echo e(url('/')); ?>">
                 <img src="<?php echo e(asset('images/logo.jpg')); ?>" alt="One-Unborn"
-                    style="height:32px; width:32px; object-fit:cover; border-radius:4px; margin-right:8px;">
+                    style="height:52px; width:52px; object-fit:cover; border-radius:4px; margin-right:8px;">
                 <span>One-Unborn</span>
             </a>
         </div>

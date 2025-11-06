@@ -93,7 +93,7 @@
                             <!-- <td><?php echo e($key+1); ?></td> -->
                             <td><?php echo e($client->client_code); ?></td>
                             <td><?php echo e($client->client_name); ?></td>
-                            <td><?php echo e($client->business_display_name ?? '-'); ?></td>
+                            <td class="col"><?php echo e($client->business_display_name ?? '-'); ?></td>
                             <td><?php echo e($client->billing_spoc_name); ?></td>
                             <td><?php echo e($client->billing_spoc_email); ?></td>
                             <td><?php echo e($client->gstin); ?></td>
@@ -135,6 +135,13 @@ document.getElementById('selectAll').addEventListener('change', function(){
 
 
 </script>
+
+<style>
+    .col {
+    width: 130px;
+    white-space: nowrap;
+}
+</style>
 <?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views/clients/index.blade.php ENDPATH**/ ?>

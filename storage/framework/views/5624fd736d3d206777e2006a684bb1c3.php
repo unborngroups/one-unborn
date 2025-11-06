@@ -88,8 +88,8 @@
                                 
                             </td>
                             <!-- <td><?php echo e($index + 1); ?></td> -->
-                            <td><?php echo e($company->company_name); ?></td>
-                            <td><?php echo e($company->business_number); ?></td>
+                            <td class="col"><?php echo e($company->company_name); ?></td>
+                            <td class="col"><?php echo e($company->business_number); ?></td>
                             <td><?php echo e($company->company_phone); ?></td>
                             <td>
                                 <?php echo e($company->company_email); ?>
@@ -154,6 +154,14 @@ document.getElementById('selectAll').addEventListener('change', function(){
 
 
 </script>
+
+
+<style>
+    .col {
+    width: 130px;
+    white-space: nowrap;
+}
+</style>
 <?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views/companies/index.blade.php ENDPATH**/ ?>

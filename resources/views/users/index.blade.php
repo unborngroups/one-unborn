@@ -26,7 +26,7 @@
         </div>
         <div class="card-body table-responsive">
             <table class="table table-striped table-hover table-bordered align-middle mb-0" id="userTable">
-                <thead class="table-primary text-center">
+                <thead class="table-dark-primary text-center">
                     <tr>
                         <th><input type="checkbox" id="selectAll"></th>
                         <th>S.No</th>
@@ -122,7 +122,7 @@
                             <td>{{ $user->mobile ?? '-' }}</td>
 
                             {{-- ✅ Company Names (comma-separated) --}}
-                            <td>
+                            <td class="date-col">
                                 {{ $user->companies->pluck('company_name')->join(', ') ?: 'No Company Assigned' }}
                             </td>
 

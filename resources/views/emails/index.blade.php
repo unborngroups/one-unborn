@@ -49,10 +49,10 @@
 
                                  {{-- Delete --}}
                                  @if($permissions->can_delete)
-                                <form action="{{ route('emails.destroy', $template->id) }}" method="POST" style="display:inline-block;">
+                                <form action="{{ route('emails.destroy', $template->id) }}" method="POST" style="display:inline-block;" onsubmit="return confirm('Delete this template?')">
                                     @csrf 
                                     @method('DELETE')
-                                    <button class="btn btn-sm btn-danger" onclick="return confirm('Delete this template?')">
+                                    <button type="submit" class="btn btn-sm btn-danger">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
@@ -66,9 +66,6 @@
                                     </button>
                                 </form>
                             </td>
-                          
-
-                            </td>
                              <td>{{ $template->company ? $template->company->company_name : '-' }}</td>
                             <td>{{ $template->subject }}</td>
                             <td class="text-center">
@@ -79,7 +76,7 @@
                          
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="text-center">No templates found.</td></tr>
+                        <tr><td colspan="6" class="text-center">No templates found.</td></tr>
                     @endforelse
                 </tbody>
             </table>

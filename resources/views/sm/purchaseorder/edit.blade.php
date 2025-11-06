@@ -5,176 +5,144 @@
     <div class="row">
         <div class="col-12">
             <div class="card">
+                {{-- ✅ Page Header --}}
                 <div class="card-header text-dark">
                     <h4 class="mb-0">
-                        <i class="bi bi-pencil"></i> Edit Purchase Order - {{ $purchaseOrder->po_number }}
+                        <i class="bi bi-pencil-square"></i> Edit Purchase Order
                     </h4>
                 </div>
+
                 <div class="card-body">
+                    {{-- ✅ Purchase Order Edit Form --}}
                     <form action="{{ route('sm.purchaseorder.update', $purchaseOrder->id) }}" method="POST" id="purchaseOrderForm">
                         @csrf
                         @method('PUT')
                         
                         <div class="row">
-            {{-- PO Number --}}
-            <div class="col-md-6 mb-3">
-                <label for="po_number" class="form-label">
-                    <strong>PO Number <span class="text-danger">*</span></strong>
-                </label>
-                <input type="text" class="form-control @error('po_number') is-invalid @enderror" 
-                       id="po_number" name="po_number" value="{{ old('po_number', $purchaseOrder->po_number) }}" 
-                       placeholder="Enter PO Number" required>
-                @error('po_number')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>                            {{-- PO Date --}}
+                            {{-- ✅ Feasibility Dropdown (disabled on edit to prevent change) --}}
+                            <div class="col-md-6 mb-3">
+                                <label for="feasibility_id" class="form-label">
+                                    <strong>Feasibility Request ID <span class="text-danger">*</span></strong>
+                                </label>
+                                <input type="text" class="form-control" 
+                                       value="{{ $purchaseOrder->feasibility->feasibility_request_id }} - {{ $purchaseOrder->feasibility->client->client_name ?? 'Unknown' }}" 
+                                       disabled>
+                                <input type="hidden" name="feasibility_id" value="{{ $purchaseOrder->feasibility_id }}">
+                            </div>
+
+                            {{-- PO Number --}}
+                            <div class="col-md-6 mb-3">
+                                <label for="po_number" class="form-label">
+                                    <strong>PO Number <span class="text-danger">*</span></strong>
+                                </label>
+                                <input type="text" class="form-control @error('po_number') is-invalid @enderror" 
+                                       id="po_number" name="po_number" 
+                                       value="{{ old('po_number', $purchaseOrder->po_number) }}" required>
+                                @error('po_number')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            {{-- PO Date --}}
                             <div class="col-md-6 mb-3">
                                 <label for="po_date" class="form-label">
                                     <strong>PO Date <span class="text-danger">*</span></strong>
                                 </label>
                                 <input type="date" class="form-control @error('po_date') is-invalid @enderror" 
-                                       id="po_date" name="po_date" value="{{ old('po_date', $purchaseOrder->po_date->format('Y-m-d')) }}" required>
+                                       id="po_date" name="po_date" 
+                                       value="{{ old('po_date', $purchaseOrder->po_date) }}" required>
                                 @error('po_date')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
 
+                        {{-- Number of Links --}}
                         <div class="row">
-                            {{-- Feasibility Selection --}}
-                            <div class="col-md-12 mb-3">
-                                <label for="feasibility_id" class="form-label">
-                                    <strong>Feasibility Request ID <span class="text-danger">*</span></strong>
-                                </label>
-                                <select class="form-select @error('feasibility_id') is-invalid @enderror" 
-                                        id="feasibility_id" name="feasibility_id" required onchange="loadFeasibilityDetails()">
-                                    <option value="">Select Closed Feasibility</option>
-                                    @foreach($closedFeasibilities as $feasibilityStatus)
-                                        <option value="{{ $feasibilityStatus->feasibility->id }}" 
-                                                {{ old('feasibility_id', $purchaseOrder->feasibility_id) == $feasibilityStatus->feasibility->id ? 'selected' : '' }}>
-                                            {{ $feasibilityStatus->feasibility->feasibility_request_id }} - {{ $feasibilityStatus->feasibility->client->company_name ?? 'Unknown' }}
-                                        </option>
-                                    @endforeach
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">No. of Links *</label>
+                                <select name="no_of_links" id="no_of_links_dropdown" class="form-select" required onchange="showDynamicPricing()">
+                                    <option value="">Select</option>
+                                    @for($i = 1; $i <= 4; $i++)
+                                        <option value="{{ $i }}" {{ old('no_of_links', $purchaseOrder->no_of_links) == $i ? 'selected' : '' }}>{{ $i }}</option>
+                                    @endfor
                                 </select>
-                                @error('feasibility_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
                             </div>
                         </div>
 
-                        <!-- {{-- Client Details Display (Auto-filled from Feasibility) --}}
-                        <div id="clientDetails" class="row mb-4 {{ $purchaseOrder->feasibility_id ? '' : 'd-none' }}">
-                            <div class="col-12">
-                                <div class="card bg-light">
-                                    <div class="card-header">
-                                        <h5 class="mb-0">Client Details (Auto-fetched from Feasibility)</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <p><strong>Company Name:</strong> <span id="clientCompanyName">{{ $purchaseOrder->feasibility->client->company_name ?? 'N/A' }}</span></p>
-                                                <p><strong>Contact Person:</strong> <span id="clientContactPerson">{{ $purchaseOrder->feasibility->client->contact_person ?? 'N/A' }}</span></p>
-                                                <p><strong>Email:</strong> <span id="clientEmail">{{ $purchaseOrder->feasibility->client->email ?? 'N/A' }}</span></p>
+                        {{-- Dynamic Pricing Fields --}}
+                        <div id="dynamicPricingContainer" style="display: block;">
+                            <div class="card border-info mb-3">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0">Pricing Details (Per Link)</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="pricingFieldsContainer">
+                                        @for($i = 1; $i <= $purchaseOrder->no_of_links; $i++)
+                                            <div class="row mb-3">
+                                                <div class="col-12 mb-2">
+                                                    <h6 class="text-primary">Link {{ $i }} Pricing</h6>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="form-label">ARC - Link {{ $i }} (₹) *</label>
+                                                    <input type="number" step="0.01" min="0" 
+                                                        class="form-control" name="arc_link_{{ $i }}" 
+                                                        id="arc_link_{{ $i }}" 
+                                                        value="{{ old('arc_link_'.$i, $purchaseOrder['arc_link_'.$i]) }}" 
+                                                        required onchange="calculateTotal()">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="form-label">OTC - Link {{ $i }} (₹) *</label>
+                                                    <input type="number" step="0.01" min="0" 
+                                                        class="form-control" name="otc_link_{{ $i }}" 
+                                                        id="otc_link_{{ $i }}" 
+                                                        value="{{ old('otc_link_'.$i, $purchaseOrder['otc_link_'.$i]) }}" 
+                                                        required onchange="calculateTotal()">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="form-label">STATIC IP - Link {{ $i }} (₹) *</label>
+                                                    <input type="number" step="0.01" min="0" 
+                                                        class="form-control" name="static_ip_link_{{ $i }}" 
+                                                        id="static_ip_link_{{ $i }}" 
+                                                        value="{{ old('static_ip_link_'.$i, $purchaseOrder['static_ip_link_'.$i]) }}" 
+                                                        required onchange="calculateTotal()">
+                                                </div>
                                             </div>
-                                            <div class="col-md-6">
-                                                <p><strong>Phone:</strong> <span id="clientPhone">{{ $purchaseOrder->feasibility->client->phone ?? 'N/A' }}</span></p>
-                                                <p><strong>Address:</strong> <span id="clientAddress">{{ $purchaseOrder->feasibility->client->address ?? 'N/A' }}</span></p>
-                                                <p><strong>GST Number:</strong> <span id="clientGST">{{ $purchaseOrder->feasibility->client->gst_number ?? 'N/A' }}</span></p>
-                                            </div>
-                                        </div>
+                                        @endfor
                                     </div>
                                 </div>
                             </div>
-                        </div> -->
-
-                        {{-- Purchase Order Details --}}
-                        <div class="row">
-                            <div class="col-md-3 mb-3">
-                                <label for="arc_per_link" class="form-label">
-                                    <strong>ARC Per Link (₹) <span class="text-danger">*</span></strong>
-                                </label>
-                                <input type="number" step="0.01" min="0" class="form-control @error('arc_per_link') is-invalid @enderror" 
-                                       id="arc_per_link" name="arc_per_link" value="{{ old('arc_per_link', $purchaseOrder->arc_per_link) }}" required onchange="calculateTotal()">
-                                @error('arc_per_link')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-3 mb-3">
-                                <label for="otc_per_link" class="form-label">
-                                    <strong>OTC Per Link (₹) <span class="text-danger">*</span></strong>
-                                </label>
-                                <input type="number" step="0.01" min="0" class="form-control @error('otc_per_link') is-invalid @enderror" 
-                                       id="otc_per_link" name="otc_per_link" value="{{ old('otc_per_link', $purchaseOrder->otc_per_link) }}" required onchange="calculateTotal()">
-                                @error('otc_per_link')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-3 mb-3">
-                                <label for="static_ip_cost_per_link" class="form-label">
-                                    <strong>Static IP Cost Per Link (₹) <span class="text-danger">*</span></strong>
-                                </label>
-                                <input type="number" step="0.01" min="0" class="form-control @error('static_ip_cost_per_link') is-invalid @enderror" 
-                                       id="static_ip_cost_per_link" name="static_ip_cost_per_link" value="{{ old('static_ip_cost_per_link', $purchaseOrder->static_ip_cost_per_link) }}" required onchange="calculateTotal()">
-                                @error('static_ip_cost_per_link')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-3 mb-3">
-                                <label for="no_of_links" class="form-label">
-                                    <strong>No. of Links <span class="text-danger">*</span></strong>
-                                </label>
-                                <input type="number" min="1" class="form-control @error('no_of_links') is-invalid @enderror" 
-                                       id="no_of_links" name="no_of_links" value="{{ old('no_of_links', $purchaseOrder->no_of_links) }}" required onchange="calculateTotal()">
-                                @error('no_of_links')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
                         </div>
 
+                        {{-- Contract + Total Cost --}}
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="contract_period" class="form-label">
                                     <strong>Contract Period (Months) <span class="text-danger">*</span></strong>
                                 </label>
                                 <input type="number" min="1" class="form-control @error('contract_period') is-invalid @enderror" 
-                                       id="contract_period" name="contract_period" value="{{ old('contract_period', $purchaseOrder->contract_period) }}" required>
+                                       id="contract_period" name="contract_period" 
+                                       value="{{ old('contract_period', $purchaseOrder->contract_period) }}" required>
                                 @error('contract_period')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">
-                                    <strong>Total Cost (Auto-calculated)</strong>
-                                </label>
+                                <label class="form-label"><strong>Total Cost (Auto-calculated)</strong></label>
                                 <div class="form-control bg-light" id="totalCost">
-                                    ₹{{ number_format(($purchaseOrder->arc_per_link + $purchaseOrder->otc_per_link + $purchaseOrder->static_ip_cost_per_link) * $purchaseOrder->no_of_links, 2) }}
+                                    ₹{{ number_format($purchaseOrder->total_cost, 2) }}
                                 </div>
                             </div>
                         </div>
 
-                        <!-- {{-- Remarks --}}
-                        <div class="mb-3">
-                            <label for="remarks" class="form-label">
-                                <strong>Remarks</strong>
-                            </label>
-                            <textarea class="form-control @error('remarks') is-invalid @enderror" 
-                                      id="remarks" name="remarks" rows="3" placeholder="Enter any additional remarks...">{{ old('remarks', $purchaseOrder->remarks) }}</textarea>
-                            @error('remarks')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div> -->
-
                         {{-- Action Buttons --}}
                         <div class="row">
                             <div class="col-12 text-end">
-                                <a href="{{ route('sm.purchaseorder.view', $purchaseOrder->id) }}" class="btn btn-secondary me-2">
+                                <a href="{{ route('sm.purchaseorder.index') }}" class="btn btn-secondary me-2">
                                     <i class="bi bi-arrow-left"></i> Cancel
                                 </a>
-                                <button type="submit" class="btn btn-warning">
+                                <button type="submit" class="btn btn-success" onclick="return validateBeforeSubmit()">
                                     <i class="bi bi-save"></i> Update Purchase Order
                                 </button>
                             </div>
@@ -186,54 +154,397 @@
     </div>
 </div>
 
+
+{{-- ✅ Enhanced JavaScript for Dynamic Pricing and Feasibility Integration --}}
 <script>
+let feasibilityAmounts = {}; // Store feasibility amounts for validation
+
 function loadFeasibilityDetails() {
     const feasibilityId = document.getElementById('feasibility_id').value;
     
     if (!feasibilityId) {
-        document.getElementById('clientDetails').classList.add('d-none');
-        document.getElementById('no_of_links').value = '';
+        // Reset form when no feasibility selected
+        document.getElementById('no_of_links_dropdown').value = '';
+        document.getElementById('dynamicPricingContainer').style.display = 'none';
+        feasibilityAmounts = {};
         return;
     }
 
+    // ✅ AJAX request to get feasibility details including pricing
     fetch(`/sm/purchaseorder/feasibility/${feasibilityId}/details`)
         .then(response => response.json())
         .then(data => {
-            // Display client details
-            document.getElementById('clientCompanyName').textContent = data.client.company_name || 'N/A';
-            document.getElementById('clientContactPerson').textContent = data.client.contact_person || 'N/A';
-            document.getElementById('clientEmail').textContent = data.client.email || 'N/A';
-            document.getElementById('clientPhone').textContent = data.client.phone || 'N/A';
-            document.getElementById('clientAddress').textContent = data.client.address || 'N/A';
-            document.getElementById('clientGST').textContent = data.client.gst_number || 'N/A';
+            console.log('Feasibility data received:', data); // Debug log
             
-            // Auto-fill number of links from feasibility
-            document.getElementById('no_of_links').value = data.no_of_links;
+            // Store feasibility amounts for validation (both old and new format)
+            feasibilityAmounts = {
+                arc_per_link: data.arc_per_link || 0,
+                otc_per_link: data.otc_per_link || 0,
+                static_ip_cost_per_link: data.static_ip_cost_per_link || 0,
+                vendor_pricing: data.vendor_pricing || {} // Store vendor pricing data
+            };
             
-            // Show client details
-            document.getElementById('clientDetails').classList.remove('d-none');
+            console.log('Stored feasibilityAmounts:', feasibilityAmounts); // Debug log
             
-            // Recalculate total
-            calculateTotal();
+            // NO AUTO-FILL for number of links - user must select manually
+            // Keep dropdown empty so user has to choose
+            document.getElementById('no_of_links_dropdown').value = '';
+            document.getElementById('dynamicPricingContainer').style.display = 'none';
         })
         .catch(error => {
             console.error('Error fetching feasibility details:', error);
-            document.getElementById('clientDetails').classList.add('d-none');
+            alert('Error loading feasibility details. Please try again.');
         });
 }
 
-function calculateTotal() {
-    const arc = parseFloat(document.getElementById('arc_per_link').value) || 0;
-    const otc = parseFloat(document.getElementById('otc_per_link').value) || 0;
-    const staticIP = parseFloat(document.getElementById('static_ip_cost_per_link').value) || 0;
-    const links = parseInt(document.getElementById('no_of_links').value) || 0;
+function showDynamicPricing() {
+    const linksCount = parseInt(document.getElementById('no_of_links_dropdown').value);
+    const container = document.getElementById('pricingFieldsContainer');
     
-    const total = (arc + otc + staticIP) * links;
+    if (!linksCount) {
+        document.getElementById('dynamicPricingContainer').style.display = 'none';
+        return;
+    }
+    
+    // Clear existing fields
+    container.innerHTML = '';
+    
+    // Generate pricing fields for each link
+    for (let i = 1; i <= linksCount; i++) {
+        const linkRow = document.createElement('div');
+        linkRow.className = 'row mb-3';
+        // Generate expected amounts display for all vendors
+        const vendorPricing = feasibilityAmounts.vendor_pricing || {};
+        let arcExpected = [];
+        let otcExpected = [];
+        let staticIpExpected = [];
+        
+        Object.keys(vendorPricing).forEach(vendorKey => {
+            const vendor = vendorPricing[vendorKey];
+            if (vendor && vendor.name) {
+                if (vendor.arc > 0) arcExpected.push(vendor.name + ': ₹' + vendor.arc);
+                if (vendor.otc > 0) otcExpected.push(vendor.name + ': ₹' + vendor.otc);
+                if (vendor.static_ip_cost > 0) staticIpExpected.push(vendor.name + ': ₹' + vendor.static_ip_cost);
+            }
+        });
+
+        linkRow.innerHTML = `
+            <div class="col-12 mb-2">
+                <h6 class="text-primary">Link ${i} Pricing</h6>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">ARC - Link ${i} (₹) *</label>
+                <div class="input-group">
+                    <input type="number" step="0.01" min="0" class="form-control" 
+                           name="arc_link_${i}" id="arc_link_${i}" 
+                           placeholder="Enter ARC amount"
+                           required onchange="validateEnteredAmount('arc_link_${i}', 'arc_per_link')"
+                           onblur="calculateTotal()">
+                    <button type="button" class="btn btn-outline-info btn-sm" 
+                            onclick="redirectToFeasibilityView()"
+                            title="View feasibility details to verify vendor amounts">
+                        <i class="bi bi-info-circle"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">OTC - Link ${i} (₹) *</label>
+                <div class="input-group">
+                    <input type="number" step="0.01" min="0" class="form-control" 
+                           name="otc_link_${i}" id="otc_link_${i}" 
+                           placeholder="Enter OTC amount"
+                           required onchange="validateEnteredAmount('otc_link_${i}', 'otc_per_link')"
+                           onblur="calculateTotal()">
+                    <button type="button" class="btn btn-outline-info btn-sm" 
+                            onclick="redirectToFeasibilityView()"
+                            title="View feasibility details to verify vendor amounts">
+                        <i class="bi bi-info-circle"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">STATIC IP - Link ${i} (₹) *</label>
+                <div class="input-group">
+                    <input type="number" step="0.01" min="0" class="form-control" 
+                           name="static_ip_link_${i}" id="static_ip_link_${i}" 
+                           placeholder="Enter Static IP amount"
+                           required onchange="validateEnteredAmount('static_ip_link_${i}', 'static_ip_cost_per_link')"
+                           onblur="calculateTotal()">
+                    <button type="button" class="btn btn-outline-info btn-sm" 
+                            onclick="redirectToFeasibilityView()"
+                            title="View feasibility details to verify vendor amounts">
+                        <i class="bi bi-info-circle"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        container.appendChild(linkRow);
+    }
+    
+    document.getElementById('dynamicPricingContainer').style.display = 'block';
+    calculateTotal();
+}
+
+function validateEnteredAmount(fieldId, amountType) {
+    const enteredAmount = parseFloat(document.getElementById(fieldId).value) || 0;
+    
+    console.log('Validation called for:', fieldId, 'Amount Type:', amountType, 'Entered:', enteredAmount);
+    console.log('Current feasibilityAmounts:', feasibilityAmounts);
+    
+    // Skip validation for empty amounts
+    if (enteredAmount === 0) {
+        document.getElementById(fieldId).style.borderColor = '';
+        document.getElementById(fieldId).classList.remove('is-invalid');
+        return;
+    }
+    
+    // Get vendor pricing from feasibility
+    const vendorPricing = feasibilityAmounts.vendor_pricing || {};
+    console.log('Vendor pricing:', vendorPricing);
+    
+    // Map field types to vendor pricing fields
+    const fieldMapping = {
+        'arc_per_link': 'arc',
+        'otc_per_link': 'otc', 
+        'static_ip_cost_per_link': 'static_ip_cost'
+    };
+    
+    const pricingField = fieldMapping[amountType];
+    if (!pricingField) {
+        console.warn('Unknown amount type:', amountType);
+        return;
+    }
+    
+    // Collect all valid amounts from all vendors
+    let validAmounts = [];
+    Object.keys(vendorPricing).forEach(vendorKey => {
+        const vendor = vendorPricing[vendorKey];
+        if (vendor && vendor[pricingField] > 0) {
+            validAmounts.push({
+                vendor: vendor.name,
+                amount: parseFloat(vendor[pricingField])
+            });
+        }
+    });
+    
+    // Check if entered amount matches any vendor amount
+    let isValidAmount = false;
+    validAmounts.forEach(validAmount => {
+        const vendorAmount = validAmount.amount;
+        if (vendorAmount > 0) {
+            // Use small tolerance for float comparison
+            if (Math.abs(enteredAmount - vendorAmount) <= 0.01) {
+                isValidAmount = true;
+            }
+        }
+    });
+    
+    if (!isValidAmount && validAmounts.length > 0 && enteredAmount > 0) {
+        // Change field border to red to indicate error
+        document.getElementById(fieldId).style.borderColor = '#dc3545';
+        document.getElementById(fieldId).classList.add('is-invalid');
+        
+        // Create message showing all valid vendor amounts
+        const vendorAmountsList = validAmounts.map(v => 
+            `${v.vendor}: ₹${v.amount.toLocaleString('en-IN')}`
+        ).join('\n');
+        
+        alert(
+            `⚠️ AMOUNT WRONG!\n\n` +
+            `Valid amounts from feasibility` +
+            `Please enter one of the valid amounts or check feasibility details.`
+        );
+    } else {
+        // Reset field styling if amount is correct
+        document.getElementById(fieldId).style.borderColor = '';
+        document.getElementById(fieldId).classList.remove('is-invalid');
+    }
+}
+
+// Function to show all vendor pricing information
+function showVendorPricing() {
+    if (!feasibilityAmounts.vendor_pricing) {
+        alert('No vendor pricing information available. Please select a feasibility first.');
+        return;
+    }
+    
+    const vendorPricing = feasibilityAmounts.vendor_pricing;
+    let pricingInfo = '💰 VENDOR PRICING INFORMATION\n\n';
+    
+    Object.keys(vendorPricing).forEach(vendorKey => {
+        const vendor = vendorPricing[vendorKey];
+        if (vendor && vendor.name) {
+            pricingInfo += `🏢 ${vendor.name}:\n`;
+            pricingInfo += `  • ARC: ₹${vendor.arc.toLocaleString('en-IN')}\n`;
+            pricingInfo += `  • OTC: ₹${vendor.otc.toLocaleString('en-IN')}\n`;
+            pricingInfo += `  • Static IP: ₹${vendor.static_ip_cost.toLocaleString('en-IN')}\n\n`;
+        }
+    });
+    
+    pricingInfo += '💡 Tip: You can enter any of the vendor amounts shown above.';
+    alert(pricingInfo);
+}
+
+// Function to directly redirect to feasibility view page
+function redirectToFeasibilityView() {
+    const feasibilityId = document.getElementById('feasibility_id').value;
+    
+    if (!feasibilityId) {
+        alert('⚠️ Please select a feasibility first!');
+        return;
+    }
+    
+    // Open feasibility details in new tab to verify vendor amounts
+    window.open(`/sm/feasibility/${feasibilityId}/view`, '_blank');
+}
+
+function checkFeasibilityAmount(amountType, amount) {
+    const feasibilityId = document.getElementById('feasibility_id').value;
+    
+    if (!feasibilityId) {
+        alert('⚠️ Please select a feasibility first!');
+        return;
+    }
+    
+    const amountTypeDisplay = amountType.replace('_', ' ').toUpperCase();
+    const confirmView = confirm(
+        `💰 ${amountTypeDisplay}\n\n` +
+        // `Correct Amount: ₹${amount.toLocaleString('en-IN')}\n\n` +
+        `This is the correct amount from the selected feasibility.\n` +
+        `Would you like to view the feasibility details for more information?`
+    );
+    
+    if (confirmView) {
+        // Open feasibility details in new tab
+        window.open(`/sm/feasibility/${feasibilityId}/view`, '_blank');
+    }
+}
+
+// {{-- ✅ Auto-calculate Total Cost --}}
+function calculateTotal() {
+    const linksCount = parseInt(document.getElementById('no_of_links_dropdown').value) || 0;
+    let total = 0;
+    
+    if (linksCount > 0) {
+        for (let i = 1; i <= linksCount; i++) {
+            const arc = parseFloat(document.getElementById(`arc_link_${i}`)?.value) || 0;
+            const otc = parseFloat(document.getElementById(`otc_link_${i}`)?.value) || 0;
+            const staticIP = parseFloat(document.getElementById(`static_ip_link_${i}`)?.value) || 0;
+            total += (arc + otc + staticIP);
+        }
+    }
+    
+    // ✅ Format for Indian currency display
     document.getElementById('totalCost').textContent = `₹${total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
 }
 
-// Calculate total on page load
-window.addEventListener('load', function() {
+function validateBeforeSubmit() {
+    const feasibilityId = document.getElementById('feasibility_id').value;
+    const linksCount = parseInt(document.getElementById('no_of_links_dropdown').value);
+    
+    // Check if feasibility is selected
+    if (!feasibilityId) {
+        alert('⚠️ Please select a Feasibility Request ID first!');
+        return false;
+    }
+    
+    // Check if number of links is selected
+    if (!linksCount || linksCount < 1) {
+        alert('⚠️ Please select the Number of Links!');
+        return false;
+    }
+    
+    // Check if all pricing fields have values and correct amounts
+    let missingAmounts = [];
+    let wrongAmounts = [];
+    
+    for (let i = 1; i <= linksCount; i++) {
+        const arc = parseFloat(document.getElementById(`arc_link_${i}`)?.value) || 0;
+        const otc = parseFloat(document.getElementById(`otc_link_${i}`)?.value) || 0;
+        const staticIP = parseFloat(document.getElementById(`static_ip_link_${i}`)?.value) || 0;
+        
+        // Check for missing amounts
+        if (arc <= 0) missingAmounts.push(`ARC - Link ${i}`);
+        if (otc <= 0) missingAmounts.push(`OTC - Link ${i}`);
+        if (staticIP <= 0) missingAmounts.push(`STATIC IP - Link ${i}`);
+        
+        // Check for wrong amounts against ALL vendors (multi-vendor validation)
+        const tolerance = 0.01;
+        const vendorPricing = feasibilityAmounts.vendor_pricing || {};
+
+        // Validate ARC amount
+        let arcValid = false;
+        Object.keys(vendorPricing).forEach(vendorKey => {
+            const vendor = vendorPricing[vendorKey];
+            if (vendor && vendor.arc > 0) {
+                if (Math.abs(arc - vendor.arc) <= tolerance) {
+                    arcValid = true;
+                }
+            }
+        });
+        if (!arcValid && arc > 0 && Object.keys(vendorPricing).length > 0) {
+            const validAmounts = Object.keys(vendorPricing).map(k => 
+                vendorPricing[k].name + ': ₹' + vendorPricing[k].arc
+            ).filter(a => a.includes('₹') && !a.includes('₹0')).join(', ');
+            wrongAmounts.push(`ARC - Link ${i} (Valid amounts: ${validAmounts}, Entered: ₹${arc})`);
+        }
+
+        // Validate OTC amount
+        let otcValid = false;
+        Object.keys(vendorPricing).forEach(vendorKey => {
+            const vendor = vendorPricing[vendorKey];
+            if (vendor && vendor.otc > 0) {
+                if (Math.abs(otc - vendor.otc) <= tolerance) {
+                    otcValid = true;
+                }
+            }
+        });
+        if (!otcValid && otc > 0 && Object.keys(vendorPricing).length > 0) {
+            const validAmounts = Object.keys(vendorPricing).map(k => 
+                vendorPricing[k].name + ': ₹' + vendorPricing[k].otc
+            ).filter(a => a.includes('₹') && !a.includes('₹0')).join(', ');
+            wrongAmounts.push(`OTC - Link ${i} (Valid amounts: ${validAmounts}, Entered: ₹${otc})`);
+        }
+
+        // Validate Static IP amount
+        let staticIPValid = false;
+        Object.keys(vendorPricing).forEach(vendorKey => {
+            const vendor = vendorPricing[vendorKey];
+            if (vendor && vendor.static_ip_cost > 0) {
+                if (Math.abs(staticIP - vendor.static_ip_cost) <= tolerance) {
+                    staticIPValid = true;
+                }
+            }
+        });
+        if (!staticIPValid && staticIP > 0 && Object.keys(vendorPricing).length > 0) {
+            const validAmounts = Object.keys(vendorPricing).map(k => 
+                vendorPricing[k].name + ': ₹' + vendorPricing[k].static_ip_cost
+            ).filter(a => a.includes('₹') && !a.includes('₹0')).join(', ');
+            wrongAmounts.push(`STATIC IP - Link ${i} (Valid amounts: ${validAmounts}, Entered: ₹${staticIP})`);
+        }
+
+    }
+    
+    if (missingAmounts.length > 0) {
+        alert(`⚠️ Missing or invalid amounts for:\n${missingAmounts.join('\n')}\n\nPlease enter valid amounts.`);
+        return false;
+    }
+    
+    if (wrongAmounts.length > 0) {
+        const confirmSubmit = confirm(
+            `⚠️ WRONG AMOUNTS DETECTED!\n\n${wrongAmounts.join('\n')}\n\n` +
+            `The amounts you entered don't match the feasibility amounts.\n\n` +
+            `Click OK to submit anyway, or Cancel to fix the amounts.`
+        );
+        return confirmSubmit;
+    }
+    
+    // All validations passed
+    return true;
+}
+
+// ✅ Calculate total when page loads
+window.addEventListener('DOMContentLoaded', function() {
     calculateTotal();
 });
 </script>
