@@ -73,61 +73,73 @@
 <h5 class="text-primary fw-bold mb-3">✉️ Email Settings</h5>
 
 <div class="row">
-    {{-- Mail Mailer --}}
-    <div class="col-md-6 mb-3">
-        <label>Mail Mailer</label>
-        <input type="text" name="mail_mailer" class="form-control"
-               value="{{ old('mail_mailer', $company->mail_mailer ?? '') }}">
-    </div>
 
-    {{-- Mail Host --}}
+    {{-- SMTP Server Address --}}
     <div class="col-md-6 mb-3">
-        <label>Mail Host</label>
+        <label>SMTP Server Address *</label>
         <input type="text" name="mail_host" class="form-control"
-               value="{{ old('mail_host', $company->mail_host ?? '') }}">
+               value="{{ old('mail_host', $company->mail_host ?? '') }}" required>
     </div>
 
-    {{-- Mail Port --}}
+    {{-- SMTP Username --}}
     <div class="col-md-6 mb-3">
-        <label>Mail Port</label>
-        <input type="text" name="mail_port" class="form-control"
-               value="{{ old('mail_port', $company->mail_port ?? '') }}">
-    </div>
-
-     {{-- Mail Username --}}
-    <div class="col-md-6 mb-3">
-        <label>Mail Username</label>
+        <label>SMTP Username *</label>
         <input type="text" name="mail_username" class="form-control"
-               value="{{ old('mail_username', $company->mail_username ?? '') }}">
+               value="{{ old('mail_username', $company->mail_username ?? '') }}" required>
     </div>
 
-     {{-- Mail Password --}}
+    {{-- SMTP Password --}}
     <div class="col-md-6 mb-3">
-        <label>Mail Password</label>
+        <label>SMTP Password *</label>
         <input type="password" name="mail_password" class="form-control"
-               value="{{ old('mail_password', $company->mail_password ?? '') }}">
+               value="{{ old('mail_password', $company->mail_password ?? '') }}" required>
     </div>
 
-    {{-- Mail Encryption (e.g., ssl/tls) --}}
+    {{-- SMTP Port --}}
     <div class="col-md-6 mb-3">
-        <label>Mail Encryption</label>
-        <input type="text" name="mail_encryption" class="form-control"
-               value="{{ old('mail_encryption', $company->mail_encryption ?? '') }}">
+        <label>SMTP Port *</label>
+        <input type="text" name="mail_port" class="form-control"
+               value="{{ old('mail_port', $company->mail_port ?? '') }}" required>
     </div>
 
-     {{-- Mail From Address --}}
+    {{-- Encryption Type --}}
     <div class="col-md-6 mb-3">
-        <label>Mail From Address</label>
-        <input type="email" name="mail_from_address" class="form-control"
-               value="{{ old('mail_from_address', $company->mail_from_address ?? '') }}">
+        <label class="form-label">Encryption Type</label>
+            <select name="mail_encryption" class="form-select">
+                <option value="">Select Encryption Type</option>
+                <option value="ssl" {{ old('mail_encryption', $company->mail_encryption ?? '') == 'ssl' ? 'selected' : '' }}>SSL</option>
+                <option value="tls" {{ old('mail_encryption', $company->mail_encryption ?? '') == 'tls' ? 'selected' : '' }}>TLS</option>
+            </select>
     </div>
 
     {{-- Mail From Name --}}
     <div class="col-md-6 mb-3">
-        <label>Mail From Name</label>
+        <label>Mail From Name *</label>
         <input type="text" name="mail_from_name" class="form-control"
-               value="{{ old('mail_from_name', $company->mail_from_name ?? '') }}">
+               value="{{ old('mail_from_name', $company->mail_from_name ?? '') }}" required>
     </div>
+
+    {{-- Mail From Address --}}
+    <div class="col-md-6 mb-3">
+        <label>Mail From Address *</label>
+        <input type="email" name="mail_from_address" class="form-control"
+               value="{{ old('mail_from_address', $company->mail_from_address ?? '') }}" required>
+    </div>
+
+    {{-- Footer Text --}}
+    <div class="col-md-6 mb-3">
+        <label>Mail Footer Text</label>
+        <input type="text" name="mail_footer" class="form-control"
+               value="{{ old('mail_footer', $company->mail_footer ?? '') }}">
+    </div>
+
+    {{-- Signature --}}
+    <div class="col-md-6 mb-3">
+        <label>Mail Signature</label>
+        <input type="text" name="mail_signature" class="form-control"
+               value="{{ old('mail_signature', $company->mail_signature ?? '') }}">
+    </div>
+
 </div>
 
         {{-- ===================================== --}}

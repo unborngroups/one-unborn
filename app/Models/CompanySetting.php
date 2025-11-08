@@ -21,7 +21,7 @@ class CompanySetting extends Model
         'whatsapp_number',
         'is_default',
         // Email Settings
-        'mail_mailer',
+        // 'mail_mailer',
         'mail_host',
         'mail_port',
         'mail_username',
@@ -29,6 +29,9 @@ class CompanySetting extends Model
         'mail_encryption',
         'mail_from_address',
         'mail_from_name',
+
+        'mail_footer',
+    'mail_signature',
     ];
 
 

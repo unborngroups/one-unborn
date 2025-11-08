@@ -29,7 +29,6 @@ class CompanySettingsController extends Controller
         'instagram_url' => 'nullable|url',
         'whatsapp_number' => 'nullable|string|max:20',
         // ✅ Email Settings
-            'mail_mailer' => 'nullable|string|max:50',
             'mail_host' => 'nullable|string|max:100',
             'mail_port' => 'nullable|string|max:10',
             'mail_username' => 'nullable|string|max:100',
@@ -37,6 +36,9 @@ class CompanySettingsController extends Controller
             'mail_encryption' => 'nullable|string|max:10',
             'mail_from_address' => 'nullable|email',
             'mail_from_name' => 'nullable|string|max:100',
+            'mail_footer' => 'nullable|string|max:500',
+            'mail_signature' => 'nullable|string|max:500',
+
         ]);
         
 

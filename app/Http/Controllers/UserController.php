@@ -76,10 +76,7 @@ class UserController extends Controller
     ]);
 
     // ✅ Convert dates
-    // $dob = Carbon::createFromFormat('d-m-Y', $validated['Date_of_Birth'])->format('Y-m-d');
-    // $doj = !empty($validated['Date_of_Joining'])
-    //     ? Carbon::createFromFormat('d-m-Y', $validated['Date_of_Joining'])->format('Y-m-d')
-    //     : null;
+   
     $dob = Carbon::parse($validated['Date_of_Birth'])->format('Y-m-d');
 $doj = !empty($validated['Date_of_Joining'])
     ? Carbon::parse($validated['Date_of_Joining'])->format('Y-m-d')
@@ -109,8 +106,7 @@ $firstCompanyId = $validated['companies'][0] ?? 1;
 $firstCompany = Company::find($firstCompanyId);
 
 // ✅ CASE 1: Look for company-specific template only (no fallback to global)
-$template = EmailTemplate::where('company_id', $firstCompanyId)
-    ->where('name', 'User Created')
+$template = EmailTemplate::where('company_id', $firstCompanyId) 
     ->first();
     // ?? EmailTemplate::where('company_id', 0)->where('name', 'User Created')->first();
     
@@ -170,9 +166,9 @@ Log::info('🟡 Email Template Check:', [
             'joining_date' => $user->Date_of_Joining,
             'body'         => $body,
             'subject'      => $subject,
-            'logo'         => optional($firstCompany)->billing_logo
-                ? asset('storage/' . $firstCompany->billing_logo)
-                : null,
+            'mail_signature' => $companySetting->mail_signature 
+                    ?? $firstCompany->mail_signature 
+                    ?? null,
             'password'     => $password,
         ];
 
@@ -187,7 +183,14 @@ Log::info('🟡 Email Template Check:', [
             ?? CompanySetting::find(1);
 
         if ($companySetting) {
-            MailHelper::setMailConfig($firstCompanyId); // must set config keys
+            if ($companySetting && $companySetting->mail_host) {
+    // Use company settings table
+    MailHelper::setMailConfig($firstCompanyId);
+} else {
+    // Use company master config
+    MailHelper::setMailConfig($firstCompanyId);
+}
+ // must set config keys
         // Log::info('📧 Mail config applied', ['company_id' => $firstCompanyId]);
     } else {
         Log::warning('⚠️ CompanySetting not found; using default mail config.');
@@ -272,6 +275,23 @@ try {
         ? Carbon::createFromFormat('d-m-Y', $request->Date_of_Joining)->format('Y-m-d') 
         : null;
 
+        // ✅ Check if any field that requires email has changed
+$shouldSendEmail = false;
+
+// If email changed
+if ($user->official_email !== $validated['official_email']) {
+    $shouldSendEmail = true;
+}
+
+// If status changed
+if ($user->status !== $validated['status']) {
+    $shouldSendEmail = true;
+}
+
+// If company changed
+if (!empty(array_diff($validated['companies'], $user->companies->pluck('id')->toArray()))) {
+    $shouldSendEmail = true;
+}
 
         $user->update([
             'name'             => $validated['name'],
@@ -287,6 +307,84 @@ try {
 
         // Sync company assignments
          $user->companies()->sync($validated['companies']);
+
+         
+// ✅ If checkbox NOT TICKED → do not send email
+if (!$request->has('send_email')) {
+    return redirect()->route('users.index')->with('success', 'User updated successfully!');
+}
+
+// ✅ Load first company
+$firstCompanyId = $validated['companies'][0];
+$firstCompany = Company::find($firstCompanyId);
+
+// ✅ Template Master
+$template = EmailTemplate::where('company_id', $firstCompanyId)->first();
+
+$useSystemDefault = false;
+
+if (!$template) {
+    $useSystemDefault = true;
+    $template = (object)[
+        'subject' => 'Your account has been updated at {company_name}',
+        'body' => 'Hello {name},<br><br>Your account details have been updated successfully.<br><br>Email: {email}<br>Status: {status}<br><br>Regards,<br>Team {company_name}'
+    ];
+}
+
+// ✅ Replace placeholders
+$body = str_replace(
+    ['{name}', '{company_name}', '{email}', '{status}'],
+    [
+        $user->name,
+        $firstCompany->company_name,
+        $user->official_email,
+        $user->status
+    ],
+    $template->body
+);
+
+$subject = str_replace(
+    ['{company_name}', '{name}'],
+    [$firstCompany->company_name, $user->name],
+    $template->subject
+);
+
+// ✅ Prepare email data
+$emailData = [
+    'name'    => $user->name,
+    'company' => $firstCompany->company_name,
+    'email'   => $user->official_email,
+    'status'  => $user->status,
+    'body'    => $body,
+    'subject' => $subject,
+    'mail_signature' => $companySetting->mail_signature 
+                    ?? $firstCompany->mail_signature 
+                    ?? null,
+];
+
+if (!$useSystemDefault) {
+    $emailData['template_body'] = $body;
+}
+
+// ✅ Apply company mail config
+$companySetting = CompanySetting::where('company_id', $firstCompanyId)->first()
+            ?? CompanySetting::find(1);
+
+if ($companySetting && $companySetting->mail_host) {
+    // Priority 2 – settings table
+    MailHelper::setMailConfig($firstCompanyId);
+} else {
+    // Priority 1 – company master config
+    MailHelper::setMailConfig($firstCompanyId);
+}
+
+// ✅ Send email
+try {
+    Mail::to($user->official_email)->send(new CustomUserMail($emailData));
+    Log::info("✅ Update email sent to {$user->official_email}");
+} catch (\Exception $e) {
+    Log::error("❌ Update email error: ".$e->getMessage());
+}
 
         return redirect()->route('users.index')->with('success', 'User updated successfully!');
     }

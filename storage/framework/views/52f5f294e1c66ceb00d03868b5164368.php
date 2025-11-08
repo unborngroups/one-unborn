@@ -31,16 +31,6 @@
             line-height: 1.6;
             color: #333;
         }
-        .button {
-            display: inline-block;
-            background-color: #6a1b9a;
-            color: white !important;
-            padding: 12px 25px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: bold;
-            margin-top: 20px;
-        }
         .footer {
             background-color: #eee;
             text-align: center;
@@ -51,61 +41,95 @@
     </style>
 </head>
 <body>
-    <div class="email-container">
-        <div class="header">
-            Welcome to <?php echo e($company ?? config('app.name')); ?>
 
-        </div>
+<?php
+    // ✅ Normalize variables
+    $company     = $company ?? ($emailData['company'] ?? config('app.name'));
+    $name        = $name ?? ($emailData['name'] ?? ($emailData['user']['name'] ?? 'User'));
+    $email       = $email ?? ($emailData['email'] ?? ($emailData['user']['email'] ?? ''));
+    $password    = $password ?? ($emailData['password'] ?? '');
+    $templateBody = $emailData['template_body'] ?? '';
+    
+    // ✅ Footer & signature from company settings
+    $footerText     = $emailData['mail_footer'] ?? '';
+    $signatureText  = $emailData['mail_signature'] ?? 'HR Team';
 
-         <div class="content">
-            <?php
-                // Support both types of mail data
-                $name = $name ?? ($emailData['name'] ?? $emailData['user']['name'] ?? 'User');
-                $email = $email ?? ($emailData['email'] ?? $emailData['user']['email'] ?? '');
-                $password = $password ?? ($emailData['password'] ?? '');
-                $company = $company ?? ($emailData['company'] ?? config('app.name'));
-            ?>
+    // ✅ Whether template exists
+    $templateExists = !empty($templateBody);
+?>
 
-            
-            <p>Hi <?php echo e(ucfirst($name)); ?>,</p>
-            <p>Welcome to <?php echo e($company ?? config('app.name')); ?>!</p>
-            
-            <p><strong>Your Login Credentials:</strong></p>
-            <p>Email: <b><?php echo e($email); ?></b></p>
-            <p>Temporary Password: <b><?php echo e($password); ?></b></p>
+<div class="email-container">
 
-            <p>Please login and update your profile.</p>
+    <!-- ✅ HEADER -->
+    <div class="header">
+        Welcome to <?php echo e($company); ?>
 
-            <p>
-                <a href="<?php echo e(url('/login')); ?>" 
-                   style="display:inline-block; background-color:#6a1b9a; color:#fff; 
-                          padding:12px 25px; text-decoration:none; border-radius:6px; font-weight:bold;">
-                   Login Now
-                </a>
-            </p>
-
-            <p>Best regards,<br>HR Team</p>
-
-            <?php if(isset($emailData['template_body']) && !empty($emailData['template_body'])): ?>
-                
-                <div class="template-master-content" style="margin-top: 25px; padding: 20px; background-color: #f8f9fa; border-left: 4px solid #6a1b9a; border-radius: 4px;">
-                    <?php echo nl2br(e($emailData['template_body'])); ?>
-
-                </div>
-            <?php elseif(isset($template_body) && !empty($template_body)): ?>
-                
-                <div class="template-master-content" style="margin-top: 25px; padding: 20px; background-color: #f8f9fa; border-left: 4px solid #6a1b9a; border-radius: 4px;">
-                    <?php echo nl2br(e($template_body)); ?>
-
-                </div>
-            <?php endif; ?>
-
-        </div>
-
-        <div class="footer">
-            &copy; <?php echo e(date('Y')); ?> <?php echo e($company ?? config('app.name')); ?>. All rights reserved.
-        </div>
     </div>
+
+    <!-- ✅ MAIN CONTENT -->
+    <div class="content">
+
+        <!-- ✅ Default email content -->
+        <p>Hi <?php echo e(strtoupper($name)); ?>,</p>
+
+        <p>Welcome to <?php echo e($company); ?>!</p>
+
+        <p><strong>Your Login Credentials:</strong></p>
+        <p>Email: <b><?php echo e($email); ?></b></p>
+        <p>Temporary Password: <b><?php echo e($password); ?></b></p>
+
+        <p>Please login and update your profile.</p>
+
+        <p>
+            <a href="<?php echo e(url('/login')); ?>" 
+               style="display:inline-block; background-color:#6a1b9a; color:#fff; 
+                      padding:12px 25px; text-decoration:none; border-radius:6px; font-weight:bold;">
+               Login Now
+            </a>
+        </p>
+
+        <!-- ✅ Show Best Regards only when NO template master -->
+        <!-- <?php if(!$templateExists): ?>
+            <p>Best regards,<br><?php echo e($signatureText); ?></p>
+        <?php endif; ?>
+         -->
+        <?php if(!empty($mail_footer)): ?>
+    <div style="margin-top:15px; font-size:12px; color:#666;">
+        <?php echo nl2br($mail_footer); ?>
+
+    </div>
+<?php endif; ?>
+
+
+        <?php if(!empty($signatureText)): ?>
+    <p><?php echo nl2br($signatureText); ?></p>
+<?php else: ?>
+    <p>Best regards,<br><?php echo e($company); ?></p>
+<?php endif; ?>
+
+
+
+        <!-- ✅ TEMPLATE MASTER CONTENT (only if exists) -->
+        <?php if($templateExists): ?>
+            <div style="margin-top: 25px; padding: 20px; 
+                        background-color: #f8f9fa; 
+                        border-left: 4px solid #6a1b9a; border-radius: 4px;">
+                <?php echo nl2br(e($templateBody)); ?>
+
+            </div>
+        <?php endif; ?>
+
+    </div>
+
+    <!-- ✅ FOOTER -->
+    <div class="footer">
+        © <?php echo e(date('Y')); ?> <?php echo e($company); ?>. 
+        <?php echo e($footerText ?: 'All rights reserved.'); ?>
+
+    </div>
+
+</div>
+
 </body>
 </html>
 <?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views/emails/dynamic-template.blade.php ENDPATH**/ ?>

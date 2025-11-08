@@ -215,39 +215,28 @@ public function emailConfig($id)
 
 public function saveEmailConfig(Request $request, $id)
 {
-     $company = Company::findOrFail($id);
+    $company = Company::findOrFail($id);
 
     $validated = $request->validate([
-        'mail_mailer' => 'required|string',
+        // 'mail_mailer' => 'required|string',
         'mail_host' => 'required|string',
+        'mail_username' => 'required|string',
+        'mail_password' => 'required|string',
         'mail_port' => 'required|numeric',
-        'mail_username' => 'nullable|string',
-            'mail_password' => 'nullable|string',
-            'mail_encryption' => 'nullable|string',
-            'mail_from_address' => 'nullable|email',
-            'mail_from_name' => 'nullable|string',
-            'is_default' => 'nullable|boolean',
+        'mail_encryption' => 'nullable|string',
+        'mail_from_address' => 'required|email',
+        'mail_from_name' => 'required|string',
+        'mail_footer' => 'nullable|string|max:500',
+        'mail_signature' => 'nullable|string|max:500',
     ]);
 
-     // Ensure company_id exists in record
-        $data = $validated;
-        $data['company_id'] = $id;
-
-        // If user checked is_default, unset is_default for others (only one default allowed)
-        if (!empty($validated['is_default'])) {
-            CompanySetting::query()->update(['is_default' => 0]);
-            $data['is_default'] = 1;
-        }
-    // Save or update in company_settings table
-    CompanySetting::updateOrCreate(
-    ['company_id' => $company->id],
-    $data
-);
+    // ✅ Save to companies table (Priority 1 source)
+    $company->update($validated);
 
     return redirect()->route('companies.index')->with('success', 'Email configuration saved successfully.');
 }
-    
-  public function fetchByPan($pan)
+
+public function fetchByPan($pan)
 {
     try {
         // Log the incoming PAN for debugging

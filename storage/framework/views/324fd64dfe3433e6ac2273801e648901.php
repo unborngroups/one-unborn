@@ -59,6 +59,14 @@ unset($__errorArgs, $__bag); ?>
     <input type="email" name="official_email" value="<?php echo e(old('official_email', $user->official_email)); ?>" class="form-control" required>
 </div>
 
+<div class="form-check mb-3">
+    <input type="checkbox" name="send_email" value="1" class="form-check-input" id="sendEmailCheckbox">
+    <label for="sendEmailCheckbox" class="form-check-label">
+        Send update notification email?
+    </label>
+</div>
+
+
 
 <div class="mb-3">
     <label>Personal Email</label>
@@ -77,7 +85,7 @@ unset($__errorArgs, $__bag); ?>
     <select id="company_id" name="companies[]" class="form-select" multiple required>
         <?php $__currentLoopData = $companies; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $company): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <option value="<?php echo e($company->id); ?>" 
-                <?php echo e(in_array($company->id, old('companies', [])) ? 'selected' : ''); ?>>
+                <?php echo e(in_array($company->id, old('companies', $selectedCompanies)) ? 'selected' : ''); ?>>
                 <?php echo e($company->company_name); ?>
 
             </option>

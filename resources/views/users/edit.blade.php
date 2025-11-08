@@ -50,6 +50,14 @@
     <label>Official Email</label>
     <input type="email" name="official_email" value="{{ old('official_email', $user->official_email) }}" class="form-control" required>
 </div>
+{{-- 🔘 Send Email Checkbox --}}
+<div class="form-check mb-3">
+    <input type="checkbox" name="send_email" value="1" class="form-check-input" id="sendEmailCheckbox">
+    <label for="sendEmailCheckbox" class="form-check-label">
+        Send update notification email?
+    </label>
+</div>
+
 
 {{-- 🔹 Personal Email --}}
 <div class="mb-3">
@@ -69,7 +77,7 @@
     <select id="company_id" name="companies[]" class="form-select" multiple required>
         @foreach($companies as $company)
             <option value="{{ $company->id }}" 
-                {{ in_array($company->id, old('companies', [])) ? 'selected' : '' }}>
+                {{ in_array($company->id, old('companies', $selectedCompanies)) ? 'selected' : '' }}>
                 {{ $company->company_name }}
             </option>
         @endforeach

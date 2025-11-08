@@ -74,61 +74,73 @@
 <h5 class="text-primary fw-bold mb-3">✉️ Email Settings</h5>
 
 <div class="row">
-    
-    <div class="col-md-6 mb-3">
-        <label>Mail Mailer</label>
-        <input type="text" name="mail_mailer" class="form-control"
-               value="<?php echo e(old('mail_mailer', $company->mail_mailer ?? '')); ?>">
-    </div>
 
     
     <div class="col-md-6 mb-3">
-        <label>Mail Host</label>
+        <label>SMTP Server Address *</label>
         <input type="text" name="mail_host" class="form-control"
-               value="<?php echo e(old('mail_host', $company->mail_host ?? '')); ?>">
+               value="<?php echo e(old('mail_host', $company->mail_host ?? '')); ?>" required>
     </div>
 
     
     <div class="col-md-6 mb-3">
-        <label>Mail Port</label>
-        <input type="text" name="mail_port" class="form-control"
-               value="<?php echo e(old('mail_port', $company->mail_port ?? '')); ?>">
-    </div>
-
-     
-    <div class="col-md-6 mb-3">
-        <label>Mail Username</label>
+        <label>SMTP Username *</label>
         <input type="text" name="mail_username" class="form-control"
-               value="<?php echo e(old('mail_username', $company->mail_username ?? '')); ?>">
+               value="<?php echo e(old('mail_username', $company->mail_username ?? '')); ?>" required>
     </div>
 
-     
+    
     <div class="col-md-6 mb-3">
-        <label>Mail Password</label>
+        <label>SMTP Password *</label>
         <input type="password" name="mail_password" class="form-control"
-               value="<?php echo e(old('mail_password', $company->mail_password ?? '')); ?>">
+               value="<?php echo e(old('mail_password', $company->mail_password ?? '')); ?>" required>
     </div>
 
     
     <div class="col-md-6 mb-3">
-        <label>Mail Encryption</label>
-        <input type="text" name="mail_encryption" class="form-control"
-               value="<?php echo e(old('mail_encryption', $company->mail_encryption ?? '')); ?>">
-    </div>
-
-     
-    <div class="col-md-6 mb-3">
-        <label>Mail From Address</label>
-        <input type="email" name="mail_from_address" class="form-control"
-               value="<?php echo e(old('mail_from_address', $company->mail_from_address ?? '')); ?>">
+        <label>SMTP Port *</label>
+        <input type="text" name="mail_port" class="form-control"
+               value="<?php echo e(old('mail_port', $company->mail_port ?? '')); ?>" required>
     </div>
 
     
     <div class="col-md-6 mb-3">
-        <label>Mail From Name</label>
+        <label class="form-label">Encryption Type</label>
+            <select name="mail_encryption" class="form-select">
+                <option value="">Select Encryption Type</option>
+                <option value="ssl" <?php echo e(old('mail_encryption', $company->mail_encryption ?? '') == 'ssl' ? 'selected' : ''); ?>>SSL</option>
+                <option value="tls" <?php echo e(old('mail_encryption', $company->mail_encryption ?? '') == 'tls' ? 'selected' : ''); ?>>TLS</option>
+            </select>
+    </div>
+
+    
+    <div class="col-md-6 mb-3">
+        <label>Mail From Name *</label>
         <input type="text" name="mail_from_name" class="form-control"
-               value="<?php echo e(old('mail_from_name', $company->mail_from_name ?? '')); ?>">
+               value="<?php echo e(old('mail_from_name', $company->mail_from_name ?? '')); ?>" required>
     </div>
+
+    
+    <div class="col-md-6 mb-3">
+        <label>Mail From Address *</label>
+        <input type="email" name="mail_from_address" class="form-control"
+               value="<?php echo e(old('mail_from_address', $company->mail_from_address ?? '')); ?>" required>
+    </div>
+
+    
+    <div class="col-md-6 mb-3">
+        <label>Mail Footer Text</label>
+        <input type="text" name="mail_footer" class="form-control"
+               value="<?php echo e(old('mail_footer', $company->mail_footer ?? '')); ?>">
+    </div>
+
+    
+    <div class="col-md-6 mb-3">
+        <label>Mail Signature</label>
+        <input type="text" name="mail_signature" class="form-control"
+               value="<?php echo e(old('mail_signature', $company->mail_signature ?? '')); ?>">
+    </div>
+
 </div>
 
         
