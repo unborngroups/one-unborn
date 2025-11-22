@@ -42,7 +42,7 @@
 
                 $company = \App\Helpers\TemplateHelper::getUserMenuPermissions('Company Details');
 
-                $users = \App\Helpers\TemplateHelper::getUserMenuPermissions('Manage Users');
+                $users = \App\Helpers\TemplateHelper::getUserMenuPermissions('Manage User');
 
                 $userType = \App\Helpers\TemplateHelper::getUserMenuPermissions('User Type');
 
@@ -84,7 +84,7 @@
 
                             <?php if($users && $users->can_menu): ?>
 
-                                <li><a class="nav-link text-white menu-item <?php echo e(request()->is('users*') ? 'active' : ''); ?>" href="<?php echo e(route('users.index')); ?>"><i class="bi bi-people"></i> Manage Users</a></li>
+                                <li><a class="nav-link text-white menu-item <?php echo e(request()->is('users*') ? 'active' : ''); ?>" href="<?php echo e(route('users.index')); ?>"><i class="bi bi-people"></i> Manage User</a></li>
 
                             <?php endif; ?>
 
@@ -125,6 +125,8 @@
     $feasibilityMaster = \App\Helpers\TemplateHelper::getUserMenuPermissions('Feasibility Master');
 
     $purchaseOrder = \App\Helpers\TemplateHelper::getUserMenuPermissions('Purchase Order');
+    $proposal = \App\Helpers\TemplateHelper::getUserMenuPermissions('Proposal');
+
 
 ?>
 
@@ -191,6 +193,15 @@
                                <i class="bi bi-plus-circle me-2"></i> Add Feasibility
 
                             </a>
+                            <a class="nav-link text-white menu-item <?php echo e(request()->is('feasibility') || request()->is('feasibility/*/edit') ? 'active bg-primary fw-bold' : ''); ?>"
+
+                               href="<?php echo e(route('feasibility.index')); ?>">
+
+                               <i class="bi bi-pencil me-2"></i> Edit Feasibility
+
+                            </a>
+
+                        </li>
 
                         </li>
 
@@ -345,6 +356,24 @@
                    href="<?php echo e(route('sm.purchaseorder.index')); ?>">
 
                     <span><i class="bi bi-receipt me-2"></i> Purchase Order</span>
+
+                </a>
+
+            </li>
+
+            <?php endif; ?>
+
+
+            
+
+            <?php if($proposal && $proposal->can_menu): ?>
+
+            <li>
+
+                <a class="nav-link text-white menu-item <?php echo e(request()->is('sm/proposal*') ? 'active' : ''); ?>"
+                   href="<?php echo e(route('sm.proposal.index')); ?>">
+
+                    <span><i class="bi bi-receipt me-2"></i> Proposal</span>
 
                 </a>
 

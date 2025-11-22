@@ -33,18 +33,16 @@ class UserController extends Controller
         $companies = Company::all();
         $usertypes = UserType::all();
 
-        $userType = Auth::user()->userType->name ?? 'user';
-        // ✅ Use the helper correctly
-        $permissions = TemplateHelper::getUserMenuPermissions('Manage Users') ?? (object)[
+        // ✅ Use the helper to get actual permissions from database
+        $permissions = TemplateHelper::getUserMenuPermissions('Manage User')?? (object)[
+            'can_menu' => true,
     'can_add' => true,
     'can_edit' => true,
     'can_delete' => true,
     'can_view' => true,
 ];
 
-    // 🔍 Find menu for the current page (example: Manage Users)
-            $menu = null;
-        return view('users.index', compact('users', 'companies', 'usertypes', 'menu', 'permissions'));
+        return view('users.index', compact('users', 'companies', 'usertypes', 'permissions'));
     }
 
     /**

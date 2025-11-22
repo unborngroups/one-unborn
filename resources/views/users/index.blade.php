@@ -98,21 +98,11 @@
 
                             {{-- ✅ Action Buttons --}}
 
-                            <td class="text-center d-flex justify-content-center gap-1">
-
-                                @php
-
-                                $role = strtolower(auth()->user()->userType->name ?? '');
-
-                                $canManage = in_array($role, ['superadmin', 'admin']);
-
-                                @endphp
-
-
-
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-1">
                                 {{-- Edit --}}
 
-                                @if($permissions && $permissions->can_edit)
+                                @if(isset($permissions->can_edit) && $permissions->can_edit)
 
                             <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-primary">
 
@@ -123,10 +113,9 @@
                                 @endif
 
 
-
                             {{-- Delete --}}
 
-                                 @if($permissions && $permissions->can_delete)
+                                 @if(isset($permissions->can_delete) && $permissions->can_delete)
 
                             <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline">
 
@@ -176,7 +165,7 @@
 
                                     {{-- View --}}
 
-                                   @if($permissions && $permissions->can_view)
+                                   @if($permissions->can_view)
 
                                    <a href="{{ route('users.view', $user->id) }}" class="btn btn-sm btn-warning">
 
@@ -186,7 +175,7 @@
 
                                      @endif
 
-
+<!-- 
 
                                      @php
 
@@ -200,7 +189,7 @@
 
                                     </a>
 
-                                    @endif
+                                    @endif -->
 
                                      <ul class="sidebar-menu">
 

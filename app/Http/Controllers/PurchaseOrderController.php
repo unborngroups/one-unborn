@@ -117,8 +117,8 @@ class PurchaseOrderController extends Controller
                 ->createFromPurchaseOrder($purchaseOrder);
             
             // Redirect to deliverables page
-            // return redirect()->route('operations.deliverables.open')
-                // ->with('success', 'Purchase Order created successfully and deliverable generated! Redirected to Deliverables.');
+            return redirect()->route('operations.deliverables.open')
+                ->with('success', 'Purchase Order created successfully and deliverable generated! Redirected to Deliverables.');
         }
 
         return redirect()->route('sm.purchaseorder.index')
@@ -309,6 +309,7 @@ class PurchaseOrderController extends Controller
         return response()->json([
             'client' => $feasibility->client,
             'feasibility' => $feasibility,
+            'vendor_type' => $feasibility->vendor_type, // Add vendor_type for validation
             'no_of_links' => $feasibility->no_of_links,
             'arc_per_link' => (float) $pricing['arc_per_link'],
             'otc_per_link' => (float) $pricing['otc_per_link'],
@@ -411,14 +412,9 @@ class PurchaseOrderController extends Controller
             'vendor_type' => $feasibility ? $feasibility->vendor_type : 'null'
         ]);
 
-        // Skip 20% validation if vendor_type is Self (UBN, UBS, UBL, INF)
+        // Check if vendor_type is Self (UBN, UBS, UBL, INF)
         $selfVendors = ['UBN', 'UBS', 'UBL', 'INF'];
-        if ($feasibility && in_array($feasibility->vendor_type, $selfVendors)) {
-            Log::info('Self vendor detected - skipping validation', ['vendor_type' => $feasibility->vendor_type]);
-            return null;
-        }
-
-        Log::info('Proceeding with 20% validation', ['vendor_type' => $feasibility ? $feasibility->vendor_type : 'null']);
+        $isSelfVendor = $feasibility && in_array($feasibility->vendor_type, $selfVendors);
 
         // Get minimum vendor values per link
         $vendorARCs = [];
@@ -445,33 +441,48 @@ class PurchaseOrderController extends Controller
             $otc = (float)$request->input("otc_link_{$i}");
             $sip = (float)$request->input("static_ip_link_{$i}");
 
-            // ARC
-            if ($minARC > 0) {
-                if (abs($arc - $minARC) < 0.01) {
-                    return "MATCHED PRICE (NOT ALLOWED) - ARC for Link {$i} (₹{$arc}) matches feasibility ARC of ₹{$minARC}.";
-                }
-                if ($arc < ($minARC * 1.20)) {
-                    return "LOW PRICE (NOT ALLOWED) - ARC for Link {$i} (₹{$arc}) must be at least 20% higher than feasibility ARC ₹{$minARC}. Minimum required: ₹" . ($minARC * 1.20);
-                }
-            }
+            if ($isSelfVendor) {
+                // SELF VENDOR: PO amount must be ≤ feasibility amount (lower or equal, NOT higher)
+                Log::info('Self vendor validation', ['vendor_type' => $feasibility->vendor_type]);
 
-            // OTC
-            if ($minOTC > 0) {
-                if (abs($otc - $minOTC) < 0.01) {
-                    return "MATCHED PRICE (NOT ALLOWED) - OTC for Link {$i} (₹{$otc}) matches feasibility OTC of ₹{$minOTC}.";
+                // ARC
+                if ($minARC > 0 && $arc > $minARC) {
+                    return "INVALID PRICE - For Self Vendor, ARC for Link {$i} (₹{$arc}) cannot be higher than feasibility ARC of ₹{$minARC}. It must be lower or equal.";
                 }
-                if ($otc < ($minOTC * 1.20)) {
-                    return "LOW PRICE (NOT ALLOWED) - OTC for Link {$i} (₹{$otc}) must be at least 20% higher than feasibility OTC ₹{$minOTC}. Minimum required: ₹" . ($minOTC * 1.20);
-                }
-            }
 
-            // Static IP
-            if ($minSIP > 0) {
-                if (abs($sip - $minSIP) < 0.01) {
-                    return "MATCHED PRICE (NOT ALLOWED) - Static IP for Link {$i} (₹{$sip}) matches feasibility Static IP of ₹{$minSIP}.";
+                // OTC
+                if ($minOTC > 0 && $otc > $minOTC) {
+                    return "INVALID PRICE - For Self Vendor, OTC for Link {$i} (₹{$otc}) cannot be higher than feasibility OTC of ₹{$minOTC}. It must be lower or equal.";
                 }
-                if ($sip < ($minSIP * 1.20)) {
-                    return "LOW PRICE (NOT ALLOWED) - Static IP for Link {$i} (₹{$sip}) must be at least 20% higher than feasibility Static IP ₹{$minSIP}. Minimum required: ₹" . ($minSIP * 1.20);
+
+                // Static IP
+                if ($minSIP > 0 && $sip > $minSIP) {
+                    return "INVALID PRICE - For Self Vendor, Static IP for Link {$i} (₹{$sip}) cannot be higher than feasibility Static IP of ₹{$minSIP}. It must be lower or equal.";
+                }
+
+            } else {
+                // EXTERNAL VENDOR: PO amount must be > feasibility amount (only higher, NOT lower or equal)
+                Log::info('External vendor validation', ['vendor_type' => $feasibility ? $feasibility->vendor_type : 'null']);
+
+                // ARC
+                if ($minARC > 0) {
+                    if ($arc <= $minARC) {
+                        return "INVALID PRICE - For External Vendor, ARC for Link {$i} (₹{$arc}) must be higher than feasibility ARC of ₹{$minARC}. It cannot be lower or equal.";
+                    }
+                }
+
+                // OTC
+                if ($minOTC > 0) {
+                    if ($otc <= $minOTC) {
+                        return "INVALID PRICE - For External Vendor, OTC for Link {$i} (₹{$otc}) must be higher than feasibility OTC of ₹{$minOTC}. It cannot be lower or equal.";
+                    }
+                }
+
+                // Static IP
+                if ($minSIP > 0) {
+                    if ($sip <= $minSIP) {
+                        return "INVALID PRICE - For External Vendor, Static IP for Link {$i} (₹{$sip}) must be higher than feasibility Static IP of ₹{$minSIP}. It cannot be lower or equal.";
+                    }
                 }
             }
         }

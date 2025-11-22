@@ -60,7 +60,7 @@
 
                 <div class="col-md-4">
 
-                    <label class="form-label fw-semibold">Type of Service *</label>
+                    <label class="form-label fw-semibold">Type of Service <span class="text-danger">*</span></label>
 
                     <select name="type_of_service" id="type_of_service" class="form-select" required>
 
@@ -80,7 +80,7 @@
 
                 <div class="col-md-4">
 
-                    <label class="form-label fw-semibold">Company *</label>
+                    <label class="form-label fw-semibold">Company <span class="text-danger">*</span></label>
 
                     <select name="company_id" id="company_id" class="form-select" required>
 
@@ -100,7 +100,7 @@
 
                 <div class="col-md-4">
 
-                    <label class="form-label fw-semibold">Client Name *</label>
+                    <label class="form-label fw-semibold">Client Name <span class="text-danger">*</span></label>
 
                     <select name="client_id" id="client_id" class="form-select" required>
 
@@ -122,7 +122,7 @@
 
                 <div class="col-md-4">
 
-                    <label class="form-label fw-semibold">Pincode *</label>
+                    <label class="form-label fw-semibold">Pincode <span class="text-danger">*</span></label>
 
                     <input type="text" name="pincode" id="pincode" maxlength="6" class="form-control" required>
 
@@ -134,7 +134,7 @@
 
                 <div class="col-md-4">
 
-                    <label class="form-label fw-semibold">State *</label>
+                    <label class="form-label fw-semibold">State <span class="text-danger">*</span></label>
 
                     <select name="state" id="state" class="form-select select2-tags">
 
@@ -154,7 +154,7 @@
 
                 <div class="col-md-4">
 
-                    <label class="form-label fw-semibold">District *</label>
+                    <label class="form-label fw-semibold">District <span class="text-danger">*</span></label>
 
                    <select name="district" id="district" class="form-select select2-tags">
 
@@ -174,7 +174,7 @@
 
                 <div class="col-md-4">
 
-                    <label class="form-label fw-semibold">Area *</label>
+                    <label class="form-label fw-semibold">Area <span class="text-danger">*</span></label>
 
                     <select name="area" id="post_office" class="form-select select2-tags">
 
@@ -194,7 +194,7 @@
 
                 <div class="col-md-6">
 
-                    <label class="form-label fw-semibold">Address *</label>
+                    <label class="form-label fw-semibold">Address <span class="text-danger">*</span></label>
 
                     <textarea name="address" class="form-control" rows="2" required></textarea>
 
@@ -204,7 +204,7 @@
 
                 <div class="col-md-3">
 
-                    <label class="form-label fw-semibold">SPOC Name *</label>
+                    <label class="form-label fw-semibold">SPOC Name <span class="text-danger">*</span></label>
 
                     <input type="text" name="spoc_name" class="form-control" required>
 
@@ -214,7 +214,7 @@
 
                 <div class="col-md-3">
 
-                    <label class="form-label fw-semibold">SPOC Contact 1 *</label>
+                    <label class="form-label fw-semibold">SPOC Contact 1 <span class="text-danger">*</span></label>
 
                     <input type="text" name="spoc_contact1" class="form-control" required>
 
@@ -244,7 +244,7 @@
 
                 <div class="col-md-3">
 
-                    <label class="form-label fw-semibold">No. of Links *</label>
+                    <label class="form-label fw-semibold">No. of Links <span class="text-danger">*</span></label>
 
                     <select name="no_of_links" class="form-select" required>
 
@@ -262,11 +262,9 @@
 
                 </div>
 
-
-
                 <div class="col-md-3">
 
-                    <label class="form-label fw-semibold">Vendor Type *</label>
+                    <label class="form-label fw-semibold">Vendor Type <span class="text-danger">*</span></label>
 
                     <select name="vendor_type" class="form-select" required>
 
@@ -290,7 +288,7 @@
 
                 <div class="col-md-3">
 
-                    <label class="form-label fw-semibold">Speed *</label>
+                    <label class="form-label fw-semibold">Speed <span class="text-danger">*</span></label>
 
                     <input type="text" name="speed" placeholder="Mbps or Gbps" class="form-control" required>
 
@@ -300,7 +298,7 @@
 
                 <div class="col-md-3">
 
-                    <label class="form-label fw-semibold">Static IP *</label>
+                    <label class="form-label fw-semibold">Static IP <span class="text-danger">*</span></label>
 
                     <select name="static_ip" id="static_ip" class="form-select" required>
 
@@ -355,19 +353,9 @@
 
                 <div class="col-md-3">
 
-                    <label class="form-label fw-semibold">Expected Delivery</label>
+                    <label class="form-label fw-semibold">Expected Delivery <span class="text-danger">*</span></label>
 
-                    <input type="date" name="expected_delivery" class="form-control">
-
-                </div>
-
-
-
-                <div class="col-md-3">
-
-                    <label class="form-label fw-semibold">Expected Activation</label>
-
-                    <input type="date" name="expected_activation" class="form-control">
+                    <input type="date" name="expected_delivery" class="form-control" required>
 
                 </div>
 
@@ -375,7 +363,17 @@
 
                 <div class="col-md-3">
 
-                    <label class="form-label fw-semibold">Hardware Required *</label>
+                    <label class="form-label fw-semibold">Expected Activation <span class="text-danger">*</span></label>
+
+                    <input type="date" name="expected_activation" class="form-control" required>
+
+                </div>
+
+
+
+                <div class="col-md-3">
+
+                    <label class="form-label fw-semibold">Hardware Required <span class="text-danger">*</span></label>
 
                     <select name="hardware_required" id="hardware_required" class="form-select" required>
 
@@ -744,20 +742,13 @@ function lookupPincode() {
     });
 
 }
-
-
-
 // Add multiple event listeners for better responsiveness
 
 const pincodeInput = document.getElementById('pincode');
 
-
-
 // Trigger on blur (when user clicks outside the field)
 
 pincodeInput.addEventListener('blur', lookupPincode);
-
-
 
 // Trigger on Enter key press
 
@@ -773,8 +764,6 @@ pincodeInput.addEventListener('keypress', function(e) {
 
 });
 
-
-
 // Trigger on input with debouncing (wait for user to stop typing)
 
 let pincodeTimeout;
@@ -788,8 +777,6 @@ pincodeInput.addEventListener('input', function() {
     clearTimeout(pincodeTimeout);
 
   }
-
-  
 
   // Set new timeout to trigger after 1 second of no typing
 
@@ -807,50 +794,6 @@ pincodeInput.addEventListener('input', function() {
 
 });
 
-
-
-// Vendor Type Logic based on No. of Links
-
-// document.querySelector('select[name="no_of_links"]').addEventListener('change', function() {
-
-//     const vendorTypeSelect = document.querySelector('select[name="vendor_type"]');
-
-//     const noOfLinks = parseInt(this.value);
-//     // Clear current selection
-//     vendorTypeSelect.selectedIndex = 0;
-//     if (noOfLinks === 1) {
-
-//     vendorTypeSelect.value = 'Same Vendor';
-
-//     vendorTypeSelect.readOnly = true;
-
-//     vendorTypeSelect.style.pointerEvents = "none";
-
-//     vendorTypeSelect.style.background = "#e9ecef";
-
-// } else if (noOfLinks > 1) {
-
-//     vendorTypeSelect.value = 'Different Vendor';
-
-//     vendorTypeSelect.readOnly = true;
-
-//     vendorTypeSelect.style.pointerEvents = "none";
-
-//     vendorTypeSelect.style.background = "#e9ecef";
-
-// } else {
-
-//     vendorTypeSelect.readOnly = false;
-
-//     vendorTypeSelect.style.pointerEvents = "auto";
-
-//     vendorTypeSelect.style.background = "";
-
-// }
-// });
-
-
-
 // Initialize the vendor type field state on page load
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -858,8 +801,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const noOfLinksSelect = document.querySelector('select[name="no_of_links"]');
 
     const vendorTypeSelect = document.querySelector('select[name="vendor_type"]');
-
-    
 
     // If there's already a value selected, trigger the change event
 
@@ -873,6 +814,30 @@ document.addEventListener('DOMContentLoaded', function() {
     const staticIPSelect = document.getElementById('static_ip');
     const subnetSelect = document.getElementById('static_ip_subnet');
     
+    // =======================
+// 🔐 Static IP Validation
+// =======================
+
+const typeOfService = document.getElementById('type_of_service');
+const staticIp = document.getElementById('static_ip');
+
+function checkStaticIP() {
+    if (typeOfService.value === 'ILL' && staticIp.value === 'No') {
+        alert("For ILL service, Static IP is mandatory. Please select Yes.");
+        staticIp.value = "Yes";   // Auto-correct to Yes
+    }
+}
+
+// When Type of Service changes → if ILL, force Static IP to Yes
+typeOfService.addEventListener('change', function () {
+    if (this.value === 'ILL') {
+        staticIp.value = 'Yes';
+    }
+});
+
+// When Static IP dropdown changes → validate
+staticIp.addEventListener('change', checkStaticIP);
+
     staticIPSelect.addEventListener('change', function() {
         if (this.value === 'Yes') {
             subnetSelect.disabled = false;
@@ -883,24 +848,21 @@ document.addEventListener('DOMContentLoaded', function() {
             subnetSelect.value = '';
         }
     });
-    
+
     // ✅ Auto-select Static IP = "Yes" when Type of Service = "ILL"
     const typeOfServiceSelect = document.getElementById('type_of_service');
     
-    typeOfServiceSelect.addEventListener('change', function() {
-        if (this.value === 'ILL') {
-            staticIPSelect.value = 'Yes';
-            staticIPSelect.dispatchEvent(new Event('change')); // Trigger change to enable subnet
-        }
-    });
-
+typeOfServiceSelect.addEventListener('change', function() {
+    if (this.value === 'ILL') {
+        staticIPSelect.value = 'Yes';
+        staticIPSelect.required = true; // <-- Make Static IP mandatory
+        staticIPSelect.dispatchEvent(new Event('change'));
+    } else {
+        staticIPSelect.required = true; // For other services, user selects manually
+    }
 });
 
-
-
-
-
+});
 </script>
-
 @endsection
 

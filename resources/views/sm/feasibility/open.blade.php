@@ -180,4 +180,12 @@
 });
 </script>
 
+<style>
+    .table th,  .table td {
+        width: 130px;
+
+    white-space: nowrap;
+
+    }
+    </style>
 @endsection

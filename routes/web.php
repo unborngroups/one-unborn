@@ -20,6 +20,7 @@ use App\Http\Controllers\FeasibilityController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\DeliverablesController;
 use App\Http\Controllers\ForgotPasswordController;
+use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\GSTController;
 use App\Http\Middleware\CheckProfileCreated;
 use Illuminate\Http\Request;
@@ -295,6 +296,7 @@ Route::get('/test-email', function () {
     Route::resource('feasibility', FeasibilityController::class);
     Route::get('/get-client-details/{id}', [ClientController::class, 'getDetails']);
 
+
     // ✅ Purchase Order Routes (SM Section)
     Route::prefix('sm/purchaseorder')->name('sm.purchaseorder.')->group(function () {
         Route::get('/', [PurchaseOrderController::class, 'index'])->name('index');
@@ -308,9 +310,22 @@ Route::get('/test-email', function () {
         Route::delete('/{id}', [PurchaseOrderController::class, 'destroy'])->name('destroy');
         Route::get('/feasibility/{id}/details', [PurchaseOrderController::class, 'getFeasibilityDetails'])->name('feasibility.details');
     Route::patch('/{id}/toggle-status', [PurchaseOrderController::class, 'toggleStatus'])->name('toggle-status');
+        Route::get('/check-po-number', [PurchaseOrderController::class, 'checkPONumber']);
 
         
     });
+
+    Route::prefix('sm')->name('sm.')->middleware(['auth'])->group(function () {
+
+    Route::prefix('proposal')->name('proposal.')->group(function () {
+
+        Route::get('/', [ProposalController::class, 'index'])
+            ->name('index');
+
+    });
+
+});
+
 
 // Pincode Lookup
 

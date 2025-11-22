@@ -205,6 +205,7 @@ class DeliverablesController extends Controller
 
             'pppoe_username' => 'nullable|string',
             'pppoe_password' => 'nullable|string',
+            'pppoe_vlan' => 'nullable|string',
 
             'static_ip_address' => 'nullable|string',
             'static_subnet_mask' => 'nullable|string',

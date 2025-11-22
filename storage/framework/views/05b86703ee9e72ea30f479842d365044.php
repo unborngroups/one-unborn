@@ -220,7 +220,7 @@
 
                 <label class="form-label fw-semibold">Static IP Subnet</label>
 
-                <p class="form-control-plaintext"><?php echo e($record->feasibility->static_ip_subnet); ?></p>
+                <p class="form-control-plaintext"><?php echo e($record->feasibility->static_ip_subnet ?? 'N/A'); ?></p>
 
             </div>
 
@@ -305,95 +305,81 @@
 
             </div>
 
-
-
         </div>
 
-
-
         
 
-        <?php if($record->vendor1_name || $record->vendor2_name || $record->vendor3_name || $record->vendor4_name): ?>
+       
+<?php if($record->vendor1_name || $record->vendor2_name || $record->vendor3_name || $record->vendor4_name): ?>
 
-        <hr class="my-4">
+<hr class="my-4">
+<h5 class="text-primary fw-bold mb-3">Vendor Information</h5>
 
-        <h5 class="text-primary fw-bold mb-3">Vendor Information</h5>
+<div class="row g-3">
+
+    <?php for($i = 1; $i <= 4; $i++): ?>
+
+        <?php
+            $vName = 'vendor'.$i.'_name';
+            $vArc  = 'vendor'.$i.'_arc';
+            $vOtc  = 'vendor'.$i.'_otc';
+            $vIp   = 'vendor'.$i.'_static_ip_cost';
+            $vTime = 'vendor'.$i.'_delivery_timeline';
+        ?>
 
         
+    <?php if($record->$vName !== null || $record->$vArc !== null || $record->$vOtc !== null || $record->$vIp !== null || $record->$vTime !== null): ?>
 
-        <div class="row g-3">
 
-            <?php for($i = 1; $i <= 4; $i++): ?>
+        <div class="col-md-12">
+            <div class="card bg-light">
+                <div class="card-body">
 
-                <?php if($record->{'vendor' . $i . '_name'}): ?>
+                    <h6 class="fw-bold text-secondary mb-3">Vendor <?php echo e($i); ?></h6>
 
-                <div class="col-md-12">
+                    <div class="row">
 
-                    <div class="card bg-light">
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Name</label>
+                            <p class="form-control-plaintext">
+                                <?php echo e(($record->$vName == 'Self' || $record->$vName == 0) ? 'Self' : $record->$vName); ?>
 
-                        <div class="card-body">
+                            </p>
+                        </div>
 
-                            <h6 class="fw-bold text-secondary mb-3">Vendor <?php echo e($i); ?></h6>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">ARC</label>
+                            <p class="form-control-plaintext"><?php echo e($record->$vArc ?? 'N/A'); ?></p>
+                        </div>
 
-                            <div class="row">
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">OTC</label>
+                            <p class="form-control-plaintext"><?php echo e($record->$vOtc ?? 'N/A'); ?></p>
+                        </div>
 
-                                <div class="col-md-3">
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">Static IP Cost</label>
+                            <p class="form-control-plaintext"><?php echo e($record->$vIp ?? 'N/A'); ?></p>
+                        </div>
 
-                                    <label class="form-label fw-semibold">Name</label>
-
-                                    <p class="form-control-plaintext"><?php echo e($record->{'vendor' . $i . '_name'}); ?></p>
-
-                                </div>
-
-                                <div class="col-md-2">
-
-                                    <label class="form-label fw-semibold">ARC</label>
-
-                                    <p class="form-control-plaintext"><?php echo e($record->{'vendor' . $i . '_arc'} ?? 'N/A'); ?></p>
-
-                                </div>
-
-                                <div class="col-md-2">
-
-                                    <label class="form-label fw-semibold">OTC</label>
-
-                                    <p class="form-control-plaintext"><?php echo e($record->{'vendor' . $i . '_otc'} ?? 'N/A'); ?></p>
-
-                                </div>
-
-                                <div class="col-md-2">
-
-                                    <label class="form-label fw-semibold">Static IP Cost</label>
-
-                                    <p class="form-control-plaintext"><?php echo e($record->{'vendor' . $i . '_static_ip_cost'} ?? 'N/A'); ?></p>
-
-                                </div>
-
-                                <div class="col-md-3">
-
-                                    <label class="form-label fw-semibold">Delivery Timeline</label>
-
-                                    <p class="form-control-plaintext"><?php echo e($record->{'vendor' . $i . '_delivery_timeline'} ?? 'N/A'); ?></p>
-
-                                </div>
-
-                            </div>
-
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Delivery Timeline</label>
+                            <p class="form-control-plaintext"><?php echo e($record->$vTime ?? 'N/A'); ?></p>
                         </div>
 
                     </div>
 
                 </div>
-
-                <?php endif; ?>
-
-            <?php endfor; ?>
-
+            </div>
         </div>
 
         <?php endif; ?>
 
+    <?php endfor; ?>
 
+</div>
+
+<?php endif; ?>
 
         
 

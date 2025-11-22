@@ -1,8 +1,8 @@
-@extends('layouts.app')
 
 
 
-@section('content')
+
+<?php $__env->startSection('content'); ?>
 
 <div class="container-fluid">
 
@@ -12,7 +12,7 @@
 
             <div class="card">
 
-                {{-- ✅ Page Header --}}
+                
 
                 <div class="card-header text-dark">
 
@@ -26,39 +26,40 @@
 
                 <div class="card-body">
 
-                    {{-- ✅ Error Display --}}
-                    @if(session('error'))
+                    
+                    <?php if(session('error')): ?>
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            <strong>Validation Error:</strong> {{ session('error') }}
+                            <strong>Validation Error:</strong> <?php echo e(session('error')); ?>
+
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
-                    @endif
+                    <?php endif; ?>
 
-                    @if($errors->any())
+                    <?php if($errors->any()): ?>
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
                             <strong>Please fix the following errors:</strong>
                             <ul class="mb-0 mt-2">
-                                @foreach($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
+                                <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <li><?php echo e($error); ?></li>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </ul>
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
-                    @endif
+                    <?php endif; ?>
 
-                     {{-- ✅ Purchase Order Form --}}
+                     
 
-                    <form action="{{ route('sm.purchaseorder.store') }}" method="POST" id="purchaseOrderForm">
+                    <form action="<?php echo e(route('sm.purchaseorder.store')); ?>" method="POST" id="purchaseOrderForm">
 
-                        @csrf
+                        <?php echo csrf_field(); ?>
 
                         
 
                         <div class="row">
 
-                            {{-- ✅ Feasibility Dropdown (Only unused closed feasibilities shown) --}}
+                            
 
                             <div class="col-md-6 mb-3">
 
@@ -70,37 +71,45 @@
 
                                 </label>
 
-                                <select class="form-select @error('feasibility_id') is-invalid @enderror" 
+                                <select class="form-select <?php $__errorArgs = ['feasibility_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
 
                                         id="feasibility_id" name="feasibility_id" required onchange="loadFeasibilityDetails()">
 
                                     <option value="">Select Available Feasibility</option>
 
-                                     {{-- ✅ Loop through all unused closed feasibilities --}}
+                                     
 
-                                    @forelse($closedFeasibilities as $feasibilityStatus)
+                                    <?php $__empty_1 = true; $__currentLoopData = $closedFeasibilities; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $feasibilityStatus): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
 
-                                        <option value="{{ $feasibilityStatus->feasibility->id }}" 
+                                        <option value="<?php echo e($feasibilityStatus->feasibility->id); ?>" 
 
-                                                {{ old('feasibility_id') == $feasibilityStatus->feasibility->id ? 'selected' : '' }}>
+                                                <?php echo e(old('feasibility_id') == $feasibilityStatus->feasibility->id ? 'selected' : ''); ?>>
 
-                                            {{ $feasibilityStatus->feasibility->feasibility_request_id }} - {{ $feasibilityStatus->feasibility->client->client_name ?? 'Unknown' }}
+                                            <?php echo e($feasibilityStatus->feasibility->feasibility_request_id); ?> - <?php echo e($feasibilityStatus->feasibility->client->client_name ?? 'Unknown'); ?>
+
 
                                         </option>
 
-                                    @empty
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
 
                                         <option value="" disabled>No unused closed feasibilities available</option>
 
-                                    @endforelse
+                                    <?php endif; ?>
 
                                 </select>
 
 
 
-                                {{-- ✅ Show warning if list is empty --}}
+                                
 
-                                @if($closedFeasibilities->isEmpty())
+                                <?php if($closedFeasibilities->isEmpty()): ?>
 
                                     <div class="form-text text-warning">
 
@@ -108,19 +117,26 @@
 
                                     </div>
 
-                                @endif
+                                <?php endif; ?>
 
-                                @error('feasibility_id')
+                                <?php $__errorArgs = ['feasibility_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
 
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    <div class="invalid-feedback"><?php echo e($message); ?></div>
 
-                                @enderror
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
 
                             </div>
 
 
 
-                             {{-- PO Number --}}
+                             
 
                                 <div class="col-md-6 mb-3">
 
@@ -130,23 +146,37 @@
 
                                     </label>
 
-                                        <input type="text" class="form-control @error('po_number') is-invalid @enderror" 
+                                        <input type="text" class="form-control <?php $__errorArgs = ['po_number'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
 
-                                        id="po_number" name="po_number" value="{{ old('po_number') }}" 
+                                        id="po_number" name="po_number" value="<?php echo e(old('po_number')); ?>" 
 
                                         placeholder="Enter PO Number" required>
 
-                                    @error('po_number')
+                                    <?php $__errorArgs = ['po_number'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
 
-                                <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback"><?php echo e($message); ?></div>
 
-                                    @enderror
+                                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
 
                                 </div>
 
 
 
-                             {{-- PO Date --}}
+                             
 
                                 <div class="col-md-6 mb-3">
 
@@ -156,15 +186,29 @@
 
                                 </label>
 
-                                <input type="date" class="form-control @error('po_date') is-invalid @enderror" 
+                                <input type="date" class="form-control <?php $__errorArgs = ['po_date'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
 
-                                       id="po_date" name="po_date" value="{{ old('po_date', date('Y-m-d')) }}" required>
+                                       id="po_date" name="po_date" value="<?php echo e(old('po_date', date('Y-m-d'))); ?>" required>
 
-                                @error('po_date')
+                                <?php $__errorArgs = ['po_date'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
 
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    <div class="invalid-feedback"><?php echo e($message); ?></div>
 
-                                @enderror
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
 
                             </div>
 
@@ -172,7 +216,7 @@
 
 
 
-                        {{-- Number of Links Dropdown --}}
+                        
 
                         <div class="row">
 
@@ -202,7 +246,7 @@
 
 
 
-                        {{-- Dynamic Pricing Fields Container --}}
+                        
 
                         <div id="dynamicPricingContainer" style="display: none;">
 
@@ -230,11 +274,11 @@
 
 
 
-                        {{-- ✅ Contract + Total Cost --}}
+                        
 
                         <div class="row">
 
-                            {{-- Contract Period --}}
+                            
 
                             <div class="col-md-6 mb-3">
 
@@ -244,21 +288,35 @@
 
                                 </label>
 
-                                <input type="number" min="1" class="form-control @error('contract_period') is-invalid @enderror" 
+                                <input type="number" min="1" class="form-control <?php $__errorArgs = ['contract_period'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
 
-                                       id="contract_period" name="contract_period" value="{{ old('contract_period', 12) }}" required>
+                                       id="contract_period" name="contract_period" value="<?php echo e(old('contract_period', 12)); ?>" required>
 
-                                @error('contract_period')
+                                <?php $__errorArgs = ['contract_period'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
 
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    <div class="invalid-feedback"><?php echo e($message); ?></div>
 
-                                @enderror
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
 
                             </div>
 
 
 
-                            {{-- Auto Calculated Total Cost --}}
+                            
 
                             <div class="col-md-6 mb-3">
 
@@ -276,13 +334,13 @@
 
 
 
-                        {{-- Action Buttons --}}
+                        
 
                         <div class="row">
 
                             <div class="col-12 text-end">
 
-                                <a href="{{ route('sm.purchaseorder.index') }}" class="btn btn-secondary me-2">
+                                <a href="<?php echo e(route('sm.purchaseorder.index')); ?>" class="btn btn-secondary me-2">
 
                                     <i class="bi bi-arrow-left"></i> Cancel
 
@@ -850,7 +908,7 @@ function redirectToFeasibilityView() {
 
 
 
-// {{-- ✅ Enhanced JavaScript for Dynamic Pricing and Feasibility Integration --}}
+// 
 
 // <script>
 
@@ -1370,7 +1428,7 @@ function redirectToFeasibilityView() {
 
 // }
 
-// // {{-- ✅ Auto-calculate Total Cost --}}
+// // 
 
 // function calculateTotal() {
 
@@ -1543,5 +1601,7 @@ function redirectToFeasibilityView() {
 
 // </script>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\wlcome\multipleuserpage\resources\views/sm/purchaseorder/create.blade.php ENDPATH**/ ?>

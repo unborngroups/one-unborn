@@ -55,7 +55,6 @@ class WhatsAppHelper
         $response = curl_exec($curl);
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         $curlError = curl_error($curl);
-        curl_close($curl);
         
         // Debug: Log raw response (using storage path)
         $logPath = storage_path('logs/whatsapp_debug.txt');

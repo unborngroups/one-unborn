@@ -1,0 +1,1 @@
+<?php /**PATH F:\xampp\htdocs\wlcome\multipleuserpage\resources\views/sm/proposal/index.blade.php ENDPATH**/ ?>

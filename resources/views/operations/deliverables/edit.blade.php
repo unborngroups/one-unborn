@@ -165,9 +165,9 @@
                                 <label class="form-label">Status of Link <span class="text-danger">*</span></label>
                                 <select class="form-select" name="status_of_link" required>
                                     <option value="">Select Status</option>
-                                    <option value="Active" {{ old('status_of_link', $record->status_of_link) == 'Active' ? 'selected' : '' }}>Active</option>
-                                    <option value="Inactive" {{ old('status_of_link', $record->status_of_link) == 'Inactive' ? 'selected' : '' }}>Inactive</option>
-                                    <option value="Under Maintenance" {{ old('status_of_link', $record->status_of_link) == 'Under Maintenance' ? 'selected' : '' }}>Under Maintenance</option>
+                                    <option value="Delivered and Activated" {{ old('status_of_link', $record->status_of_link) == 'Delivered and Activated' ? 'selected' : '' }}>Delivered and Activated</option>
+                                    <option value="Delivered" {{ old('status_of_link', $record->status_of_link) == 'Delivered' ? 'selected' : '' }}>Delivered</option>
+                                    <option value="Inprogress" {{ old('status_of_link', $record->status_of_link) == 'Inprogress' ? 'selected' : '' }}>Inprogress</option>
                                 </select>
                             </div>
 

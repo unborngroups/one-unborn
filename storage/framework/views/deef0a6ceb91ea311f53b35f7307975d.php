@@ -12,32 +12,30 @@
 
             <div class="card shadow border-0">
 
-                
-
                 <div class="card-header text-dark d-flex justify-content-between align-items-center">
 
                     <h5 class="mb-0"><i class="bi bi-hourglass-split me-2"></i>Open Feasibilities</h5>
 
+                    <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search...">
                 </div>
 
 
 
                 <div class="card-body">
 
-                    
+                    <!-- Check if there are records to display -->
 
                     <?php if($records->count() > 0): ?>
 
                         <div class="table-responsive">
 
-                            <table class="table table-striped table-hover">
+                            <table class="table table-striped table-hover" id="open">
 
-                                
+                                <!-- Table headers -->
 
                                 <thead class="table-dark-primary">
 
                                     <tr>
-                                        <th width="50" class="text-center"><input type="checkbox" id="select_all" style="width: 18px; height: 18px; cursor: pointer;"></th>
 
                                         <th>S.No</th>
 
@@ -61,20 +59,17 @@
 
                                 <tbody>
 
-                                    
+                                    <!-- Loop through each record and display in table rows -->
 
                                     <?php $__currentLoopData = $records; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $record): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 
                                         <tr>
-                                            <td class="text-center">
-                                    <input type="checkbox" class="row-checkbox" value="<?php echo e($record->id); ?>" style="width: 18px; height: 18px; cursor: pointer;">
-                                </td>
 
-                                            
+                                            <!-- Display serial number -->
 
                                             <td><?php echo e($index + 1); ?></td>
 
-                                            
+                                            <!-- Display feasibility request ID -->
 
                                             <td>
 
@@ -82,15 +77,15 @@
 
                                             </td>
 
-                                            
-
                                             <td>
+
+                                                 <!-- Action buttons for View and Update -->
 
                                                 <div class="btn-group" role="group">
 
-                                                    
+                                                    <!-- View button with route to the view page -->
 
-                                                    <a href="<?php echo e(route('sm.feasibility.view', $record->id)); ?>" 
+                                                    <a href="<?php echo e(route('operations.feasibility.view', $record->id)); ?>" 
 
                                                        class="btn btn-info btn-sm" title="View">
 
@@ -98,29 +93,37 @@
 
                                                     </a>
 
-                                                    
+                                                    <!-- Update button with route to the edit page -->
+
+                                                    <a href="<?php echo e(route('operations.feasibility.edit', $record->id)); ?>" 
+
+                                                       class="btn btn-warning btn-sm" title="Update">
+
+                                                        <i class="bi bi-pencil"></i> Update
+
+                                                    </a>
 
                                                 </div>
 
                                             </td>
 
-                                            
+                                            <!-- Display company name -->
 
                                             <td><?php echo e($record->feasibility->company->company_name ?? 'N/A'); ?></td>
 
-                                            
+                                            <!-- Display client name -->
 
                                             <td><?php echo e($record->feasibility->client->client_name ?? 'N/A'); ?></td>
 
-                                            
+                                            <!-- Display type of service -->
 
                                             <td><?php echo e($record->feasibility->type_of_service ?? 'N/A'); ?></td>
 
-                                            
+                                            <!-- Display speed -->
 
                                             <td><?php echo e($record->feasibility->speed ?? 'N/A'); ?></td>
 
-                                            
+                                            <!-- Display number of links -->
 
                                             <td><?php echo e($record->feasibility->no_of_links ?? 'N/A'); ?></td>
 
@@ -136,7 +139,7 @@
 
                     <?php else: ?>
 
-                    
+                    <!-- Message when no open feasibilities are found -->
 
                         <div class="text-center py-4">
 
@@ -159,26 +162,27 @@
     </div>
 
 </div>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-    const selectAll = document.getElementById('select_all');
-    const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+    document.getElementById('tableSearch').addEventListener('keyup', function() {
 
-    selectAll.addEventListener('change', function() {
-        rowCheckboxes.forEach(cb => cb.checked = selectAll.checked);
+    let value = this.value.toLowerCase();
+
+    document.querySelectorAll('#open tbody tr').forEach(row => {
+
+        row.style.display = row.textContent.toLowerCase().includes(value) ? '' : 'none';
+
     });
 
-    rowCheckboxes.forEach(cb => {
-        cb.addEventListener('change', function() {
-            const allChecked = [...rowCheckboxes].every(x => x.checked);
-            const noneChecked = [...rowCheckboxes].every(x => !x.checked);
-
-            selectAll.checked = allChecked;
-            selectAll.indeterminate = !allChecked && !noneChecked;
-        });
-    });
 });
 </script>
+<style>
+    .table th,  .table td {
+        width: 130px;
 
+    white-space: nowrap;
+
+    }
+</style>
 <?php $__env->stopSection(); ?>
-<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\wlcome\multipleuserpage\resources\views/sm/feasibility/open.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\wlcome\multipleuserpage\resources\views/operations/feasibility/open.blade.php ENDPATH**/ ?>
