@@ -49,6 +49,7 @@ class UserTypeController extends Controller
         ]);
       UserType::create([
     'name'      => $request->name,
+    'email'     => $request->email,
     'Description' => $request->Description,
     'status'    => $request->status,
 ]);

@@ -34,6 +34,52 @@
 
         @endif
 
+        @if (session('success'))
+
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+
+        @endif
+
+        @if (session('import_errors'))
+
+            <div class="alert alert-warning">
+                <strong>Import could not process some rows:</strong>
+                <ul class="mb-0">
+                    @foreach (session('import_errors') as $importError)
+                        <li>{{ $importError }}</li>
+                    @endforeach
+                </ul>
+            </div>
+
+        @endif
+
+        @php
+            $importRow = session('imported_row', []);
+        @endphp
+
+        
+<div class="container-fluid py-4">
+    <div class="card shadow border-0 p-4">
+        <h5 class="mb-3">Import / Export Feasibility</h5>
+        <div class="row g-3 align-items-center">
+            <div class="col-md-6">
+                <form action="{{ route('feasibility.import') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="input-group">
+                        <input type="file" name="file" class="form-control" required>
+                        <button type="submit" class="btn btn-primary">Import Excel</button>
+                    </div>
+                </form>
+            </div>
+            <!-- <div class="col-md-6 text-end">
+                <a href="{{ route('feasibility.export') }}" class="btn btn-success">Download Excel</a>
+            </div> -->
+        </div>
+    </div>
+</div>
+
 
 
          {{-- Form starts here --}}
@@ -62,15 +108,16 @@
 
                     <label class="form-label fw-semibold">Type of Service <span class="text-danger">*</span></label>
 
+                    @php $typeSelection = old('type_of_service', $importRow['type_of_service'] ?? ''); @endphp
                     <select name="type_of_service" id="type_of_service" class="form-select" required>
 
-                        <option value="">Select</option>
+                        <option value="" {{ $typeSelection === '' ? 'selected' : '' }}>Select</option>
 
-                        <option>Broadband</option>
+                        <option value="Broadband" {{ $typeSelection === 'Broadband' ? 'selected' : '' }}>Broadband</option>
 
-                        <option>ILL</option>
+                        <option value="ILL" {{ $typeSelection === 'ILL' ? 'selected' : '' }}>ILL</option>
 
-                        <option>P2P</option>
+                        <option value="P2P" {{ $typeSelection === 'P2P' ? 'selected' : '' }}>P2P</option>
 
                     </select>
 
@@ -88,7 +135,7 @@
 
                         @foreach($companies as $company)
 
-                            <option value="{{ $company->id }}">{{ $company->company_name }}</option>
+                            <option value="{{ $company->id }}" {{ (string) old('company_id', $importRow['company_id'] ?? '') === (string) $company->id ? 'selected' : '' }}>{{ $company->company_name }}</option>
 
                         @endforeach
 
@@ -108,7 +155,7 @@
 
                         @foreach($clients as $client)
 
-                            <option value="{{ $client->id }}">{{ $client->business_name ?: $client->client_name }}</option>
+                            <option value="{{ $client->id }}" {{ (string) old('client_id', $importRow['client_id'] ?? '') === (string) $client->id ? 'selected' : '' }}>{{ $client->business_name ?: $client->client_name }}</option>
 
                         @endforeach
 
@@ -124,7 +171,7 @@
 
                     <label class="form-label fw-semibold">Pincode <span class="text-danger">*</span></label>
 
-                    <input type="text" name="pincode" id="pincode" maxlength="6" class="form-control" required>
+                    <input type="text" name="pincode" id="pincode" maxlength="6" class="form-control" required value="{{ old('pincode', $importRow['pincode'] ?? '') }}">
 
            <!-- <button type="button" id="pincodeVerifyBtn" class="btn btn-primary">Verify</button> -->
 
@@ -136,15 +183,16 @@
 
                     <label class="form-label fw-semibold">State <span class="text-danger">*</span></label>
 
+                    @php $stateValue = old('state', $importRow['state'] ?? ''); @endphp
                     <select name="state" id="state" class="form-select select2-tags">
 
-                        <option value="">Select or Type State</option>
+                        <option value="" {{ $stateValue === '' ? 'selected' : '' }}>Select or Type State</option>
 
-                        <option value="Karnataka">Karnataka</option>
+                        <option value="Karnataka" {{ $stateValue === 'Karnataka' ? 'selected' : '' }}>Karnataka</option>
 
-                        <option value="Tamil Nadu">Tamil Nadu</option>
+                        <option value="Tamil Nadu" {{ $stateValue === 'Tamil Nadu' ? 'selected' : '' }}>Tamil Nadu</option>
 
-                        <option value="Telangana">Telangana</option>
+                        <option value="Telangana" {{ $stateValue === 'Telangana' ? 'selected' : '' }}>Telangana</option>
 
                     </select>
 
@@ -156,15 +204,16 @@
 
                     <label class="form-label fw-semibold">District <span class="text-danger">*</span></label>
 
+                   @php $districtValue = old('district', $importRow['district'] ?? ''); @endphp
                    <select name="district" id="district" class="form-select select2-tags">
 
-                        <option value="">Select or Type District</option>
+                        <option value="" {{ $districtValue === '' ? 'selected' : '' }}>Select or Type District</option>
 
-                        <option value="Salem">Salem</option>
+                        <option value="Salem" {{ $districtValue === 'Salem' ? 'selected' : '' }}>Salem</option>
 
-                        <option value="Dharmapuri">Dharmapuri</option>
+                        <option value="Dharmapuri" {{ $districtValue === 'Dharmapuri' ? 'selected' : '' }}>Dharmapuri</option>
 
-                        <option value="Erode">Erode</option>
+                        <option value="Erode" {{ $districtValue === 'Erode' ? 'selected' : '' }}>Erode</option>
 
                     </select>
 
@@ -175,17 +224,17 @@
                 <div class="col-md-4">
 
                     <label class="form-label fw-semibold">Area <span class="text-danger">*</span></label>
-
+                    @php $areaValue = old('area', $importRow['area'] ?? ''); @endphp
+                      
                     <select name="area" id="post_office" class="form-select select2-tags">
 
                         <option value="">Select or Type Area</option>
 
-                        <option value="Uthagarai">Uthagarai</option>
+                        <option value="Uthagarai" {{ $areaValue === 'Uthagarai' ? 'selected' : '' }}>Uthagarai</option>
 
-                        <option value="Harur">Harur</option>
+                        <option value="Harur" {{ $areaValue === 'Harur' ? 'selected' : '' }}>Harur</option>
 
-                        <option value="Kottaiyur">Kottaiyur</option>
-
+                        <option value="Kottaiyur" {{ $areaValue === 'Kottaiyur' ? 'selected' : '' }}>Kottaiyur</option>
                     </select>
 
                 </div>
@@ -196,7 +245,7 @@
 
                     <label class="form-label fw-semibold">Address <span class="text-danger">*</span></label>
 
-                    <textarea name="address" class="form-control" rows="2" required></textarea>
+                    <textarea name="address" class="form-control" rows="2" required>{{ old('address', $importRow['address'] ?? '') }}</textarea>
 
                 </div>
 
@@ -206,7 +255,7 @@
 
                     <label class="form-label fw-semibold">SPOC Name <span class="text-danger">*</span></label>
 
-                    <input type="text" name="spoc_name" class="form-control" required>
+                    <input type="text" name="spoc_name" class="form-control" value="{{ old('spoc_name', $importRow['spoc_name'] ?? '') }}" required>
 
                 </div>
 
@@ -216,7 +265,7 @@
 
                     <label class="form-label fw-semibold">SPOC Contact 1 <span class="text-danger">*</span></label>
 
-                    <input type="text" name="spoc_contact1" class="form-control" required>
+                    <input type="text" name="spoc_contact1" class="form-control" value="{{ old('spoc_contact1', $importRow['spoc_contact1'] ?? '') }}" required>
 
                 </div>
 
@@ -226,7 +275,7 @@
 
                     <label class="form-label fw-semibold">SPOC Contact 2</label>
 
-                    <input type="text" name="spoc_contact2" class="form-control">
+                    <input type="text" name="spoc_contact2" class="form-control" value="{{ old('spoc_contact2', $importRow['spoc_contact2'] ?? '') }}">
 
                 </div>
 
@@ -236,7 +285,7 @@
 
                     <label class="form-label fw-semibold">SPOC Email</label>
 
-                    <input type="email" name="spoc_email" class="form-control">
+                    <input type="email" name="spoc_email" class="form-control" value="{{ old('spoc_email', $importRow['spoc_email'] ?? '') }}" >
 
                 </div>
 
@@ -245,18 +294,18 @@
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">No. of Links <span class="text-danger">*</span></label>
-
+                    @php $linkValue = old('no_of_links', $importRow['no_of_links'] ?? ''); @endphp
+                      
                     <select name="no_of_links" class="form-select" required>
 
-                        <option value="">Select</option>
+                        <option value="" {{ $linkValue === '' ? 'selected' : '' }}>Select</option>
 
-                        <option>1</option>
+                        <option value="1" {{ $linkValue === '1' ? 'selected' : '' }}>1</option>
 
-                        <option>2</option>
+                        <option value="2" {{ $linkValue === '2' ? 'selected' : '' }}>2</option>
+                        <option value="3" {{ $linkValue === '3' ? 'selected' : '' }}>3</option>
 
-                        <option>3</option>
-
-                        <option>4</option>
+                        <option value="4" {{ $linkValue === '4' ? 'selected' : '' }}>4</option>
 
                     </select>
 
@@ -265,22 +314,22 @@
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Vendor Type <span class="text-danger">*</span></label>
-
+                    @php $vendorTypeValue = old('vendor_type', $importRow['vendor_type'] ?? ''); @endphp
+                      
                     <select name="vendor_type" class="form-select" required>
 
-                        <option value="">Select</option>
+                        <option value="" {{ $vendorTypeValue === '' ? 'selected' : '' }}>Select</option>
 
-                        <option>Same Vendor</option>
+                        <option {{ $vendorTypeValue === 'Same Vendor' ? 'selected' : '' }}>Same Vendor</option>
 
-                        <option>Different Vendor</option>
+                        <option {{ $vendorTypeValue === 'Different Vendor' ? 'selected' : '' }}>Different Vendor</option>
+                        <option {{ $vendorTypeValue === 'UBN' ? 'selected' : '' }}>UBN</option>
 
-                        <option>UBN</option>
+                        <option {{ $vendorTypeValue === 'UBS' ? 'selected' : '' }}>UBS</option>
 
-                        <option>UBS</option>
+                        <option {{ $vendorTypeValue === 'UBL' ? 'selected' : '' }}>UBL</option>
 
-                        <option>UBL</option>
-
-                        <option>INF</option>
+                        <option {{ $vendorTypeValue === 'INF' ? 'selected' : '' }}>INF</option>
 
                     </select>
 
@@ -290,7 +339,7 @@
 
                     <label class="form-label fw-semibold">Speed <span class="text-danger">*</span></label>
 
-                    <input type="text" name="speed" placeholder="Mbps or Gbps" class="form-control" required>
+                    <input type="text" name="speed" placeholder="Mbps or Gbps" class="form-control" value="{{ old('speed', $importRow['speed'] ?? '') }}" required>
 
                 </div>
 
@@ -299,14 +348,15 @@
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Static IP <span class="text-danger">*</span></label>
-
+                    @php $staticIpValue = old('static_ip', $importRow['static_ip'] ?? ''); @endphp
+                        
                     <select name="static_ip" id="static_ip" class="form-select" required>
 
-                        <option value="">Select</option>
+                        <option value="" {{ $staticIpValue === '' ? 'selected' : '' }}>Select</option>
 
-                        <option value="Yes">Yes</option>
+                        <option value="Yes" {{ $staticIpValue === 'Yes' ? 'selected' : '' }}>Yes</option>
 
-                        <option value="No">No</option>
+                        <option value="No" {{ $staticIpValue === 'No' ? 'selected' : '' }}>No</option>
 
                     </select>
 
@@ -315,28 +365,26 @@
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Static IP Subnet</label>
-
+                    @php $staticIpSubnetValue = old('static_ip_subnet', $importRow['static_ip_subnet'] ?? ''); @endphp
                     <select name="static_ip_subnet" id="static_ip_subnet" class="form-select" disabled>
 
-                        <option value="">Select Subnet</option>
+                        <option value="" {{ $staticIpSubnetValue === '' ? 'selected' : '' }}>Select Subnet</option>
 
-                        <option value="/32">/32</option>
+                        <option value="/32" {{ $staticIpSubnetValue === '/32' ? 'selected' : '' }}>/32</option>
 
-                        <option value="/31">/31</option>
+                        <option value="/31" {{ $staticIpSubnetValue === '/31' ? 'selected' : '' }}>/31</option>
 
-                        <option value="/30">/30</option>
+                        <option value="/30" {{ $staticIpSubnetValue === '/30' ? 'selected' : '' }}>/30</option>
+                        <option value="/29" {{ $staticIpSubnetValue === '/29' ? 'selected' : '' }}>/29</option>
 
-                        <option value="/29">/29</option>
+                        <option value="/28" {{ $staticIpSubnetValue === '/28' ? 'selected' : '' }}>/28</option>
 
-                        <option value="/28">/28</option>
+                        <option value="/27" {{ $staticIpSubnetValue === '/27' ? 'selected' : '' }}>/27</option>
 
-                        <option value="/27">/27</option>
+                        <option value="/26" {{ $staticIpSubnetValue === '/26' ? 'selected' : '' }}>/26</option>
 
-                        <option value="/26">/26</option>
-
-                        <option value="/25">/25</option>
-
-                        <option value="/24">/24</option>
+                        <option value="/25" {{ $staticIpSubnetValue === '/25' ? 'selected' : '' }}>/25</option>
+                        <option value="/24" {{ $staticIpSubnetValue === '/24' ? 'selected' : '' }}>/24</option>
 
                     </select>
 
@@ -355,7 +403,7 @@
 
                     <label class="form-label fw-semibold">Expected Delivery <span class="text-danger">*</span></label>
 
-                    <input type="date" name="expected_delivery" class="form-control" required>
+                    <input type="date" name="expected_delivery" class="form-control" value="{{ old('expected_delivery', $importRow['expected_delivery'] ?? '') }}" required>
 
                 </div>
 
@@ -365,7 +413,7 @@
 
                     <label class="form-label fw-semibold">Expected Activation <span class="text-danger">*</span></label>
 
-                    <input type="date" name="expected_activation" class="form-control" required>
+                    <input type="date" name="expected_activation" class="form-control" value="{{ old('expected_activation', $importRow['expected_activation'] ?? '') }}" required>
 
                 </div>
 
@@ -374,30 +422,29 @@
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Hardware Required <span class="text-danger">*</span></label>
-
+                    @php $hardwareRequiredValue = old('hardware_required', $importRow['hardware_required'] ?? ''); @endphp
                     <select name="hardware_required" id="hardware_required" class="form-select" required>
 
-                        <option value="">Select</option>
+                        <option value="" {{ $hardwareRequiredValue === '' ? 'selected' : '' }}>Select</option>
 
-                        <option value="1">Yes</option>
+                        <option value="1" {{ $hardwareRequiredValue === '1' ? 'selected' : '' }}>Yes</option>
 
-                        <option value="0">No</option>
+                        <option value="0" {{ $hardwareRequiredValue === '0' ? 'selected' : '' }}>No</option>
 
                     </select>
 
                 </div>
 
 
-
                 <div class="col-md-3" id="hardware_name_div" style="display:none;">
 
                     <label class="form-label fw-semibold">Hardware Model Name</label>
 
-                    <input type="text" name="hardware_model_name" class="form-control">
+                    <input type="text" name="hardware_model_name" class="form-control" value="{{ old('hardware_model_name', $importRow['hardware_model_name'] ?? '') }}">
 
                 </div>
 
-
+ 
 
                     {{--  Status Dropdown --}}
 
@@ -424,8 +471,6 @@
     </div>
 
 </div>
-
-
 
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
@@ -865,4 +910,3 @@ typeOfServiceSelect.addEventListener('change', function() {
 });
 </script>
 @endsection
-

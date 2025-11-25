@@ -16,6 +16,52 @@
             </div>
         @endif
 
+        @if (session('success'))
+
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+
+        @endif
+        
+        @if (session('import_errors'))
+
+            <div class="alert alert-warning">
+                <strong>Import could not process some rows:</strong>
+                <ul class="mb-0">
+                    @foreach (session('import_errors') as $importError)
+                        <li>{{ $importError }}</li>
+                    @endforeach
+                </ul>
+            </div>
+
+        @endif
+
+        @php
+            $importRow = session('imported_row', []);
+        @endphp
+
+        
+<div class="container-fluid py-4">
+    <div class="card shadow border-0 p-4">
+        <h5 class="mb-3">Import / Export Feasibility</h5>
+        <div class="row g-3 align-items-center">
+            <div class="col-md-6">
+                <form action="{{ route('feasibility.import') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="input-group">
+                        <input type="file" name="file" class="form-control" required>
+                        <button type="submit" class="btn btn-primary">Import Excel</button>
+                    </div>
+                </form>
+            </div>
+            <!-- <div class="col-md-6 text-end">
+                <a href="{{ route('feasibility.export') }}" class="btn btn-success">Download Excel</a>
+            </div> -->
+        </div>
+    </div>
+</div>
+
         <form action="{{ route('feasibility.update', $feasibility->id) }}" method="POST">
             @csrf
             @method('PUT')
@@ -29,11 +75,12 @@
 
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Type of Service <span class="text-danger">*</span></label>
+                    @php $typeSelection = old('type_of_service', $feasibility->type_of_service); @endphp
                     <select name="type_of_service" id="type_of_service" class="form-select" required>
-                        <option value="">Select</option>
-                        <option value="Broadband" {{ $feasibility->type_of_service=='Broadband'?'selected':'' }}>Broadband</option>
-                        <option value="ILL" {{ $feasibility->type_of_service=='ILL'?'selected':'' }}>ILL</option>
-                        <option value="P2P" {{ $feasibility->type_of_service=='P2P'?'selected':'' }}>P2P</option>
+                        <option value="" {{ $typeSelection === '' ? 'selected' : '' }}>Select</option>
+                        <option value="Broadband" {{ $typeSelection === 'Broadband' ? 'selected' : '' }}>Broadband</option>
+                        <option value="ILL" {{ $typeSelection === 'ILL' ? 'selected' : '' }}>ILL</option>
+                        <option value="P2P" {{ $typeSelection === 'P2P' ? 'selected' : '' }}>P2P</option>
                     </select>
                 </div>
 
@@ -42,7 +89,7 @@
                     <select name="company_id" id="company_id" class="form-select" required>
                         <option value="">Select Company</option>
                         @foreach($companies as $company)
-                            <option value="{{ $company->id }}" {{ $feasibility->company_id==$company->id?'selected':'' }}>
+                            <option value="{{ $company->id }}" {{ (string) old('company_id', $feasibility->company_id) === (string) $company->id ? 'selected' : '' }}>
                                 {{ $company->company_name }}
                             </option>
                         @endforeach
@@ -54,7 +101,7 @@
                     <select name="client_id" id="client_id" class="form-select" required>
                         <option value="">Select Client</option>
                         @foreach($clients as $client)
-                            <option value="{{ $client->id }}" {{ $feasibility->client_id==$client->id?'selected':'' }}>
+                            <option value="{{ $client->id }}" {{ (string) old('client_id', $feasibility->client_id) === (string) $client->id ? 'selected' : '' }}>
                                 {{ $client->business_name ?: $client->client_name }}
                             </option>
                         @endforeach
@@ -63,132 +110,147 @@
 
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Pincode <span class="text-danger">*</span></label>
-                    <input type="text" name="pincode" id="pincode" maxlength="6" value="{{ $feasibility->pincode }}" class="form-control" required>
+                    <input type="text" name="pincode" id="pincode" maxlength="6" value="{{ old('pincode', $feasibility->pincode) }}" class="form-control" required>
                 </div>
+
 
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">State <span class="text-danger">*</span></label>
+                    @php $stateValue = old('state', $feasibility->state); @endphp
                     <select name="state" id="state" class="form-select select2-tags">
-                        <option value="">Select or Type State</option>
-                        <option value="{{ $feasibility->state }}" selected>{{ $feasibility->state }}</option>
+                        <option value="" {{ $stateValue === '' ? 'selected' : '' }}>Select or Type State</option>
+                        @if($stateValue)
+                            <option value="{{ $stateValue }}" selected>{{ $stateValue }}</option>
+                        @endif
                     </select>
                 </div>
 
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">District <span class="text-danger">*</span></label>
+                    @php $districtValue = old('district', $feasibility->district); @endphp
                     <select name="district" id="district" class="form-select select2-tags">
-                        <option value="">Select or Type District</option>
-                        <option value="{{ $feasibility->district }}" selected>{{ $feasibility->district }}</option>
+                        <option value="" {{ $districtValue === '' ? 'selected' : '' }}>Select or Type District</option>
+                        @if($districtValue)
+                            <option value="{{ $districtValue }}" selected>{{ $districtValue }}</option>
+                        @endif
                     </select>
                 </div>
 
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Area <span class="text-danger">*</span></label>
+                    @php $areaValue = old('area', $feasibility->area); @endphp
                     <select name="area" id="post_office" class="form-select select2-tags">
-                        <option value="">Select or Type Area</option>
-                        <option value="{{ $feasibility->area }}" selected>{{ $feasibility->area }}</option>
+                        <option value="" {{ $areaValue === '' ? 'selected' : '' }}>Select or Type Area</option>
+                        @if($areaValue)
+                            <option value="{{ $areaValue }}" selected>{{ $areaValue }}</option>
+                        @endif
                     </select>
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Address <span class="text-danger">*</span></label>
-                    <textarea name="address" class="form-control" rows="2" required>{{ $feasibility->address }}</textarea>
+                    <textarea name="address" class="form-control" rows="2" required>{{ old('address', $feasibility->address) }}</textarea>
                 </div>
 
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">SPOC Name <span class="text-danger">*</span></label>
-                    <input type="text" name="spoc_name" value="{{ $feasibility->spoc_name }}" class="form-control" required>
+                    <input type="text" name="spoc_name" value="{{ old('spoc_name', $feasibility->spoc_name) }}" class="form-control" required>
                 </div>
 
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">SPOC Contact 1 <span class="text-danger">*</span></label>
-                    <input type="text" name="spoc_contact1" value="{{ $feasibility->spoc_contact1 }}" class="form-control" required>
+                    <input type="text" name="spoc_contact1" value="{{ old('spoc_contact1', $feasibility->spoc_contact1) }}" class="form-control" required>
                 </div>
 
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">SPOC Contact 2</label>
-                    <input type="text" name="spoc_contact2" value="{{ $feasibility->spoc_contact2 }}" class="form-control">
+                    <input type="text" name="spoc_contact2" value="{{ old('spoc_contact2', $feasibility->spoc_contact2) }}" class="form-control">
                 </div>
 
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">SPOC Email</label>
-                    <input type="email" name="spoc_email" value="{{ $feasibility->spoc_email }}" class="form-control">
+                    <input type="email" name="spoc_email" value="{{ old('spoc_email', $feasibility->spoc_email) }}" class="form-control">
                 </div>
 
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">No. of Links <span class="text-danger">*</span></label>
+                    @php $linkValue = (string) old('no_of_links', (string) $feasibility->no_of_links); @endphp
                     <select name="no_of_links" id="no_of_links" class="form-select" required>
-                        <option value="">Select</option>
-                        <option {{ $feasibility->no_of_links==1?'selected':'' }}>1</option>
-                        <option {{ $feasibility->no_of_links==2?'selected':'' }}>2</option>
-                        <option {{ $feasibility->no_of_links==3?'selected':'' }}>3</option>
-                        <option {{ $feasibility->no_of_links==4?'selected':'' }}>4</option>
+                        <option value="" {{ $linkValue === '' ? 'selected' : '' }}>Select</option>
+                        <option value="1" {{ $linkValue === '1' ? 'selected' : '' }}>1</option>
+                        <option value="2" {{ $linkValue === '2' ? 'selected' : '' }}>2</option>
+                        <option value="3" {{ $linkValue === '3' ? 'selected' : '' }}>3</option>
+                        <option value="4" {{ $linkValue === '4' ? 'selected' : '' }}>4</option>
                     </select>
                 </div>
 
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">Vendor Type <span class="text-danger">*</span></label>
+                    @php $vendorTypeValue = old('vendor_type', $feasibility->vendor_type); @endphp
                     <select name="vendor_type" id="vendor_type" class="form-select" required>
-                        <option value="">Select</option>
-                        <option {{ $feasibility->vendor_type=='Same Vendor'?'selected':'' }}>Same Vendor</option>
-                        <option {{ $feasibility->vendor_type=='Different Vendor'?'selected':'' }}>Different Vendor</option>
-                        <option {{ $feasibility->vendor_type=='UBN'?'selected':'' }}>UBN</option>
-                        <option {{ $feasibility->vendor_type=='UBS'?'selected':'' }}>UBS</option>
-                        <option {{ $feasibility->vendor_type=='UBL'?'selected':'' }}>UBL</option>
-                        <option {{ $feasibility->vendor_type=='INF'?'selected':'' }}>INF</option>
+                        <option value="" {{ $vendorTypeValue === '' ? 'selected' : '' }}>Select</option>
+                        <option value="Same Vendor" {{ $vendorTypeValue === 'Same Vendor' ? 'selected' : '' }}>Same Vendor</option>
+                        <option value="Different Vendor" {{ $vendorTypeValue === 'Different Vendor' ? 'selected' : '' }}>Different Vendor</option>
+                        <option value="UBN" {{ $vendorTypeValue === 'UBN' ? 'selected' : '' }}>UBN</option>
+                        <option value="UBS" {{ $vendorTypeValue === 'UBS' ? 'selected' : '' }}>UBS</option>
+                        <option value="UBL" {{ $vendorTypeValue === 'UBL' ? 'selected' : '' }}>UBL</option>
+                        <option value="INF" {{ $vendorTypeValue === 'INF' ? 'selected' : '' }}>INF</option>
                     </select>
                 </div>
 
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">Speed <span class="text-danger">*</span></label>
-                    <input type="text" name="speed" value="{{ $feasibility->speed }}" class="form-control" required>
+                    <input type="text" name="speed" value="{{ old('speed', $feasibility->speed) }}" class="form-control" required>
                 </div>
 
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">Static IP <span class="text-danger">*</span></label>
+                    @php $staticIpValue = old('static_ip', $feasibility->static_ip); @endphp
                     <select name="static_ip" id="static_ip" class="form-select" required>
-                        <option value="">Select</option>
-                        <option value="Yes" {{ $feasibility->static_ip=='Yes'?'selected':'' }}>Yes</option>
-                        <option value="No" {{ $feasibility->static_ip=='No'?'selected':'' }}>No</option>
+                        <option value="" {{ $staticIpValue === '' ? 'selected' : '' }}>Select</option>
+                        <option value="Yes" {{ $staticIpValue === 'Yes' ? 'selected' : '' }}>Yes</option>
+                        <option value="No" {{ $staticIpValue === 'No' ? 'selected' : '' }}>No</option>
                     </select>
                 </div>
 
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">Static IP Subnet</label>
-                    <select name="static_ip_subnet" id="static_ip_subnet" class="form-select" {{ $feasibility->static_ip=='Yes'?'':'disabled' }}>
-                        <option value="">Select Subnet</option>
+                    @php $staticIpSubnetValue = old('static_ip_subnet', $feasibility->static_ip_subnet); @endphp
+                    <select name="static_ip_subnet" id="static_ip_subnet" class="form-select" {{ $staticIpValue === 'Yes' ? '' : 'disabled' }}>
+                        <option value="" {{ $staticIpSubnetValue === '' ? 'selected' : '' }}>Select Subnet</option>
                         @foreach(['/32','/31','/30','/29','/28','/27','/26','/25','/24'] as $sub)
-                            <option value="{{ $sub }}" {{ $feasibility->static_ip_subnet==$sub?'selected':'' }}>{{ $sub }}</option>
+                            <option value="{{ $sub }}" {{ $staticIpSubnetValue === $sub ? 'selected' : '' }}>{{ $sub }}</option>
                         @endforeach
                     </select>
                 </div>
 
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">Expected Delivery <span class="text-danger">*</span></label>
-                    <input type="date" name="expected_delivery" value="{{ $feasibility->expected_delivery }}" class="form-control" required>
+                    <input type="date" name="expected_delivery" value="{{ old('expected_delivery', $feasibility->expected_delivery) }}" class="form-control" required>
                 </div>
 
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">Expected Activation <span class="text-danger">*</span></label>
-                    <input type="date" name="expected_activation" value="{{ $feasibility->expected_activation }}" class="form-control" required>
+                    <input type="date" name="expected_activation" value="{{ old('expected_activation', $feasibility->expected_activation) }}" class="form-control" required>
                 </div>
 
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">Hardware Required <span class="text-danger">*</span></label>
+                    @php $hardwareRequiredValue = old('hardware_required', $feasibility->hardware_required); @endphp
                     <select name="hardware_required" id="hardware_required" class="form-select" required>
-                        <option value="">Select</option>
-                        <option value="1" {{ $feasibility->hardware_required==1?'selected':'' }}>Yes</option>
-                        <option value="0" {{ $feasibility->hardware_required==0?'selected':'' }}>No</option>
+                        <option value="" {{ $hardwareRequiredValue === '' ? 'selected' : '' }}>Select</option>
+                        <option value="1" {{ (string) $hardwareRequiredValue === '1' ? 'selected' : '' }}>Yes</option>
+                        <option value="0" {{ (string) $hardwareRequiredValue === '0' ? 'selected' : '' }}>No</option>
                     </select>
                 </div>
 
                 <div class="col-md-3" id="hardware_name_div" >
                     <label class="form-label fw-semibold">Hardware Model Name</label>
-                    <input type="text" name="hardware_model_name" value="{{ $feasibility->hardware_model_name }}" class="form-control">
+                    <input type="text" name="hardware_model_name" value="{{ old('hardware_model_name', $feasibility->hardware_model_name) }}" class="form-control">
                 </div>
 
-                <input type="hidden" name="status" value="{{ $feasibility->status }}">
-            </div>
+                                <input type="hidden" name="status" value="{{ $feasibility->status }}">
+                        </div>
 
             <div class="mt-4 text-end">
                 <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Update</button>
@@ -198,4 +260,167 @@
         </form>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+document.getElementById('hardware_required').addEventListener('change', function() {
+        document.getElementById('hardware_name_div').style.display = this.value == '1' ? 'block' : 'none';
+});
+
+function setSelectValue(selectElement, value) {
+    if (!value || value === '') {
+        selectElement.value = '';
+        if (typeof $ !== 'undefined' && typeof $(selectElement).select2 === 'function') {
+            $(selectElement).val('').trigger('change');
+        }
+        return;
+    }
+    let optionExists = false;
+    for (let option of selectElement.options) {
+        if (option.value === value) {
+            optionExists = true;
+            break;
+        }
+    }
+    if (!optionExists) {
+        const newOption = document.createElement('option');
+        newOption.value = value;
+        newOption.text = value;
+        selectElement.appendChild(newOption);
+    }
+    selectElement.value = value;
+    if (typeof $ !== 'undefined') {
+        try {
+            const $element = $(selectElement);
+            if (typeof $element.select2 === 'function' && $element.hasClass('select2-hidden-accessible')) {
+                $element.val(value).trigger('change');
+            }
+        } catch (error) {
+            console.log('Select2 not available or error:', error);
+        }
+    }
+}
+
+function lookupPincode() {
+    const pincodeField = document.getElementById('pincode');
+    const p = pincodeField.value.trim();
+    if (!/^\d{6}$/.test(p)) return;
+    const stateField = document.getElementById('state');
+    const districtField = document.getElementById('district');
+    const areaField = document.getElementById('post_office');
+    const originalState = stateField.value;
+    const originalDistrict = districtField.value;
+    const originalArea = areaField.value;
+    setSelectValue(stateField, 'Loading...');
+    setSelectValue(districtField, 'Loading...');
+    setSelectValue(areaField, 'Loading...');
+    axios.post('/api/pincode/lookup', { pincode: p })
+        .then(r => {
+            const d = r.data;
+            setSelectValue(stateField, d.state || '');
+            setSelectValue(districtField, d.district || '');
+            setSelectValue(areaField, d.post_office || '');
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed; top: 20px; right: 20px;
+                background: #d4edda; color: #155724;
+                padding: 10px 15px; border-radius: 5px;
+                border: 1px solid #c3e6cb; z-index: 9999;
+                font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            `;
+            notification.innerHTML = `✅ Location found: ${d.state}, ${d.district}`;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 3000);
+        })
+        .catch(err => {
+            setSelectValue(stateField, originalState);
+            setSelectValue(districtField, originalDistrict);
+            setSelectValue(areaField, originalArea);
+            let errorMessage = 'Unable to fetch pincode details. Please try again or enter manually.';
+            if (err.response && err.response.status === 404) {
+                errorMessage = 'Pincode not found. Please check the pincode and try again.';
+            } else if (err.response && err.response.status === 422) {
+                errorMessage = 'Invalid pincode format. Please enter a 6-digit pincode.';
+            }
+            const errorNotification = document.createElement('div');
+            errorNotification.style.cssText = `
+                position: fixed; top: 20px; right: 20px;
+                background: #f8d7da; color: #721c24;
+                padding: 10px 15px; border-radius: 5px;
+                border: 1px solid #f5c6cb; z-index: 9999;
+                font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            `;
+            errorNotification.innerHTML = `❌ ${errorMessage}`;
+            document.body.appendChild(errorNotification);
+            setTimeout(() => {
+                if (errorNotification.parentNode) {
+                    errorNotification.parentNode.removeChild(errorNotification);
+                }
+            }, 5000);
+        });
+}
+
+const pincodeInput = document.getElementById('pincode');
+pincodeInput.addEventListener('blur', lookupPincode);
+pincodeInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        lookupPincode();
+    }
+});
+let pincodeTimeout;
+pincodeInput.addEventListener('input', function() {
+    if (pincodeTimeout) {
+        clearTimeout(pincodeTimeout);
+    }
+    pincodeTimeout = setTimeout(() => {
+        const value = this.value.trim();
+        if (/^\d{6}$/.test(value)) {
+            lookupPincode();
+        }
+    }, 1000);
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+        const noOfLinksSelect = document.querySelector('select[name="no_of_links"]');
+        const vendorTypeSelect = document.querySelector('select[name="vendor_type"]');
+        if (noOfLinksSelect.value) {
+                noOfLinksSelect.dispatchEvent(new Event('change'));
+        }
+        const staticIPSelect = document.getElementById('static_ip');
+        const subnetSelect = document.getElementById('static_ip_subnet');
+        const typeOfServiceSelect = document.getElementById('type_of_service');
+        typeOfServiceSelect.addEventListener('change', function() {
+                if (this.value === 'ILL') {
+                        staticIPSelect.value = 'Yes';
+                        staticIPSelect.required = true;
+                        staticIPSelect.dispatchEvent(new Event('change'));
+                } else {
+                        staticIPSelect.required = true;
+                }
+        });
+        const staticIp = document.getElementById('static_ip');
+        function checkStaticIP() {
+                if (typeOfServiceSelect.value === 'ILL' && staticIp.value === 'No') {
+                        alert("For ILL service, Static IP is mandatory. Please select Yes.");
+                        staticIp.value = "Yes";
+                }
+        }
+        staticIp.addEventListener('change', checkStaticIP);
+        staticIPSelect.addEventListener('change', function() {
+                if (this.value === 'Yes') {
+                        subnetSelect.disabled = false;
+                        subnetSelect.required = true;
+                } else {
+                        subnetSelect.disabled = true;
+                        subnetSelect.required = false;
+                        subnetSelect.value = '';
+                }
+        });
+});
+</script>
 @endsection

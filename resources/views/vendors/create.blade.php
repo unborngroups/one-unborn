@@ -286,6 +286,22 @@
 
                 <div class="col-md-6">
 
+                    <input type="text" name="branch_name" class="form-control mb-2" placeholder="branch_name"
+
+                           value="{{ old('branch_name') }}">
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <input type="text" name="bank_name" class="form-control mb-2" placeholder="bank_name"
+
+                           value="{{ old('bank_name') }}">
+
+                </div>
+
+                <div class="col-md-6">
+
                     <input type="text" name="bank_account_no" class="form-control mb-2" placeholder="bank_account_no"
 
                            value="{{ old('bank_account_no') }}">
@@ -299,6 +315,8 @@
                            value="{{ old('ifsc_code') }}">
 
                 </div>
+
+                
 
             </div>
 

@@ -74,17 +74,20 @@
 
                         <th class="col">Business Name</th>
 
-                        <th class="col">Billing SPOC</th>
+                        <!-- <th class="col">Billing SPOC</th> -->
 
-                        <th class="col">Billing Email</th>
+                        <!-- <th class="col">Billing Email</th> -->
 
-                        <th class="col">GSTIN</th>
+                        <!-- <th class="col">GSTIN</th> -->
 
-                        <th>Invoice Email</th>
+                        <!-- <th>Invoice Email</th> -->
 
-                        <th>Invoice CC</th> 
+                        <!-- <th>Invoice CC</th>  -->
 
                         <th class="col">Technical SPOC</th>
+                        <th class="col">Technical SPOC Email</th>
+                        <th class="col">Technical SPOC Mobile</th>
+
 
                         <th>Status</th>
 
@@ -186,17 +189,19 @@
 
                             <td class="col">{{ $client->business_display_name ?? '-' }}</td>
 
-                            <td class="col">{{ $client->billing_spoc_name }}</td>
+                            <!-- <td class="col">{{ $client->billing_spoc_name }}</td> -->
 
-                            <td>{{ $client->billing_spoc_email }}</td>
+                            <!-- <td>{{ $client->billing_spoc_email }}</td> -->
 
-                            <td>{{ $client->gstin }}</td>
+                            <!-- <td>{{ $client->gstin }}</td> -->
 
-                            <td class="col">{{ $client->invoice_email ?? '-' }}</td>
+                            <!-- <td class="col">{{ $client->invoice_email ?? '-' }}</td> -->
 
-                            <td class="col">{{ $client->invoice_cc ?? '-' }}</td>   
+                            <!-- <td class="col">{{ $client->invoice_cc ?? '-' }}</td>    -->
 
                             <td class="col">{{ $client->support_spoc_name ?? '-' }}</td>
+                            <td class="col">{{ $client->support_spoc_email ?? '-' }}</td>
+                            <td class="col">{{ $client->support_spoc_mobile ?? '-' }}</td>
 
                             <td>
 

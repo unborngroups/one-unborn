@@ -57,7 +57,7 @@
 
   #sidebar {
 
-    width: 230px;
+    width: 250px;
 
     min-height: 100vh;
 

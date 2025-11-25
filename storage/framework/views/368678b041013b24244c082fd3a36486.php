@@ -1,6 +1,6 @@
 
 
-<div class="sidebar bg-dark-primary text-white vh-100 overflow-auto" style="width: 245px; position: fixed; top: 0; left: 0;">
+<div class="sidebar bg-dark-primary text-white vh-100 overflow-auto" style="width: 250px; position: fixed; top: 0; left: 0;">
 
     <div class="p-3">
 
@@ -148,8 +148,6 @@
 
     </a>
 
-
-
     <div class="collapse <?php echo e(request()->is('sm/feasibility*') || request()->is('sm/purchaseorder*') ? 'show' : ''); ?>" id="salesMarketingMenu">
 
         <ul class="nav flex-column ms-3 mt-1">
@@ -204,8 +202,6 @@
                         </li>
 
                         </li>
-
-                        
 
                         <?php
 
@@ -303,8 +299,6 @@
 
                         </li>
 
-
-
                         
 
                         <li>
@@ -318,8 +312,6 @@
                             </a>
 
                         </li>
-
-
 
                         
 
@@ -343,17 +335,13 @@
 
             <?php endif; ?>
 
-
-
             
 
             <?php if($purchaseOrder && $purchaseOrder->can_menu): ?>
 
             <li>
 
-                <a class="nav-link text-white menu-item <?php echo e(request()->is('sm/purchaseorder*') ? 'active' : ''); ?>"
-
-                   href="<?php echo e(route('sm.purchaseorder.index')); ?>">
+                <a class="nav-link text-white menu-item <?php echo e(request()->is('sm/purchaseorder*') ? 'active' : ''); ?>" href="<?php echo e(route('sm.purchaseorder.index')); ?>">
 
                     <span><i class="bi bi-receipt me-2"></i> Purchase Order</span>
 
@@ -363,15 +351,13 @@
 
             <?php endif; ?>
 
-
             
 
             <?php if($proposal && $proposal->can_menu): ?>
 
             <li>
 
-                <a class="nav-link text-white menu-item <?php echo e(request()->is('sm/proposal*') ? 'active' : ''); ?>"
-                   href="<?php echo e(route('sm.proposal.index')); ?>">
+                <a class="nav-link text-white menu-item <?php echo e(request()->is('sm/proposal*') ? 'active' : ''); ?>" href="<?php echo e(route('sm.proposal.index')); ?>">
 
                     <span><i class="bi bi-receipt me-2"></i> Proposal</span>
 
@@ -388,16 +374,12 @@
 </li>
 
 <?php endif; ?>
-
-
-
             
 
 <?php
 
     $operationsFeasibility = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Feasibility');
     $operationsDeliverables = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Deliverables');
-
     
 
     // Determine which operations feasibility menu item should be active
@@ -409,7 +391,6 @@
     $isFeasibilityClosedActive = false;
 
     
-
     // Check for direct feasibility page routes
 
     if (request()->is('operations/feasibility/open')) {
@@ -427,7 +408,6 @@
     }
 
     
-
     // Determine which operations deliverables menu item should be active
 
     $isDeliverablesOpenActive = false;
@@ -436,7 +416,6 @@
 
     $isDeliverablesDeliveryActive = false;
 
-    
 
     // Check for direct deliverables page routes
 
@@ -503,9 +482,6 @@
         }
 
     }
-
-    
-
     // For deliverables view/edit pages, check the record status
 
     if (request()->is('operations/deliverables/*/view') || request()->is('operations/deliverables/*/edit')) {
@@ -575,18 +551,13 @@
         <i class="bi bi-chevron-down small"></i>
 
     </a>
-
-
     <!--  -->
 
     <div class="collapse <?php echo e(request()->is('operations/feasibility*') || request()->is('operations/deliverables*') || request()->is('operations/purchaseorder*') ? 'show' : ''); ?>" id="operationsMenu">
 
         <ul class="nav flex-column ms-3 mt-1">
 
-
-
             
-
 
             <li>
 
@@ -619,9 +590,6 @@
                 </a>
 
             </li>
-
-
-
             
 
             <li>
@@ -635,16 +603,11 @@
                 </a>
 
             </li>
-
-
-
             
 
             <li>
 
-                <a class="nav-link text-white menu-item <?php echo e($isFeasibilityClosedActive ? 'active' : ''); ?>"
-
-                   href="<?php echo e(route('operations.feasibility.closed')); ?>">
+                <a class="nav-link text-white menu-item <?php echo e($isFeasibilityClosedActive ? 'active' : ''); ?>" href="<?php echo e(route('operations.feasibility.closed')); ?>">
 
                    <i class="bi bi-check-circle me-2"></i> Closed
 
@@ -661,9 +624,7 @@
             <?php if($operationsDeliverables && $operationsDeliverables->can_menu): ?>
             <li>
 
-                <a class="nav-link text-white d-flex justify-content-between align-items-center"
-
-                   data-bs-toggle="collapse" href="#operationsDeliverablesMenu" role="button" aria-expanded="<?php echo e(request()->is('operations/deliverables*') ? 'true' : 'false'); ?>" aria-controls="operationsDeliverablesMenu">
+                <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#operationsDeliverablesMenu" role="button" aria-expanded="<?php echo e(request()->is('operations/deliverables*') ? 'true' : 'false'); ?>" aria-controls="operationsDeliverablesMenu">
 
                     <span><i class="bi bi-truck me-2"></i> Deliverables</span>
 
@@ -681,9 +642,7 @@
 
             <li>
 
-                <a class="nav-link text-white menu-item <?php echo e($isDeliverablesOpenActive ? 'active' : ''); ?>"
-
-                   href="<?php echo e(route('operations.deliverables.open')); ?>">
+                <a class="nav-link text-white menu-item <?php echo e($isDeliverablesOpenActive ? 'active' : ''); ?>" href="<?php echo e(route('operations.deliverables.open')); ?>">
 
                    <i class="bi bi-hourglass-split me-2"></i> Open
 
@@ -697,17 +656,13 @@
 
             <li>
 
-                <a class="nav-link text-white menu-item <?php echo e($isDeliverablesInProgressActive ? 'active' : ''); ?>"
-
-                   href="<?php echo e(route('operations.deliverables.inprogress')); ?>">
+                <a class="nav-link text-white menu-item <?php echo e($isDeliverablesInProgressActive ? 'active' : ''); ?>" href="<?php echo e(route('operations.deliverables.inprogress')); ?>">
 
                    <i class="bi bi-clock-history me-2"></i> In Progress
 
                 </a>
 
             </li>
-
-
 
             
 
@@ -743,45 +698,139 @@
 
             <?php
 
-                $finance = \App\Helpers\TemplateHelper::getUserMenuPermissions('Tax & Invoice Settings');
+                $finance = \App\Helpers\TemplateHelper::getUserMenuPermissions('Accounts');
 
             ?>
 
             <?php if($finance && $finance->can_menu): ?>
-
                 <li class="nav-item">
-
                     <a class="nav-link text-white d-flex justify-content-between align-items-center"
-
-                       data-bs-toggle="collapse" href="#financeMenu" role="button"
-
-                       aria-expanded="<?php echo e(request()->is('tax.invoice') ? 'true' : 'false'); ?>"
-
+                       data-bs-toggle="collapse"
+                       href="#financeMenu"
+                       role="button"
+                       aria-expanded="<?php echo e(request()->is('finance/accounts*') ? 'true' : 'false'); ?>"
                        aria-controls="financeMenu">
-
                         <span><i class="bi bi-cash-coin"></i> Finance</span>
-
                         <i class="bi bi-chevron-down small"></i>
-
                     </a>
 
-
-
-                    <div class="collapse <?php echo e(request()->routeIs('tax.invoice') ? 'show' : ''); ?>" id="financeMenu">
-
-                        <ul class="nav flex-column ms-3 mt-2">
-
-                            <li><a class="nav-link text-white menu-item <?php echo e(request()->routeIs('tax.invoice') ? 'active' : ''); ?>" href="<?php echo e(route('tax.invoice')); ?>"><i class="bi bi-receipt"></i> Tax & Invoice Settings</a></li>
-
+                    <div class="collapse <?php echo e(request()->is('finance/accounts*') ? 'show' : ''); ?>" id="financeMenu">
+                        <ul class="nav flex-column ms-3 mt-1">
+                            <li>
+                                <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/accounts*') ? 'active' : ''); ?>"
+                                   href="<?php echo e(route('finance.accounts.index')); ?>">
+                                    <span><i class="bi bi-receipt me-2"></i> Accounts</span>
+                                </a>
+                            </li>
                         </ul>
-
                     </div>
+                </li>
+            <?php endif; ?>
+
+                     
+
+            <?php
+
+                $compliance = \App\Helpers\TemplateHelper::getUserMenuPermissions('Compliance');
+
+            ?>
+
+            <?php if($compliance && $compliance->can_menu): ?>
+                <li class="nav-item">
+
+                    <a class="nav-link text-white menu-item <?php echo e(request()->is('compliance/*') ? 'active' : ''); ?>" href="<?php echo e(url('/compliance')); ?>">
+
+                        <i class="bi bi-shield-check"></i> Compliance
+
+                    </a>
 
                 </li>
 
             <?php endif; ?>
 
+             
 
+            <?php
+
+                $hr = \App\Helpers\TemplateHelper::getUserMenuPermissions('HR');
+
+            ?>
+
+            <?php if($hr && $hr->can_menu): ?>
+                <li class="nav-item">
+
+                    <a class="nav-link text-white menu-item <?php echo e(request()->is('hr/*') ? 'active' : ''); ?>" href="<?php echo e(url('/hr')); ?>">
+
+                        <i class="bi bi-people-fill"></i> HR
+
+                    </a>
+
+                </li>
+
+            <?php endif; ?>
+
+             
+
+            <?php
+
+                $training = \App\Helpers\TemplateHelper::getUserMenuPermissions('Training');
+            ?>
+
+            <?php if($training && $training->can_menu): ?>
+
+                <li class="nav-item">
+
+                    <a class="nav-link text-white menu-item <?php echo e(request()->is('training/*') ? 'active' : ''); ?>" href="<?php echo e(url('/training')); ?>">
+                        <i class="bi bi-journal-bookmark"></i> Training
+
+                    </a>
+
+                </li>
+
+            <?php endif; ?>
+
+             
+
+            <?php
+
+                $admin = \App\Helpers\TemplateHelper::getUserMenuPermissions('Admin');
+            ?>
+
+            <?php if($admin && $admin->can_menu): ?>
+
+                <li class="nav-item">
+
+                    <a class="nav-link text-white menu-item <?php echo e(request()->is('admin/*') ? 'active' : ''); ?>" href="<?php echo e(url('/admin')); ?>">
+
+                        <i class="bi bi-gear-fill"></i> Admin
+
+                    </a>
+
+                </li>
+
+            <?php endif; ?>
+
+             
+
+            <?php
+
+                $strategy = \App\Helpers\TemplateHelper::getUserMenuPermissions('Strategy');
+            ?>
+
+            <?php if($strategy && $strategy->can_menu): ?>
+
+                <li class="nav-item">
+
+                    <a class="nav-link text-white menu-item <?php echo e(request()->is('strategy/*') ? 'active' : ''); ?>" href="<?php echo e(url('/strategy')); ?>">
+                        <i class="bi bi-graph-up"></i> Strategy
+
+                    </a>
+
+                </li>
+
+            <?php endif; ?>
+
+            
 
             
 
@@ -791,7 +840,11 @@
 
                 $menu = \App\Helpers\TemplateHelper::getUserMenuPermissions('Manage Menu');
 
-                $commonSettings = \App\Helpers\TemplateHelper::getUserMenuPermissions('Common Settings');
+                $companySettings = \App\Helpers\TemplateHelper::getUserMenuPermissions('Company Settings');
+
+                $SystemSettings = \App\Helpers\TemplateHelper::getUserMenuPermissions('System Settings');
+
+                $whatsappSettings = \App\Helpers\TemplateHelper::getUserMenuPermissions('WhatsApp Settings');
 
             ?>
 
@@ -831,15 +884,23 @@
 
                             <?php endif; ?>
 
-                            <?php if($commonSettings && $commonSettings->can_menu): ?>
+                            <?php if($companySettings && $companySettings->can_menu): ?>
 
-                                <li><a class="nav-link text-white menu-item <?php echo e(request()->is('company-settings*') ? 'active' : ''); ?>" href="<?php echo e(route('company.settings')); ?>"><i class="bi bi-building"></i> Company Settings</a></li>
+                                <li><a class="nav-link text-white menu-item <?php echo e(request()->is('company-settings*') ? 'active' : ''); ?>" href="<?php echo e(route('settings.company')); ?>"><i class="bi bi-building"></i> Company Settings</a></li>
 
-                                <li><a class="nav-link text-white menu-item <?php echo e(request()->is('system-settings*') ? 'active' : ''); ?>" href="<?php echo e(route('system.settings')); ?>"><i class="bi bi-sliders"></i> System Settings</a></li>
+                                 <?php endif; ?>
 
-                                <li><a class="nav-link text-white menu-item <?php echo e(request()->is('whatsapp-settings*') ? 'active' : ''); ?>" href="<?php echo e(route('whatsapp.settings')); ?>"><i class="bi bi-sliders"></i> WhatsApp Settings</a></li>
+                            <?php if($SystemSettings && $SystemSettings->can_menu): ?>
+                            
+
+                                <li><a class="nav-link text-white menu-item <?php echo e(request()->is('system-settings*') ? 'active' : ''); ?>" href="<?php echo e(route('settings.system')); ?>"><i class="bi bi-sliders"></i> System Settings</a></li>
 
                             <?php endif; ?>
+                            <?php if($whatsappSettings && $whatsappSettings->can_menu): ?>
+                                <li><a class="nav-link text-white menu-item <?php echo e(request()->is('whatsapp-settings*') ? 'active' : ''); ?>" href="<?php echo e(route('settings.whatsapp')); ?>"><i class="bi bi-sliders"></i> WhatsApp Settings</a></li>
+                            <?php endif; ?>
+
+
 
                         </ul>
                     </div>

@@ -18,11 +18,16 @@ use App\Http\Controllers\PincodeLookupController;
 use App\Http\Controllers\SystemSettingsController;
 use App\Http\Controllers\FeasibilityController;
 use App\Http\Controllers\PurchaseOrderController;
+use App\Http\Controllers\FeasibilityExcelController;
 use App\Http\Controllers\DeliverablesController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\ProposalController;
-use App\Http\Controllers\GSTController;
-use App\Http\Middleware\CheckProfileCreated;
+use App\Http\Controllers\AccountController;
+use App\Http\Controllers\HrController;
+use App\Http\Controllers\ComplianceController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\TrainingController;
+use App\Http\Controllers\StrategyController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -186,18 +191,18 @@ Route::delete('users/{user}', [UserController::class, 'destroy'])
     Route::get('/vendors/{id}/view', [App\Http\Controllers\VendorController::class, 'view'])->name('vendors.view');
 
     // ⚙️ Settings Routes
-    Route::get('/company-settings', [CompanySettingsController::class, 'index'])->name('company.settings');
-    Route::put('/company-settings', [CompanySettingsController::class, 'update'])->name('company.settings.update');
-    Route::get('/tax-invoice-settings', [TaxInvoiceSettingsController::class, 'index'])->name('tax.invoice');
-    Route::put('/tax-invoice-settings', [TaxInvoiceSettingsController::class, 'update'])->name('tax.invoice.update');
-    Route::get('/system-settings', [SystemSettingsController::class, 'index'])->name('system.settings');
-    Route::post('/system-settings', [SystemSettingsController::class, 'update'])->name('system.settings.update');
+    Route::get('/company-settings', [CompanySettingsController::class, 'index'])->name('settings.company');
+    Route::put('/company-settings', [CompanySettingsController::class, 'update'])->name('settings.company.update');
+    Route::get('/tax-invoice-settings', [TaxInvoiceSettingsController::class, 'index'])->name('settings.tax.invoice');
+    Route::put('/tax-invoice-settings', [TaxInvoiceSettingsController::class, 'update'])->name('settings.tax.invoice.update');
+    Route::get('/system-settings', [SystemSettingsController::class, 'index'])->name('settings.system');
+    Route::post('/system-settings', [SystemSettingsController::class, 'update'])->name('settings.system.update');
     
     // 📱 WhatsApp Settings
-    Route::get('/whatsapp-settings', [App\Http\Controllers\WhatsAppSettingsController::class, 'index'])->name('whatsapp.settings');
-    Route::post('/whatsapp-settings', [App\Http\Controllers\WhatsAppSettingsController::class, 'update'])->name('whatsapp.settings.update');
-    Route::get('/whatsapp-test', [App\Http\Controllers\WhatsAppSettingsController::class, 'showTestForm'])->name('whatsapp.test');
-    Route::post('/whatsapp-test', [App\Http\Controllers\WhatsAppSettingsController::class, 'sendTestMessage'])->name('whatsapp.test.send');
+    Route::get('/whatsapp-settings', [App\Http\Controllers\WhatsAppSettingsController::class, 'index'])->name('settings.whatsapp');
+    Route::post('/whatsapp-settings', [App\Http\Controllers\WhatsAppSettingsController::class, 'update'])->name('settings.whatsapp.update');
+    Route::get('/whatsapp-test', [App\Http\Controllers\WhatsAppSettingsController::class, 'showTestForm'])->name('settings.whatsapp.test');
+    Route::post('/whatsapp-test', [App\Http\Controllers\WhatsAppSettingsController::class, 'sendTestMessage'])->name('settings.whatsapp.test.send');
 
      // 📋 Menus (secured inside main app)
     
@@ -294,6 +299,13 @@ Route::get('/test-email', function () {
 
     // ✅ Feasibility Module (Resource routes should come after specific routes)
     Route::resource('feasibility', FeasibilityController::class);
+   // Export all users to Excel
+Route::get('/export-feasibility', [FeasibilityExcelController::class, 'export'])->name('feasibility.export');
+// Import feasibilitys from Excel
+Route::post('/import-feasibility', [FeasibilityExcelController::class, 'import'])->name('feasibility.import');
+
+
+    // Route::post('feasibility-import', [FeasibilityController::class, 'import'])->name('feasibility.import');
     Route::get('/get-client-details/{id}', [ClientController::class, 'getDetails']);
 
 
@@ -326,6 +338,16 @@ Route::get('/test-email', function () {
     });
 
 });
+    Route::prefix('finance')->name('finance.')->group(function () {
+        Route::get('/accounts', [AccountController::class, 'index'])->name('accounts.index');
+    });
+
+
+Route::get('/hr', [HrController::class, 'index'])->name('hr.index');
+Route::get('/compliance', [ComplianceController::class, 'index'])->name('compliance.index');
+Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
+Route::get('/training', [TrainingController::class, 'index'])->name('training.index');
+Route::get('/strategy', [StrategyController::class, 'index'])->name('strategy.index');
 
 
 // Pincode Lookup

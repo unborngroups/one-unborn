@@ -11,6 +11,8 @@ use App\Models\FeasibilityStatus;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\FeasibilityImport;
 
 class FeasibilityController extends Controller
 {
@@ -258,6 +260,14 @@ $status->save();
     $feasibility->load('company', 'client'); // LOAD RELATIONS
     return view('feasibility.view', compact('feasibility'));
 }
-
+//  public function import(Request $request)
+//  {
+//     $request->validate([
+//         'file' => 'required|file|mimes:xlsx,csv'
+//     ]);
+//     Excel::import(new FeasibilityImport, $request->file('file'));
+        
+//     dd($request->all());
+//  }
 
 }

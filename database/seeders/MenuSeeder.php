@@ -71,6 +71,7 @@ class MenuSeeder extends Seeder
             // 👤 User Menus
             ['module_name' => 'Masters', 'user_type' => 'users', 'name' => 'Client Masters', 'route' => 'client.index', 'icon' => 'bi bi-person-badge', 'can_add' => 0, 'can_edit' => 0, 'can_delete' => 0, 'can_view' => 1],
             ['module_name' => 'Masters', 'user_type' => 'users', 'name' => 'Vendor Masters', 'route' => 'vendor.index', 'icon' => 'bi bi-truck', 'can_add' => 0, 'can_edit' => 0, 'can_delete' => 0, 'can_view' => 1],
+        
         ];
 
         foreach ($menus as $menu) {
