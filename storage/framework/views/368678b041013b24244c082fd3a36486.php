@@ -120,8 +120,6 @@
 
 <?php
 
-    $feasibility = \App\Helpers\TemplateHelper::getUserMenuPermissions('Feasibility');
-
     $feasibilityMaster = \App\Helpers\TemplateHelper::getUserMenuPermissions('Feasibility Master');
 
     $purchaseOrder = \App\Helpers\TemplateHelper::getUserMenuPermissions('Purchase Order');
@@ -130,7 +128,7 @@
 
 ?>
 
-<?php if(($feasibility && $feasibility->can_menu) || ($feasibilityMaster && $feasibilityMaster->can_menu) || ($purchaseOrder && $purchaseOrder->can_menu)): ?>
+<?php if(($feasibilityMaster && $feasibilityMaster->can_menu) || ($purchaseOrder && $purchaseOrder->can_menu) || ($proposal && $proposal->can_menu)): ?>
 
 <li class="nav-item">
 
@@ -848,7 +846,7 @@
 
             ?>
 
-            <?php if(($template && $template->can_menu) || ($menu && $menu->can_menu) || ($commonSettings && $commonSettings->can_menu)): ?>
+            <?php if(($template && $template->can_menu) || ($menu && $menu->can_menu) || ($companySettings && $companySettings->can_menu)): ?>
 
                 <li class="nav-item">
 
@@ -896,6 +894,7 @@
                                 <li><a class="nav-link text-white menu-item <?php echo e(request()->is('system-settings*') ? 'active' : ''); ?>" href="<?php echo e(route('settings.system')); ?>"><i class="bi bi-sliders"></i> System Settings</a></li>
 
                             <?php endif; ?>
+                            
                             <?php if($whatsappSettings && $whatsappSettings->can_menu): ?>
                                 <li><a class="nav-link text-white menu-item <?php echo e(request()->is('whatsapp-settings*') ? 'active' : ''); ?>" href="<?php echo e(route('settings.whatsapp')); ?>"><i class="bi bi-sliders"></i> WhatsApp Settings</a></li>
                             <?php endif; ?>

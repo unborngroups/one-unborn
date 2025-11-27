@@ -192,7 +192,7 @@ Route::delete('users/{user}', [UserController::class, 'destroy'])
 
     // ⚙️ Settings Routes
     Route::get('/company-settings', [CompanySettingsController::class, 'index'])->name('settings.company');
-    Route::put('/company-settings', [CompanySettingsController::class, 'update'])->name('settings.company.update');
+    Route::put('/company-settings', [CompanySettingsController::class, 'update'])->name('company.settings.update');
     Route::get('/tax-invoice-settings', [TaxInvoiceSettingsController::class, 'index'])->name('settings.tax.invoice');
     Route::put('/tax-invoice-settings', [TaxInvoiceSettingsController::class, 'update'])->name('settings.tax.invoice.update');
     Route::get('/system-settings', [SystemSettingsController::class, 'index'])->name('settings.system');
@@ -283,7 +283,8 @@ Route::get('/test-email', function () {
     Route::post('/operations/deliverables/{id}/save', [DeliverablesController::class, 'operationsSave'])->name('operations.deliverables.save');
     Route::post('/operations/deliverables/{id}/submit', [DeliverablesController::class, 'operationsSubmit'])->name('operations.deliverables.submit');
     Route::post('/operations/deliverables/create-from-feasibility/{feasibilityId}', [DeliverablesController::class, 'createFromFeasibility'])->name('operations.deliverables.create-from-feasibility');
-    
+    Route::get('/calculate-subnet', [App\Http\Controllers\DeliverablesController::class, 'calculateSubnet'])->name('calculate.subnet');
+
 
     // ✅ Legacy operations Feasibility Status Routes (Keep for backward compatibility)
     Route::get('/feasibility/status/{status}', [FeasibilityStatusController::class, 'index'])->name('feasibility.status');

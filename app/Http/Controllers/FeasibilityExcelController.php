@@ -96,7 +96,8 @@ class FeasibilityExcelController extends Controller
                 'state' => $this->normalizeString($row['State'] ?? null),
                 'city' => $this->normalizeString($row['City'] ?? null),
                 'district' => $this->normalizeString($row['District'] ?? null),
-                'area' => $this->normalizeString($row['Area'] ?? $row['Post Office'] ?? null),
+                // 'area' => $this->normalizeString($row['Area'] ?? $row['Post Office'] ?? null),
+                'area' => $this->normalizeString($row['Area'] ?? null),
                 'address' => $this->normalizeString($row['Address'] ?? null),
                 'spoc_name' => $this->normalizeString($row['SPOC Name'] ?? $row['SPOC Contact Name'] ?? null),
                 'spoc_contact1' => $this->normalizeString($row['SPOC Contact1'] ?? $row['SPOC Contact 1'] ?? null),
@@ -106,7 +107,7 @@ class FeasibilityExcelController extends Controller
                 'no_of_links' => $this->normalizeString($row['No of Links'] ?? null),
                 'vendor_type' => $this->normalizeString($row['Vendor Type'] ?? $row['Vendor'] ?? null),
                 'speed' => $this->normalizeString($row['Speed'] ?? null),
-                'static_ip' => $this->normalizeString($row['Static IP'] ?? null),
+                'static_ip' => $this->normalizeStaticIp($row['Static IP'] ?? null),
                 'static_ip_subnet' => $this->normalizeString($row['Static IP Subnet'] ?? null),
                 'expected_delivery' => $this->parseDate($row['Expected Delivery'] ?? $row['Delivery Date'] ?? null),
                 'expected_activation' => $this->parseDate($row['Expected Activation'] ?? $row['Activation Date'] ?? null),
@@ -187,6 +188,19 @@ class FeasibilityExcelController extends Controller
 
         return $this->normalizeBoolean($normalized) ? '1' : '0';
     }
+
+    protected function normalizeStaticIp($value)
+    {
+        $normalized = $this->normalizeString($value);
+
+        if ($normalized === null) {
+            return null;
+        }
+
+        return $this->normalizeBoolean($normalized) ? 'Yes' : 'No';
+    }
+
+    
 
     protected function normalizeChoice($value)
     {

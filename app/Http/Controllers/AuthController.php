@@ -8,10 +8,17 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    public function showLogin()
-    {
-        return view('auth.login');
-    }
+    // public function showLogin()
+    // {
+    //     return view('auth.login');
+    // }
+    
+public function showLogin()
+{
+    $company = \App\Models\CompanySetting::first(); // company settings fetch
+
+    return view('auth.login', compact('company'));
+}
 
     public function login(Request $request)
     {
@@ -60,6 +67,9 @@ public function changePassword(Request $request)
     }
 
     // Update password
+    /** @var \App\Models\User $user */
+    $user = Auth::user();   
+
     $user->password = Hash::make($request->new_password);
     $user->save();
 

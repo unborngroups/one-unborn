@@ -70,9 +70,42 @@
                             <strong>SPOC Name:</strong><br>
                             {{ $record->feasibility->spoc_name ?? 'N/A' }}
                         </div>
-                        <div class="col-md-3 mb-3">
-                            <strong>SPOC Number:</strong><br>
-                            {{ $record->feasibility->spoc_number ?? 'N/A' }}
+                         <div class="col-md-3">
+                            <strong>SPOC Contact1:</strong><br>
+                            {{ $record->feasibility->spoc_contact1 ?? 'N/A' }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>No. Of Links:</strong><br>
+                            {{ $record->feasibility->no_of_links ?? 'N/A' }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Vendor Type:</strong><br>
+                            {{ $record->feasibility->vendor_type ?? 'N/A' }}
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <strong>Static IP:</strong><br>
+                            {{ $record->feasibility->static_ip ?? 'N/A' }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Static IP Subnet:</strong><br>
+                            {{ $record->feasibility->static_ip_subnet ?? 'N/A' }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Expected Delivery:</strong><br>
+                            {{ $record->feasibility->expected_delivery ?? 'N/A' }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Expected Activation:</strong><br>
+                            {{ $record->feasibility->expected_activation ?? 'N/A' }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Hardware Required:</strong><br>
+                            {{ $record->feasibility->hardware_required ?? 'N/A' }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Hardware Model Name:</strong><br>
+                            {{ $record->feasibility->hardware_model_name ?? 'N/A' }}
                         </div>
                         <div class="col-md-3 mb-3">
                             <strong>PO Number:</strong><br>
@@ -114,6 +147,10 @@
                             {{ $record->date_of_activation ? \Carbon\Carbon::parse($record->date_of_activation)->format('d-m-Y') : 'N/A' }}
                         </div>
                         <div class="col-md-4 mb-3">
+                            <strong>Date of Expiry:</strong><br>
+                            {{ $record->date_of_expiry ? \Carbon\Carbon::parse($record->date_of_expiry)->format('d-m-Y') : 'N/A' }}
+                        </div>
+                        <div class="col-md-4 mb-3">
                             <strong>SLA:</strong><br>
                             {{ $record->sla ?? 'N/A' }}
                         </div>
@@ -121,6 +158,12 @@
                             <strong>Status of Link:</strong><br>
                             <span class="badge {{ $record->status_of_link == 'Active' ? 'bg-success' : 'bg-secondary' }}">
                                 {{ $record->status_of_link ?? 'N/A' }}
+                            </span>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <strong>Circuit ID:</strong><br>
+                            <span>
+                                {{ $record->circuit_id ?? 'N/A' }}
                             </span>
                         </div>
                     </div>
@@ -135,10 +178,10 @@
                 <div class="card-body">
                     @if($record->mode_of_delivery === 'PPPoE')
                         <div class="row">
-                            <div class="col-md-3 mb-3">
+                            <!-- <div class="col-md-3 mb-3">
                                 <strong>Circuit ID:</strong><br>
                                 {{ $record->circuit_id ?? 'N/A' }}
-                            </div>
+                            </div> -->
                             <div class="col-md-3 mb-3">
                                 <strong>PPPoE Username:</strong><br>
                                 {{ $record->pppoe_username ?? 'N/A' }}
@@ -154,10 +197,10 @@
                         </div>
                     @elseif($record->mode_of_delivery === 'DHCP')
                         <div class="row">
-                            <div class="col-md-3 mb-3">
+                            <!-- <div class="col-md-3 mb-3">
                                 <strong>Circuit ID:</strong><br>
                                 {{ $record->circuit_id ?? 'N/A' }}
-                            </div>
+                            </div> -->
                             <div class="col-md-3 mb-3">
                                 <strong>DHCP IP Address:</strong><br>
                                 {{ $record->dhcp_ip_address ?? 'N/A' }}
@@ -167,29 +210,72 @@
                                 {{ $record->dhcp_vlan ?? 'N/A' }}
                             </div>
                         </div>
-                    @elseif($record->mode_of_delivery === 'Static')
+                    @elseif(in_array($record->mode_of_delivery, ['Static', 'Static IP']))
                         <div class="row">
-                            <div class="col-md-3 mb-3">
+                            <!-- <div class="col-md-3 mb-3">
                                 <strong>Circuit ID:</strong><br>
                                 {{ $record->circuit_id ?? 'N/A' }}
-                            </div>
+                            </div> -->
                             <div class="col-md-3 mb-3">
                                 <strong>Static IP Address:</strong><br>
                                 {{ $record->static_ip_address ?? 'N/A' }}
                             </div>
                             <div class="col-md-3 mb-3">
-                                <strong>Subnet Mask:</strong><br>
-                                {{ $record->static_subnet_mask ?? 'N/A' }}
+                                <strong>Subnet :</strong><br>
+                                {{ $record->static_ip_subnet ?? 'N/A' }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <strong>VLAN Tag:</strong><br>
+                                {{ $record->static_vlan_tag ?? 'N/A' }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <strong>Network IP:</strong><br>
+                                {{ $record->network_ip ?? 'N/A' }}
                             </div>
                             <div class="col-md-3 mb-3">
                                 <strong>Gateway:</strong><br>
                                 {{ $record->static_gateway ?? 'N/A' }}
                             </div>
                             <div class="col-md-3 mb-3">
-                                <strong>VLAN Tag:</strong><br>
-                                {{ $record->static_vlan_tag ?? 'N/A' }}
+                                <strong>IP Address:</strong><br>
+                                {{ $record->static_ip_address ?? 'N/A' }}
+                            </div>                            
+                            <div class="col-md-3 mb-3">
+                                <strong>Subnet Mask:</strong><br>
+                                {{ $record->subnet_mask ?? 'N/A' }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <strong>Usable IPs:</strong><br>
+                                {{ $record->usable_ips ?? 'N/A' }}
+                            </div> 
+                            
+                        </div>
+                    @elseif($record->mode_of_delivery === 'PAYMENTS')
+                     <div class="row">
+                            <!-- <div class="col-md-3 mb-3">
+                                <strong>Circuit ID:</strong><br>
+                                {{ $record->circuit_id ?? 'N/A' }}
+                            </div> -->
+                            <div class="col-md-3 mb-3">
+                                <strong>Login URL:</strong><br>
+                                {{ $record->payment_login_url ?? 'N/A' }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <strong>Quick URL:</strong><br>
+                                {{ $record->payment_quick_url ?? 'N/A' }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <strong>Account or Username:</strong><br>
+                                {{ $record->payment_account_or_username ?? 'N/A' }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <strong>Password:</strong><br>
+                                {{ $record->payment_password ?? 'N/A' }}
                             </div>
                         </div>
+
+
+
                     @else
                         <p class="text-muted">Mode of delivery not specified</p>
                     @endif

@@ -120,8 +120,6 @@
 
 @php
 
-    $feasibility = \App\Helpers\TemplateHelper::getUserMenuPermissions('Feasibility');
-
     $feasibilityMaster = \App\Helpers\TemplateHelper::getUserMenuPermissions('Feasibility Master');
 
     $purchaseOrder = \App\Helpers\TemplateHelper::getUserMenuPermissions('Purchase Order');
@@ -130,7 +128,7 @@
 
 @endphp
 
-@if(($feasibility && $feasibility->can_menu) || ($feasibilityMaster && $feasibilityMaster->can_menu) || ($purchaseOrder && $purchaseOrder->can_menu))
+@if(($feasibilityMaster && $feasibilityMaster->can_menu) || ($purchaseOrder && $purchaseOrder->can_menu) || ($proposal && $proposal->can_menu))
 
 <li class="nav-item">
 
@@ -848,7 +846,7 @@
 
             @endphp
 
-            @if(($template && $template->can_menu) || ($menu && $menu->can_menu) || ($commonSettings && $commonSettings->can_menu))
+            @if(($template && $template->can_menu) || ($menu && $menu->can_menu) || ($companySettings && $companySettings->can_menu))
 
                 <li class="nav-item">
 

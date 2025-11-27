@@ -18,6 +18,9 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
+    <!--  Bootstrap Icons for social media icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
 
 
     <style>
@@ -26,7 +29,11 @@
 
         body {
 
-            background: #1e73be; /* Blue background color */
+            background-image:url('{{ asset("images/constructions-2.jpg") }}'); /* Blue background image */
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: fixed;
+            background-attachment: fixed;
 
             font-family: Arial, sans-serif;
 
@@ -60,7 +67,7 @@
 
             border-radius: 10px; /* Rounded corners */
 
-            width: 350px; /* Fixed width for the box */
+            width: 450px; /* Fixed width for the box */
 
             text-align: center;
 
@@ -74,13 +81,11 @@
 
         .login-box h2 {
 
-            margin-bottom: 20px;
+            margin-bottom: 30px;
 
             font-weight: bold;
 
         }
-
-
 
         /*  Input fields spacing */
 
@@ -89,8 +94,6 @@
             margin-bottom: 15px;
 
         }
-
-
 
         /*  Footer note styling */
 
@@ -103,8 +106,6 @@
             color: gray;
 
         }
-
-
 
         /*  Pay Now button container spacing (currently commented out) */
 
@@ -129,16 +130,6 @@
             <!--  Application title -->
 
               <img src="{{ asset('images/unborn_logo.jpg') }}" alt="logo" style="width:50px;">Unborn Networks
-
-
-
-            <!-- <h2>Unborn</h2> -->
-
-            <!-- <link rel="icon" type="image/png" href="{{ asset('images/logo.jpg') }}"> -->
-
-            <!-- <h5>2025</h5> -->
-
-
 
             {{--  Show error if login fails --}}
 
@@ -196,6 +187,41 @@
 
 
             </div>
+
+            <div class="mt-3">
+
+    @if(!empty($company->linkedin_url))
+        <a href="{{ $company->linkedin_url }}" target="_blank" class="me-2">
+            <i class="bi bi-linkedin">
+
+            </i>
+        </a>
+    @endif
+
+    @if(!empty($company->facebook_url))
+        <a href="{{ $company->facebook_url }}" target="_blank" class="me-2">
+            <i class="bi bi-facebook">
+
+            </i>
+        </a>
+    @endif
+
+    @if(!empty($company->instagram_url))
+        <a href="{{ $company->instagram_url }}" target="_blank" class="me-2">
+            <i class="bi bi-instagram">
+            </i>
+        </a>
+    @endif
+
+    @if(!empty($company->whatsapp_number))
+        <a href="https://wa.me/{{ $company->whatsapp_number }}" target="_blank" class="me-2">
+            <i class="bi bi-whatsapp">
+
+            </i>
+        </a>
+    @endif
+
+</div>
 
         </div>
 

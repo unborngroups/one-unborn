@@ -35,7 +35,7 @@
         <div class="tab-pane fade show active" id="official" role="tabpanel">
             <div class="card shadow border-0 p-4">
               
-                <form action="{{ route('whatsapp.settings.update') }}" method="POST">
+                <form action="{{ route('settings.whatsapp.update') }}" method="POST">
                     @csrf
                     <input type="hidden" name="api_type" value="official">
 
@@ -65,7 +65,7 @@
         <div class="tab-pane fade" id="unofficial" role="tabpanel">
             <div class="card shadow border-0 p-4">
                
-                <form action="{{ route('whatsapp.settings.update') }}" method="POST">
+                <form action="{{ route('settings.whatsapp.update') }}" method="POST">
                     @csrf
                     <input type="hidden" name="api_type" value="unofficial">
 
@@ -112,7 +112,7 @@
                         <i class="bi bi-save"></i> Save Unofficial API Settings
                     </button>
 
-                    <a href="{{ route('whatsapp.test') }}" class="btn btn-info px-4 ms-2" target="_blank">
+                    <a href="{{ route('settings.whatsapp.test') }}" class="btn btn-info px-4 ms-2" target="_blank">
                         <i class="bi bi-send"></i> Test WhatsApp Message
                     </a>
 

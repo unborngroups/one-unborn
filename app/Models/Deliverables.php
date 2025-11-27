@@ -25,21 +25,28 @@ class Deliverables extends Model
         'speed_in_mbps_plan',
         'no_of_months_renewal',
         'date_of_activation',
+        'date_of_expiry',
         'sla',
         'mode_of_delivery',
         'pppoe_username',
         'pppoe_password',
 
-        // If required
+        // dhcp details
         'dhcp_ip_address',
         'dhcp_vlan',
         'pppoe_vlan',
-
+        //    static details
         'static_ip_address',
         'static_vlan',
         'static_subnet_mask',
         'static_gateway',
         'static_vlan_tag',
+       //payment details    
+        'payment_login_url',
+        'payment_quick_url',
+        'payment_account_or_username',
+        'payment_password',
+
         'status_of_link',
         'otc_extra_charges',
         'otc_bill_file',

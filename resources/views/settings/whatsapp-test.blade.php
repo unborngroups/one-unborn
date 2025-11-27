@@ -24,7 +24,7 @@
 
 
     <div class="card shadow border-0 p-4">
-        <form action="{{ route('whatsapp.test.send') }}" method="POST">
+        <form action="{{ route('settings.whatsapp.test.send') }}" method="POST">
             @csrf
 
             <div class="mb-3">
@@ -49,7 +49,7 @@
                 <button type="submit" class="btn btn-success px-4">
                     <i class="bi bi-send"></i> Send Test Message
                 </button>
-                <a href="{{ route('whatsapp.settings') }}" class="btn btn-secondary px-4">
+                <a href="{{ route('settings.whatsapp') }}" class="btn btn-secondary px-4">
                     <i class="bi bi-arrow-left"></i> Back to Settings
                 </a>
             </div>

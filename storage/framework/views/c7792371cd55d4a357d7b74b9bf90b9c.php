@@ -47,8 +47,6 @@
 
     <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 
-
-
     <!-- style -->
 
      <style>
@@ -114,9 +112,6 @@
     border-radius: 6px;
 
 
-
-    
-
 }
 
 #sidebar .collapse .nav-link {
@@ -126,10 +121,6 @@
     padding-left: 1.8rem;
 
 }
-
-        /*  */
-
-
 
     /* Content shift */
 
@@ -144,8 +135,6 @@
     padding: 0; /* remove extra padding causing push */
 
 }
-
-
 
     /* Mobile hamburger button */
 
@@ -215,8 +204,6 @@
 
         }
 
-        
-
         /* Mobile menu styling improvements */
 
         #sidebar .nav-link {
@@ -233,15 +220,11 @@
 
         }
 
-        
-
         #sidebar h5 {
 
             font-size: 1.1rem !important;
 
         }
-
-        
 
         #sidebar .collapse .nav-link {
 
@@ -251,8 +234,6 @@
 
         }
 
-        
-
         /* Touch-friendly menu items for mobile */
 
         #sidebar .collapse {
@@ -261,15 +242,11 @@
 
         }
 
-        
-
         #sidebar .collapse .collapse {
 
             padding-left: 10px !important;
 
         }
-
-        
 
         /* ✅ Overlay for background dim */
 
@@ -297,8 +274,6 @@
 
         }
 
-        
-
         #sidebarOverlay.show {
 
             display: block !important;
@@ -308,8 +283,6 @@
         }
 
     }
-
-    
 
     /* Extra small mobile devices */
 
@@ -327,8 +300,6 @@
 
     }
 
-
-
     #sidebar.active + #sidebarOverlay {
 
         display: block;
@@ -343,15 +314,11 @@
 
     }
 
-
-
     .form-group {
 
         margin-bottom: 15px;
 
     }
-
-    
 
     /* Fix action button alignment */
 
@@ -363,8 +330,6 @@
 
 }
 
-
-
 /* Restore alternating row colors (fix for .table-striped + .table-bordered) */
 
 .table-striped tbody tr:nth-of-type(odd) {
@@ -372,8 +337,6 @@
     background-color: #f9fafb !important;
 
 }
-
-
 
 /* Improve Action button look */
 
@@ -385,8 +348,6 @@
 
 }
 
-
-
 /* ✅ Fix Action button vertical alignment */
 
 .table td {
@@ -394,8 +355,6 @@
     vertical-align: middle !important;
 
 }
-
-
 
 /* ✅ Center align the Action column */
 
@@ -408,8 +367,6 @@
     vertical-align: middle !important;
 
 }
-
-
 
 /* ✅ Keep buttons inline and neat */
 
@@ -426,8 +383,6 @@
     text-align: center;
     }
 
-
-
 /* Optional: soften button colors to match your previous look */
 
 .btn-primary {
@@ -438,8 +393,6 @@
 
 }
 
-
-
 .btn-danger {
 
     background-color: #dc3545 !important;
@@ -448,8 +401,6 @@
 
 }
 
-
-
 .btn-success {
 
     background-color: #198754 !important;
@@ -457,8 +408,6 @@
     border-color: #198754 !important;
 
 }
-
-
 
 .btn-warning {
 
@@ -469,8 +418,6 @@
     color: #000 !important;
 
 }
-
-
 
 .btn-info {
 
@@ -490,8 +437,6 @@
 
 }
 
-
-
 .table-dark-primary th {
 
     background-color: #0A3D62 !important;
@@ -499,10 +444,6 @@
     color: white !important;
 
 }
-
-
-
-    
 
 </style>
 
@@ -512,15 +453,9 @@
 
 <?php endif; ?>
 
-
-
-
-
 </head>
 
 <div id="sidebarOverlay"></div>
-
-
 
 <body class="d-flex">
 
@@ -544,13 +479,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
 
-
-
 <!-- ✅ Select2 JS -->
 
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-
 
 <!-- ✅ Bootstrap JS (after jQuery is fine) -->
 
@@ -558,17 +489,12 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js"></script>
 
-
-
 <!-- ✅ Bootstrap Icons -->
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
 <!-- ✅ Summernote CSS & JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.js"></script>
-
-
-
 
 <script>
 
@@ -581,8 +507,6 @@ $(document).ready(function() {
     console.log('Hamburger button visible:', $('#sidebarToggle').is(':visible'));
 
     console.log('Window width:', $(window).width());
-
-    
 
     // 📱 Ensure sidebar is hidden on mobile initially
 

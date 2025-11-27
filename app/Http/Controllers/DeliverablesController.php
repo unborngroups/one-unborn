@@ -10,6 +10,8 @@ use App\Models\Feasibility;
 use App\Models\FeasibilityStatus;
 use App\Models\PurchaseOrder;
 use App\Models\Deliverables;
+use IPLib\Address\IPv4;
+
 
 class DeliverablesController extends Controller
 {
@@ -102,6 +104,7 @@ class DeliverablesController extends Controller
             'status_of_link' => 'nullable|string',
             'mode_of_delivery' => 'required|string',
             'date_of_activation' => 'nullable|date',
+            'date_of_expiry' => 'nullable|date',
             // 'circuit_id' => 'nullable|string',
             'circuit_id'          => 'nullable|string|max:50|unique:deliverables,circuit_id',
 
@@ -114,6 +117,11 @@ class DeliverablesController extends Controller
             'static_subnet_mask' => 'nullable|string',
             'static_gateway' => 'nullable|string',
             'static_vlan_tag' => 'nullable|string',
+
+            'payment_login_url' => 'nullable|string',
+            'payment_quick_url' => 'nullable|string',
+            'payment_account_or_username' => 'nullable|string',
+            'payment_password' => 'nullable|string',
             'otc_extra_charges' => 'nullable|numeric',
             'otc_bill_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
@@ -141,12 +149,19 @@ class DeliverablesController extends Controller
             $updateData['dhcp_ip_address'] = $request->dhcp_ip_address;
             $updateData['dhcp_vlan'] = $request->dhcp_vlan;
         }
+        // PAYMENT DETAILS
+        if ($request->mode_of_delivery === 'Payment Gateway'){
+            $updateData['payment_login_url'] = $request->payment_login_url;
+            $updateData['payment_quick_url'] = $request->payment_quick_url;
+            $updateData['payment_account_or_username'] = $request->payment_account_or_username;
+            $updateData['payment_password'] = $request->payment_password;
+        }
 
         // Static IP MODE
-        if ($request->mode_of_delivery === 'Static') {
+        if ($this->isStaticMode($request->mode_of_delivery)) {
             $updateData['static_ip_address'] = $request->static_ip_address;
             $updateData['static_subnet_mask'] = $request->static_subnet_mask;
-            $updateData['static_gateway'] = $request->static_gateway;
+            $updateData['static_gateway'] = $request->gateway ?? $request->static_gateway;
             $updateData['static_vlan_tag'] = $request->static_vlan_tag;
         }
 
@@ -220,10 +235,10 @@ class DeliverablesController extends Controller
         ];
 
         // STATIC MODE
-        if ($request->mode_of_delivery === 'Static') {
+        if ($this->isStaticMode($request->mode_of_delivery)) {
             $updateData['static_ip_address'] = $request->static_ip_address;
             $updateData['static_subnet_mask'] = $request->static_subnet_mask;
-            $updateData['static_gateway'] = $request->static_gateway;
+            $updateData['static_gateway'] = $request->static_gateway ?? $request->gateway;
             $updateData['static_vlan'] = $request->static_vlan;
         }
 
@@ -291,6 +306,8 @@ $client = optional($feasibility)->client;
 $last = Deliverables::latest('id')->first();
 $nextNumber = ($last->id ?? 0) + 1;
 
+
+$countryShort = strtoupper(substr(str_replace(' ', '', $feasibility->country ?? 'IN'), 0, 2));
 // Company short-form (first 3 letters)
 $companyName = $feasibility->company->company_name ?? 'CMP';
 $companyShort = strtoupper(substr(str_replace(' ', '', $companyName), 0, 3));
@@ -304,9 +321,9 @@ $staticIp = $feasibility->static_ip_subnet ?? 'NOIP';
 
 // Build Circuit ID: 25-UNB-TAM-STATICIP-0001
 $circuitID = date('y')
+            . '' . $countryShort
             . '' . $companyShort
             . '' . $stateShort
-            . '' . strtoupper($staticIp)
             . '' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 
             $deliverable = Deliverables::create([
@@ -332,4 +349,49 @@ $circuitID = date('y')
             Log::error("Deliverable creation failed: " . $e->getMessage());
         }
     }
+
+    public function calculateSubnet(Request $request)
+{
+    $ip = $request->ip;
+    $subnet = str_replace('/', '', $request->subnet); // "/29" → "29"
+
+    if (!$ip || !$subnet) {
+        return response()->json([]);
+    }
+
+    // Convert IP to long integer
+    $ipLong = ip2long($ip);
+
+    // Subnet mask calculate
+    $maskLong = -1 << (32 - $subnet);
+    $mask = long2ip($maskLong);
+
+    // Network IP
+    $networkLong = $ipLong & $maskLong;
+    $networkIp = long2ip($networkLong);
+
+    // Broadcast
+    $broadcastLong = $networkLong | (~$maskLong);
+    $broadcast = long2ip($broadcastLong);
+
+    // First & last usable
+    $firstUsable = long2ip($networkLong + 1);
+    $lastUsable = long2ip($broadcastLong - 1);
+
+    // Gateway = first usable by default
+    $gateway = $firstUsable;
+
+    return response()->json([
+        'network_ip'   => $networkIp,
+        'gateway'      => $gateway,
+        'subnet_mask'  => $mask,
+        'usable_ips'   => $firstUsable . " - " . $lastUsable,
+    ]);
+}
+
+    private function isStaticMode(?string $mode): bool
+    {
+        return in_array($mode, ['Static IP', 'Static'], true);
+    }
+
 }
