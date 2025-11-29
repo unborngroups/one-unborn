@@ -76,7 +76,7 @@
                                    name="unofficial_api_url"
                                    value="{{ old('unofficial_api_url', $settings->unofficial_api_url ?? 'https://wahub.pro/api/send') }}"
                                    class="form-control"
-                                   required readonly>
+                                   required>
                            
                         </div>
                   
@@ -89,13 +89,13 @@
                         <div class="col-md-6 p-4">
                             <label class="form-label fw-bold">Instance ID <span class="text-danger">*</span></label>
                             <input type="text" name="unofficial_instance_id" value="{{ old('unofficial_instance_id', $settings->unofficial_instance_id ?? '691AEEF33256E') }}" 
-                                   class="form-control" placeholder="691AEEF33256E" required readonly>
+                                   class="form-control" placeholder="691AEEF33256E" required>
                         </div>
 
                         <div class="col-md-6 p-4">
                             <label class="form-label fw-bold">Access Token <span class="text-danger">*</span></label>
                             <input type="text" name="unofficial_access_token" value="{{ old('unofficial_access_token', $settings->unofficial_access_token ?? '68f9df1ac354c') }}" 
-                                   class="form-control" placeholder="68f9df1ac354c" required readonly>
+                                   class="form-control" placeholder="68f9df1ac354c" required>
                         </div>
                     </div>
 

@@ -6,7 +6,7 @@
 
 <style>
     .dashboard-card {
-        padding: 25px;
+        padding: 10px;
         border-radius: 15px;
         color: white;
         margin-bottom: 25px;
@@ -47,9 +47,9 @@
     }
 </style>
 
-<div class="container mt-4">
+<div class="container mt-1">
 
-    <h1 class="mb-1">Dashboard</h1>
+    <!-- <h1 class="mb-1">Dashboard</h1> -->
     <h4 class="mb-4">Welcome to <b>Unborn Technology</b></h4>
 
     <div class="row g-4">
@@ -106,7 +106,7 @@
         </div>
     </div>
 
-    <div class="mt-1">
+    <div class="mt-0">
         <h3>Feasibility</h3>
         <div class="row g-4 mt-2">
             <div class="col-md-4">
@@ -150,7 +150,7 @@
         </div>
     </div>
 
-    <div class="mt-1">
+    <div class="mt-0">
         <h3>Deliverables</h3>
         <div class="row g-4 mt-2">
             <div class="col-md-4 col-sm-6">
@@ -183,7 +183,7 @@
                 <a href="{{ route('operations.deliverables.delivery') }}" class="text-decoration-none">
                     <div class="dashboard-card" style="background:#28c76f;">
                         <h3 class="fw-bold m-0">{{ $deliverableCounts['delivery'] ?? 0 }}</h3>
-                        <h4>Delivery</h4>
+                        <h4>Delivered</h4>
                         <i class="bi bi-check2-all dashboard-icon-bg"></i>
                         <div class="dashboard-bottom">
                             List <i class="bi bi-arrow-right-circle"></i>

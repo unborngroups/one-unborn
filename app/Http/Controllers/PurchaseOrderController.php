@@ -125,8 +125,15 @@ class PurchaseOrderController extends Controller
             $poData["static_ip_link_{$i}"] = $request->input("static_ip_link_{$i}");
         }
 
-        // Create PO
-        $purchaseOrder = PurchaseOrder::create($poData);
+        $allowReuse = (int) $request->input('allow_reuse', 0) === 1;
+        $existingPO = $allowReuse ? PurchaseOrder::where('po_number', $validated['po_number'])->first() : null;
+
+        if ($existingPO) {
+            $purchaseOrder = $existingPO;
+            $purchaseOrder->update($poData);
+        } else {
+            $purchaseOrder = PurchaseOrder::create($poData);
+        }
 
         // Check if status is Active and create deliverable
         if ($purchaseOrder->status === 'Active') {

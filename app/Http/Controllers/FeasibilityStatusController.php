@@ -175,89 +175,62 @@ public function editSave(Request $request, $id)
         return view('sm.feasibility.edit', compact('record', 'vendors'));
     }
 
-    public function smSave(Request $request, $id)
+    // ============================
+    // SM SAVE
+    // ============================
+    public function smSave(Request $request)
     {
-        $data = $request->validate([
-            'vendor1_name' => 'nullable|string',
-            'vendor1_arc' => 'nullable|string',
-            'vendor1_otc' => 'nullable|string',
-            'vendor1_static_ip_cost' => 'nullable|string',
-            'vendor1_delivery_timeline' => 'nullable|string',
-
-            'vendor2_name' => 'nullable|string',
-            'vendor2_arc' => 'nullable|string',
-            'vendor2_otc' => 'nullable|string',
-            'vendor2_static_ip_cost' => 'nullable|string',
-            'vendor2_delivery_timeline' => 'nullable|string',
-
-            'vendor3_name' => 'nullable|string',
-            'vendor3_arc' => 'nullable|string',
-            'vendor3_otc' => 'nullable|string',
-            'vendor3_static_ip_cost' => 'nullable|string',
-            'vendor3_delivery_timeline' => 'nullable|string',
-
-            'vendor4_name' => 'nullable|string',
-            'vendor4_arc' => 'nullable|string',
-            'vendor4_otc' => 'nullable|string',
-            'vendor4_static_ip_cost' => 'nullable|string',
-            'vendor4_delivery_timeline' => 'nullable|string',
-        ]);
-
-        $record = FeasibilityStatus::findOrFail($id);
-        $previousStatus = $record->status;
-        
-        $record->update($data);
-        $record->update(['status' => 'InProgress']);
-        
-        // 📧 Send email notification for status change
-        $this->sendStatusChangeEmail($record, 'InProgress', $previousStatus);
-
-        return redirect()->route('sm.feasibility.inprogress')
-            ->with('success', 'Feasibility moved to In Progress successfully.');
+        return $this->commonSmSave($request, false);
     }
 
-    public function smSubmit(Request $request, $id)
+    // ============================
+    // SM SUBMIT
+    // ============================
+    public function smSubmit(Request $request)
     {
-        $data = $request->validate([
-            'vendor1_name' => 'nullable|string',
-            'vendor1_arc' => 'nullable|string',
-            'vendor1_otc' => 'nullable|string',
-            'vendor1_static_ip_cost' => 'nullable|string',
-            'vendor1_delivery_timeline' => 'nullable|string',
+        return $this->commonSmSave($request, true);
+    }
 
-            'vendor2_name' => 'nullable|string',
-            'vendor2_arc' => 'nullable|string',
-            'vendor2_otc' => 'nullable|string',
-            'vendor2_static_ip_cost' => 'nullable|string',
-            'vendor2_delivery_timeline' => 'nullable|string',
+    // ============================
+    // COMMON FOR smSave & smSubmit
+    // ============================
+    private function commonSmSave(Request $request, $submit)
+    {
+        $connectionType = $request->input('connection_type');
 
-            'vendor3_name' => 'nullable|string',
-            'vendor3_arc' => 'nullable|string',
-            'vendor3_otc' => 'nullable|string',
-            'vendor3_static_ip_cost' => 'nullable|string',
-            'vendor3_delivery_timeline' => 'nullable|string',
+        $rules = [];
 
-            'vendor4_name' => 'nullable|string',
-            'vendor4_arc' => 'nullable|string',
-            'vendor4_otc' => 'nullable|string',
-            'vendor4_static_ip_cost' => 'nullable|string',
-            'vendor4_delivery_timeline' => 'nullable|string',
-        ]);
+        for ($i = 1; $i <= 4; $i++) {
 
-        $record = FeasibilityStatus::findOrFail($id);
-        $previousStatus = $record->status;
-        
-        $record->update($data);
-        $record->update(['status' => 'Closed']);
-        
-        // � Auto-create deliverable when feasibility is closed
-        // $this->createDeliverableFromFeasibility($record);
-        
-        // �📧 Send email notification for status change
-        $this->sendStatusChangeEmail($record, 'Closed', $previousStatus);
+            $rules["vendor{$i}_name"] = "nullable|string";
 
-        return redirect()->route('sm.feasibility.closed')
-            ->with('success', 'Feasibility closed and deliverable created successfully!');
+            if ($request->input("vendor{$i}_name")) {
+                $rules["vendor{$i}_arc"] = "required|string";
+                $rules["vendor{$i}_otc"] = "required|string";
+                $rules["vendor{$i}_delivery_timeline"] = "required|string";
+
+                if ($connectionType == "ILL") {
+                    $rules["vendor{$i}_static_ip_cost"] = "nullable|string";
+                } else {
+                    $rules["vendor{$i}_static_ip_cost"] = "required|string";
+                }
+            }
+        }
+
+        $data = $request->validate($rules);
+        $data['feasibility_id'] = $request->feasibility_id;
+
+        // If submit button clicked → change status
+        if ($submit) {
+            $data['status'] = "sm_completed";
+        }
+
+        FeasibilityStatus::updateOrCreate(
+            ['feasibility_id' => $request->feasibility_id],
+            $data
+        );
+
+        return back()->with('success', $submit ? 'Submitted Successfully' : 'Saved Successfully');
     }
 
     // ====================================
@@ -310,46 +283,51 @@ public function editSave(Request $request, $id)
         return view('operations.feasibility.edit', compact('record', 'vendors'));
     }
 
-    public function operationsSave(Request $request, $id)
+   // ============================
+    // OPERATIONS SAVE
+    // ============================
+    public function operationsSave(Request $request)
     {
-        $data = $request->validate([
-            'vendor1_name' => 'nullable|string',
-            'vendor1_arc' => 'nullable|string',
-            'vendor1_otc' => 'nullable|string',
-            'vendor1_static_ip_cost' => 'nullable|string',
-            'vendor1_delivery_timeline' => 'nullable|string',
+        $connectionType = $request->input('connection_type');
 
-            'vendor2_name' => 'nullable|string',
-            'vendor2_arc' => 'nullable|string',
-            'vendor2_otc' => 'nullable|string',
-            'vendor2_static_ip_cost' => 'nullable|string',
-            'vendor2_delivery_timeline' => 'nullable|string',
+        $rules = [];
 
-            'vendor3_name' => 'nullable|string',
-            'vendor3_arc' => 'nullable|string',
-            'vendor3_otc' => 'nullable|string',
-            'vendor3_static_ip_cost' => 'nullable|string',
-            'vendor3_delivery_timeline' => 'nullable|string',
+        // Dynamic validation for vendor1 - vendor4
+        for ($i = 1; $i <= 4; $i++) {
 
-            'vendor4_name' => 'nullable|string',
-            'vendor4_arc' => 'nullable|string',
-            'vendor4_otc' => 'nullable|string',
-            'vendor4_static_ip_cost' => 'nullable|string',
-            'vendor4_delivery_timeline' => 'nullable|string',
+            // Vendor name always optional
+            $rules["vendor{$i}_name"] = "nullable|string";
+
+            // If name entered → ARC / OTC / Delivery mandatory
+            if ($request->input("vendor{$i}_name")) {
+                $rules["vendor{$i}_arc"] = "required|string";
+                $rules["vendor{$i}_otc"] = "required|string";
+                $rules["vendor{$i}_delivery_timeline"] = "required|string";
+
+                // Static IP Cost rule based on connection type
+                if ($connectionType == "ILL") {
+                    $rules["vendor{$i}_static_ip_cost"] = "nullable|string";
+                } else {
+                    $rules["vendor{$i}_static_ip_cost"] = "required|string";
+                }
+            }
+        }
+
+        $data = $request->validate($rules);
+        $data['feasibility_id'] = $request->feasibility_id;
+
+        FeasibilityStatus::updateOrCreate(
+            ['feasibility_id' => $request->feasibility_id],
+            $data
+        );
+
+        Feasibility::where('id', $request->feasibility_id)->update([
+            'status' => 'operations_open'
         ]);
 
-        $record = FeasibilityStatus::findOrFail($id);
-        $previousStatus = $record->status;
-        
-        $record->update($data);
-        $record->update(['status' => 'InProgress']);
-        
-        // 📧 Send email notification for status change
-        $this->sendStatusChangeEmail($record, 'InProgress', $previousStatus);
-
-        return redirect()->route('operations.feasibility.inprogress')
-            ->with('success', 'Feasibility moved to In Progress successfully.');
+        return back()->with('success', 'Feasibility Updated Successfully');
     }
+
 
     public function operationsSubmit(Request $request, $id)
     {
@@ -382,9 +360,9 @@ public function editSave(Request $request, $id)
         $record = FeasibilityStatus::findOrFail($id);
         $previousStatus = $record->status;
         
+        $data['status'] = 'Closed';
         $record->update($data);
-        $record->update(['status' => 'Closed']);
-        
+
         // � Auto-create deliverable when feasibility is closed
         // $this->createDeliverableFromFeasibility($record);
         

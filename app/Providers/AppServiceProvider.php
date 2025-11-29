@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\DB;
 use App\Models\Menu;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,6 +23,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+         /** ⬇️ IMPORTANT - Fix created_at & updated_at timezone issue */
+        DB::statement("SET time_zone = '+05:30'");   // IST Time
          // 🟩 Auto-share menus with all views
         View::composer('*', function ($view) {
             if (Auth::check()) {

@@ -8,7 +8,7 @@
                 <div class="card-header text-dark">
                     <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Create Purchase Order</h4>
                 </div>
-                <div class="card-body">
+                <div class="card-body position-relative">
                     @if(session('error'))
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
@@ -24,7 +24,7 @@
         Some issues found. Do you want to continue?
     </h6>
 
-    <ul class="small">
+    <ul class="small mb-0">
         @foreach($errors->all() as $error)
             <li>{{ $error }}</li>
         @endforeach
@@ -40,8 +40,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById('purchaseOrderForm');
     const forceSubmit = document.getElementById('forceSubmit');
     const warnBox = document.getElementById('warnBox');
+    const cardBody = warnBox?.closest('.card-body');
+
+    const syncCardPadding = show => {
+        if (!cardBody) return;
+        cardBody.classList.toggle('alert-visible', !!show);
+    };
 
     if (warnBox) {
+        syncCardPadding(true);
+
         // Block submit when warnings exist
         form.addEventListener('submit', function (e) {
             if (forceSubmit.value == "0") {
@@ -53,12 +61,14 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById('continueYes').addEventListener('click', function () {
             forceSubmit.value = "1";       // allow next submit
             warnBox.style.display = "none";
+            syncCardPadding(false);
             form.requestSubmit();          // correct way - prevents page flush
         });
 
         // NO → just close box, do nothing
         document.getElementById('continueNo').addEventListener('click', function () {
             warnBox.style.display = "none";
+            syncCardPadding(false);
             forceSubmit.value = "0";
         });
     }
@@ -75,9 +85,13 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <select class="form-select" id="feasibility_id" name="feasibility_id" required onchange="loadFeasibilityDetails()">
                                     <option value="">Select Available Feasibility</option>
                                     @foreach($closedFeasibilities as $feas)
-                                        <option value="{{ $feas->feasibility->id }}">{{ $feas->feasibility->feasibility_request_id }}</option>
+                                        <option value="{{ $feas->feasibility->id }}"
+                                                data-status-id="{{ $feas->id }}">
+                                            {{ $feas->feasibility->feasibility_request_id }}
+                                        </option>
                                     @endforeach
                                 </select>
+                               
                             </div>
 
                             <div class="col-md-6 mb-3">
@@ -85,7 +99,14 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <input type="text" class="form-control" id="po_number" name="po_number" onblur="checkPoNumber()" required>
                                 <input type="hidden" id="allow_reuse" name="allow_reuse" value="0">
                                 <input type="hidden" id="forceSubmit" name="forceSubmit" value="0">
-
+                                <div class="alert alert-warning alert-dismissible fade show mt-2 d-none" id="poTakenAlert" role="alert">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                    PO number already taken. Do you want to use it?
+                                    <div class="mt-2">
+                                        <button type="button" class="btn btn-sm btn-success me-1" id="reuseYes">YES</button>
+                                        <button type="button" class="btn btn-sm btn-danger" id="reuseNo">NO</button>
+                                    </div>
+                                </div>
 
                             </div>
 
@@ -143,26 +164,51 @@ document.addEventListener("DOMContentLoaded", function () {
 <script>
 function checkPoNumber() {
     let poNumber = document.getElementById("po_number").value.trim();
-    if (poNumber === "") return;
+    if (poNumber === "") {
+        togglePoTakenAlert(false);
+        return;
+    }
 
     fetch("/check-po-number?po_number=" + encodeURIComponent(poNumber))
         .then(response => response.json())
         .then(data => {
             if (data.exists) {
-                let reuse = confirm("PO number already taken. Do you want to reuse it?");
-                if (reuse) {
-                    document.getElementById('allow_reuse').value = 1; 
-                } else {
-                    document.getElementById("po_number").value = "";
-                    document.getElementById('allow_reuse').value = 0;
-                    document.getElementById("po_number").focus();
-                }
+                document.getElementById('allow_reuse').value = 0;
+                togglePoTakenAlert(true);
             } else {
                 document.getElementById('allow_reuse').value = 0;
+                togglePoTakenAlert(false);
             }
         })
         .catch(error => console.error("Error checking PO number:", error));
 }
+
+function togglePoTakenAlert(show) {
+    const alertBox = document.getElementById('poTakenAlert');
+    if (!alertBox) return;
+    alertBox.classList.toggle('d-none', !show);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const reuseYes = document.getElementById('reuseYes');
+    const reuseNo = document.getElementById('reuseNo');
+
+    if (reuseYes) {
+        reuseYes.addEventListener('click', function () {
+            document.getElementById('allow_reuse').value = 1;
+            togglePoTakenAlert(false);
+        });
+    }
+
+    if (reuseNo) {
+        reuseNo.addEventListener('click', function () {
+            document.getElementById('allow_reuse').value = 0;
+            document.getElementById('po_number').value = '';
+            togglePoTakenAlert(false);
+            document.getElementById('po_number').focus();
+        });
+    }
+});
 
 let feasibilityAmounts = {};
 
@@ -264,8 +310,31 @@ function calculateTotal() {
 }
 
 function redirectToFeasibilityView() {
-    const id = document.getElementById('feasibility_id').value;
-    if (id) window.open(`/sm/feasibility/${id}/view`, '_blank');
+    const select = document.getElementById('feasibility_id');
+    const selectedOption = select?.selectedOptions?.[0];
+    const statusId = selectedOption?.dataset?.statusId;
+    if (statusId) {
+        window.open(`/sm/feasibility/${statusId}/view`, '_blank');
+    }
 }
+
 </script>
+<style>
+    .card-body.position-relative {
+        transition: padding-top .2s ease;
+    }
+
+    .card-body.alert-visible {
+        padding-top: 190px;
+    }
+
+    #warnBox {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        right: 1rem;
+        z-index: 5;
+        border-radius: .35rem;
+    }
+</style>
 @endsection

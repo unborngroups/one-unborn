@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\Feasibility;
+use App\Models\FeasibilityStatus;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -128,7 +129,11 @@ class FeasibilityExcelController extends Controller
             }
 
             try {
-                Feasibility::create($prepared);
+                $feasibility = Feasibility::create($prepared);
+                FeasibilityStatus::create([
+                    'feasibility_id' => $feasibility->id,
+                    'status' => 'Open',
+                ]);
                 $successCount++;
             } catch (\Exception $e) {
                 $this->importErrors[] = "Row {$rowNumber}: Failed to save - " . $e->getMessage();

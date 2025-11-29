@@ -36,7 +36,7 @@
                        required
                        pattern="[0-9]{10,12}"
                        title="Enter 10-12 digit mobile number with country code">
-                <small class="text-muted">Enter with country code (e.g., 919876543210)</small>
+                <small class="text-muted">Enter with country code (e.g., 91xxxxxxxxxx)</small>
             </div>
 
             <div class="mb-3">

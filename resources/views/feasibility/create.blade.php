@@ -6,7 +6,48 @@
 
 <div class="container-fluid py-4">
 
-    <h4 class="text-primary fw-bold mb-3">Add Feasibility</h4>
+    <h4 class="text-primary fw-bold mb-3 ">Add Feasibility</h4>
+    
+        @if (session('import_errors'))
+
+            <div class="alert alert-warning">
+                <strong>Import could not process some rows:</strong>
+                <ul class="mb-0">
+                    @foreach (session('import_errors') as $importError)
+                        <li>{{ $importError }}</li>
+                    @endforeach
+                </ul>
+            </div>
+
+        @endif
+
+        @php
+            $importRow = session('imported_row', []);
+        @endphp
+     
+    <!-- <h5 class="mb-3 ">Import Feasibility</h5> -->
+        <div class="row g-3 mb-3">
+            <div class="col-md-12">
+                <button class="btn btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#importCard" aria-expanded="false" aria-controls="importCard">
+                    Import Feasibility
+                </button>
+                <div class="collapse mt-3" id="importCard">
+                    <div class="card border-info">
+                        <div class="card-body">
+                            <p class="mb-3 small text-muted">Download the sample format, populate it with feasibility data, and then upload it via Import Excel.</p>
+                            <form action="{{ route('feasibility.import') }}" method="POST" enctype="multipart/form-data">
+                                @csrf
+                                <div class="input-group">
+                                    <input type="file" name="file" class="form-control" required>
+                                    <a href="{{ asset('images/feasibilityimport/feasibility_import_69255ee5caa5f.xlsx') }}" target="_blank" class="btn btn-outline-secondary" title="Download import template">Download Format</a>
+                                    <button type="submit" class="btn btn-primary">Import Excel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
 
 
@@ -42,29 +83,12 @@
 
         @endif
 
-        @if (session('import_errors'))
 
-            <div class="alert alert-warning">
-                <strong>Import could not process some rows:</strong>
-                <ul class="mb-0">
-                    @foreach (session('import_errors') as $importError)
-                        <li>{{ $importError }}</li>
-                    @endforeach
-                </ul>
-            </div>
+<!--         
 
-        @endif
-
-        @php
-            $importRow = session('imported_row', []);
-        @endphp
-
-        
-<div class="container-fluid py-4">
-    <div class="card shadow border-0 p-4">
-        <h5 class="mb-3">Import / Export Feasibility</h5>
-        <div class="row g-3 align-items-center">
-            <div class="col-md-6">
+        <h5 class="mb-3">Import Feasibility</h5>
+        <div class="row g-3 align-items-center ml-2 mb-4">
+            <div class="col-md-4">
                 <form action="{{ route('feasibility.import') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="input-group">
@@ -73,12 +97,8 @@
                     </div>
                 </form>
             </div>
-            <!-- <div class="col-md-6 text-end">
-                <a href="{{ route('feasibility.export') }}" class="btn btn-success">Download Excel</a>
-            </div> -->
-        </div>
     </div>
-</div>
+ -->
 
 
 
@@ -908,5 +928,36 @@ typeOfServiceSelect.addEventListener('change', function() {
 });
 
 });
+
+// document.getElementById('importexcel').
+
+function excelImport() {
+    
+    if (!links) {
+        c.innerHTML = '';
+        document.getElementById('excelImport').style.display = 'none';
+        return;
+    }
+
+    c.innerHTML = '';
+    {
+        c.innerHTML += `
+
+        <div class=" card-body row mb-3">
+            <div class="col-md-4">
+                <label class="form-label"></label>
+                <div class="input-group">
+                    <input type="number" step="0.01" min="0" id="arc_link_${i}" name="arc_link_${i}" class="form-control" onblur="validateEnteredAmount('arc_link_${i}', 'arc_per_link')" oninput="calculateTotal()">
+                    <button type="button" class="btn btn-outline-info btn-sm" onclick="redirectToFeasibilityView()"><i class="bi bi-info-circle"></i></button>
+                </div>
+            </div>
+
+
+        </div>`;
+    }
+
+    document.getElementById('dynamicPricingContainer').style.display = 'block';
+}
+
 </script>
 @endsection

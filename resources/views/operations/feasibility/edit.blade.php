@@ -505,6 +505,31 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
+    // ********************************************
+// Static IP Cost Rule (ILL → Optional, Others → Required)
+// ********************************************
+const feasibilityType = "{{ $record->feasibility->type_of_service }}";
+
+function applyStaticIPRule() {
+    for (let i = 1; i <= 4; i++) {
+        let field = document.querySelector(`input[name="vendor${i}_static_ip_cost"]`);
+        if (!field) continue;
+
+        if (feasibilityType === "ILL") {
+            field.required = false;      // ❗ Not mandatory
+            field.readOnly = false;      // User can type
+            field.placeholder = "Optional for ILL";
+        } else {
+            field.required = true;       // 🔥 Mandatory
+            field.readOnly = false;
+            field.placeholder = "Required";
+        }
+    }
+}
+
+applyStaticIPRule();
+
+
 });
 </script>
 
