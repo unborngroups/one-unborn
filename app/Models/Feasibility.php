@@ -48,7 +48,7 @@ class Feasibility extends Model
         'expected_delivery',
         'expected_activation',
         'hardware_required',
-        'hardware_model_name',
+         'hardware_details',
         'status',
         'created_by',
     ];
@@ -56,6 +56,8 @@ class Feasibility extends Model
     protected $casts = [
         'expected_delivery' => 'date',
         'expected_activation' => 'date',
+    'hardware_details' => 'array',
+
     ];
 
      // 🧩 Relationship — Each Feasibility has one Feasibility Status

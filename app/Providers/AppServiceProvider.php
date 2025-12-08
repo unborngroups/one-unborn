@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth; 
 use Illuminate\Support\Facades\DB;
 use App\Models\Menu;
+use App\Models\LoginLog;
+use Carbon\Carbon;
+use Carbon\CarbonInterval;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -57,5 +60,47 @@ class AppServiceProvider extends ServiceProvider
                 $view->with('menus', collect());
             }
         });
+
+        // 
+        view()->composer('*', function ($view) {
+        if (Auth::check()) {
+            $log = LoginLog::where('user_id', Auth::id())
+                ->where('status', 'Online')
+                ->latest()
+                ->first();
+
+            $onlineSince = null;
+            $onlineMinutes = null;
+            $onlineDurationLabel = null;
+
+            if ($log) {
+                $onlineSince = Carbon::parse($log->login_time)->format('h:i A');
+
+                $secondsOnline = Carbon::parse($log->login_time)->diffInSeconds(now());
+                $secondsOnline = max($secondsOnline, 0);
+                $onlineMinutes = round($secondsOnline / 60, 1);
+
+                $interval = CarbonInterval::seconds($secondsOnline)->cascade();
+                $parts = [];
+                if ($interval->h) {
+                    $parts[] = $interval->h . 'h';
+                }
+                if ($interval->i) {
+                    $parts[] = $interval->i . 'm';
+                }
+                if ($interval->s || empty($parts)) {
+                    $parts[] = $interval->s . 's';
+                }
+                $onlineDurationLabel = implode(' ', $parts);
+            }
+
+            $view->with([
+                'onlineSince' => $onlineSince,
+                'onlineMinutes' => $onlineMinutes,
+                'onlineDurationLabel' => $onlineDurationLabel,
+            ]);
+        }
+    });
     }
+
 }

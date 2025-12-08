@@ -10,6 +10,9 @@ use App\Models\Client;
 use App\Models\Company;
 use App\Models\Gstin;
 use App\Services\SurepassService;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Hash;
+
 
 class ClientController extends Controller
 {
@@ -19,30 +22,26 @@ class ClientController extends Controller
     public function index()
     {
         /** @var \App\Models\User $user */
-       $user = Auth::user();
-     $clients = Client::orderBy('id', 'asc')->get();
-
-
-    // ✅ Superadmin (1) & Admin (2) can see all clients
-    if (in_array($user->user_type_id, [1, 2])) {
-        $clients = \App\Models\Client::orderBy('id', 'asc')->paginate(10);
-    } 
-    else {
-        // ✅ Normal users: only clients belonging to their assigned companies
-        $companyIds = $user->companies()->pluck('companies.id');
-
-        $clients = \App\Models\Client::whereIn('company_id', $companyIds)
-                    ->latest()
-                    ->paginate(10);
-    }
-        // Use the helper correctly
+        $user = Auth::user();
         $permissions = TemplateHelper::getUserMenuPermissions('Client Master') ?? (object)[
             'can_menu' => true,
             'can_add' => true,
             'can_edit' => true,
             'can_delete' => true,
             'can_view' => true,
-];
+        ];
+
+        $query = Client::orderBy('id', 'asc');
+        $canViewAllClients = in_array($user->user_type_id, [1, 2]) || $permissions->can_view;
+
+        if (!$canViewAllClients) {
+            $companyIds = $user->companies()->pluck('companies.id')->toArray();
+            if (!empty($companyIds)) {
+                $query->whereIn('company_id', $companyIds);
+            }
+        }
+
+        $clients = $query->paginate(10);
         return view('clients.index', compact('clients', 'permissions'));
     }
 
@@ -88,6 +87,9 @@ class ClientController extends Controller
             'support_spoc_mobile'  => 'nullable|string|max:20',
             'support_spoc_email'   => 'nullable|email|max:255',
 
+            // Client Status
+            'portal_password' => 'nullable|string|max:255',
+
             'status'           => 'required|in:Active,Inactive',
         ]);
 
@@ -96,6 +98,11 @@ class ClientController extends Controller
         $lastClient = Client::latest('id')->first();
         $validated['client_code'] = 'CL' . str_pad(($lastClient->id ?? 0) + 1, 4, '0', STR_PAD_LEFT);
     }
+    
+// ⭐ Save portal credentials
+$validated['username'] = $request->username;
+$validated['portal_password'] = bcrypt($request->portal_password);
+$validated['portal_active'] = 1;
 Client::create($validated);
 
         return redirect()->route('clients.index')->with('success', 'Client created successfully.');
@@ -151,11 +158,20 @@ Client::create($validated);
         'support_spoc_mobile'  => 'nullable|string|max:20',
         'support_spoc_email'   => 'nullable|email|max:255',
 
+        'portal_password'      => 'nullable|string|max:255',
         'status'               => 'required|in:Active,Inactive',
         ]);
              
-        // Don’t allow updating client_code
-    $client->update($validated);
+       
+    // Update fields
+    $client->fill($validated);
+
+    // Hash only when new password entered
+    if ($request->portal_password) {
+        $client->portal_password = bcrypt($request->portal_password);
+    }
+
+    $client->save();
 
         return redirect()->route('clients.index')->with('success', 'Client updated successfully.');
     }
@@ -389,6 +405,50 @@ public function saveSelectedGstins(Request $request)
             'message' => 'Error saving GSTINs: ' . $e->getMessage()
         ], 500);
     }
+}
+
+// client send password
+
+public function sendPassword(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email',
+        'user_name' => 'required|string|max:255',
+        'client_name' => 'nullable|string|max:255',
+    ]);
+
+    $email = $request->email;
+    $client = Client::where('billing_spoc_email', $email)->first();
+
+    if (!$client) {
+        $client = new Client();
+        $client->billing_spoc_email = $email;
+        $client->client_name = $request->client_name ?: $request->user_name;
+        $lastClientId = Client::latest('id')->value('id') ?? 0;
+        $client->client_code = 'CLI' . str_pad($lastClientId + 1, 3, '0', STR_PAD_LEFT);
+        $client->status = 'Active';
+        $client->portal_active = 1;
+    }
+
+    // Generate random password
+    $password = substr(str_shuffle('ABCDEFGHJKLMNPQRSTUVWXYZ23456789@#$%'), 0, 10);
+
+    // Update client table with hashed password
+    $client->portal_password = Hash::make($password);
+    $client->user_name = $request->user_name;
+    $client->save();
+
+    // Send password email
+    Mail::raw("Dear Client,
+    \n\nYour portal login credentials:
+    \nUsername: {$request->user_name}
+    \nPassword: $password  
+    \n\nLogin URL: http://127.0.0.1:8000/client/login
+    \n\nThank you!", function ($msg) use ($email) {
+        $msg->to($email)->subject('Client Portal Credentials');
+    });
+
+    return response()->json(['success' => true]);
 }
 
 }

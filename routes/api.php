@@ -21,3 +21,6 @@ Route::get('/verify-pan', [ClientController::class, 'verifyPan']);
 
 // Pincode Lookup Route
 Route::post('/pincode/lookup', [PincodeLookupController::class, 'lookup'])->name('api.pincode.lookup');
+
+// client send password route
+Route::post('/client/send-password', [ClientController::class, 'sendPassword']);

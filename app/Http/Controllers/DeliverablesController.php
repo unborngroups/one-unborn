@@ -10,7 +10,10 @@ use App\Models\Feasibility;
 use App\Models\FeasibilityStatus;
 use App\Models\PurchaseOrder;
 use App\Models\Deliverables;
+use App\Models\ClientLink;
+use App\Models\Vendor;
 use IPLib\Address\IPv4;
+use Carbon\Carbon;
 
 
 class DeliverablesController extends Controller
@@ -90,9 +93,20 @@ class DeliverablesController extends Controller
                 ->with('error', 'Delivered records cannot be edited.');
         }
 
-        $vendors = \App\Models\Vendor::orderBy('vendor_name')->get();
+        $assetOptions = Vendor::whereNotNull('asset_id')
+            ->whereNotNull('serial_no')
+            ->orderBy('asset_id')
+            ->get(['asset_id', 'serial_no', 'vendor_name']);
 
-        return view('operations.deliverables.edit', compact('record', 'vendors'));
+        $hardwareDetails = $record->feasibility->hardware_details;
+        if (is_string($hardwareDetails)) {
+            $hardwareDetails = json_decode($hardwareDetails, true) ?: [];
+        }
+        if (!is_array($hardwareDetails)) {
+            $hardwareDetails = [];
+        }
+
+        return view('operations.deliverables.edit', compact('record', 'assetOptions', 'hardwareDetails'));
     }
 
     // ====================================
@@ -129,6 +143,20 @@ class DeliverablesController extends Controller
             'payment_quick_url' => 'nullable|string',
             'payment_account_or_username' => 'nullable|string',
             'payment_password' => 'nullable|string',
+            'mtu' => 'required|string|max:255',
+            'wifi_username' => 'nullable|string|max:255',
+            'wifi_password' => 'nullable|string|max:255',
+    'lan_ip_1' => 'required|string|max:255',
+    'lan_ip_2' => 'nullable|string|max:255',
+    'lan_ip_3' => 'nullable|string|max:255',
+    'lan_ip_4' => 'nullable|string|max:255',
+    'ipsec' => 'nullable|in:Yes,No',
+    'phase_1' => $request->ipsec == 'Yes' ? 'required|string|max:255' : 'nullable|string|max:255',
+    'phase_2' => $request->ipsec == 'Yes' ? 'required|string|max:255' : 'nullable|string|max:255',
+    'ipsec_interface' => $request->ipsec == 'Yes' ? 'required|string|max:255' : 'nullable|string|max:255',
+            'account_id' => 'nullable|string|max:255',    
+            'asset_id' => 'nullable|string|max:255',
+            'asset_serial_no' => 'nullable|string|max:255',
             'otc_extra_charges' => 'nullable|numeric',
             'otc_bill_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
@@ -137,10 +165,24 @@ class DeliverablesController extends Controller
             'plans_name' => $request->plans_name,
             'speed_in_mbps_plan' => $request->speed_in_mbps_plan,
             'no_of_months_renewal' => $request->no_of_months_renewal,
+            'date_of_activation' => $this->parseDeliverableDate($request->date_of_activation),
+            'date_of_expiry' => $this->parseDeliverableDate($request->date_of_expiry),
             'sla' => $request->sla,
             'status_of_link' => $request->status_of_link,
             'mode_of_delivery' => $request->mode_of_delivery,
             // 'circuit_id' => $request->circuit_id,
+            'circuit_id'          => $request->circuit_id,
+            'mtu' => $request->mtu,
+            'wifi_username' => $request->wifi_username,
+            'wifi_password' => $request->wifi_password,
+            'lan_ip_1' => $request->lan_ip_1,
+            'lan_ip_2' => $request->lan_ip_2,
+            'lan_ip_3' => $request->lan_ip_3,
+            'lan_ip_4' => $request->lan_ip_4,
+            'ipsec' => $request->ipsec,
+            'account_id' => $request->account_id,
+            'asset_id' => $request->asset_id,
+            'asset_serial_no' => $request->asset_serial_no,
             'otc_extra_charges' => $request->otc_extra_charges,
         ];
 
@@ -172,6 +214,22 @@ class DeliverablesController extends Controller
             $updateData['static_vlan_tag'] = $request->static_vlan_tag;
         }
 
+        // IPSEC MODE
+        if ($request->ipsec === 'No') {
+            $updateData['phase_1'] = null;
+            $updateData['phase_2'] = null;
+            $updateData['ipsec_interface'] = null;
+        }
+          if ($request->ipsec === 'Yes') {
+            $updateData['phase_1'] = $request->phase_1;
+            $updateData['phase_2'] = $request->phase_2;
+            $updateData['ipsec_interface'] = $request->ipsec_interface;
+        }
+        for ($i = 1; $i <= $request->no_of_links; $i++) {
+    $updateData["pppoe_username_$i"] = $request->input("pppoe_username_$i");
+    $updateData["pppoe_password_$i"] = $request->input("pppoe_password_$i");
+    $updateData["vlan_$i"] = $request->input("vlan_$i");
+}
         // Handle file upload
         if ($request->hasFile('otc_bill_file')) {
             $file = $request->file('otc_bill_file');
@@ -187,6 +245,33 @@ class DeliverablesController extends Controller
             $updateData['otc_bill_file'] = 'images/deliverableotcbill/' . $filename;
         }
 
+        // 
+
+        // EXPORT FILE - Save as Temp (InProgress) OR Final (Submit)
+        if ($request->hasFile('export_file')) {
+    $file = $request->file('export_file');
+    $ext = $file->getClientOriginalExtension();
+    $safeName = 'EXPORT_' . ($deliverable->circuit_id ?: 'UNKNOWN') . '_' . time();
+    $filename = $safeName . ($ext ? '.' . $ext : '');
+
+    if ($request->action === 'save') {
+        // Temp folder
+        $path = 'images/exportdeliverables/temp/';
+    } else {
+        // Final folder
+        $path = 'images/exportdeliverables/';
+    }
+
+    $destination = public_path($path);
+    if (!file_exists($destination)) {
+        mkdir($destination, 0755, true);
+    }
+
+    $file->move($destination, $filename);
+    $updateData['export_file'] = $path . $filename;
+}
+
+        // 
         // STATUS CHANGE based on action
         if ($request->action === 'save') {
             $updateData['status'] = 'InProgress';
@@ -195,6 +280,25 @@ class DeliverablesController extends Controller
         }
 
         $deliverable->update($updateData);
+
+        // Insert client link when status changes to Delivery
+if ($updateData['status'] === 'Delivery') {
+
+    ClientLink::updateOrCreate(
+        [
+            'service_id' => $deliverable->circuit_id,   // unique service id
+        ],
+        [
+            'client_id'  => $deliverable->feasibility->client->id,
+            'link_type'  => $deliverable->link_type ?? $deliverable->feasibility->type_of_service,
+            'router_id'  => $deliverable->router_id ? null : null,
+            'bandwidth'  => $deliverable->speed_in_mbps_plan ?? $deliverable->speed_in_mbps,
+         // 🔥 Add this mandatory field
+            'interface_name' => $deliverable->mode_of_delivery ?? 'Unknown',
+            'status' => 'Active', // or any appropriate default status
+        ]
+    );
+}
 
         // Redirect based on new status
         if ($updateData['status'] === 'InProgress') {
@@ -207,6 +311,24 @@ class DeliverablesController extends Controller
 
         return redirect()->route('operations.deliverables.open')
             ->with('success', 'Deliverable updated successfully!');
+    }
+
+    private function parseDeliverableDate(?string $value): ?string
+    {
+        if (empty($value)) {
+            return null;
+        }
+        $value = trim(str_replace('/', '-', $value));
+        $formats = ['d-m-Y', 'Y-m-d'];
+        foreach ($formats as $format) {
+            try {
+                $dt = Carbon::createFromFormat($format, $value);
+                return $dt->format('Y-m-d');
+            } catch (\Exception $e) {
+                continue;
+            }
+        }
+        return null;
     }
 
     // ====================================

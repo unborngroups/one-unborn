@@ -38,11 +38,11 @@
 
             @csrf
 
-
+<div class="row">
 
             {{-- ✅ Name --}}
 
-            <div class="mb-3">
+            <div class="col-md-6 mb-3">
 
                 <label class="form-label">Name</label>
 
@@ -54,7 +54,7 @@
 
             {{-- ✅ User Type --}}
 
-            <div class="mb-3">
+            <div class="col-md-6 mb-3">
 
                 <label class="form-label">User Type</label>
 
@@ -94,7 +94,7 @@
 
             </div> -->
 
-            <div class="mb-3">
+            <div class="col-md-6 mb-3">
 
     <label>Official Email</label>
 
@@ -106,7 +106,7 @@
 
 
 
-<div class="mb-3">
+<div class="col-md-6 mb-3">
 
     <label>Personal Email</label>
 
@@ -120,7 +120,7 @@
 
             {{-- ✅ Mobile --}}
 
-            <div class="mb-3">
+            <div class="col-md-6 mb-3">
 
                 <label class="form-label">Mobile</label>
 
@@ -132,7 +132,7 @@
 
             {{-- ✅ Company Dropdown (Multiple Select) --}}
 
-<div class="mb-3">
+<div class="col-md-6 mb-3">
 
     <label class="form-label">Company</label>
 
@@ -160,7 +160,7 @@
 
             {{-- ✅ Date of Birth --}}
 
-            <div class="mb-3">
+            <div class="col-md-6 mb-3">
 
                 <label class="form-label">Date of Birth</label>
 
@@ -172,14 +172,14 @@
 
             {{-- ✅ Date of Joining --}}
 
-            <div class="mb-3">
+            <div class="col-md-6 mb-3">
 
                 <label class="form-label">Date of Joining</label>
 
                 <input type="date" name="Date_of_Joining" class="form-control" placeholder="select DOJ" value="{{ old('Date_of_Joining') }}" required>
 
             </div>
-
+</div>
 
 
             {{-- ✅ Status --}}
@@ -275,6 +275,10 @@ document.getElementById('company_id').addEventListener('change', function () {
 });
 
 </script>
-
+<style>
+    label{
+        font-weight: 600;
+    }
+</style>
 @endsection
 

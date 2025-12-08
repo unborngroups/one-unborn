@@ -17,16 +17,15 @@
             </button>
 
 
-
             <!-- Logo -->
 
             <a class="navbar-brand fw-bold d-flex align-items-center" href="<?php echo e(url('/')); ?>">
 
-                <img src="<?php echo e(asset('images/logo.jpg')); ?>" alt="One-Unborn"
+                <img src="<?php echo e(asset('images/logo1.png')); ?>" alt="One-Unborn" class="navbar-logo"
 
-                    style="height:52px; width:52px; object-fit:cover; border-radius:4px; margin-right:10px;">
+                    style="height:52px; max-width:150px; object-fit:contain; border-radius:4px; margin-right:10px;">
 
-                <span>One-Unborn</span>
+                <!-- <span>One-Unborn</span> -->
 
             </a>
 
@@ -37,6 +36,16 @@
         <!-- Right: Profile Dropdown -->
 
         <?php if(auth()->guard()->check()): ?>
+        <?php if(isset($onlineSince)): ?>
+    <span class="me-3 fw-semibold text-primary" style="font-size: 15px;">
+        ⏱ Online: <?php echo e($onlineSince); ?>
+
+        <?php if(!empty($onlineDurationLabel)): ?>
+            (<?php echo e($onlineDurationLabel); ?>)
+        <?php endif; ?>
+    </span>
+<?php endif; ?>
+
 
         <div class="dropdown">
 

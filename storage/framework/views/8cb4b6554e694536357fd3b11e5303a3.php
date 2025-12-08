@@ -1,16 +1,14 @@
 
+            <?php
+                $company = \App\Helpers\TemplateHelper::getUserMenuPermissions('Company Details');
+                $users = \App\Helpers\TemplateHelper::getUserMenuPermissions('Manage User');
+                $userType = \App\Helpers\TemplateHelper::getUserMenuPermissions('User Type');
+                $client = \App\Helpers\TemplateHelper::getUserMenuPermissions('Client Master');
+                $vendor = \App\Helpers\TemplateHelper::getUserMenuPermissions('Vendor Master');
+                $assetType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset Type');
+                $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
 
-<div class="sidebar bg-dark-primary text-white vh-100 overflow-auto" style="width: 250px; position: fixed; top: 0; left: 0;">
-
-    <div class="p-3">
-
-        <h5 class="text-center mb-4"><i class="bi bi-grid-3x3-gap"></i> ERP Menu</h5>
-
-
-
-        <ul class="nav flex-column">
-
-
+            ?>
 
             
 
@@ -49,10 +47,13 @@
                 $client = \App\Helpers\TemplateHelper::getUserMenuPermissions('Client Master');
 
                 $vendor = \App\Helpers\TemplateHelper::getUserMenuPermissions('Vendor Master');
+                $assetType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset Type');
+                $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
+
 
             ?>
 
-            <?php if(($company && $company->can_menu) || ($users && $users->can_menu) || ($userType && $userType->can_menu) || ($client && $client->can_menu) || ($vendor && $vendor->can_menu)): ?>
+            <?php if(($company && $company->can_menu) || ($users && $users->can_menu) || ($userType && $userType->can_menu) || ($client && $client->can_menu) || ($vendor && $vendor->can_menu) || ($assetType && $assetType->can_menu) || ($makeType && $makeType->can_menu)): ?>
 
                 <li class="nav-item">
 
@@ -60,7 +61,7 @@
 
                        data-bs-toggle="collapse" href="#masterMenu" role="button"
 
-                       aria-expanded="<?php echo e(request()->is('companies*') || request()->is('users*') || request()->is('usertypetable*') || request()->is('clients*') || request()->is('vendors*') ? 'true' : 'false'); ?>"
+                       aria-expanded="<?php echo e(request()->is('companies*') || request()->is('users*') || request()->is('usertypetable*') || request()->is('clients*') || request()->is('vendors*') || request()->is('assetmaster/asset_type*') || request()->is('assetmaster/make_type*') ? 'true' : 'false'); ?>"
 
                        aria-controls="masterMenu">
 
@@ -69,10 +70,10 @@
                         <i class="bi bi-chevron-down small"></i>
 
                     </a>
+                    
 
 
-
-                    <div class="collapse <?php echo e(request()->is('companies*') || request()->is('users*') || request()->is('usertypetable*') || request()->is('clients*') || request()->is('vendors*') ? 'show' : ''); ?>" id="masterMenu">
+                    <div class="collapse <?php echo e(request()->is('companies*') || request()->is('users*') || request()->is('usertypetable*') || request()->is('clients*') || request()->is('vendors*') || request()->is('assetmaster/asset_type*') || request()->is('assetmaster/make_type*') ? 'show' : ''); ?>" id="masterMenu">
 
                         <ul class="nav flex-column ms-3 mt-2">
 
@@ -106,9 +107,22 @@
 
                             <?php endif; ?>
 
+                            <?php if(Route::has('assetmaster.asset_type.index') && $assetType && $assetType->can_menu): ?>
+
+                                <li><a class="nav-link text-white menu-item <?php echo e(request()->is('assetmaster/asset_type*') ? 'active' : ''); ?>" href="<?php echo e(route('assetmaster.asset_type.index')); ?>"><i class="bi bi-truck"></i> Asset Type</a></li>
+
+                            <?php endif; ?>
+
+                            <?php if(Route::has('assetmaster.make_type.index') && $makeType && $makeType->can_menu): ?>
+
+                                <li><a class="nav-link text-white menu-item <?php echo e(request()->is('assetmaster/make_type*') ? 'active' : ''); ?>" href="<?php echo e(route('assetmaster.make_type.index')); ?>"><i class="bi bi-truck"></i> Make Type</a></li>
+
+                            <?php endif; ?>
                         </ul>
 
                     </div>
+
+                    <!--  -->
 
                 </li>
 
@@ -746,6 +760,27 @@
 
             <?php endif; ?>
 
+            
+
+            <?php
+
+                $assurance = \App\Helpers\TemplateHelper::getUserMenuPermissions('Assurance');
+
+            ?>
+
+            <?php if($assurance && $assurance->can_menu): ?>
+                <li class="nav-item">
+
+                    <a class="nav-link text-white menu-item <?php echo e(request()->is('assurance/*') ? 'active' : ''); ?>" href="<?php echo e(url('/assurance')); ?>">
+
+                        <i class="bi bi-people-fill"></i> Assurance
+
+                    </a>
+
+                </li>
+
+            <?php endif; ?>
+
              
 
             <?php
@@ -834,7 +869,7 @@
 
             <?php
 
-                $template = \App\Helpers\TemplateHelper::getUserMenuPermissions('Template Master');
+                $template = \App\Helpers\TemplateHelper::getUserMenuPermissions('Template Masters');
 
                 $menu = \App\Helpers\TemplateHelper::getUserMenuPermissions('Manage Menu');
 

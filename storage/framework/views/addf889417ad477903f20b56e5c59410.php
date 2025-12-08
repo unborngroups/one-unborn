@@ -7,6 +7,27 @@
             <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Edit Deliverable</h5>
         </div>
 
+        
+
+        <?php if($errors->any()): ?>
+
+            <div class="alert alert-danger">
+
+                <ul class="mb-0">
+
+                    <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+
+                        <li><?php echo e($error); ?></li>
+
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
+                </ul>
+
+            </div>
+
+        <?php endif; ?>
+
+
         <div class="card-body">
             
             <div class="card mb-4 border-info">
@@ -131,6 +152,61 @@
                 </div>
             </div>
 
+            <?php
+                $selectedAssetId = old('asset_id', $record->asset_id ?? '');
+                $selectedAssetSerial = old('asset_serial_no', $record->asset_serial_no ?? '');
+            ?>
+
+            <div class="card mb-3">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0">Hardware & Asset Details</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row gy-2">
+                        <?php if(!empty($hardwareDetails)): ?>
+                            <?php $__currentLoopData = $hardwareDetails; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $detail): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <div class="col-md-6">
+                                    <div class="border rounded p-2">
+                                        <small class="text-muted">Hardware <?php echo e($index + 1); ?></small>
+                                        <p class="mb-1"><strong>Make:</strong> <?php echo e($detail['make'] ?? '-'); ?></p>
+                                        <p class="mb-0"><strong>Model:</strong> <?php echo e($detail['model'] ?? '-'); ?></p>
+                                    </div>
+                                </div>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        <?php else: ?>
+                            <div class="col-12">
+                                <p class="mb-0 text-muted">No hardware information was carried over from the feasibility request.</p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Asset ID</label>
+                            <select name="asset_id" id="asset_selector" class="form-select">
+                                <option value="">-- Select Asset --</option>
+                                <?php $__currentLoopData = $assetOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $asset): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($asset->asset_id); ?>"
+                                            data-serial="<?php echo e($asset->serial_no); ?>"
+                                            <?php echo e($selectedAssetId && $selectedAssetId === $asset->asset_id ? 'selected' : ''); ?>>
+                                        <?php echo e($asset->asset_id); ?><?php if(!empty($asset->serial_no)): ?> - <?php echo e($asset->serial_no); ?><?php endif; ?>
+                                    </option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                <?php if($selectedAssetId && !$assetOptions->contains('asset_id', $selectedAssetId)): ?>
+                                    <option value="<?php echo e($selectedAssetId); ?>" data-serial="<?php echo e($selectedAssetSerial); ?>" selected>
+                                        <?php echo e($selectedAssetId); ?><?php if(!empty($selectedAssetSerial)): ?> - <?php echo e($selectedAssetSerial); ?><?php endif; ?>
+                                    </option>
+                                <?php endif; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Serial Number</label>
+                            <input type="text" id="asset_serial_no" name="asset_serial_no" class="form-control" readonly value="<?php echo e($selectedAssetSerial); ?>">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             
             <form action="<?php echo e(route('operations.deliverables.save', $record->id)); ?>" method="POST" enctype="multipart/form-data">
                 <?php echo csrf_field(); ?>
@@ -219,32 +295,37 @@
                         </div>
                     </div>
                 </div>
+                <?php
+    $linkCount = $record->feasibility->no_of_links ?? 1;  // align fields with feasibility\'s link count
+?>
 
                 
                 <div class="card mb-3" id="pppoe_section" style="display: none;">
-                    <div class="card-header bg-success text-white">
+                    <div class="card-header bg-primary text-white">
                         <h6 class="mb-0">PPPoE Configuration</h6>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Username</label>
-                                <input type="text" class="form-control" name="pppoe_username" 
-                                       value="<?php echo e(old('pppoe_username', $record->pppoe_username)); ?>">
-                            </div>
+                        <?php for($i = 1; $i <= $linkCount; $i++): ?>
+        <div class="row mb-2">
+            <div class="col-md-4">
+                <label>Username <?php echo e($i); ?></label>
+                <input type="text" name="pppoe_username_<?php echo e($i); ?>" class="form-control"
+                       value="<?php echo e(old('pppoe_username_'.$i, $record->{'pppoe_username_'.$i} ?? '')); ?>">
+            </div>
 
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Password</label>
-                                <input type="password" class="form-control" name="pppoe_password" 
-                                       value="<?php echo e(old('pppoe_password', $record->pppoe_password)); ?>">
-                            </div>
+            <div class="col-md-4">
+                <label>Password <?php echo e($i); ?></label>
+                <input type="text" name="pppoe_password_<?php echo e($i); ?>" class="form-control"
+                       value="<?php echo e(old('pppoe_password_'.$i, $record->{'pppoe_password_'.$i} ?? '')); ?>">
+            </div>
 
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">VLAN</label>
-                                <input type="text" class="form-control" name="pppoe_vlan" 
-                                       value="<?php echo e(old('pppoe_vlan', $record->static_vlan)); ?>">
-                            </div>
-                        </div>
+            <div class="col-md-4">
+                <label>VLAN <?php echo e($i); ?></label>
+                <input type="text" name="vlan_<?php echo e($i); ?>" class="form-control"
+                       value="<?php echo e(old('vlan_'.$i, $record->{'vlan_'.$i} ?? '')); ?>">
+            </div>
+        </div>
+    <?php endfor; ?>
                     </div>
                 </div>
 
@@ -377,23 +458,96 @@
 
 </div>
                 </div>
-               
+                <!--  -->
+                 <div class="card mb-3 ">
+                <div class="card-header bg-primary text-white">
+                <h6 class="mb-0"> Configuration</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label>LAN IP 1 <span style="color:red">*</span></label>
+                            <input type="text" name="lan_ip_1" class="form-control" required>
+                        </div>
+                        
+<div class="col-md-3 mb-3" >
+    <label>LAN IP 2</label>
+    <input type="text" name="lan_ip_2" class="form-control">
+</div>
+
+<div class="col-md-3 mb-3">
+    <label>LAN IP 3</label>
+    <input type="text" name="lan_ip_3" class="form-control">
+</div>
+
+<div class="col-md-3 mb-3">
+    <label>LAN IP 4</label>
+    <input type="text" name="lan_ip_4" class="form-control">
+</div>
+<div class="col-md-3">
+    <label>IPSEC</label>
+    <select name="ipsec" id="ipsec" class="form-control">
+        <option value="">-- Select --</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+    </select>
+</div>
+
+<div class="col-md-3 ipsec-fields d-none">
+    <label>Phase 1</label>
+    <input type="text" name="phase_1" class="form-control">
+</div>
+
+<div class="col-md-3 ipsec-fields d-none">
+    <label>Phase 2</label>
+    <input type="text" name="phase_2" class="form-control">
+</div>
+
+<div class="col-md-3 ipsec-fields d-none">
+    <label>IPSEC Interface</label>
+    <input type="text" name="ipsec_interface" class="form-control">
+</div>
+<div class="col-md-4 mb-3">
+                            <label class="form-label">MTU <span class="text-danger">*</span></label>
+                            <input type="text" name="mtu" class="form-control" placeholder="Enter MTU" value="<?php echo e(old('mtu', $record->mtu)); ?>" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label"> Wifi Username</label>
+                            <input type="text" name="wifi_username" class="form-control" placeholder="Enter Wifi Username" value="<?php echo e(old('wifi_username', $record->wifi_username)); ?>">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Wifi Password</label>
+                            <input type="password" name="wifi_password" class="form-control" placeholder="Enter Wifi Password" value="<?php echo e(old('wifi_password', $record->wifi_password)); ?>">
+                        </div>
+
+                    </div>
+
+                </div>
+                 </div>
+
 
 
                 
-                <div class="card mb-3">
+                <div class="card mb-1">
                     <div class="card-header bg-secondary text-white">
                         <h6 class="mb-0">OTC Information</h6>
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label class="form-label">OTC (Extra if any)</label>
                                 <input type="number" step="0.01" class="form-control" name="otc_extra_charges" 
                                        value="<?php echo e(old('otc_extra_charges', $record->otc_extra_charges)); ?>">
                             </div>
 
-                            <div class="col-md-6 mb-3">
+                            <!-- Account ID -->
+                            <div class="col-md-4">
+                                    <label>Account ID</label>
+                                     <input type="text" name="account_id" class="form-control"
+                                      value="<?php echo e(old('account_id', $record->account_id)); ?>">
+                            </div>
+                               <!-- Upload OTC Bill -->
+                            <div class="col-md-4 mb-3">
                                 <label class="form-label">Upload OTC Bill</label>
                                 <?php if($record->otc_bill_file): ?>
                                     <a href="<?php echo e(asset($record->otc_bill_file)); ?>" target="_blank">View OTC Bill</a>
@@ -406,12 +560,22 @@
                         </div>
                     </div>
                 </div>
+                <!--  -->
+                <div class="col-md-4 mb-3">
+    <label class="form-label">Upload Export File</label>
+    <?php if($record->export_file): ?>
+        <a href="<?php echo e(asset($record->export_file)); ?>" target="_blank">View Export File</a>
+    <?php endif; ?>
+    <input type="file" name="export_file" class="form-control" accept=".pdf,.xlsx,.xls,.csv,.jpg,.jpeg,.png">
+</div>
+
 
                 
                 <div class="d-flex justify-content-between mt-4">
                     <a href="<?php echo e(route('operations.deliverables.open')); ?>" class="btn btn-secondary">
                         <i class="bi bi-x-circle"></i> Cancel
                     </a>
+                    <!-- upload conf -->
 
                     <div>
                         <?php if($record->status == 'Open'): ?>
@@ -565,8 +729,44 @@ document.addEventListener('DOMContentLoaded', function() {
     staticIpInput?.addEventListener('input', fetchSubnetDetails);
     staticSubnetSelect?.addEventListener('change', fetchSubnetDetails);
 
+    const assetSelector = document.getElementById('asset_selector');
+    const assetSerialInput = document.getElementById('asset_serial_no');
+
+    const syncAssetSerial = () => {
+        if (!assetSerialInput) {
+            return;
+        }
+        const selected = assetSelector?.selectedOptions?.[0];
+        assetSerialInput.value = selected?.dataset?.serial || '';
+    };
+
+    assetSelector?.addEventListener('change', syncAssetSerial);
+    syncAssetSerial();
+
     toggleSections();
 });
+function toggleIpsecFields() {
+    const ipsecFields = document.querySelectorAll('.ipsec-fields');
+    const shouldShow = document.getElementById('ipsec')?.value === 'Yes';
+    ipsecFields.forEach((el) => {
+        el.classList.toggle('d-none', !shouldShow);
+    });
+
+    if (!shouldShow) {
+        document.querySelectorAll('input[name="phase_1"], input[name="phase_2"], input[name="ipsec_interface"]').forEach((input) => {
+            input.value = '';
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const ipsecSelect = document.getElementById('ipsec');
+    if (ipsecSelect) {
+        ipsecSelect.addEventListener('change', toggleIpsecFields);
+        toggleIpsecFields();
+    }
+});
+
 </script>
 <?php $__env->stopSection(); ?>
 

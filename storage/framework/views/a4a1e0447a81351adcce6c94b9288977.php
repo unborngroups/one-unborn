@@ -1,7 +1,3 @@
-
-
-
-
 <?php $__env->startSection('content'); ?>
 
    
@@ -58,28 +54,6 @@
 
             
 
-            <div class="col-md-4 mt-3">
-
-                <label class="form-label">Select GST State</label>
-
-                <select id="gst_state" class="form-select select2-tags">
-
-                    <option value="">-- Select State --</option>
-
-                    <option value="29">Karnataka</option>
-
-                    <option value="33">Tamil Nadu</option>
-
-                    <option value="36">Telangana</option>
-
-                    <option value="27">Maharashtra</option>
-
-                    <option value="07">Delhi</option>
-
-                </select>
-
-            </div>
-
 
 
             <small id="gstStatus" class="mt-2 d-block text-muted"></small>
@@ -96,7 +70,7 @@
 
             <div class="row mb-3">
 
-                <div class="col-md-6">
+                <div class="col-md-3">
 
                     <label class="form-label">Vendor Name</label>
 
@@ -106,7 +80,7 @@
 
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-3">
 
                     <label class="form-label">Vendor Code</label>
 
@@ -116,7 +90,7 @@
 
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-3">
 
                     <label class="form-label">User Name</label>
 
@@ -125,15 +99,10 @@
                            value="<?php echo e(old('user_name', $vendor->user_name)); ?>" required>
 
                 </div>
-
-
-            </div>
-
-
-
+                
              
 
-            <div class="mb-3">
+            <div class="col-md-3 mb-3">
 
                 <label class="form-label">Business Display Name</label>
 
@@ -142,6 +111,12 @@
                        value="<?php echo e(old('business_display_name', $vendor->business_display_name)); ?>">
 
             </div>
+
+
+            </div>
+
+
+
 
 
 
@@ -165,7 +140,7 @@
 
             <div class="row">
 
-    <div class="col-md-4">
+    <div class="col-md-3">
 
         <label class="form-label">City</label>
 
@@ -185,7 +160,7 @@
 
 
 
-    <div class="col-md-4">
+    <div class="col-md-3">
 
         <label class="form-label">State</label>
 
@@ -205,7 +180,7 @@
 
 
 
-    <div class="col-md-4">
+    <div class="col-md-3">
 
         <label class="form-label">Country</label>
 
@@ -222,15 +197,18 @@
         </select>
 
     </div>
-
-</div>
-
-<br>
-
-            <input type="text" name="pincode" class="form-control mb-3" placeholder="Pincode"
+    <div class="col-md-3">
+        <label for="form-label">Pincode</label>
+        <input type="text" name="pincode" class="form-control mb-3" placeholder="Pincode"
 
                    value="<?php echo e(old('pincode', $vendor->pincode)); ?>">
 
+    </div>
+
+</div>
+
+
+            
 
 
             
@@ -273,7 +251,7 @@
 
             <div class="row">
 
-                <div class="col-md-6">
+                <div class="col-md-4">
 
                     <input type="text" name="gstin" class="form-control mb-2" placeholder="GSTIN"
 
@@ -281,14 +259,14 @@
 
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-4">
 
                     <input type="text" name="pan_no" class="form-control mb-2" placeholder="PAN No"
 
                            value="<?php echo e(old('pan_no', $vendor->pan_no)); ?>">
 
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
 
                     <input type="text" name="branch_name" class="form-control mb-2" placeholder="branch_name"
 
@@ -296,7 +274,7 @@
 
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-4">
 
                     <input type="text" name="bank_name" class="form-control mb-2" placeholder="bank_name"
 
@@ -305,7 +283,7 @@
                 </div>
 
 
-                <div class="col-md-6">
+                <div class="col-md-4">
 
                     <input type="text" name="bank_account_no" class="form-control mb-2" placeholder="bank_account_no"
 
@@ -313,7 +291,7 @@
 
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-4">
 
                     <input type="text" name="ifsc_code" class="form-control mb-2" placeholder="ifsc_code"
 
@@ -437,6 +415,8 @@ document.getElementById("gst_state").addEventListener("change", fetchGST);
 </script>
 
 
+
+<script src="<?php echo e(asset('js/gstin-fetch-vendor.js')); ?>"></script>
 
 <?php $__env->stopSection(); ?>
 

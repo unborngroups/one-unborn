@@ -19,7 +19,8 @@ return new class extends Migration
             $table->string('lname')->nullable();
             $table->string('designation')->nullable();
             $table->date('Date_of_Birth')->nullable();
-            $table->string('email')->nullable();
+            $table->string('official_email')->nullable();
+            $table->string('personal_email')->nullable();
             $table->string('phone1')->nullable();
             $table->string('phone2')->nullable();
             $table->string('aadhaar_number')->nullable();

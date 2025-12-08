@@ -2,7 +2,7 @@
 
 
 
-    <div class="col-md-6 mb-3">
+    <div class="col-md-4 mb-3">
 
         <label class="form-label">User Name</label>
 
@@ -13,7 +13,7 @@
 
     
 
-    <div class="col-md-6 mb-3">
+    <div class="col-md-4 mb-3">
 
         <label class="form-label">Trade / Brand Name</label>
 
@@ -27,7 +27,7 @@
 
     
 
-    <div class="col-md-6 mb-3">
+    <div class="col-md-4 mb-3">
 
         <label class="form-label">Company Name</label>
 
@@ -41,7 +41,7 @@
 
     
 
-    <div class="col-md-6 mb-3">
+    <div class="col-md-4 mb-3">
 
         <label class="form-label">Business Number (CIN / LLPIN)</label>
 
@@ -55,7 +55,7 @@
 
     
 
-    <div class="col-md-6 mb-3">
+    <div class="col-md-4 mb-3">
 
     <label class="form-label">Company Phone</label>
 
@@ -69,7 +69,7 @@
 
 
 
-    <div class="col-md-6 mb-3">
+    <div class="col-md-4 mb-3">
 
     <label class="form-label">Company Email (Primary)</label>
 
@@ -93,7 +93,7 @@
 
 
 
-<div class="col-md-6 mb-3">
+<div class="col-md-4 mb-3">
 
     <label class="form-label">Alternative Contact Number</label>
 
@@ -107,7 +107,7 @@
 
     
 
-    <div class="col-md-6 mb-3">
+    <div class="col-md-4 mb-3">
 
         <label class="form-label">GST Number</label>
 
@@ -131,11 +131,11 @@
 
     
 
-    <div class="col-md-12 mb-3">
+    <div class="col-md-4 mb-3">
 
         <label class="form-label">Address</label>
 
-        <textarea name="address" id="address" class="form-control" rows="2"><?php echo e(old('address', $company->address ?? '')); ?></textarea>
+        <textarea name="address" id="address" class="form-control" rows="1"><?php echo e(old('address', $company->address ?? '')); ?></textarea>
 
         <small class="text-muted">If GST not available, enter address manually</small>
 
@@ -145,7 +145,7 @@
 
     
 
-    <div class="col-md-6 mb-3">
+    <div class="col-md-4 mb-3">
 
         <label class="form-label">Website</label>
 
@@ -158,8 +158,6 @@
 
 
     
-
-    <div class="row mb-3">
 
     <!-- Branch Location -->
 
@@ -207,15 +205,13 @@
 
     </div>
 
-</div>
-
 
 
 
 
     
 
-    <div class="col-md-3 mb-3">
+    <div class="col-md-4 mb-3">
 
         <label class="form-label">Instagram</label>
 
@@ -225,7 +221,7 @@
 
     </div>
 
-    <div class="col-md-3 mb-3">
+    <div class="col-md-4 mb-3">
 
         <label class="form-label">Youtube</label>
 
@@ -235,7 +231,7 @@
 
     </div>
 
-    <div class="col-md-3 mb-3">
+    <div class="col-md-4 mb-3">
 
         <label class="form-label">Facebook</label>
 
@@ -245,7 +241,7 @@
 
     </div>
 
-    <div class="col-md-3 mb-3">
+    <div class="col-md-4 mb-3">
 
         <label class="form-label">LinkedIn</label>
 
@@ -259,7 +255,7 @@
 
     
 
-    <div class="col-md-6 mb-3">
+    <div class="col-md-4 mb-3">
 
         <label class="form-label">PAN Number</label>
 
@@ -283,7 +279,7 @@
 
     
 
-    <div class="col-md-3 mb-3">
+    <div class="col-md-4 mb-3">
 
         <label class="form-label">Bank Name</label>
 
@@ -293,7 +289,7 @@
 
     </div>
 
-    <div class="col-md-3 mb-3">
+    <div class="col-md-4 mb-3">
 
         <label class="form-label">Branch Name</label>
 
@@ -303,7 +299,7 @@
 
     </div>
 
-    <div class="col-md-3 mb-3">
+    <div class="col-md-4 mb-3">
 
         <label class="form-label">Account Number</label>
 
@@ -313,7 +309,7 @@
 
     </div>
 
-    <div class="col-md-3 mb-3">
+    <div class="col-md-4 mb-3">
 
         <label class="form-label">IFSC Code</label>
 
@@ -331,7 +327,7 @@
 
     
 
-    <div class="col-md-6 mb-3">
+    <div class="col-md-4 mb-3">
 
         <label class="form-label">UPI ID</label>
 
@@ -345,7 +341,7 @@
 
 
 
-    <div class="col-md-6 mb-3">
+    <div class="col-md-4 mb-3">
 
     <label class="form-label">UPI Number</label>
 
@@ -357,7 +353,7 @@
 
 
 
-    <div class="col-md-6 mb-3">
+    <div class="col-md-4 mb-3">
 
         <label class="form-label">Opening Balance</label>
 

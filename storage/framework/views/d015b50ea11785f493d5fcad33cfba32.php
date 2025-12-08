@@ -18,66 +18,8 @@
                         </div>
                     <?php endif; ?>
 
-                    <?php if($errors->any()): ?>
-<div class="alert alert-warning p-3" id="warnBox">
-    <h6 class="mb-2">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        Some issues found. Do you want to continue?
-    </h6>
-
-    <ul class="small mb-0">
-        <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-            <li><?php echo e($error); ?></li>
-        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-    </ul>
-
-    <div class="mt-2">
-        <button type="button" class="btn btn-success btn-sm" id="continueYes">YES</button>
-        <button type="button" class="btn btn-danger btn-sm" id="continueNo">NO</button>
-    </div>
-</div>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    const form = document.getElementById('purchaseOrderForm');
-    const forceSubmit = document.getElementById('forceSubmit');
-    const warnBox = document.getElementById('warnBox');
-    const cardBody = warnBox?.closest('.card-body');
-
-    const syncCardPadding = show => {
-        if (!cardBody) return;
-        cardBody.classList.toggle('alert-visible', !!show);
-    };
-
-    if (warnBox) {
-        syncCardPadding(true);
-
-        // Block submit when warnings exist
-        form.addEventListener('submit', function (e) {
-            if (forceSubmit.value == "0") {
-                e.preventDefault();   // stop refresh
-            }
-        });
-
-        // YES → allow submit next time (but do NOT submit immediately)
-        document.getElementById('continueYes').addEventListener('click', function () {
-            forceSubmit.value = "1";       // allow next submit
-            warnBox.style.display = "none";
-            syncCardPadding(false);
-            form.requestSubmit();          // correct way - prevents page flush
-        });
-
-        // NO → just close box, do nothing
-        document.getElementById('continueNo').addEventListener('click', function () {
-            warnBox.style.display = "none";
-            syncCardPadding(false);
-            forceSubmit.value = "0";
-        });
-    }
-});
-</script>
-
-<?php endif; ?>
-
+                    <form action="<?php echo e(route('sm.purchaseorder.store')); ?>" method="POST" id="purchaseOrderForm">
+                    
                     <form action="<?php echo e(route('sm.purchaseorder.store')); ?>" method="POST" id="purchaseOrderForm">
                         <?php echo csrf_field(); ?>
                         <div class="row">
@@ -101,14 +43,28 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <input type="text" class="form-control" id="po_number" name="po_number" onblur="checkPoNumber()" required>
                                 <input type="hidden" id="allow_reuse" name="allow_reuse" value="0">
                                 <input type="hidden" id="forceSubmit" name="forceSubmit" value="0">
-                                <div class="alert alert-warning alert-dismissible fade show mt-2 d-none" id="poTakenAlert" role="alert">
-                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                                    PO number already taken. Do you want to use it?
-                                    <div class="mt-2">
-                                        <button type="button" class="btn btn-sm btn-success me-1" id="reuseYes">YES</button>
-                                        <button type="button" class="btn btn-sm btn-danger" id="reuseNo">NO</button>
+                                <div class="border rounded-2 border-danger bg-danger bg-opacity-10 text-danger small d-none mt-2" id="poTakenAlert" role="alert">
+                                    <div class="d-flex align-items-center justify-content-between gap-2 p-2">
+                                        <div class="d-flex align-items-center gap-1">
+                                            <i class="bi bi-exclamation-circle-fill"></i>
+                                            That PO number already exists. Would you like to reuse it?
+                                        </div>
+                                        <div class="d-flex gap-1">
+                                            <button type="button" class="btn btn-sm btn-outline-danger" id="reuseNo">Change</button>
+                                            <button type="button" class="btn btn-sm btn-danger" id="reuseYes">Reuse</button>
+                                        </div>
                                     </div>
                                 </div>
+                                <?php $__errorArgs = ['po_number'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <div class="text-danger small mt-1"><?php echo e($message); ?></div>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
 
                             </div>
 
@@ -283,18 +239,32 @@ function showDynamicPricing() {
 function validateEnteredAmount(inputId, key) {
     const v = parseFloat(document.getElementById(inputId).value) || 0;
     const f = feasibilityAmounts[key] || 0;
-    const isSelf = feasibilityAmounts.vendor_type === 'SELF' || feasibilityAmounts.vendor_type === 'INF' || feasibilityAmounts.vendor_type === 'UBN';
+    const selfTypes = ['SELF', 'INF', 'UBN', 'UBS', 'UBL'];
+    const vendorType = (feasibilityAmounts.vendor_type || '').toUpperCase();
+    const isSelf = selfTypes.includes(vendorType);
+    const formattedFeasibility = f.toFixed(2);
 
-    if (isSelf && v > f) {
-        alert('Self vendor cannot exceed feasibility amount');
-        document.getElementById(inputId).value = '';
+    if (isSelf) {
+        if (f <= 0) {
+            return; // nothing to validate if feasibility amount is missing
+        }
+
+        if (v > f + 0.001) {
+            alert(`Self vendor amount must be equal to or less than the feasibility value.`);
+            document.getElementById(inputId).value = '';
+        }
+
         return;
     }
 
-    if (!isSelf && v <= f) {
-        alert('External vendor must be higher than feasibility amount');
+    const requiredMinimum = +(f * 1.20).toFixed(2);
+    if (f <= 0) {
+        return; // nothing to validate when there is no baseline
+    }
+
+    if (v < requiredMinimum - 0.001) {
+        alert(`Amount must be at least 20% higher than the feasibility value. Minimum allowed: ₹${requiredMinimum.toFixed(2)}.`);
         document.getElementById(inputId).value = '';
-        return;
     }
 }
 

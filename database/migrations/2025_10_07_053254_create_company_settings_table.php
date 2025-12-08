@@ -38,6 +38,8 @@ return new class extends Migration
         $table->string('mail_encryption')->nullable();
         $table->string('mail_from_address')->nullable();
         $table->string('mail_from_name')->nullable();
+        $table->string('mail_footer')->nullable();
+            $table->string('mail_signature')->nullable();
 
             $table->timestamps();
         });

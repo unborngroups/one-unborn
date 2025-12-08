@@ -178,13 +178,64 @@
 
             </tr>
 
-            <tr>
+            <!-- <tr>
 
                 <th>Hardware Model Name</th>
 
                 <td>{{ $feasibility->hardware_model_name ?? '-' }}</td>
 
-            </tr>
+            </tr> -->
+      @php
+    $hardwareDetails = $feasibility->hardware_details;
+    if (is_string($hardwareDetails)) {
+        $hardwareDetails = json_decode($hardwareDetails, true) ?? [];
+    }
+@endphp
+
+<div class="col-md-12">
+    <th>Hardware Details:</th>
+    @if(!empty($hardwareDetails))
+    <td>
+         <tr>
+                    <th>Make</th>
+                    <th>Model</th>
+                </tr>
+        @foreach($hardwareDetails as $item)
+                    <tr>
+                        <td>{{ $item['make'] ?? '-' }}</td>
+                        <td>{{ $item['model'] ?? '-' }}</td>
+                    </tr>
+                @endforeach
+    </td>
+     @else
+        <p class="form-control-plaintext">N/A</p>
+    @endif
+
+<!-- 
+    <label class="form-label fw-semibold">Hardware Details</label>
+    @if(!empty($hardwareDetails))
+        <table class="table table-bordered table-striped">
+            <thead class="table-light">
+                <tr>
+                    <th>Make</th>
+                    <th>Model</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($hardwareDetails as $item)
+                    <tr>
+                        <td>{{ $item['make'] ?? '-' }}</td>
+                        <td>{{ $item['model'] ?? '-' }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @else
+        <p class="form-control-plaintext">N/A</p>
+    @endif
+</div>
+ -->
+
 
             <tr>
 

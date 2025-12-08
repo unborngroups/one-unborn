@@ -82,7 +82,7 @@
 
             <div class="row mb-3">
 
-                <div class="col-md-6">
+                <div class="col-md-3">
 
                     <label class="form-label">Client Name</label>
 
@@ -94,7 +94,7 @@
 
 
 
-                <div class="col-md-6">
+                <div class="col-md-3">
 
                     <label class="form-label">Client Code</label>
 
@@ -104,7 +104,7 @@
 
                 </div>
 
-                <div class="col-md-6">
+                <!-- <div class="col-md-3">
 
                     <label class="form-label">Client Code</label>
 
@@ -112,9 +112,9 @@
 
                            value="{{ $client->client_code }}" readonly> {{-- ✅ Show existing code --}}
 
-                </div>
+                </div> -->
 
-                <div class="col-md-6">
+                <!-- <div class="col-md-6">
 
                     <label class="form-label">User Name</label>
 
@@ -122,15 +122,24 @@
 
                            value="{{ old('user_name', $client->user_name) }}" required>
 
+                </div> -->
+
+                <!--  -->
+                <!-- {{-- ✅ Username and pwd --}} -->
+                <div class="col-md-3">
+
+                    <label class="form-label">User Name</label>
+<div class="input-group">
+    <input type="text" name="user_name" id="user_name" class="form-control" value="{{ old('user_name', $client->user_name) }}" required>
+    <button type="button" name="portal_password" id="sendPwdBtn" class="btn btn-outline-primary">PWD</button>
+</div>
+<small id="pwdStatus" class="text-muted d-block mt-1"></small>
                 </div>
+                <!--  -->
 
-            </div>
+                 {{-- Business Display Name --}}
 
-
-
-            {{-- Business Display Name --}}
-
-            <div class="mb-3">
+            <div class="col-md-3 mb-3">
 
                 <label class="form-label">Business Display Name</label>
 
@@ -139,7 +148,7 @@
                        value="{{ old('business_display_name', $client->business_display_name) }}">
 
             </div>
-
+            </div>
 
 
             {{-- ✅ Address Section --}}
@@ -170,7 +179,7 @@
 
             <div class="row">
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <label class="form-label">City</label>
 
@@ -190,7 +199,7 @@
 
 
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <label class="form-label">State</label>
 
@@ -210,7 +219,7 @@
 
 
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <label class="form-label">Country</label>
 
@@ -227,19 +236,17 @@
                     </select>
 
                 </div>
-
-            </div>
-
-
-
-            <br>
-
-
-
+                <div class="col-md-3">
+                    <label for="form-label">Pincode</label>
+                    
             <input type="text" name="pincode" class="form-control mb-3" placeholder="Pincode"
 
                    value="{{ old('pincode', $client->pincode) }}">
 
+
+                </div>
+
+            </div>
 
 
             {{-- ✅ Business Contact --}}
@@ -250,7 +257,7 @@
 
             <div class="row">
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <input type="text" name="billing_spoc_name" class="form-control mb-2"
 
@@ -262,7 +269,7 @@
 
 
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <input type="text" name="billing_spoc_contact" id="billing_spoc_contact" class="form-control mb-2"
 
@@ -274,7 +281,7 @@
 
 
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <input type="email" name="billing_spoc_email" id="billing_spoc_email" class="form-control mb-2"
 
@@ -283,16 +290,15 @@
                            placeholder="Email">
 
                 </div>
-
-            </div>
-
-
-
-            <input type="text" name="gstin" id="gstin" class="form-control mb-3" placeholder="GSTIN"
+                <div class="col-md-3">
+                     <input type="text" name="gstin" id="gstin" class="form-control mb-3" placeholder="GSTIN"
 
                    value="{{ old('gstin', $client->gstin) }}">
 
 
+                </div>
+
+            </div>
 
             {{-- ✅ Invoice Section --}}
 
@@ -373,6 +379,14 @@
                            placeholder="Email">
 
                 </div>
+                <!-- <h5>Client Portal Credentials</h5>
+
+                <label>Portal Username</label>
+<input type="text" name="portal_username" value="{{ $client->portal_username }}" class="form-control">
+
+<label>Portal Password (leave blank to keep old password)</label>
+<input type="password" name="portal_password" class="form-control"> -->
+
 
             </div>
 
@@ -473,6 +487,48 @@ function fetchGST() {
 document.getElementById("pan_number").addEventListener("blur", fetchGST);
 
 document.getElementById("gst_state").addEventListener("change", fetchGST);
+
+
+// ⭐ Password Send Btn
+document.getElementById("sendPwdBtn").addEventListener("click", function () {
+    let clientId = document.getElementById("client_id").value;
+    let email = document.getElementById("billing_spoc_email").value;
+    let userName = document.getElementById("user_name").value;
+    let pwdStatus = document.getElementById("pwdStatus");
+
+    if (!email) {
+        pwdStatus.innerHTML = "⚠️ Enter Billing Email first!";
+        return;
+    }
+
+    if (!userName) {
+        pwdStatus.innerHTML = "⚠️ Enter Username!";
+        return;
+    }
+
+    pwdStatus.innerHTML = "⏳ Sending password...";
+
+    fetch("/api/client/send-password", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ id: clientId, email: email, user_name: userName })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            pwdStatus.innerHTML = "✔ Password sent!";
+            setTimeout(() => { pwdStatus.innerHTML = ""; }, 4000);
+            alert("Password updated & sent to client email successfully!");
+        } else {
+            pwdStatus.innerHTML = "❌ " + data.message;
+        }
+    })
+    .catch(() => pwdStatus.innerHTML = "⚠ Server error");
+});
+
 
 </script>
 

@@ -49,6 +49,9 @@
                 $client = \App\Helpers\TemplateHelper::getUserMenuPermissions('Client Master');
 
                 $vendor = \App\Helpers\TemplateHelper::getUserMenuPermissions('Vendor Master');
+                $Asset = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset Master');
+$assetType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset Type');
+$makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
 
             @endphp
 
@@ -105,6 +108,44 @@
                                 <li><a class="nav-link text-white menu-item {{ request()->is('vendors*') ? 'active' : '' }}" href="{{ route('vendors.index') }}"><i class="bi bi-truck"></i> Vendor Master</a></li>
 
                             @endif
+
+                            <!--  -->
+                          @if($Asset && $Asset->can_menu)
+<li>
+    <a class="nav-link text-white d-flex justify-content-between align-items-center"
+       data-bs-toggle="collapse" href="#assetMasterMenu" role="button"
+       aria-expanded="{{ request()->is('assetmaster/asset_type*') || request()->is('assetmaster/make_type*') ? 'true' : 'false' }}"
+       aria-controls="assetMasterMenu">
+       <span><i class="bi bi-box-seam"></i> Asset Master</span>
+       <i class="bi bi-chevron-right small"></i>
+    </a>
+
+    <div class="collapse {{ request()->is('assetmaster/*') ? 'show' : '' }}" id="assetMasterMenu">
+        <ul class="nav flex-column ms-3 mt-1">
+
+            @if($assetType && $assetType->can_menu)
+                <li>
+                    <a href="{{ route('assetmaster.asset_type.index') }}"
+                       class="nav-link text-white menu-item {{ request()->is('assetmaster/asset_type*') ? 'active' : '' }}">
+                        <i class="bi bi-tag"></i> Asset Type
+                    </a>
+                </li>
+            @endif
+
+            @if($makeType && $makeType->can_menu)
+                <li>
+                    <a href="{{ route('assetmaster.make_type.index') }}"
+                       class="nav-link text-white menu-item {{ request()->is('assetmaster/make_type*') ? 'active' : '' }}">
+                        <i class="bi bi-tools"></i> Make Type
+                    </a>
+                </li>
+            @endif
+
+        </ul>
+    </div>
+</li>
+
+            @endif
 
                         </ul>
 
@@ -746,6 +787,27 @@
 
             @endif
 
+            {{-- HR --}}
+
+            @php
+
+                $assurance = \App\Helpers\TemplateHelper::getUserMenuPermissions('Assurance');
+
+            @endphp
+
+            @if($assurance && $assurance->can_menu)
+                <li class="nav-item">
+
+                    <a class="nav-link text-white menu-item {{ request()->is('assurance/*') ? 'active' : '' }}" href="{{ url('/assurance') }}">
+
+                        <i class="bi bi-people-fill"></i> Assurance
+
+                    </a>
+
+                </li>
+
+            @endif
+
              {{-- HR --}}
 
             @php
@@ -808,6 +870,26 @@
 
             @endif
 
+            {{-- Asset --}}
+
+            @php
+
+                $asset = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset');
+            @endphp
+
+            @if($asset && $asset->can_menu)
+
+                <li class="nav-item">
+
+                    <a class="nav-link text-white menu-item {{ request()->is('asset/*') ? 'active' : '' }}" href="{{ url('/asset') }}">
+                        <i class="bi bi-gear-fill"></i> Asset
+
+                    </a>
+
+                </li>
+
+            @endif
+
              {{-- Strategy --}}
 
             @php
@@ -834,7 +916,7 @@
 
             @php
 
-                $template = \App\Helpers\TemplateHelper::getUserMenuPermissions('Template Master');
+                $template = \App\Helpers\TemplateHelper::getUserMenuPermissions('Template Masters');
 
                 $menu = \App\Helpers\TemplateHelper::getUserMenuPermissions('Manage Menu');
 

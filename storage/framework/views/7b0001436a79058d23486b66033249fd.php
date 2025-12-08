@@ -38,11 +38,11 @@
 
             <?php echo csrf_field(); ?>
 
-
+<div class="row">
 
             
 
-            <div class="mb-3">
+            <div class="col-md-6 mb-3">
 
                 <label class="form-label">Name</label>
 
@@ -54,7 +54,7 @@
 
             
 
-            <div class="mb-3">
+            <div class="col-md-6 mb-3">
 
                 <label class="form-label">User Type</label>
 
@@ -102,7 +102,7 @@ unset($__errorArgs, $__bag); ?>
 
             </div> -->
 
-            <div class="mb-3">
+            <div class="col-md-6 mb-3">
 
     <label>Official Email</label>
 
@@ -114,7 +114,7 @@ unset($__errorArgs, $__bag); ?>
 
 
 
-<div class="mb-3">
+<div class="col-md-6 mb-3">
 
     <label>Personal Email</label>
 
@@ -128,7 +128,7 @@ unset($__errorArgs, $__bag); ?>
 
             
 
-            <div class="mb-3">
+            <div class="col-md-6 mb-3">
 
                 <label class="form-label">Mobile</label>
 
@@ -140,7 +140,7 @@ unset($__errorArgs, $__bag); ?>
 
             
 
-<div class="mb-3">
+<div class="col-md-6 mb-3">
 
     <label class="form-label">Company</label>
 
@@ -169,7 +169,7 @@ unset($__errorArgs, $__bag); ?>
 
             
 
-            <div class="mb-3">
+            <div class="col-md-6 mb-3">
 
                 <label class="form-label">Date of Birth</label>
 
@@ -181,14 +181,14 @@ unset($__errorArgs, $__bag); ?>
 
             
 
-            <div class="mb-3">
+            <div class="col-md-6 mb-3">
 
                 <label class="form-label">Date of Joining</label>
 
                 <input type="date" name="Date_of_Joining" class="form-control" placeholder="select DOJ" value="<?php echo e(old('Date_of_Joining')); ?>" required>
 
             </div>
-
+</div>
 
 
             
@@ -284,7 +284,11 @@ document.getElementById('company_id').addEventListener('change', function () {
 });
 
 </script>
-
+<style>
+    label{
+        font-weight: 600;
+    }
+</style>
 <?php $__env->stopSection(); ?>
 
 

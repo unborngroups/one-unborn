@@ -4,10 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Client extends Model
+class Client extends Authenticatable
 {
-   use HasFactory;
+   use HasFactory, Notifiable   ;
 
     protected static function boot()
     {
@@ -43,8 +46,24 @@ class Client extends Model
         'support_spoc_name', 
         'support_spoc_mobile',
          'support_spoc_email',
+        //  portal access
+        'portal_username',
+        'portal_password',
+        'portal_active',
+        'portal_last_login',
          'status',
     ];
+
+    protected $hidden = [
+        'portal_password',
+        'remember_token',
+    ];
+
+    protected $casts = [
+        'portal_active' => 'boolean',
+        'portal_last_login' => 'datetime',
+    ];
+
     // Relationship with Company
 public function company() {
     return $this->belongsTo(Company::class);
@@ -56,5 +75,24 @@ public function gstins()
     return $this->hasMany(Gstin::class, 'entity_id')->where('entity_type', 'client');
 }
 
+public function getAuthPassword()
+    {
+        return $this->portal_password;
+    }
+
+    public function links(): HasMany
+    {
+        return $this->hasMany(ClientLink::class, 'client_id');
+    }
+
+    public function notificationSettings()
+    {
+        return $this->hasOne(NotificationSetting::class);
+    }
+
+    public function notificationLogs()
+    {
+        return $this->hasMany(NotificationLog::class);
+    }
 
 }

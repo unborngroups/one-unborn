@@ -1,0 +1,329 @@
+/*********************************************************************************************************************************************************************/
+ALTER TABLE companies
+ADD mail_host VARCHAR(255) NULL,
+ADD mail_port VARCHAR(255) NULL,
+ADD mail_username VARCHAR(255) NULL,
+ADD mail_password VARCHAR(255) NULL,
+ADD mail_encryption VARCHAR(255) NULL,
+ADD mail_from_address VARCHAR(255) NULL,
+ADD mail_from_name VARCHAR(255) NULL;
+ADD mail_footer VARCHAR(500) NULL,
+ADD mail_signature VARCHAR(500) NULL;
+
+ALTER TABLE company_settings
+ADD mail_footer VARCHAR(500) NULL,
+ADD mail_signature VARCHAR(500) NULL;
+
+
+/*********************************************************************************15-11-2025*********************************************************************************/
+ALTER TABLE profiles DROP COLUMN email;
+
+
+ALTER TABLE profiles
+ADD official_email VARCHAR(500) NULL,
+ADD personal_email VARCHAR(500) NULL;
+
+/****************************************************/
+
+ALTER TABLE user_types
+ADD email VARCHAR(500) NULL AFTER name;
+
+
+/*****************************************************************************************/
+/*****************************************************************************************/
+
+-- ============================================
+-- Add "Common Settings" menu to live database
+-- ============================================
+
+INSERT INTO menus (module_name, user_type, name, route, icon, can_menu, can_add, can_edit, can_delete, can_view, created_at, updated_at)
+SELECT 'Settings', 'superadmin', 'Common Settings', 'settings.index', 'bi bi-gear', 1, 1, 1, 1, 1, NOW(), NOW()
+FROM DUAL
+WHERE NOT EXISTS (
+    SELECT 1 FROM menus WHERE route = 'settings.index' AND name = 'Common Settings'
+);
+
+-- Get the inserted or existing menu ID
+SET @menu_id = (SELECT id FROM menus WHERE route = 'settings.index' AND name = 'Common Settings' LIMIT 1);
+
+SET @superadmin_type_id = (SELECT id FROM user_types WHERE name = 'superadmin' LIMIT 1);
+
+INSERT INTO user_type_menu_privileges (user_type_id, menu_id, can_menu, can_add, can_edit, can_delete, can_view, created_at, updated_at)
+SELECT @superadmin_type_id, @menu_id, 1, 1, 1, 1, 1, NOW(), NOW()
+FROM DUAL
+WHERE NOT EXISTS (
+    SELECT 1 FROM user_type_menu_privileges 
+    WHERE user_type_id = @superadmin_type_id AND menu_id = @menu_id
+);
+
+SET @superadmin_user_id = (SELECT id FROM users WHERE email = 'superadmin@example.com' LIMIT 1);
+
+INSERT INTO user_menu_privileges (user_id, menu_id, can_menu, can_add, can_edit, can_delete, can_view, created_at, updated_at)
+SELECT @superadmin_user_id, @menu_id, 1, 1, 1, 1, 1, NOW(), NOW()
+FROM DUAL
+WHERE NOT EXISTS (
+    SELECT 1 FROM user_menu_privileges 
+    WHERE user_id = @superadmin_user_id AND menu_id = @menu_id
+);
+
+/****************************************************************/
+-- ============================================
+-- Add "WhatsApp Settings" menu to live database
+-- ============================================
+
+INSERT INTO menus (module_name, user_type, name, route, icon, can_menu, can_add, can_edit, can_delete, can_view, created_at, updated_at)
+SELECT 'Settings', 'superadmin', 'WhatsApp Settings', 'whatsapp.settings', 'bi bi-whatsapp', 1, 1, 1, 1, 1, NOW(), NOW()
+FROM DUAL
+WHERE NOT EXISTS (
+    SELECT 1 FROM menus WHERE route = 'whatsapp.settings' AND name = 'WhatsApp Settings'
+);
+
+-- Get the inserted or existing menu ID
+SET @menu_id = (SELECT id FROM menus WHERE route = 'whatsapp.settings' AND name = 'WhatsApp Settings' LIMIT 1);
+
+SET @superadmin_type_id = (SELECT id FROM user_types WHERE name = 'superadmin' LIMIT 1);
+
+INSERT INTO user_type_menu_privileges (user_type_id, menu_id, can_menu, can_add, can_edit, can_delete, can_view, created_at, updated_at)
+SELECT @superadmin_type_id, @menu_id, 1, 1, 1, 1, 1, NOW(), NOW()
+FROM DUAL
+WHERE NOT EXISTS (
+    SELECT 1 FROM user_type_menu_privileges
+    WHERE user_type_id = @superadmin_type_id AND menu_id = @menu_id
+);
+
+SET @superadmin_user_id = (SELECT id FROM users WHERE email = 'superadmin@example.com' LIMIT 1);
+
+INSERT INTO user_menu_privileges (user_id, menu_id, can_menu, can_add, can_edit, can_delete, can_view, created_at, updated_at)
+SELECT @superadmin_user_id, @menu_id, 1, 1, 1, 1, 1, NOW(), NOW()
+FROM DUAL
+WHERE NOT EXISTS (
+    SELECT 1 FROM user_menu_privileges
+    WHERE user_id = @superadmin_user_id AND menu_id = @menu_id
+);
+
+/********************************************************************************/
+ALTER TABLE feasibilities 
+ADD COLUMN static_ip_subnet VARCHAR(10) NULL 
+AFTER static_ip;
+
+/*************************************************************************************21/11/2025**********************************************************/
+INSERT INTO menus (module_name, user_type, name, route, icon, can_menu, can_add, can_edit, can_delete, can_view, created_at, updated_at)
+SELECT 'Sales & Marketing', 'superadmin', 'Proposal', 'proposal.index', 'bi bi-whatsapp', 1, 1, 1, 1, 1, NOW(), NOW()
+FROM DUAL
+WHERE NOT EXISTS (
+    SELECT 1 FROM menus WHERE route = 'proposal.index' AND name = 'Proposal'
+);
+
+-- Get the inserted or existing menu ID
+SET @menu_id = (SELECT id FROM menus WHERE route = 'proposal.index' AND name = 'proposal.index' LIMIT 1);
+
+SET @superadmin_type_id = (SELECT id FROM user_types WHERE name = 'superadmin' LIMIT 1);
+
+INSERT INTO user_type_menu_privileges (user_type_id, menu_id, can_menu, can_add, can_edit, can_delete, can_view, created_at, updated_at)
+SELECT @superadmin_type_id, @menu_id, 1, 1, 1, 1, 1, NOW(), NOW()
+FROM DUAL
+WHERE NOT EXISTS (
+    SELECT 1 FROM user_type_menu_privileges
+    WHERE user_type_id = @superadmin_type_id AND menu_id = @menu_id
+);
+
+SET @superadmin_user_id = (SELECT id FROM users WHERE email = 'superadmin@example.com' LIMIT 1);
+
+INSERT INTO user_menu_privileges (user_id, menu_id, can_menu, can_add, can_edit, can_delete, can_view, created_at, updated_at)
+SELECT @superadmin_user_id, @menu_id, 1, 1, 1, 1, 1, NOW(), NOW()
+FROM DUAL
+WHERE NOT EXISTS (
+    SELECT 1 FROM user_menu_privileges
+    WHERE user_id = @superadmin_user_id AND menu_id = @menu_id
+);
+/*************************************************************************24-11-2025**************************************************************************************/
+
+ALTER TABLE companies 
+ADD COLUMN user_name VARCHAR(255) NULL 
+AFTER id;
+
+ALTER TABLE clients 
+ADD COLUMN user_name VARCHAR(255) NULL 
+AFTER id;
+
+
+ALTER TABLE vendors
+ADD COLUMN user_name VARCHAR(255) NULL 
+AFTER id;
+
+
+DELETE FROM menus
+WHERE user_type IN ('admin', 'users');
+
+
+UPDATE menus
+SET module_name = 'Masters'
+WHERE id IN (4, 5, 7, 9, 10, 11);
+
+
+ALTER TABLE deliverables
+ADD COLUMN dhcp_ip_address VARCHAR(255) NULL 
+AFTER pppoe_password;
+
+
+ALTER TABLE deliverables
+ADD COLUMN dhcp_vlan VARCHAR(255) NULL 
+AFTER dhcp_ip_address;
+
+ALTER TABLE deliverables 
+DROP COLUMN circuit_id;
+
+ALTER TABLE deliverables 
+ADD COLUMN circuit_id VARCHAR(255) UNIQUE AFTER feasibility_id;
+
+/***********************************************************************************/
+ALTER TABLE vendors
+ADD COLUMN branch_name VARCHAR(255) NULL 
+AFTER pan_no;
+
+
+ALTER TABLE vendors
+ADD COLUMN bank_name VARCHAR(255) NULL 
+AFTER branch_name;
+
+
+INSERT INTO menus (id, module_name, user_type, name, route, icon, can_menu, can_add, can_edit, can_delete, can_view)
+VALUES
+  (35, 'Finance', 'superadmin', 'Accounts', 'finance.accounts.index', 'bi bi-wallet2', 1, 1, 1, 1, 1),
+  (36, 'Compliance', 'superadmin', 'Compliance', 'compliance.index', 'bi bi-shield-check', 1, 1, 1, 1, 1),
+  (37, 'HR', 'superadmin', 'HR', 'hr.index', 'bi bi-people-fill', 1, 1, 1, 1, 1),
+  (38, 'Training', 'superadmin', 'Training', 'training.index', 'bi bi-journal-bookmark', 1, 1, 1, 1, 1),
+  (39, 'Admin', 'superadmin', 'Admin', 'admin.index', 'bi bi-gear-fill', 1, 1, 1, 1, 1),
+  (40, 'Strategy', 'superadmin', 'Strategy', 'strategy.index', 'bi bi-graph-up', 1, 1, 1, 1, 1);
+
+ALTER TABLE menus
+  MODIFY created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  MODIFY updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+
+UPDATE menus
+SET created_at = NOW(), updated_at = NOW()
+WHERE created_at IS NULL OR updated_at IS NULL;
+
+UPDATE menus 
+SET name = 'Company Settings', route = 'settings.company'
+WHERE route = 'settings.index';
+
+DELETE FROM menus
+WHERE id = 31;
+
+
+UPDATE menus 
+SET name = 'System Settings', route = 'settings.system'
+WHERE route = 'system.settings';
+
+
+UPDATE menus 
+SET name = 'Whatsapp Settings', route = 'settings.whatsapp'
+WHERE route = 'whatsapp.settings';
+
+ALTER TABLE purchase_orders
+DROP INDEX purchase_orders_po_number_unique;
+
+ALTER TABLE purchase_orders
+ADD UNIQUE unique_feasibility_po (feasibility_id, po_number);
+
+/*******************************************************************************27-*11********************************************/
+
+ALTER TABLE deliverables
+ADD COLUMN payment_login_url VARCHAR(255) NULL 
+AFTER static_vlan_tag,
+
+ADD COLUMN payment_quick_url VARCHAR(255) NULL 
+AFTER payment_login_url,
+
+ADD COLUMN payment_account_or_username VARCHAR(255) NULL 
+AFTER payment_quick_url,
+
+ADD COLUMN payment_password VARCHAR(255) NULL 
+AFTER payment_account_or_username,
+
+ADD COLUMN date_of_expiry DATE NULL 
+AFTER date_of_activation;
+/****************************************************************************************12-2***************************/
+
+ALTER TABLE `deliverables`
+ADD COLUMN `po_number` VARCHAR(255) NULL AFTER `purchase_order_id`,
+ADD COLUMN `po_date` DATE NULL AFTER `po_number`,
+ADD COLUMN `arc_cost` DECIMAL(12,2) NULL AFTER `po_date`,
+ADD COLUMN `otc_cost` DECIMAL(12,2) NULL AFTER `arc_cost`,
+ADD COLUMN `static_ip_cost` DECIMAL(12,2) NULL AFTER `otc_cost`;
+
+/************************************************/
+
+
+ALTER TABLE `deliverables`
+ADD COLUMN `mtu` VARCHAR(255) NULL AFTER `payment_password`,
+ADD COLUMN `wifi_username` VARCHAR(255) NULL AFTER `mtu`,
+ADD COLUMN `wifi_password` VARCHAR(255) NULL AFTER `wifi_username`,
+ADD COLUMN `lan_ip_1` VARCHAR(255) NULL AFTER `wifi_password`,
+ADD COLUMN `lan_ip_2` VARCHAR(255) NULL AFTER `lan_ip_1`,
+ADD COLUMN `lan_ip_3` VARCHAR(255) NULL AFTER `lan_ip_2`,
+ADD COLUMN `lan_ip_4` VARCHAR(255) NULL AFTER `lan_ip_3`;
+ADD COLUMN `ipsec` ENUM('Yes','No') DEFAULT 'No' AFTER `lan_ip_4`,
+ADD COLUMN `phase_1` VARCHAR(255) NULL AFTER `ipsec`,
+ADD COLUMN `phase_2` VARCHAR(255) NULL AFTER `phase_1`,
+ADD COLUMN `ipsec_interface` VARCHAR(255) NULL AFTER `phase_2`;
+ADD COLUMN `account_id` VARCHAR(255) NULL AFTER `ipsec_interface`;
+
+ADD COLUMN `pppoe_username_1` VARCHAR(255) NULL AFTER `mode_of_delivery`,
+ADD COLUMN `pppoe_password_1` VARCHAR(255) NULL AFTER `pppoe_username_1`,
+ADD COLUMN `pppoe_vlan_1` VARCHAR(255) NULL AFTER `pppoe_password_1`,
+
+ADD COLUMN `pppoe_username_2` VARCHAR(255) NULL AFTER `pppoe_vlan_1`,
+ADD COLUMN `pppoe_password_2` VARCHAR(255) NULL AFTER `pppoe_username_2`,
+ADD COLUMN `pppoe_vlan_2` VARCHAR(255) NULL AFTER `pppoe_password_2`,
+
+ADD COLUMN `pppoe_username_3` VARCHAR(255) NULL AFTER `pppoe_vlan_2`,
+ADD COLUMN `pppoe_password_3` VARCHAR(255) NULL AFTER `pppoe_username_3`,
+ADD COLUMN `pppoe_vlan_3` VARCHAR(255) NULL AFTER `pppoe_password_3`,
+
+ADD COLUMN `pppoe_username_4` VARCHAR(255) NULL AFTER `pppoe_vlan_3`,
+ADD COLUMN `pppoe_password_4` VARCHAR(255) NULL AFTER `pppoe_username_4`,
+ADD COLUMN `pppoe_vlan_4` VARCHAR(255) NULL AFTER `pppoe_password_4`;
+/****************************************************************************************************/
+ALTER TABLE `deliverables`
+DROP COLUMN `pppoe_username`,
+DROP COLUMN `pppoe_password`,
+DROP COLUMN `pppoe_vlan`;
+/****************************************************************************************************/
+ALTER TABLE `vendors`
+ADD COLUMN `product_category` VARCHAR(255) NULL  AFTER `pan_no`,
+ADD `make_id` BIGINT UNSIGNED NULL AFTER `product_category`,
+ADD `company_name` VARCHAR(255) NULL AFTER `make_id`,
+ADD `make_contact_no` VARCHAR(255) NULL AFTER `company_name`,
+ADD `make_email` VARCHAR(255) NULL AFTER `make_contact_no`,
+ADD `model_no` VARCHAR(255) NULL AFTER `make_email`,
+ADD `serial_no` VARCHAR(255) NULL AFTER `model_no`,
+ADD `asset_id` VARCHAR(255) NULL AFTER `serial_no`;
+
+ALTER TABLE `vendors`
+ADD CONSTRAINT `vendors_make_id_foreign`
+FOREIGN KEY (`make_id`) REFERENCES `vendor_makes`(`id`)
+ON DELETE SET NULL;
+
+ALTER TABLE `vendors`
+ADD UNIQUE (`asset_id`);
+/****************************************************************************************************/
+
+ALTER TABLE `feasibilities`
+DROP COLUMN `hardware_model_name`,
+ADD COLUMN `hardware_details` JSON NULL AFTER `hardware_required`;
+
+ALTER TABLE `deliverables`
+ADD `export_file` VARCHAR(255) NULL AFTER `otc_bill_file`,
+ADD `asset_id` VARCHAR(255) NULL AFTER `export_file`,
+ADD `asset_serial_no` VARCHAR(255) NULL AFTER `asset_id`;
+
+/*****/
+
+INSERT INTO menus (id, module_name, user_type, name, route, icon, can_menu, can_add, can_edit, can_delete, can_view)
+VALUES
+  (42, 'Asset Master', 'superadmin', 'Asset Master', 'null', 'bi bi-box-seam', 1, 1, 1, 1, 1),
+  (43, 'Asset Master', 'superadmin', 'Asset Type', 'assetmaster.asset_type.index', 'bi bi-tag', 1, 1, 1, 1, 1),
+  (44, 'Asset Master', 'superadmin', 'Make Type', 'assetmaster.make_type.index', 'bi bi-tools', 1, 1, 1, 1, 1),
+  (45, 'Asset', 'superadmin', 'Asset', 'asset.index', 'bi bi-shield-check', 1, 1, 1, 1, 1),

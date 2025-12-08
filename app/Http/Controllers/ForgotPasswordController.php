@@ -41,8 +41,7 @@ class ForgotPasswordController extends Controller
 
         // Get company from email
         $companySettings = CompanySetting::first();
-        $fromEmail = $companySettings->company_email;
-
+        $fromEmail = $companySettings->company_email ?? config('mail.from.address');
         // Reset URL
         $resetUrl = url('/reset-password/' . $token);
 

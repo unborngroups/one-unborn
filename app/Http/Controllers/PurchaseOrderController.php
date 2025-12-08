@@ -9,21 +9,19 @@ use App\Models\FeasibilityStatus;
 use App\Models\Deliverables;
 use App\Helpers\TemplateHelper;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
 
 class PurchaseOrderController extends Controller
 {
     public function index()
     {
         $purchaseOrders = PurchaseOrder::orderBy('id', 'asc')->get();
- 
-        $purchaseOrders = PurchaseOrder::with('feasibility.client')->orderBy('created_at', 'asc')->get();
-        $permissions = TemplateHelper::getUserMenuPermissions('Purchase Order') ?? (object)[
-            'can_menu' => true,
-            'can_add' => true,
-            'can_edit' => true,
-            'can_delete' => true,
-            'can_view' => true,
+
+        $purchaseOrders = PurchaseOrder::with('feasibility.client')->orderBy('created_at', 'desc')->get();
+        $permissions = TemplateHelper::getUserMenuPermissions('User Type') ?? (object)[
+    'can_add' => true,
+    'can_edit' => true,
+    'can_delete' => true,
+    'can_view' => true,
         ];
         return view('sm.purchaseorder.index', compact('purchaseOrders', 'permissions'));
     }
@@ -32,12 +30,12 @@ class PurchaseOrderController extends Controller
     {
         // Get only closed feasibilities that don't have a Purchase Order yet
         $usedFeasibilityIds = PurchaseOrder::pluck('feasibility_id')->toArray();
-
+        
         $closedFeasibilities = FeasibilityStatus::with('feasibility.client')
             ->where('status', 'Closed')
             ->whereNotIn('feasibility_id', $usedFeasibilityIds)
             ->get();
-
+        
         return view('sm.purchaseorder.create', compact('closedFeasibilities'));
     }
 
@@ -46,65 +44,104 @@ class PurchaseOrderController extends Controller
         // Basic validation for main fields
         $rules = [
             'feasibility_id' => 'required|exists:feasibilities,id',
-            // 'po_number' => 'required|string|max:255|unique:purchase_orders,po_number',
-            // 'po_number' => 'required',
+            'po_number' => 'required|string|max:255|unique:purchase_orders,po_number',
             'po_date' => 'required|date',
             'no_of_links' => 'required|integer|min:1|max:4',
             'contract_period' => 'required|integer|min:1',
-            
         ];
-// Apply unique rule ONLY when reuse is NOT allowed
-    if ($request->allow_reuse == 1) {
-        $rules['po_number'] = 'required';
-    } else {
-        $rules['po_number'] = 'required|unique:purchase_orders,po_number';
-    }
-// if (!$request->allow_reuse) {
-//     $rules['po_number'] .= '|unique:purchase_orders,po_number';
-// }
-
-// $request->validate($rules);
-
-
-        // Check if type_of_service is ILL - make static IP mandatory
-        $feasibility = Feasibility::find($request->feasibility_id);
-        $isILL = $feasibility && ($feasibility->type_of_service === 'ILL');
-
+        
         // Dynamic validation for pricing fields based on number of links
-        $noOfLinks = (int)$request->input('no_of_links', 1);
+        $noOfLinks = $request->input('no_of_links');
         for ($i = 1; $i <= $noOfLinks; $i++) {
             $rules["arc_link_{$i}"] = 'required|numeric|min:0';
             $rules["otc_link_{$i}"] = 'required|numeric|min:0';
-
-            // Static IP is required for ILL connections
-            if ($isILL) {
-                $rules["static_ip_link_{$i}"] = 'required|numeric|min:0.01';
-            } else {
-                $rules["static_ip_link_{$i}"] = 'required|numeric|min:0';
-            }
+            $rules["static_ip_link_{$i}"] = 'required|numeric|min:0';
         }
 
         $validated = $request->validate($rules);
-
-        // Get feasibility vendor minimum values
-        $feasibilityStatus = FeasibilityStatus::where('feasibility_id', $validated['feasibility_id'])->first();
-
+        
         // Calculate totals from individual link pricing
         $totalARC = 0;
         $totalOTC = 0;
         $totalStaticIP = 0;
+        
         for ($i = 1; $i <= $noOfLinks; $i++) {
-            $totalARC += (float)$request->input("arc_link_{$i}");
-            $totalOTC += (float)$request->input("otc_link_{$i}");
-            $totalStaticIP += (float)$request->input("static_ip_link_{$i}");
+            $totalARC += $request->input("arc_link_{$i}");
+            $totalOTC += $request->input("otc_link_{$i}");
+            $totalStaticIP += $request->input("static_ip_link_{$i}");
         }
-
-        // Server-side validation: Check exact match and 20% minimum requirement
-        $error = $this->validatePricing($feasibilityStatus, $request, $noOfLinks);
-        if ($error) {
-            return back()->withInput()->with('error', $error);
+        
+        // 🔥 PRICE VALIDATION: Check if PO amount is at least 20% higher than feasibility amount
+        $feasibilityStatus = FeasibilityStatus::where('feasibility_id', $validated['feasibility_id'])->first();
+        
+        if ($feasibilityStatus) {
+            // Get all vendor amounts and find the minimum (most conservative validation)
+            $vendorPrices = [];
+            
+            for ($v = 1; $v <= 4; $v++) {
+                $arcField = "vendor{$v}_arc";
+                $otcField = "vendor{$v}_otc"; 
+                $staticIpField = "vendor{$v}_static_ip_cost";
+                
+                if ($feasibilityStatus->$arcField || $feasibilityStatus->$otcField || $feasibilityStatus->$staticIpField) {
+                    $vendorPrices[] = [
+                        'vendor' => $v,
+                        'arc' => (float)($feasibilityStatus->$arcField ?? 0),
+                        'otc' => (float)($feasibilityStatus->$otcField ?? 0), 
+                        'static_ip' => (float)($feasibilityStatus->$staticIpField ?? 0)
+                    ];
+                }
+            }
+            
+            if (!empty($vendorPrices)) {
+                // Use the minimum price among all vendors (most conservative)
+                $minARC = min(array_column($vendorPrices, 'arc'));
+                $minOTC = min(array_column($vendorPrices, 'otc')); 
+                $minStaticIP = min(array_column($vendorPrices, 'static_ip'));
+                
+                // Calculate minimum required amounts (20% higher than feasibility minimum)
+                $minRequiredARC = $minARC * 1.20; // 20% higher
+                $minRequiredOTC = $minOTC * 1.20; // 20% higher  
+                $minRequiredStaticIP = $minStaticIP * 1.20; // 20% higher
+                
+                // Check if PO amounts meet minimum requirements
+                $errors = [];
+                
+                // 🚨 Check for exact match first (not allowed)
+                if ($minARC > 0 && abs($totalARC - $minARC) < 0.01) {
+                    $errors[] = "❌ ARC amount cannot match exactly with feasibility amount (₹" . number_format($minARC, 2) . "). Must be at least 20% higher: ₹" . number_format($minARC * 1.20, 2);
+                }
+                
+                if ($minOTC > 0 && abs($totalOTC - $minOTC) < 0.01) {
+                    $errors[] = "❌ OTC amount cannot match exactly with feasibility amount (₹" . number_format($minOTC, 2) . "). Must be at least 20% higher: ₹" . number_format($minOTC * 1.20, 2);
+                }
+                
+                if ($minStaticIP > 0 && abs($totalStaticIP - $minStaticIP) < 0.01) {
+                    $errors[] = "❌ Static IP cost cannot match exactly with feasibility amount (₹" . number_format($minStaticIP, 2) . "). Must be at least 20% higher: ₹" . number_format($minStaticIP * 1.20, 2);
+                }
+                
+                // Check for minimum 20% higher requirement (if not exact match)
+                if ($minARC > 0 && $totalARC < $minRequiredARC && abs($totalARC - $minARC) >= 0.01) {
+                    $errors[] = "ARC amount (₹" . number_format($totalARC, 2) . ") must be at least 20% higher than feasibility minimum (₹" . number_format($minARC, 2) . "). Required: ₹" . number_format($minRequiredARC, 2);
+                }
+                
+                if ($minOTC > 0 && $totalOTC < $minRequiredOTC && abs($totalOTC - $minOTC) >= 0.01) {
+                    $errors[] = "OTC amount (₹" . number_format($totalOTC, 2) . ") must be at least 20% higher than feasibility minimum (₹" . number_format($minOTC, 2) . "). Required: ₹" . number_format($minRequiredOTC, 2);
+                }
+                
+                if ($minStaticIP > 0 && $totalStaticIP < $minRequiredStaticIP && abs($totalStaticIP - $minStaticIP) >= 0.01) {
+                    $errors[] = "Static IP cost (₹" . number_format($totalStaticIP, 2) . ") must be at least 20% higher than feasibility minimum (₹" . number_format($minStaticIP, 2) . "). Required: ₹" . number_format($minRequiredStaticIP, 2);
+                }
+                
+                // // If validation fails, return with errors
+                // if (!empty($errors)) {
+                //     return redirect()->back()
+                //         ->withInput()
+                //         ->with('error', 'Correct the amount: ' . implode(' | ', $errors));
+                // }
+            }
         }
-
+        
         // Prepare data for storage
         $poData = [
             'feasibility_id' => $validated['feasibility_id'],
@@ -112,12 +149,12 @@ class PurchaseOrderController extends Controller
             'po_date' => $validated['po_date'],
             'no_of_links' => $validated['no_of_links'],
             'contract_period' => $validated['contract_period'],
-            'arc_per_link' => $totalARC / $noOfLinks, // Average per link (backwards compatibility)
-            'otc_per_link' => $totalOTC / $noOfLinks,
-            'static_ip_cost_per_link' => $totalStaticIP / $noOfLinks,
+            'arc_per_link' => $totalARC / $noOfLinks, // Average per link (backward compatibility)
+            'otc_per_link' => $totalOTC / $noOfLinks, // Average per link (backward compatibility)
+            'static_ip_cost_per_link' => $totalStaticIP / $noOfLinks, // Average per link (backward compatibility)
             'status' => 'Active'
         ];
-
+        
         // Add individual link data to support multi-vendor validation
         for ($i = 1; $i <= $noOfLinks; $i++) {
             $poData["arc_link_{$i}"] = $request->input("arc_link_{$i}");
@@ -125,28 +162,14 @@ class PurchaseOrderController extends Controller
             $poData["static_ip_link_{$i}"] = $request->input("static_ip_link_{$i}");
         }
 
-        $allowReuse = (int) $request->input('allow_reuse', 0) === 1;
-        $existingPO = $allowReuse ? PurchaseOrder::where('po_number', $validated['po_number'])->first() : null;
+        $purchaseOrder = PurchaseOrder::create($poData);
 
-        if ($existingPO) {
-            $purchaseOrder = $existingPO;
-            $purchaseOrder->update($poData);
-        } else {
-            $purchaseOrder = PurchaseOrder::create($poData);
-        }
-
-        // Check if status is Active and create deliverable
-        if ($purchaseOrder->status === 'Active') {
-            app(\App\Http\Controllers\DeliverablesController::class)
-                ->createFromPurchaseOrder($purchaseOrder);
-            
-            // Redirect to deliverables page
-            // return redirect()->route('operations.deliverables.open')
-                // ->with('success', 'Purchase Order created successfully and deliverable generated! Redirected to Deliverables.');
-        }
+        // 🚀 AUTO-CREATE DELIVERABLE when Purchase Order is created
+        $this->createDeliverableFromPurchaseOrder($purchaseOrder);
+        
 
         return redirect()->route('sm.purchaseorder.index')
-            ->with('success', 'Purchase Order created successfully!');
+            ->with('success', 'Purchase Order created successfully and deliverable generated!');
     }
 
     public function show($id)
@@ -158,123 +181,174 @@ class PurchaseOrderController extends Controller
     public function edit($id)
     {
         $purchaseOrder = PurchaseOrder::findOrFail($id);
-
+        
         // Get closed feasibilities excluding those already used, but include current PO's feasibility
         $usedFeasibilityIds = PurchaseOrder::where('id', '!=', $id)->pluck('feasibility_id')->toArray();
-
+        
         $closedFeasibilities = FeasibilityStatus::with('feasibility.client')
             ->where('status', 'Closed')
             ->whereNotIn('feasibility_id', $usedFeasibilityIds)
             ->get();
-
+        
         return view('sm.purchaseorder.edit', compact('purchaseOrder', 'closedFeasibilities'));
     }
 
     public function update(Request $request, $id)
-{
-    $purchaseOrder = PurchaseOrder::findOrFail($id);
+    {
+        $purchaseOrder = PurchaseOrder::findOrFail($id);
+        
+        // Base validation
+        $validated = $request->validate([
+            'feasibility_id' => 'required|exists:feasibilities,id',
+            'po_number' => 'required|string|max:255|unique:purchase_orders,po_number,' . $id,
+            'po_date' => 'required|date',
+            'no_of_links' => 'required|integer|min:1|max:4',
+            'contract_period' => 'required|integer|min:1',
+        ]);
 
-    // Validate base fields
-    $rules = [
-    'feasibility_id' => 'required|exists:feasibilities,id',
-    // 'po_number' => 'required',
-    'po_date' => 'required|date',
-    'no_of_links' => 'required|integer|min:1|max:4',
-    'contract_period' => 'required|integer|min:1',
-    'status' => 'sometimes|string'
-];
-// Apply unique rule ONLY when reuse is NOT allowed
-    if ($request->allow_reuse == 1) {
-        $rules['po_number'] = 'required';
-    } else {
-        $rules['po_number'] = 'required|unique:purchase_orders,po_number';
-    }
-$validated = $request->validate($rules);
-
-    $noOfLinks = $validated['no_of_links'];
-
-    // Validate dynamic link fields
-    $feasibility = Feasibility::find($validated['feasibility_id']);
-    $isILL = $feasibility && $feasibility->type_of_service === 'ILL';
-
-    $dynamicRules = [];
-    for ($i = 1; $i <= $noOfLinks; $i++) {
-        $dynamicRules["arc_link_{$i}"] = 'required|numeric|min:0';
-        $dynamicRules["otc_link_{$i}"] = 'required|numeric|min:0';
-        $dynamicRules["static_ip_link_{$i}"] = $isILL
-            ? 'required|numeric|min:0.01'
-            : 'required|numeric|min:0';
-    }
-
-    $request->validate($dynamicRules);
-
-    DB::beginTransaction();
-    try {
-        // TAKE OLD STATUS BEFORE UPDATING
-        $oldStatus = $purchaseOrder->status;
-        $newStatus = $request->input('status', $oldStatus);
-
-        // Build update data
-        $poData = $validated;
-        $poData['status'] = $newStatus;
-
-        // Add dynamic link values
+        $noOfLinks = $validated['no_of_links'];
+        
+        // Dynamic validation for link pricing
+        $linkValidationRules = [];
+        for ($i = 1; $i <= $noOfLinks; $i++) {
+            $linkValidationRules["arc_link_{$i}"] = 'required|numeric|min:0';
+            $linkValidationRules["otc_link_{$i}"] = 'required|numeric|min:0';
+            $linkValidationRules["static_ip_link_{$i}"] = 'required|numeric|min:0';
+        }
+        
+        $request->validate($linkValidationRules);
+        
+        // Calculate totals for backward compatibility
+        $totalARC = 0;
+        $totalOTC = 0;
+        $totalStaticIP = 0;
+        
+        for ($i = 1; $i <= $noOfLinks; $i++) {
+            $totalARC += $request->input("arc_link_{$i}");
+            $totalOTC += $request->input("otc_link_{$i}");
+            $totalStaticIP += $request->input("static_ip_link_{$i}");
+        }
+        
+        // 🔥 PRICE VALIDATION for UPDATE: Check if PO amount is at least 20% higher than feasibility amount
+        $feasibilityStatus = FeasibilityStatus::where('feasibility_id', $validated['feasibility_id'])->first();
+        
+        if ($feasibilityStatus) {
+            // Get all vendor amounts and find the minimum (most conservative validation)
+            $vendorPrices = [];
+            
+            for ($v = 1; $v <= 4; $v++) {
+                $arcField = "vendor{$v}_arc";
+                $otcField = "vendor{$v}_otc"; 
+                $staticIpField = "vendor{$v}_static_ip_cost";
+                
+                if ($feasibilityStatus->$arcField || $feasibilityStatus->$otcField || $feasibilityStatus->$staticIpField) {
+                    $vendorPrices[] = [
+                        'vendor' => $v,
+                        'arc' => (float)($feasibilityStatus->$arcField ?? 0),
+                        'otc' => (float)($feasibilityStatus->$otcField ?? 0), 
+                        'static_ip' => (float)($feasibilityStatus->$staticIpField ?? 0)
+                    ];
+                }
+            }
+            
+            if (!empty($vendorPrices)) {
+                // Use the minimum price among all vendors (most conservative)
+                $minARC = min(array_column($vendorPrices, 'arc'));
+                $minOTC = min(array_column($vendorPrices, 'otc')); 
+                $minStaticIP = min(array_column($vendorPrices, 'static_ip'));
+                
+                // Calculate minimum required amounts (20% higher than feasibility minimum)
+                $minRequiredARC = $minARC * 1.20; // 20% higher
+                $minRequiredOTC = $minOTC * 1.20; // 20% higher  
+                $minRequiredStaticIP = $minStaticIP * 1.20; // 20% higher
+                
+                // Check if PO amounts meet minimum requirements
+                $errors = [];
+                
+                // 🚨 Check for exact match first (not allowed)
+                if ($minARC > 0 && abs($totalARC - $minARC) < 0.01) {
+                    $errors[] = "❌ ARC amount cannot match exactly with feasibility amount (₹" . number_format($minARC, 2) . "). Must be at least 20% higher: ₹" . number_format($minARC * 1.20, 2);
+                }
+                
+                if ($minOTC > 0 && abs($totalOTC - $minOTC) < 0.01) {
+                    $errors[] = "❌ OTC amount cannot match exactly with feasibility amount (₹" . number_format($minOTC, 2) . "). Must be at least 20% higher: ₹" . number_format($minOTC * 1.20, 2);
+                }
+                
+                if ($minStaticIP > 0 && abs($totalStaticIP - $minStaticIP) < 0.01) {
+                    $errors[] = "❌ Static IP cost cannot match exactly with feasibility amount (₹" . number_format($minStaticIP, 2) . "). Must be at least 20% higher: ₹" . number_format($minStaticIP * 1.20, 2);
+                }
+                
+                // Check for minimum 20% higher requirement (if not exact match)
+                if ($minARC > 0 && $totalARC < $minRequiredARC && abs($totalARC - $minARC) >= 0.01) {
+                    $errors[] = "ARC amount (₹" . number_format($totalARC, 2) . ") must be at least 20% higher than feasibility minimum (₹" . number_format($minARC, 2) . "). Required: ₹" . number_format($minRequiredARC, 2);
+                }
+                
+                if ($minOTC > 0 && $totalOTC < $minRequiredOTC && abs($totalOTC - $minOTC) >= 0.01) {
+                    $errors[] = "OTC amount (₹" . number_format($totalOTC, 2) . ") must be at least 20% higher than feasibility minimum (₹" . number_format($minOTC, 2) . "). Required: ₹" . number_format($minRequiredOTC, 2);
+                }
+                
+                if ($minStaticIP > 0 && $totalStaticIP < $minRequiredStaticIP && abs($totalStaticIP - $minStaticIP) >= 0.01) {
+                    $errors[] = "Static IP cost (₹" . number_format($totalStaticIP, 2) . ") must be at least 20% higher than feasibility minimum (₹" . number_format($minStaticIP, 2) . "). Required: ₹" . number_format($minRequiredStaticIP, 2);
+                }
+                
+                // If validation fails, return with errors
+                // if (!empty($errors)) {
+                //     return redirect()->back()
+                //         ->withInput()
+                //         ->with('error', 'Correct the amount: ' . implode(' | ', $errors));
+                // }
+            }
+        }
+        
+        // Prepare data for update
+        $poData = [
+            'feasibility_id' => $validated['feasibility_id'],
+            'po_number' => $validated['po_number'],
+            'po_date' => $validated['po_date'],
+            'no_of_links' => $validated['no_of_links'],
+            'contract_period' => $validated['contract_period'],
+            'arc_per_link' => $totalARC / $noOfLinks, // Average per link (backward compatibility)
+            'otc_per_link' => $totalOTC / $noOfLinks, // Average per link (backward compatibility)
+            'static_ip_cost_per_link' => $totalStaticIP / $noOfLinks, // Average per link (backward compatibility)
+        ];
+        
+        // Add individual link data
         for ($i = 1; $i <= $noOfLinks; $i++) {
             $poData["arc_link_{$i}"] = $request->input("arc_link_{$i}");
             $poData["otc_link_{$i}"] = $request->input("otc_link_{$i}");
             $poData["static_ip_link_{$i}"] = $request->input("static_ip_link_{$i}");
         }
-
-        // Clear unused extra link slots
+        
+        // Clear unused link fields
         for ($i = $noOfLinks + 1; $i <= 4; $i++) {
             $poData["arc_link_{$i}"] = null;
             $poData["otc_link_{$i}"] = null;
             $poData["static_ip_link_{$i}"] = null;
         }
 
-        // FINAL UPDATE CALL — ONLY ONE
         $purchaseOrder->update($poData);
 
-        // DELIVERABLE CREATION (only when status changes to Active)
-        if ($oldStatus !== 'Active' && $newStatus === 'Active') {
-            app(\App\Http\Controllers\DeliverablesController::class)
-                ->createFromPurchaseOrder($purchaseOrder);
-            
-            DB::commit();
-            // Redirect to deliverables page
-            return redirect()->route('operations.deliverables.open')
-                ->with('success', 'Purchase Order updated successfully! Status changed to Active and deliverable created.');
-        }
-
-        DB::commit();
         return redirect()->route('sm.purchaseorder.index')
             ->with('success', 'Purchase Order updated successfully!');
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        Log::error("PO Update Failed: " . $e->getMessage());
-        return back()->with('error', 'Failed to update PO. Please try again.');
     }
-}
-
 
     public function toggleStatus($id)
-    {
-        $purchaseOrder = PurchaseOrder::findOrFail($id);
+{
+    $purchaseOrder = PurchaseOrder::findOrFail($id);
 
-        // Toggle Active/Inactive
-        $purchaseOrder->status = $purchaseOrder->status === 'Active' ? 'Inactive' : 'Active';
-        $purchaseOrder->save();
+    // Toggle Active/Inactive
+    $purchaseOrder->status = $purchaseOrder->status === 'Active' ? 'Inactive' : 'Active';
+    $purchaseOrder->save();
 
-        return redirect()->route('sm.purchaseorder.index')
-            ->with('success', 'Purchase Order status updated successfully.');
-    }
+    return redirect()->route('sm.purchaseorder.index')
+                     ->with('success', 'Purchase Order status updated successfully.');
+}
 
     public function destroy($id)
     {
         $purchaseOrder = PurchaseOrder::findOrFail($id);
         $purchaseOrder->delete();
-
+        
         return redirect()->route('sm.purchaseorder.index')
             ->with('success', 'Purchase Order deleted successfully!');
     }
@@ -283,22 +357,22 @@ $validated = $request->validate($rules);
     public function getFeasibilityDetails($id)
     {
         $feasibility = Feasibility::with(['client', 'feasibilityStatus'])->findOrFail($id);
-
+        
         // Get vendor pricing from feasibility status
         $feasibilityStatus = $feasibility->feasibilityStatus;
-
+        
         // For now, use vendor1 pricing (you can modify this logic to select specific vendor)
         $pricing = [
             'arc_per_link' => $feasibilityStatus->vendor1_arc ?? 0,
             'otc_per_link' => $feasibilityStatus->vendor1_otc ?? 0,
             'static_ip_cost_per_link' => $feasibilityStatus->vendor1_static_ip_cost ?? 0
         ];
-
+        
         // Build vendor pricing array for multi-vendor validation
         $vendorPricing = [];
-
+        
         // Add vendor1 if it has data
-        if (!empty($feasibilityStatus->vendor1_name)) {
+        if ($feasibilityStatus->vendor1_name) {
             $vendorPricing['vendor1'] = [
                 'name' => $feasibilityStatus->vendor1_name,
                 'arc' => (float) ($feasibilityStatus->vendor1_arc ?? 0),
@@ -306,9 +380,9 @@ $validated = $request->validate($rules);
                 'static_ip_cost' => (float) ($feasibilityStatus->vendor1_static_ip_cost ?? 0)
             ];
         }
-
+        
         // Add vendor2 if it has data
-        if (!empty($feasibilityStatus->vendor2_name)) {
+        if ($feasibilityStatus->vendor2_name) {
             $vendorPricing['vendor2'] = [
                 'name' => $feasibilityStatus->vendor2_name,
                 'arc' => (float) ($feasibilityStatus->vendor2_arc ?? 0),
@@ -316,9 +390,9 @@ $validated = $request->validate($rules);
                 'static_ip_cost' => (float) ($feasibilityStatus->vendor2_static_ip_cost ?? 0)
             ];
         }
-
+        
         // Add vendor3 if it has data
-        if (!empty($feasibilityStatus->vendor3_name)) {
+        if ($feasibilityStatus->vendor3_name) {
             $vendorPricing['vendor3'] = [
                 'name' => $feasibilityStatus->vendor3_name,
                 'arc' => (float) ($feasibilityStatus->vendor3_arc ?? 0),
@@ -326,9 +400,9 @@ $validated = $request->validate($rules);
                 'static_ip_cost' => (float) ($feasibilityStatus->vendor3_static_ip_cost ?? 0)
             ];
         }
-
+        
         // Add vendor4 if it has data
-        if (!empty($feasibilityStatus->vendor4_name)) {
+        if ($feasibilityStatus->vendor4_name) {
             $vendorPricing['vendor4'] = [
                 'name' => $feasibilityStatus->vendor4_name,
                 'arc' => (float) ($feasibilityStatus->vendor4_arc ?? 0),
@@ -340,110 +414,72 @@ $validated = $request->validate($rules);
         return response()->json([
             'client' => $feasibility->client,
             'feasibility' => $feasibility,
-            'vendor_type' => $feasibility->vendor_type, // Add vendor_type for validation
             'no_of_links' => $feasibility->no_of_links,
             'arc_per_link' => (float) $pricing['arc_per_link'],
             'otc_per_link' => (float) $pricing['otc_per_link'],
             'static_ip_cost_per_link' => (float) $pricing['static_ip_cost_per_link'],
-            'vendor_pricing' => $vendorPricing
+            'vendor_pricing' => $vendorPricing,
+            'vendor_type' => strtoupper($feasibility->vendor_type ?? '')
         ]);
     }
 
-    private function validatePricing($feas, $request, $noOfLinks)
+    /**
+     * Create deliverable from purchase order
+     */
+    private function createDeliverableFromPurchaseOrder($purchaseOrder)
     {
-        if (!$feas || !$noOfLinks) {
-            return null;
-        }
-
-        // Get feasibility to check vendor_type (use relationship from FeasibilityStatus)
-        $feasibility = $feas->feasibility;
-
-        Log::info('validatePricing called', [
-            'feasibility_id' => $feasibility ? $feasibility->id : 'null',
-            'vendor_type' => $feasibility ? $feasibility->vendor_type : 'null'
-        ]);
-
-        // Check if vendor_type is Self (UBN, UBS, UBL, INF)
-        $selfVendors = ['UBN', 'UBS', 'UBL', 'INF'];
-        $isSelfVendor = $feasibility && in_array($feasibility->vendor_type, $selfVendors);
-
-        // Get minimum vendor values per link
-        $vendorARCs = [];
-        $vendorOTCs = [];
-        $vendorStaticIPs = [];
-
-        for ($v = 1; $v <= 4; $v++) {
-            $arc = $feas->{"vendor{$v}_arc"};
-            $otc = $feas->{"vendor{$v}_otc"};
-            $sip = $feas->{"vendor{$v}_static_ip_cost"};
-
-            if ($arc > 0) $vendorARCs[] = $arc;
-            if ($otc > 0) $vendorOTCs[] = $otc;
-            if ($sip > 0) $vendorStaticIPs[] = $sip;
-        }
-
-        $minARC = !empty($vendorARCs) ? min($vendorARCs) : 0;
-        $minOTC = !empty($vendorOTCs) ? min($vendorOTCs) : 0;
-        $minSIP = !empty($vendorStaticIPs) ? min($vendorStaticIPs) : 0;
-
-        // PER-LINK VALIDATION
-        for ($i = 1; $i <= $noOfLinks; $i++) {
-            $arc = (float)$request->input("arc_link_{$i}");
-            $otc = (float)$request->input("otc_link_{$i}");
-            $sip = (float)$request->input("static_ip_link_{$i}");
-
-            if ($isSelfVendor) {
-                // SELF VENDOR: PO amount must be ≤ feasibility amount (lower or equal, NOT higher)
-                Log::info('Self vendor validation', ['vendor_type' => $feasibility->vendor_type]);
-
-                // ARC
-                if ($minARC > 0 && $arc > $minARC) {
-                    return "INVALID PRICE - For Self Vendor, ARC for Link {$i} (₹{$arc}) cannot be higher than feasibility ARC of ₹{$minARC}. It must be lower or equal.";
-                }
-
-                // OTC
-                if ($minOTC > 0 && $otc > $minOTC) {
-                    return "INVALID PRICE - For Self Vendor, OTC for Link {$i} (₹{$otc}) cannot be higher than feasibility OTC of ₹{$minOTC}. It must be lower or equal.";
-                }
-
-                // Static IP
-                if ($minSIP > 0 && $sip > $minSIP) {
-                    return "INVALID PRICE - For Self Vendor, Static IP for Link {$i} (₹{$sip}) cannot be higher than feasibility Static IP of ₹{$minSIP}. It must be lower or equal.";
-                }
-
-            } else {
-                // EXTERNAL VENDOR: PO amount must be > feasibility amount (only higher, NOT lower or equal)
-                Log::info('External vendor validation', ['vendor_type' => $feasibility ? $feasibility->vendor_type : 'null']);
-
-                // ARC
-                if ($minARC > 0) {
-                    if ($arc <= $minARC) {
-                        return "INVALID PRICE - For External Vendor, ARC for Link {$i} (₹{$arc}) must be higher than feasibility ARC of ₹{$minARC}. It cannot be lower or equal.";
-                    }
-                }
-
-                // OTC
-                if ($minOTC > 0) {
-                    if ($otc <= $minOTC) {
-                        return "INVALID PRICE - For External Vendor, OTC for Link {$i} (₹{$otc}) must be higher than feasibility OTC of ₹{$minOTC}. It cannot be lower or equal.";
-                    }
-                }
-
-                // Static IP
-                if ($minSIP > 0) {
-                    if ($sip <= $minSIP) {
-                        return "INVALID PRICE - For External Vendor, Static IP for Link {$i} (₹{$sip}) must be higher than feasibility Static IP of ₹{$minSIP}. It cannot be lower or equal.";
-                    }
-                }
+        try {
+            // Check if deliverable already exists for this feasibility
+            $existingDeliverable = Deliverables::where('feasibility_id', $purchaseOrder->feasibility_id)->first();
+            
+            if ($existingDeliverable) {
+                Log::info("Deliverable already exists for feasibility ID: {$purchaseOrder->feasibility_id}");
+                return;
             }
+            
+            // Get feasibility and feasibility status data
+            $feasibility = $purchaseOrder->feasibility;
+            $feasibilityStatus = FeasibilityStatus::where('feasibility_id', $purchaseOrder->feasibility_id)->first();
+            
+            if (!$feasibility) {
+                Log::error("Feasibility not found for Purchase Order ID: {$purchaseOrder->id}");
+                return;
+            }
+            
+            // Create deliverable with data from feasibility and purchase order
+            $deliverable = Deliverables::create([
+                'feasibility_id' => $feasibility->id,
+                'purchase_order_id' => $purchaseOrder->id,
+                'status' => 'Open',
+                
+                // Site Information from Feasibility
+                'site_address' => $feasibility->site_address ?? '',
+                'local_contact' => $feasibility->contact_person ?? '',
+                'state' => $feasibility->state ?? '',
+                'gst_number' => $feasibility->gst_number ?? '',
+                
+                // Network Configuration from Feasibility
+                'link_type' => $feasibility->connection_type ?? '',
+                'speed_in_mbps' => $feasibility->bandwidth ?? '',
+                'no_of_links' => $purchaseOrder->no_of_links ?? 1,
+                
+                // Vendor Information from Feasibility Status
+                'vendor' => $feasibilityStatus->vendor1_name ?? '',
+                
+                // Pricing from Purchase Order
+                'arc_cost' => $purchaseOrder->arc_per_link ?? 0,
+                'otc_cost' => $purchaseOrder->otc_per_link ?? 0,
+                'static_ip_cost' => $purchaseOrder->static_ip_cost_per_link ?? 0,
+                
+                // PO Details
+                'po_number' => $purchaseOrder->po_number,
+                'po_date' => $purchaseOrder->po_date,
+            ]);
+            
+            Log::info("Deliverable created successfully with ID: {$deliverable->id} for Purchase Order: {$purchaseOrder->po_number}");
+            
+        } catch (\Exception $e) {
+            Log::error("Failed to create deliverable from purchase order: " . $e->getMessage());
         }
-
-        return null;
     }
-public function checkPoNumber(Request $request)
-{
-    $exists = PurchaseOrder::where('po_number', $request->po_number)->exists();
-    return response()->json(['exists' => $exists]);
-}
-
 }

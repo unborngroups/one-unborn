@@ -17,16 +17,15 @@
             </button>
 
 
-
             <!-- Logo -->
 
             <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ url('/') }}">
 
-                <img src="{{ asset('images/logo.jpg') }}" alt="One-Unborn"
+                <img src="{{ asset('images/logo1.png') }}" alt="One-Unborn" class="navbar-logo"
 
-                    style="height:52px; width:52px; object-fit:cover; border-radius:4px; margin-right:10px;">
+                    style="height:52px; max-width:150px; object-fit:contain; border-radius:4px; margin-right:10px;">
 
-                <span>One-Unborn</span>
+                <!-- <span>One-Unborn</span> -->
 
             </a>
 
@@ -37,6 +36,15 @@
         <!-- Right: Profile Dropdown -->
 
         @auth
+        @if(isset($onlineSince))
+    <span class="me-3 fw-semibold text-primary" style="font-size: 15px;">
+        ⏱ Online: {{ $onlineSince }}
+        @if(!empty($onlineDurationLabel))
+            ({{ $onlineDurationLabel }})
+        @endif
+    </span>
+@endif
+
 
         <div class="dropdown">
 

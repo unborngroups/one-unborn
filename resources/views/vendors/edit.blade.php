@@ -74,7 +74,7 @@
 
             <div class="row mb-3">
 
-                <div class="col-md-6">
+                <div class="col-md-3">
 
                     <label class="form-label">Vendor Name</label>
 
@@ -84,7 +84,7 @@
 
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-3">
 
                     <label class="form-label">Vendor Code</label>
 
@@ -94,7 +94,7 @@
 
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-3">
 
                     <label class="form-label">User Name</label>
 
@@ -103,15 +103,10 @@
                            value="{{ old('user_name', $vendor->user_name) }}" required>
 
                 </div>
-
-
-            </div>
-
-
-
+                
              {{-- 🏢 Business Display Name --}}
 
-            <div class="mb-3">
+            <div class="col-md-3 mb-3">
 
                 <label class="form-label">Business Display Name</label>
 
@@ -120,6 +115,12 @@
                        value="{{ old('business_display_name', $vendor->business_display_name) }}">
 
             </div>
+
+
+            </div>
+
+
+
 
 
 
@@ -143,7 +144,7 @@
 
             <div class="row">
 
-    <div class="col-md-4">
+    <div class="col-md-3">
 
         <label class="form-label">City</label>
 
@@ -163,7 +164,7 @@
 
 
 
-    <div class="col-md-4">
+    <div class="col-md-3">
 
         <label class="form-label">State</label>
 
@@ -183,7 +184,7 @@
 
 
 
-    <div class="col-md-4">
+    <div class="col-md-3">
 
         <label class="form-label">Country</label>
 
@@ -200,15 +201,18 @@
         </select>
 
     </div>
-
-</div>
-
-<br>
-
-            <input type="text" name="pincode" class="form-control mb-3" placeholder="Pincode"
+    <div class="col-md-3">
+        <label for="form-label">Pincode</label>
+        <input type="text" name="pincode" class="form-control mb-3" placeholder="Pincode"
 
                    value="{{ old('pincode', $vendor->pincode) }}">
 
+    </div>
+
+</div>
+
+
+            
 
 
             {{-- Contact Person Section--}}
@@ -251,7 +255,7 @@
 
             <div class="row">
 
-                <div class="col-md-6">
+                <div class="col-md-4">
 
                     <input type="text" name="gstin" class="form-control mb-2" placeholder="GSTIN"
 
@@ -259,14 +263,14 @@
 
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-4">
 
                     <input type="text" name="pan_no" class="form-control mb-2" placeholder="PAN No"
 
                            value="{{ old('pan_no', $vendor->pan_no) }}">
 
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
 
                     <input type="text" name="branch_name" class="form-control mb-2" placeholder="branch_name"
 
@@ -274,7 +278,7 @@
 
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-4">
 
                     <input type="text" name="bank_name" class="form-control mb-2" placeholder="bank_name"
 
@@ -283,7 +287,7 @@
                 </div>
 
 
-                <div class="col-md-6">
+                <div class="col-md-4">
 
                     <input type="text" name="bank_account_no" class="form-control mb-2" placeholder="bank_account_no"
 
@@ -291,7 +295,7 @@
 
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-4">
 
                     <input type="text" name="ifsc_code" class="form-control mb-2" placeholder="ifsc_code"
 

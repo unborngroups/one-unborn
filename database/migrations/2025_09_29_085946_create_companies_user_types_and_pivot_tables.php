@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('trade_name')->nullable();              // Trade/Brand Name
             $table->string('company_name');                        // Company Name
             $table->string('business_number')->nullable();               // Business Number (CIN / LLPIN)
+            $table->string('user_name')->nullable();                   // User Name
 
             // ☎️ Contact Details
             $table->string('company_phone')->nullable();           // Company Phone (landline)
@@ -60,6 +61,16 @@ return new class extends Migration
             $table->string('color')->default('#333333');
             $table->string('logo')->nullable();
 
+            // mail
+            $table->string('mail_host')->nullable();
+            $table->string('mail_port')->nullable();
+            $table->string('mail_username')->nullable();
+            $table->string('mail_password')->nullable();
+            $table->string('mail_encryption')->nullable();
+            $table->string('mail_from_address')->nullable();
+            $table->string('mail_from_name')->nullable();
+            $table->string('mail_footer')->nullable();
+            $table->string('mail_signature')->nullable();
             // ⚙️ Status
        
             $table->enum('status', ['Active', 'Inactive'])->default('Active');

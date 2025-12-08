@@ -32,13 +32,28 @@ class Vendor extends Model
         'state',
         'country',
         'pincode',
+        
+        
+        // 'invoice_email',
+        // 'invoice_cc',
+
+        // 'product_category',
         'contact_person_name',
         'contact_person_mobile',
         'contact_person_email',
         'gstin',
-        'invoice_email',
-        'invoice_cc',
         'pan_no',
+        // 'product_category',
+    // 'make_id',
+    // 'company_name',
+    // 'make_contact_no',
+    // 'make_email',
+    // 'model_no',
+    // 'serial_no',
+    // 'asset_id',
+
+        'branch_name',
+        'bank_name',
         'bank_account_no',
         'ifsc_code',
         'status',
@@ -49,4 +64,9 @@ class Vendor extends Model
     {
         return $this->hasMany(Gstin::class, 'entity_id')->where('entity_type', 'vendor');
     }
+    public function make()
+{
+    return $this->belongsTo(\App\Models\VendorMake::class, 'make_id');
+}
+
 }

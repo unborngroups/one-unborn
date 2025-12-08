@@ -28,13 +28,15 @@ class Deliverables extends Model
         'date_of_expiry',
         'sla',
         'mode_of_delivery',
-        'pppoe_username',
-        'pppoe_password',
+        'pppoe_username_1', 'pppoe_password_1', 'pppoe_vlan_1',
+'pppoe_username_2', 'pppoe_password_2', 'pppoe_vlan_2',
+'pppoe_username_3', 'pppoe_password_3', 'pppoe_vlan_3',
+'pppoe_username_4', 'pppoe_password_4', 'pppoe_vlan_4',
 
         // dhcp details
         'dhcp_ip_address',
         'dhcp_vlan',
-        'pppoe_vlan',
+        
         //    static details
         'static_ip_address',
         'static_vlan',
@@ -48,6 +50,17 @@ class Deliverables extends Model
         'payment_password',
 
         'status_of_link',
+        'mtu',
+        'wifi_username',
+        'wifi_password',
+        'lan_ip_1',
+        'lan_ip_2',
+        'lan_ip_3',
+        'lan_ip_4',
+        'ipsec',
+        'phase_1',
+        'phase_2',
+        'ipsec_interface',
         'otc_extra_charges',
         'otc_bill_file',
         'delivered_at',
@@ -55,7 +68,11 @@ class Deliverables extends Model
         'delivery_notes',
         'arc_cost',
         'otc_cost',
+        'account_id',
         'static_ip_cost',
+        'export_file',
+        'asset_id',
+        'asset_serial_no',
         'po_number',
         'po_date'
     ];

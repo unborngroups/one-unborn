@@ -31,7 +31,8 @@ return new class extends Migration
             $table->date('expected_delivery')->nullable();
             $table->date('expected_activation')->nullable();
             $table->boolean('hardware_required')->default(false);
-            $table->string('hardware_model_name')->nullable();
+            $table->json('hardware_details')->nullable();
+            // $table->string('hardware_model')->nullable();
             $table->enum('status', ['Active', 'Inactive'])->default('Active');
 
           // ✅ FIXED Foreign key order

@@ -73,10 +73,10 @@
             <h5 class="text-secondary">Basic Details</h5>
 
 
-
+            {{-- Client Name --}}
             <div class="row mb-3">
 
-                <div class="col-md-6">
+                <div class="col-md-3">
 
                     <label class="form-label">Client Name</label>
 
@@ -84,31 +84,29 @@
 
                 </div>
 
+               <!-- {{-- Client Code --}} -->
 
-
-                <div class="col-md-6">
+                <div class="col-md-3">
 
                     <label class="form-label">Client Code</label>
 
                     <input type="text" class="form-control" value="Auto Generated" readonly>
 
                 </div>
-
-                <div class="col-md-6">
+                <!-- {{-- ✅ Username and pwd --}} -->
+                <div class="col-md-3">
 
                     <label class="form-label">User Name</label>
-
-                    <input type="text" name="user_name" class="form-control" required>
+<div class="input-group">
+    <input type="text" name="user_name" id="user_name" class="form-control" required>
+    <button type="button" name="portal_password" id="sendPwdBtn" class="btn btn-outline-primary">PWD</button>
+</div>
+<small id="pwdStatus" class="text-muted d-block mt-1"></small>
 
                 </div>
+                {{-- ✅ Business Name Auto-fill --}}
 
-            </div>
-
-
-
-            {{-- ✅ Business Name Auto-fill --}}
-
-            <div class="mb-3">
+            <div class="col-md-3 mb-3">
 
                 <label class="form-label">Business Display Name</label>
 
@@ -116,7 +114,7 @@
 
             </div>
 
-
+            </div>
 
             {{-- ✅ Address --}}
 
@@ -132,9 +130,9 @@
 
 
 
-            <div class="row">
+            <div class="row p-2">
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <label class="form-label">City</label>
 
@@ -154,7 +152,7 @@
 
 
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <label class="form-label">State</label>
 
@@ -174,7 +172,7 @@
 
 
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <label class="form-label">Country</label>
 
@@ -191,14 +189,13 @@
                     </select>
 
                 </div>
+                <div class="col-md-3">
+                    <label for="">Pincode</label>
+            <input type="text" name="pincode" class="form-control mb-3 mt-1" placeholder="Pincode">
+                    
+                </div>
 
             </div>
-
-
-
-            <input type="text" name="pincode" class="form-control mb-3 mt-3" placeholder="Pincode">
-
-
 
             {{-- ✅ Billing Details --}}
 
@@ -208,7 +205,7 @@
 
             <div class="row">
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <input type="text" name="billing_spoc_name" class="form-control mb-2" placeholder="Billing SPOC Name">
 
@@ -216,7 +213,7 @@
 
 
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <input type="text" name="billing_spoc_contact" id="billing_spoc_contact" class="form-control mb-2" placeholder="Contact Number">
 
@@ -224,10 +221,15 @@
 
 
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <input type="email" name="billing_spoc_email" id="billing_spoc_email" class="form-control mb-2" placeholder="Email">
 
+                </div>
+
+                <div class="col-md-3">
+            <input type="text" name="gstin" id="gstin" class="form-control mb-3" placeholder="GSTIN">
+                    
                 </div>
 
             </div>
@@ -236,7 +238,6 @@
 
             {{-- ✅ Auto-fill GSTIN --}}
 
-            <input type="text" name="gstin" id="gstin" class="form-control mb-3" placeholder="GSTIN">
 
 
 
@@ -303,7 +304,7 @@
                     <input type="email" name="support_spoc_email" class="form-control mb-2" placeholder="Email">
 
                 </div>
-
+                
             </div>
 
 
@@ -328,73 +329,80 @@
 
 <script>
 
+// GST Fetch
 function fetchGST() {
-
     let pan = document.getElementById("pan_number").value.trim();
-
-    let state = document.getElementById("gst_state").value;
-
     let gstStatus = document.getElementById("gstStatus");
 
-
-
-    if (pan.length !== 10 || state === "") {
-
-        gstStatus.innerHTML = "⚠️ Enter valid PAN + Select State";
-
+    if (pan.length !== 10) {
+        gstStatus.innerHTML = "⚠️ Enter valid PAN";
         return;
-
     }
-
-
 
     gstStatus.innerHTML = "⏳ Fetching GST details...";
 
-
-
-    fetch(`/api/gst/fetch/${pan}/${state}`)
-
+    fetch(`/api/gst/fetch/${pan}`)
         .then(res => res.json())
-
         .then(data => {
-
             if (data.success) {
-
                 document.getElementById("gstin").value = data.data.gstin;
-
                 document.getElementById("business_display_name").value = data.data.trade_name;
-
                 document.getElementById("address1").value = data.data.address;
-
                 document.getElementById("billing_spoc_email").value = data.data.company_email;
-
                 document.getElementById("billing_spoc_contact").value = data.data.company_phone;
-
-
-
                 gstStatus.innerHTML = "✅ GST Details Auto-filled!";
-
             } else {
-
-                gstStatus.innerHTML = "❌ GST Not Found for this PAN + State";
-
+                gstStatus.innerHTML = "❌ GST Not Found for this PAN";
             }
-
         })
-
-        .catch(() => {
-
-            gstStatus.innerHTML = "⚠️ Server Error";
-
-        });
-
+        .catch(() => gstStatus.innerHTML = "⚠ Server Error");
 }
-
-
 
 document.getElementById("pan_number").addEventListener("blur", fetchGST);
 
-document.getElementById("gst_state").addEventListener("change", fetchGST);
+
+// ⭐ Password Send Btn
+document.getElementById("sendPwdBtn").addEventListener("click", function () {
+    let email = document.getElementById("billing_spoc_email").value;
+    let userName = document.getElementById("user_name").value;
+    let pwdStatus = document.getElementById("pwdStatus");
+
+    if (!email) {
+        pwdStatus.innerHTML = "⚠️ Enter Billing Email first!";
+        setTimeout(() => { pwdStatus.innerHTML = ""; }, 4000);
+        return;
+    }
+
+    if (!userName) {
+        pwdStatus.innerHTML = "⚠️ Enter Username!";
+        setTimeout(() => { pwdStatus.innerHTML = ""; }, 4000);
+        return;
+    }
+
+    pwdStatus.innerHTML = "⏳ Sending password...";
+
+    fetch("/api/client/send-password", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ email: email, user_name: userName })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            pwdStatus.innerHTML = "✔ Password sent!";
+        } else {
+            pwdStatus.innerHTML = "❌ " + data.message;
+        }
+        setTimeout(() => { pwdStatus.innerHTML = ""; }, 4000);
+    })
+    .catch(() => {
+        pwdStatus.innerHTML = "⚠ Server error";
+        setTimeout(() => { pwdStatus.innerHTML = ""; }, 4000);
+    });
+});
 
 </script>
 

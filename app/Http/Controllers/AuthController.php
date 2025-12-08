@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Models\LoginLog;
 
 class AuthController extends Controller
 {
@@ -23,13 +24,20 @@ public function showLogin()
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
+        $activeCredentials = array_merge($credentials, ['status' => 'Active']);
 
         // if (Auth::attempt($credentials)) {
         //     return redirect()->route('welcome'); // after login, redirect to users page
         // }
 
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt($activeCredentials)) {
             $user = Auth::user();
+
+            LoginLog::create([
+                'user_id' => $user->id,
+                'login_time' => now(),
+                'status' => 'Online',
+            ]);
 
             // 👇 Check if profile is created or not
             if (!$user->profile_created) {
@@ -41,7 +49,34 @@ public function showLogin()
             return redirect()->route('welcome');
         }
 
-        return back()->withErrors(['email' => 'Invalid credentials']);
+        return back()->withErrors(['email' => 'Invalid credentials or the account is inactive.']);
+    }
+
+    public function logout(Request $request)
+    {
+        if (Auth::check()) {
+            $log = LoginLog::where('user_id', Auth::id())
+                ->where('status', 'Online')
+                ->latest()
+                ->first();
+
+            if ($log) {
+                $logoutTime = now();
+                $minutes = $log->login_time->diffInMinutes($logoutTime);
+
+                $log->update([
+                    'logout_time' => $logoutTime,
+                    'total_minutes' => $minutes,
+                    'status' => 'Offline',
+                ]);
+            }
+        }
+
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login');
     }
 
     

@@ -1,0 +1,1 @@
+<?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\asset\view.blade.php ENDPATH**/ ?>

@@ -93,12 +93,40 @@ class FeasibilityController extends Controller
             'expected_delivery' => 'required|date',
             'expected_activation' => 'required|date',
             'hardware_required' => 'required|in:0,1',
-            'hardware_model_name' => 'nullable',
+            // 'hardware_model_name' => 'nullable',
+            'hardware_make' => 'array|nullable',
+            'hardware_model' => 'array|nullable',
             'status' => 'required|in:Active,Inactive',
 
             'static_ip' => $request->type_of_service == 'ILL' ? 'required|in:Yes' : 'required',
     'static_ip_subnet' => $request->static_ip == 'Yes' ? 'required' : 'nullable',
         ]);
+
+    //     $feasibility = new Feasibility();
+    // $feasibility->hardware_required = $request->hardware_required;
+
+    // // Build JSON array
+    // $hardwareData = [];
+
+    // if ($request->hardware_required == '1') {
+
+    //     for ($i = 0; $i < count($request->hardware_make); $i++) {
+
+    //         // Skip blank entries
+    //         if (empty($request->hardware_make[$i]) && empty($request->hardware_model_name[$i])) {
+    //             continue;
+    //         }
+
+    //         $hardwareData[] = [
+    //             'make'  => $request->hardware_make[$i],
+    //             'model' => $request->hardware_model_name[$i],
+    //         ];
+    //          }
+    // }
+
+    // $feasibility->hardware_details = json_encode($hardwareData);
+
+    // $feasibility->save();
 
          // 🧠 Convert DD-MM-YYYY to YYYY-MM-DD before saving
     $validated['expected_delivery'] = date('Y-m-d', strtotime(str_replace('-', '/', $request->expected_delivery)));
@@ -109,6 +137,23 @@ class FeasibilityController extends Controller
     
     // Add created_by
     $validated['created_by'] = Auth::user()->id;
+    // Build hardware JSON
+    $hardwareData = [];
+    if ($request->hardware_required == '1') {
+        for ($i = 0; $i < count($request->hardware_make); $i++) {
+            if (empty($request->hardware_make[$i]) && empty($request->hardware_model_name[$i])) {
+                continue;
+            }
+
+            $hardwareData[] = [
+                'make' => $request->hardware_make[$i],
+                'model' => $request->hardware_model_name[$i],
+            ];
+        }
+    }
+
+    // Store JSON in validated array
+    $validated['hardware_details'] = json_encode($hardwareData);
 
         $feasibility = Feasibility::create($validated);
         $this->sendCreatedEmail($feasibility);
@@ -245,9 +290,35 @@ private function sendUpdatedEmail($feasibility)
             'expected_delivery' => 'required|date',
             'expected_activation' => 'required|date',
             'hardware_required' => 'required|in:0,1',
-            'hardware_model_name' => 'nullable',
+            // 'hardware_model_name' => 'nullable',
+            'hardware_make' => 'array|nullable',
+            'hardware_model' => 'array|nullable',
             'status' => 'required|in:Active,Inactive',
         ]);
+    //     $feasibility = Feasibility::findOrFail($id);
+    // $feasibility->hardware_required = $request->hardware_required;
+
+    // // Build JSON array again
+    // $hardwareData = [];
+
+    // if ($request->hardware_required == '1') {
+
+    //     for ($i = 0; $i < count($request->hardware_make); $i++) {
+
+    //         if (empty($request->hardware_make[$i]) && empty($request->hardware_model_name[$i])) {
+    //             continue;
+    //         }
+
+    //         $hardwareData[] = [
+    //             'make'  => $request->hardware_make[$i],
+    //             'model' => $request->hardware_model_name[$i],
+    //         ];
+    //     }
+    // }
+    
+    // $feasibility->hardware_details = json_encode($hardwareData);
+
+    // $feasibility->save();
 
          // 🧠 Convert DD-MM-YYYY to YYYY-MM-DD before saving
     $validated['expected_delivery'] = date('Y-m-d', strtotime(str_replace('-', '/', $request->expected_delivery)));
@@ -256,6 +327,24 @@ private function sendUpdatedEmail($feasibility)
     // 🧠 Convert hardware_required to proper boolean
     $validated['hardware_required'] = (bool) $validated['hardware_required'];
     
+
+    // Build hardware JSON exactly like store()
+    $hardwareData = [];
+    if ($request->hardware_required == '1') {
+        for ($i = 0; $i < count($request->hardware_make); $i++) {
+            if (empty($request->hardware_make[$i]) && empty($request->hardware_model_name[$i])) {
+                continue;
+            }
+
+            $hardwareData[] = [
+                'make'  => $request->hardware_make[$i],
+                'model' => $request->hardware_model_name[$i],
+            ];
+        }
+    }
+
+    // Add JSON to validated array
+    $validated['hardware_details'] = json_encode($hardwareData);
    // find old record
     $feasibility = Feasibility::findOrFail($id);
 
@@ -300,11 +389,33 @@ $status->save();
         return view('feasibility.edit', compact('feasibility', 'companies', 'clients'));
     }
 
+//     public function show(Feasibility $feasibility)
+// {
+//     $feasibility->load('company', 'client'); // LOAD RELATIONS
+//     return view('feasibility.view', compact('feasibility'));
+// }
+
+    /* ========================================================
+        🔹 VIEW PAGE — RETURN VENDOR + CLIENT + FEASIBILITY PROPERLY
+    ======================================================== */
+    public function view($id)
+    {
+        $record = FeasibilityStatus::with([
+            'feasibility.company', 
+            'feasibility.client'
+        ])->findOrFail($id);
+
+        return view('sm.feasibility.view', compact('record'));
+    }
+
     public function show(Feasibility $feasibility)
-{
-    $feasibility->load('company', 'client'); // LOAD RELATIONS
-    return view('feasibility.view', compact('feasibility'));
-}
+    {
+        $feasibility->load(['company', 'client']);
+        return view('feasibility.view', compact('feasibility'));
+    }
+
+
+
 //  public function import(Request $request)
 //  {
 //     $request->validate([

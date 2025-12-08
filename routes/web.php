@@ -19,15 +19,24 @@ use App\Http\Controllers\SystemSettingsController;
 use App\Http\Controllers\FeasibilityController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\FeasibilityExcelController;
+use App\Http\Controllers\ClientPortalController;
+use App\Http\Controllers\SlaReportController;
+use App\Http\Controllers\MikrotikController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DeliverablesController;
 use App\Http\Controllers\ForgotPasswordController;
+use App\Http\Controllers\AssetController;
 use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\HrController;
 use App\Http\Controllers\ComplianceController;
+use App\Http\Controllers\Asset_typeController;
+use App\Http\Controllers\make_typeController;
+use App\Http\Controllers\VendorMakeController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\TrainingController;
 use App\Http\Controllers\StrategyController;
+use App\Http\Controllers\AssuranceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -37,14 +46,9 @@ use Illuminate\Support\Facades\Artisan;
 use App\Models\Vendor;
 use Carbon\Carbon;
 use App\Models\Company;
+use App\Http\Middleware\ClientAuth;
+   
 
-
-//
-// 🔁 Root redirect to login page
-//
-// Route::get('/', function () {
-//     return redirect()->route('login');
-// });
 Route::get('/', function () {
     if (Auth::check()) {
         return redirect()->route('welcome'); // logged-in users → dashboard
@@ -59,12 +63,7 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 });
 // Logout route
-Route::post('/logout', function () {
-    Auth::logout();
-    session()->invalidate();        // clears all session data
-    session()->regenerateToken();   // prevents CSRF token issues
-    return redirect()->route('login');
-})->name('logout');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 
 // Route::post('/logout', function () {
@@ -85,44 +84,6 @@ Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink
 Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm']);
 Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword']);
 
-
-// 🔑 PASSWORD RESET ROUTES (public)
-// Route::get('reset-password/{token}', function ($token) {
-//     if (Auth::check()) {
-//         return redirect()->route('welcome');
-//     }
-//     return view('auth.reset-password', ['token' => $token, 'email' => request('email')]);
-// })->name('password.reset');
-
-// Route::post('reset-password', function (Request $request) {
-//     $request->validate([
-//         'token' => 'required',
-//         'email' => 'required|email',
-//         'password' => 'required|min:6|confirmed',
-//     ]);
-
-//     $status = Password::reset(
-//         $request->only('email', 'password', 'password_confirmation', 'token'),
-//         function ($user, $password) {
-//             $user->forceFill([
-//                 'password' => Hash::make($password)
-//             ])->save();
-
-//             Auth::login($user);
-//         }
-//     );
-
-//     if ($status === Password::PASSWORD_RESET) {
-//         $resetUser = \App\Models\User::where('email', $request->email)->first();
-//         Mail::to($request->email)->send(new \App\Mail\PasswordChangedMail($resetUser));
-//         return redirect()->route('login')->with('status', __($status));
-//     }
-
-//     return back()->withErrors(['email' => [__($status)]]);
-// })->name('password.update');
-
-// 👤 PROFILE CREATION — allowed for all logged-in users
-//
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
@@ -248,6 +209,18 @@ Route::post('/menus/usertype-privileges/{userTypeId}', [MenuController::class, '
     Route::post('/vendors/fetch-gstin-by-pan', [VendorController::class, 'fetchGstinByPan'])->name('vendors.fetch-gstin-by-pan');
     Route::post('/vendors/save-selected-gstins', [VendorController::class, 'saveSelectedGstins'])->name('vendors.save-selected-gstins');
 
+    // vendor makes (API)
+Route::get('vendor-makes/{id}', [\App\Http\Controllers\VendorMakeController::class, 'show'])->name('vendor-makes.show');
+Route::get('/get-make-details/{id}', [VendorController::class, 'getMakeDetails']);
+Route::get('/get-models/{make}', [FeasibilityController::class, 'getModels']);
+
+// vendors store/update
+Route::resource('vendors', \App\Http\Controllers\VendorController::class);
+
+// barcode image
+Route::get('vendors/{assetId}/barcode.png', [\App\Http\Controllers\VendorController::class, 'barcode'])->name('vendors.barcode');
+Route::get('vendor-makes', [\App\Http\Controllers\VendorMakeController::class, 'index'])->name('vendor-makes.index'); // optional
+
 //
 // 📧 TEST EMAIL ROUTE
 //
@@ -355,7 +328,17 @@ Route::get('/compliance', [ComplianceController::class, 'index'])->name('complia
 Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
 Route::get('/training', [TrainingController::class, 'index'])->name('training.index');
 Route::get('/strategy', [StrategyController::class, 'index'])->name('strategy.index');
+Route::get('/assurance', [AssuranceController::class, 'index'])->name('assurance.index');
+Route::get('/assetmaster/asset_type', [Asset_typeController::class, 'index'])->name('assetmaster.asset_type.index');
+Route::get('/assetmaster/make_type', [Make_typeController::class, 'index'])->name('assetmaster.make_type.index');
+Route::get('/asset', [AssetController::class, 'index'])->name('asset.index');
+Route::get('/asset', [AssetController::class, 'index'])->name('asset.create');
 
+
+
+
+
+//time log report 
 
 // Pincode Lookup
 
@@ -402,9 +385,50 @@ Route::get('/strategy', [StrategyController::class, 'index'])->name('strategy.in
     Route::fallback(function () {
         return redirect('/welcome');
     });
+
+
+
+    
 }
 
 );
+
+
+/*
+|--------------------------------------------------------------------------
+| 🟢 Client Portal – Authenticated Routes
+|--------------------------------------------------------------------------
+*/
+ /* 🟢 Client Portal – AUTH */
+Route::get('client/login', [ClientPortalController::class, 'loginPage'])->name('client.login');
+Route::post('client/login', [ClientPortalController::class, 'login'])->name('client.login.submit');
+
+/* 🟢 Client Portal – PROTECTED */
+Route::middleware(ClientAuth::class)->prefix('client')->group(function () {
+    Route::get('/dashboard', [ClientPortalController::class, 'dashboard'])->name('client.dashboard');
+    Route::get('/links', [ClientPortalController::class, 'links'])->name('client.links');
+    Route::get('/link/{id}', [ClientPortalController::class, 'linkDetails'])->name('client.link.details');
+    
+Route::get('/notifications/settings', function () {
+    return "Notifications page coming soon!";
+})->name('client.notifications.settings');
+
+Route::get('/client/sla-reports/{id}', [ClientPortalController::class, 'slaReports'])
+    ->name('client.sla.reports');
+
+     Route::get('/client/live-traffic/{id}', [ClientPortalController::class, 'liveTraffic'])
+    ->name('client.live.traffic');
+
+    Route::post('/client/send-password', [ClientPortalController::class, 'sendPassword'])->name('client.sendPassword');
+
+
+    // logout
+    Route::get('/logout', function () {
+        auth()->guard('client')->logout();
+        return redirect()->route('client.login');
+    })->name('client.logout');
+});
+
 
 Route::get('/fix-env', function () {
     Artisan::call('config:clear');

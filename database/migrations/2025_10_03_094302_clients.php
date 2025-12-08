@@ -15,6 +15,8 @@ return new class extends Migration
     $table->id();
     $table->string('client_code')->unique(); // auto-generate
     $table->string('client_name');
+    $table->string('user_name')->nullable();                   // User Name
+
     $table->string('pan_number', 10)->nullable();
     $table->string('business_display_name')->nullable();
 
@@ -39,6 +41,11 @@ return new class extends Migration
     $table->string('support_spoc_name')->nullable();
     $table->string('support_spoc_mobile', 20)->nullable();
     $table->string('support_spoc_email')->nullable();
+    // portal access
+     $table->string('portal_username')->unique()->nullable();
+            $table->string('portal_password')->nullable();
+            $table->boolean('portal_active')->default(0);
+            $table->timestamp('portal_last_login')->nullable();
 
     $table->enum('status', ['Active', 'Inactive'])->default('Active');
 

@@ -38,8 +38,9 @@ class Kernel extends HttpKernel
             \Illuminate\Session\Middleware\StartSession::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
+            \App\Http\Middleware\EnsureActiveUser::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-
+            \App\Http\Middleware\TrackUserActivity::class,
             // ✅ Prevent back after logout
             \App\Http\Middleware\PreventBackHistory::class,
         ],
@@ -58,6 +59,7 @@ class Kernel extends HttpKernel
      */
     protected $routeMiddleware = [
         'auth' => \App\Http\Middleware\Authenticate::class,
+        'client.auth' => \App\Http\Middleware\ClientAuth::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
@@ -65,7 +67,7 @@ class Kernel extends HttpKernel
 
         // 👤 Profile check middleware (you forgot this one)
         'profile.created' => \App\Http\Middleware\CheckProfileCreated::class,
-
+        'active.status' => \App\Http\Middleware\EnsureActiveUser::class,
 
     ];
 }

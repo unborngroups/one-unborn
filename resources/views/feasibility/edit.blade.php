@@ -41,26 +41,30 @@
             $importRow = session('imported_row', []);
         @endphp
 
-        
-<div class="container-fluid py-4">
-    <div class="card shadow border-0 p-4">
-        <h5 class="mb-3">Import / Export Feasibility</h5>
-        <div class="row g-3 align-items-center">
-            <div class="col-md-6">
-                <form action="{{ route('feasibility.import') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <div class="input-group">
-                        <input type="file" name="file" class="form-control" required>
-                        <button type="submit" class="btn btn-primary">Import Excel</button>
+       
+    <!-- <h5 class="mb-3 ">Import Feasibility</h5> -->
+        <div class="row g-3 mb-3">
+            <div class="col-md-12">
+                <button class="btn btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#importCard" aria-expanded="false" aria-controls="importCard">
+                    Import Feasibility
+                </button>
+                <div class="collapse mt-3" id="importCard">
+                    <div class="card border-info">
+                        <div class="card-body">
+                            <p class="mb-3 small text-muted">Download the sample format, populate it with feasibility data, and then upload it via Import Excel.</p>
+                            <form action="{{ route('feasibility.import') }}" method="POST" enctype="multipart/form-data">
+                                @csrf
+                                <div class="input-group">
+                                    <input type="file" name="file" class="form-control" required>
+                                    <a href="{{ asset('images/feasibilityimport/feasibility_import_69255ee5caa5f.xlsx') }}" target="_blank" class="btn btn-outline-secondary" title="Download import template">Download Format</a>
+                                    <button type="submit" class="btn btn-primary">Import Excel</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </form>
+                </div>
             </div>
-            <!-- <div class="col-md-6 text-end">
-                <a href="{{ route('feasibility.export') }}" class="btn btn-success">Download Excel</a>
-            </div> -->
         </div>
-    </div>
-</div>
 
         <form action="{{ route('feasibility.update', $feasibility->id) }}" method="POST">
             @csrf
@@ -68,12 +72,12 @@
 
             <div class="row g-3">
 
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label fw-semibold">Feasibility Request ID</label>
                     <input type="text" class="form-control bg-light" value="{{ $feasibility->feasibility_request_id }}" readonly>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label fw-semibold">Type of Service <span class="text-danger">*</span></label>
                     @php $typeSelection = old('type_of_service', $feasibility->type_of_service); @endphp
                     <select name="type_of_service" id="type_of_service" class="form-select" required>
@@ -84,7 +88,7 @@
                     </select>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label fw-semibold">Company <span class="text-danger">*</span></label>
                     <select name="company_id" id="company_id" class="form-select" required>
                         <option value="">Select Company</option>
@@ -96,7 +100,7 @@
                     </select>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label fw-semibold">Client Name <span class="text-danger">*</span></label>
                     <select name="client_id" id="client_id" class="form-select" required>
                         <option value="">Select Client</option>
@@ -108,13 +112,13 @@
                     </select>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label fw-semibold">Pincode <span class="text-danger">*</span></label>
                     <input type="text" name="pincode" id="pincode" maxlength="6" value="{{ old('pincode', $feasibility->pincode) }}" class="form-control" required>
                 </div>
 
 
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label fw-semibold">State <span class="text-danger">*</span></label>
                     @php $stateValue = old('state', $feasibility->state); @endphp
                     <select name="state" id="state" class="form-select select2-tags">
@@ -125,7 +129,7 @@
                     </select>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label fw-semibold">District <span class="text-danger">*</span></label>
                     @php $districtValue = old('district', $feasibility->district); @endphp
                     <select name="district" id="district" class="form-select select2-tags">
@@ -136,7 +140,7 @@
                     </select>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label fw-semibold">Area <span class="text-danger">*</span></label>
                     @php $areaValue = old('area', $feasibility->area); @endphp
                     <select name="area" id="post_office" class="form-select select2-tags">
@@ -147,9 +151,9 @@
                     </select>
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-3">
                     <label class="form-label fw-semibold">Address <span class="text-danger">*</span></label>
-                    <textarea name="address" class="form-control" rows="2" required>{{ old('address', $feasibility->address) }}</textarea>
+                    <textarea name="address" class="form-control" rows="1" required>{{ old('address', $feasibility->address) }}</textarea>
                 </div>
 
                 <div class="col-md-3">
@@ -243,11 +247,48 @@
                         <option value="0" {{ (string) $hardwareRequiredValue === '0' ? 'selected' : '' }}>No</option>
                     </select>
                 </div>
+    @php
+    $hardwareDetails = $feasibility->hardware_details;
+    if (is_string($hardwareDetails)) {
+        $hardwareDetails = json_decode($hardwareDetails, true) ?? [];
+    }
+@endphp
 
-                <div class="col-md-3" id="hardware_name_div" >
-                    <label class="form-label fw-semibold">Hardware Model Name</label>
-                    <input type="text" name="hardware_model_name" value="{{ old('hardware_model_name', $feasibility->hardware_model_name) }}" class="form-control">
-                </div>
+<!-- container for all hardware rows -->
+<div id="hardware_container">
+    @if(!empty($hardwareDetails))
+        @foreach($hardwareDetails as $item)
+        <div class="row hardware_row" style="display:flex; margin-bottom:10px;">
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Hardware Make</label>
+                <input type="text" name="hardware_make[]" value="{{ $item['make'] ?? '' }}" class="form-control" placeholder="Enter Make">
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Hardware Model Name</label>
+                <input type="text" name="hardware_model_name[]" value="{{ $item['model'] ?? '' }}" class="form-control" placeholder="Enter Model">
+            </div>
+        </div>
+        @endforeach
+    @else
+        <div class="row hardware_row" style="display:none;">
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Hardware Make</label>
+                <input type="text" name="hardware_make[]" value="" class="form-control" placeholder="Enter Make">
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Hardware Model Name</label>
+                <input type="text" name="hardware_model_name[]" class="form-control" placeholder="Enter Model">
+            </div>
+        </div>
+    @endif
+</div>
+
+<div class="col-md-3 mt-3" id="add_btn_div" >
+    <button type="button" id="add_hardware_btn" class="btn btn-primary btn-sm">Add</button>
+</div>
+
 
                                 <input type="hidden" name="status" value="{{ $feasibility->status }}">
                         </div>
@@ -263,9 +304,50 @@
 
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
-document.getElementById('hardware_required').addEventListener('change', function() {
-        document.getElementById('hardware_name_div').style.display = this.value == '1' ? 'block' : 'none';
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    const hardwareRequiredSelect = document.getElementById('hardware_required');
+    const hardwareContainer = document.getElementById('hardware_container');
+    const addBtnDiv = document.getElementById('add_btn_div');
+    const addHardwareBtn = document.getElementById('add_hardware_btn');
+
+    // Function to toggle visibility based on hardware required
+    function toggleHardwareRows() {
+        if (hardwareRequiredSelect.value === '1') {
+            // Show first row and Add button
+            const firstRow = hardwareContainer.querySelector('.hardware_row');
+            if (firstRow) firstRow.style.display = 'flex';
+            addBtnDiv.style.display = 'block';
+        } else {
+            // Hide all rows and Add button
+            hardwareContainer.querySelectorAll('.hardware_row').forEach(row => {
+                row.style.display = 'none';
+                row.querySelectorAll('input').forEach(input => input.value = '');
+            });
+            addBtnDiv.style.display = 'none';
+        }
+    }
+
+    // Initial toggle on page load
+    toggleHardwareRows();
+
+    // Listen for change on Hardware Required select
+    hardwareRequiredSelect.addEventListener('change', toggleHardwareRows);
+
+    // Add new hardware row
+    addHardwareBtn.addEventListener('click', function() {
+        const originalRow = hardwareContainer.querySelector('.hardware_row');
+        if (!originalRow) return;
+
+        const newRow = originalRow.cloneNode(true);
+        newRow.querySelectorAll('input').forEach(input => input.value = ''); // reset values
+        newRow.style.display = 'flex';
+        hardwareContainer.appendChild(newRow);
+    });
+
 });
+
 
 function setSelectValue(selectElement, value) {
     if (!value || value === '') {

@@ -23,8 +23,14 @@
         /* ======= Page Layout ======= */
 
         body {
+            background-image:url('{{ asset("images/constructions-1.jpeg") }}'); /* Blue background image */
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: fixed;
+            background-attachment: fixed;
 
-            background: linear-gradient(to right, #1e73be, #155a96);
+
+            /* background: linear-gradient(to right, #1e73be, #155a96); */
 
             font-family: Arial, sans-serif;
 
@@ -53,12 +59,17 @@
             width: 100%;
 
             max-width: 400px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
 
             box-shadow: 0px 6px 15px rgba(0,0,0,0.25);
 
             text-align: center;
 
         }
+        .login-box:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0px 10px 20px rgba(0,0,0,0.35);
+}
 
         .login-box h3 {
 

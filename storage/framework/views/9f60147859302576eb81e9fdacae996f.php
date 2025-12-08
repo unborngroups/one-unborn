@@ -50,7 +50,7 @@
 <div class="container mt-1">
 
     <!-- <h1 class="mb-1">Dashboard</h1> -->
-    <h4 class="mb-4">Welcome to <b>Unborn Technology</b></h4>
+    <h4 class="mb-4">Welcome to <b>Unborn Network</b></h4>
 
     <div class="row g-4">
         <!-- Broadband -->
@@ -58,8 +58,14 @@
             <div class="dashboard-card" style="background: linear-gradient(135deg, #1e3c72, #2a5298);">
                 <div class="d-flex justify-content-between">
                     <div>
+                        
                         <div class="dashboard-title">Broadband</div>
-                        <small>Links: 10 | Locations: 4</small>
+                        <small>
+                            Links: <?php echo e($serviceCounts['Broadband']['links']); ?> | 
+                            Locations: <?php echo e($serviceCounts['Broadband']['locations']); ?>
+
+                        </small>
+
                     </div>
                     <div class="icon-box"><i class="bi bi-wifi"></i></div>
                 </div>
@@ -72,7 +78,12 @@
                 <div class="d-flex justify-content-between">
                     <div>
                         <div class="dashboard-title">ILL</div>
-                        <small>Links: 6 | Locations: 3</small>
+                        <small>
+                            Links: <?php echo e($serviceCounts['ILL']['links']); ?> | 
+                            Locations: <?php echo e($serviceCounts['ILL']['locations']); ?>
+
+                        </small>
+
                     </div>
                     <div class="icon-box"><i class="bi bi-diagram-3-fill"></i></div>
                 </div>
@@ -85,7 +96,12 @@
                 <div class="d-flex justify-content-between">
                     <div>
                         <div class="dashboard-title">P2P</div>
-                        <small>Links: 8 | Locations: 4</small>
+                        <small>
+                            Links: <?php echo e($serviceCounts['P2P']['links']); ?> | 
+                            Locations: <?php echo e($serviceCounts['P2P']['locations']); ?>
+
+                        </small>
+
                     </div>
                     <div class="icon-box"><i class="bi bi-diagram-2-fill"></i></div>
                 </div>
@@ -98,7 +114,12 @@
                 <div class="d-flex justify-content-between">
                     <div>
                         <div class="dashboard-title">NNI</div>
-                        <small>Links: 4 | Locations: 2</small>
+                        <small>
+                            Links: <?php echo e($serviceCounts['NNI']['links']); ?> | 
+                            Locations: <?php echo e($serviceCounts['NNI']['locations']); ?>
+
+                        </small>
+
                     </div>
                     <div class="icon-box"><i class="bi bi-diagram-3"></i></div>
                 </div>

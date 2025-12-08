@@ -112,19 +112,19 @@
 
 
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Feasibility Request ID</label>
 
                     <input type="text" class="form-control bg-light" value="Auto-generated" readonly>
 
-                    <small class="text-muted">ID will be generated automatically when saved</small>
+                    <!-- <small class="text-muted">ID will be generated automatically when saved</small> -->
 
                 </div>
 
 
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Type of Service <span class="text-danger">*</span></label>
 
@@ -145,7 +145,7 @@
 
 
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Company <span class="text-danger">*</span></label>
 
@@ -165,7 +165,7 @@
 
 
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Client Name <span class="text-danger">*</span></label>
 
@@ -187,7 +187,7 @@
 
 
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Pincode <span class="text-danger">*</span></label>
 
@@ -199,7 +199,7 @@
 
 
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <label class="form-label fw-semibold">State <span class="text-danger">*</span></label>
 
@@ -220,7 +220,7 @@
 
 
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <label class="form-label fw-semibold">District <span class="text-danger">*</span></label>
 
@@ -241,7 +241,7 @@
 
 
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Area <span class="text-danger">*</span></label>
                     @php $areaValue = old('area', $importRow['area'] ?? ''); @endphp
@@ -261,11 +261,11 @@
 
 
 
-                <div class="col-md-6">
+                <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Address <span class="text-danger">*</span></label>
 
-                    <textarea name="address" class="form-control" rows="2" required>{{ old('address', $importRow['address'] ?? '') }}</textarea>
+                    <textarea name="address" class="form-control" rows="1" required>{{ old('address', $importRow['address'] ?? '') }}</textarea>
 
                 </div>
 
@@ -454,17 +454,54 @@
                     </select>
 
                 </div>
+                
+<!-- container for all hardware rows -->
+<div id="hardware_container">
+    <div class="row hardware_row" style="display:none;">
+        <div class="col-md-3">
+            <label class="form-label fw-semibold">Hardware Make</label>
+            <input type="text" name="hardware_make[]" class="form-control" placeholder="Enter Make">
+        </div>
 
+        <div class="col-md-3">
+            <label class="form-label fw-semibold">Hardware Model Name</label>
+            <input type="text" name="hardware_model_name[]" class="form-control">
+        </div>
+    </div>
+</div>
+
+<div class="col-md-3 mt-3" id="add_btn_div" style="display:none;">
+    <button type="button" id="add_hardware_btn" class="btn btn-primary btn-sm">Add</button>
+</div>
+                <!-- <div class="col-md-3" id="hardware_make_div" style="display:none;">
+                        <label class="form-label fw-semibold">Hardware Make</label>
+                        <input type="text" name="hardware_make" class="form-control" placeholder="Enter Make">
+                </div>
 
                 <div class="col-md-3" id="hardware_name_div" style="display:none;">
 
                     <label class="form-label fw-semibold">Hardware Model Name</label>
 
                     <input type="text" name="hardware_model_name" class="form-control" value="{{ old('hardware_model_name', $importRow['hardware_model_name'] ?? '') }}">
+ <button >Add</button>
+                </div> -->
+               
+                <!-- <div class="col-md-3">
+    <label class="fw-semibold">Hardware Make</label>
+    <select name="hardware_make" class="form-control">
+        <option value="">Select</option>
+        <option>Cisco</option>
+        <option>Fortinet</option>
+        <option>Aruba</option>
+        <option>MikroTik</option>
+    </select>
+</div> -->
+<!-- 
+<div class="col-md-3 fw-semibold">
+    <label>Hardware Model</label>
+    <input type="text" name="hardware_model" class="form-control" placeholder="Enter Model Number">
+</div> -->
 
-                </div>
-
- 
 
                     {{--  Status Dropdown --}}
 
@@ -498,10 +535,40 @@
 
 <script>
 
-document.getElementById('hardware_required').addEventListener('change', function() {
+// document.getElementById('hardware_required').addEventListener('change', function() {
 
-    document.getElementById('hardware_name_div').style.display = this.value == '1' ? 'block' : 'none';
+//     document.getElementById('hardware_name_div').style.display = this.value == '1' ? 'block' : 'none';
+//     document.getElementById('hardware_make_div').style.display = this.value == '1' ? 'block' : 'none';
 
+// });
+document.getElementById('hardware_required').addEventListener('change', function () {
+
+    let value = this.value;
+
+    // Show when "Yes"
+    if (value == '1') {
+        document.querySelector('.hardware_row').style.display = 'flex';
+        document.getElementById('add_btn_div').style.display = 'block';
+    } else {
+        document.querySelector('.hardware_row').style.display = 'none';
+        document.getElementById('add_btn_div').style.display = 'none';
+    }
+});
+document.getElementById('add_hardware_btn').addEventListener('click', function () {
+
+    // Clone the row
+    let originalRow = document.querySelector('.hardware_row');
+    let newRow = originalRow.cloneNode(true);
+
+    // Reset values in the new row
+    newRow.querySelectorAll('input').forEach(function (input) {
+        input.value = "";
+    });
+
+    newRow.style.display = 'flex';
+
+    // Append to container
+    document.getElementById('hardware_container').appendChild(newRow);
 });
 
 
@@ -547,8 +614,6 @@ function setSelectValue(selectElement, value) {
     }
 
   }
-
-  
 
   // If option doesn't exist, create it
 

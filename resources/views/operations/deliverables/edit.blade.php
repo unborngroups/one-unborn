@@ -7,6 +7,27 @@
             <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Edit Deliverable</h5>
         </div>
 
+        {{-- ✅ Show Validation Errors --}}
+
+        @if ($errors->any())
+
+            <div class="alert alert-danger">
+
+                <ul class="mb-0">
+
+                    @foreach ($errors->all() as $error)
+
+                        <li>{{ $error }}</li>
+
+                    @endforeach
+
+                </ul>
+
+            </div>
+
+        @endif
+
+
         <div class="card-body">
             {{-- Feasibility Closed Details Card (Read-only) --}}
             <div class="card mb-4 border-info">
@@ -111,6 +132,61 @@
                 </div>
             </div>
 
+            @php
+                $selectedAssetId = old('asset_id', $record->asset_id ?? '');
+                $selectedAssetSerial = old('asset_serial_no', $record->asset_serial_no ?? '');
+            @endphp
+
+            <div class="card mb-3">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0">Hardware & Asset Details</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row gy-2">
+                        @if(!empty($hardwareDetails))
+                            @foreach($hardwareDetails as $index => $detail)
+                                <div class="col-md-6">
+                                    <div class="border rounded p-2">
+                                        <small class="text-muted">Hardware {{ $index + 1 }}</small>
+                                        <p class="mb-1"><strong>Make:</strong> {{ $detail['make'] ?? '-' }}</p>
+                                        <p class="mb-0"><strong>Model:</strong> {{ $detail['model'] ?? '-' }}</p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="col-12">
+                                <p class="mb-0 text-muted">No hardware information was carried over from the feasibility request.</p>
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Asset ID</label>
+                            <select name="asset_id" id="asset_selector" class="form-select">
+                                <option value="">-- Select Asset --</option>
+                                @foreach($assetOptions as $asset)
+                                    <option value="{{ $asset->asset_id }}"
+                                            data-serial="{{ $asset->serial_no }}"
+                                            {{ $selectedAssetId && $selectedAssetId === $asset->asset_id ? 'selected' : '' }}>
+                                        {{ $asset->asset_id }}@if(!empty($asset->serial_no)) - {{ $asset->serial_no }}@endif ({{ $asset->vendor_name }})
+                                    </option>
+                                @endforeach
+                                @if($selectedAssetId && !$assetOptions->contains('asset_id', $selectedAssetId))
+                                    <option value="{{ $selectedAssetId }}" data-serial="{{ $selectedAssetSerial }}" selected>
+                                        {{ $selectedAssetId }}@if(!empty($selectedAssetSerial)) - {{ $selectedAssetSerial }}@endif (assigned)
+                                    </option>
+                                @endif
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Serial Number</label>
+                            <input type="text" id="asset_serial_no" name="asset_serial_no" class="form-control" readonly value="{{ $selectedAssetSerial }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {{-- Editable Form --}}
             <form action="{{ route('operations.deliverables.save', $record->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
@@ -199,32 +275,37 @@
                         </div>
                     </div>
                 </div>
+                @php
+    $linkCount = $record->feasibility->no_of_links ?? 1;  // align fields with feasibility\'s link count
+@endphp
 
                 {{-- PPPoE Configuration --}}
                 <div class="card mb-3" id="pppoe_section" style="display: none;">
-                    <div class="card-header bg-success text-white">
+                    <div class="card-header bg-primary text-white">
                         <h6 class="mb-0">PPPoE Configuration</h6>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Username</label>
-                                <input type="text" class="form-control" name="pppoe_username" 
-                                       value="{{ old('pppoe_username', $record->pppoe_username) }}">
-                            </div>
+                        @for($i = 1; $i <= $linkCount; $i++)
+        <div class="row mb-2">
+            <div class="col-md-4">
+                <label>Username {{ $i }}</label>
+                <input type="text" name="pppoe_username_{{ $i }}" class="form-control"
+                       value="{{ old('pppoe_username_'.$i, $record->{'pppoe_username_'.$i} ?? '') }}">
+            </div>
 
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Password</label>
-                                <input type="password" class="form-control" name="pppoe_password" 
-                                       value="{{ old('pppoe_password', $record->pppoe_password) }}">
-                            </div>
+            <div class="col-md-4">
+                <label>Password {{ $i }}</label>
+                <input type="text" name="pppoe_password_{{ $i }}" class="form-control"
+                       value="{{ old('pppoe_password_'.$i, $record->{'pppoe_password_'.$i} ?? '') }}">
+            </div>
 
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">VLAN</label>
-                                <input type="text" class="form-control" name="pppoe_vlan" 
-                                       value="{{ old('pppoe_vlan', $record->static_vlan) }}">
-                            </div>
-                        </div>
+            <div class="col-md-4">
+                <label>VLAN {{ $i }}</label>
+                <input type="text" name="vlan_{{ $i }}" class="form-control"
+                       value="{{ old('vlan_'.$i, $record->{'vlan_'.$i} ?? '') }}">
+            </div>
+        </div>
+    @endfor
                     </div>
                 </div>
 
@@ -357,23 +438,96 @@
 
 </div>
                 </div>
-               
+                <!-- {{-- LAN --}} -->
+                 <div class="card mb-3 ">
+                <div class="card-header bg-primary text-white">
+                <h6 class="mb-0"> Configuration</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label>LAN IP 1 <span style="color:red">*</span></label>
+                            <input type="text" name="lan_ip_1" class="form-control" required>
+                        </div>
+                        
+<div class="col-md-3 mb-3" >
+    <label>LAN IP 2</label>
+    <input type="text" name="lan_ip_2" class="form-control">
+</div>
+
+<div class="col-md-3 mb-3">
+    <label>LAN IP 3</label>
+    <input type="text" name="lan_ip_3" class="form-control">
+</div>
+
+<div class="col-md-3 mb-3">
+    <label>LAN IP 4</label>
+    <input type="text" name="lan_ip_4" class="form-control">
+</div>
+<div class="col-md-3">
+    <label>IPSEC</label>
+    <select name="ipsec" id="ipsec" class="form-control">
+        <option value="">-- Select --</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+    </select>
+</div>
+
+<div class="col-md-3 ipsec-fields d-none">
+    <label>Phase 1</label>
+    <input type="text" name="phase_1" class="form-control">
+</div>
+
+<div class="col-md-3 ipsec-fields d-none">
+    <label>Phase 2</label>
+    <input type="text" name="phase_2" class="form-control">
+</div>
+
+<div class="col-md-3 ipsec-fields d-none">
+    <label>IPSEC Interface</label>
+    <input type="text" name="ipsec_interface" class="form-control">
+</div>
+<div class="col-md-4 mb-3">
+                            <label class="form-label">MTU <span class="text-danger">*</span></label>
+                            <input type="text" name="mtu" class="form-control" placeholder="Enter MTU" value="{{ old('mtu', $record->mtu) }}" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label"> Wifi Username</label>
+                            <input type="text" name="wifi_username" class="form-control" placeholder="Enter Wifi Username" value="{{ old('wifi_username', $record->wifi_username) }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Wifi Password</label>
+                            <input type="password" name="wifi_password" class="form-control" placeholder="Enter Wifi Password" value="{{ old('wifi_password', $record->wifi_password) }}">
+                        </div>
+
+                    </div>
+
+                </div>
+                 </div>
+
 
 
                 {{-- OTC Information --}}
-                <div class="card mb-3">
+                <div class="card mb-1">
                     <div class="card-header bg-secondary text-white">
                         <h6 class="mb-0">OTC Information</h6>
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label class="form-label">OTC (Extra if any)</label>
                                 <input type="number" step="0.01" class="form-control" name="otc_extra_charges" 
                                        value="{{ old('otc_extra_charges', $record->otc_extra_charges) }}">
                             </div>
 
-                            <div class="col-md-6 mb-3">
+                            <!-- Account ID -->
+                            <div class="col-md-4">
+                                    <label>Account ID</label>
+                                     <input type="text" name="account_id" class="form-control"
+                                      value="{{ old('account_id', $record->account_id) }}">
+                            </div>
+                               <!-- Upload OTC Bill -->
+                            <div class="col-md-4 mb-3">
                                 <label class="form-label">Upload OTC Bill</label>
                                 @if($record->otc_bill_file)
                                     <a href="{{ asset($record->otc_bill_file) }}" target="_blank">View OTC Bill</a>
@@ -386,12 +540,22 @@
                         </div>
                     </div>
                 </div>
+                <!--  -->
+                <div class="col-md-4 mb-3">
+    <label class="form-label">Upload Export File</label>
+    @if($record->export_file)
+        <a href="{{ asset($record->export_file) }}" target="_blank">View Export File</a>
+    @endif
+    <input type="file" name="export_file" class="form-control" accept=".pdf,.xlsx,.xls,.csv,.jpg,.jpeg,.png">
+</div>
+
 
                 {{-- Action Buttons --}}
                 <div class="d-flex justify-content-between mt-4">
                     <a href="{{ route('operations.deliverables.open') }}" class="btn btn-secondary">
                         <i class="bi bi-x-circle"></i> Cancel
                     </a>
+                    <!-- upload conf -->
 
                     <div>
                         @if($record->status == 'Open')
@@ -545,7 +709,43 @@ document.addEventListener('DOMContentLoaded', function() {
     staticIpInput?.addEventListener('input', fetchSubnetDetails);
     staticSubnetSelect?.addEventListener('change', fetchSubnetDetails);
 
+    const assetSelector = document.getElementById('asset_selector');
+    const assetSerialInput = document.getElementById('asset_serial_no');
+
+    const syncAssetSerial = () => {
+        if (!assetSerialInput) {
+            return;
+        }
+        const selected = assetSelector?.selectedOptions?.[0];
+        assetSerialInput.value = selected?.dataset?.serial || '';
+    };
+
+    assetSelector?.addEventListener('change', syncAssetSerial);
+    syncAssetSerial();
+
     toggleSections();
 });
+function toggleIpsecFields() {
+    const ipsecFields = document.querySelectorAll('.ipsec-fields');
+    const shouldShow = document.getElementById('ipsec')?.value === 'Yes';
+    ipsecFields.forEach((el) => {
+        el.classList.toggle('d-none', !shouldShow);
+    });
+
+    if (!shouldShow) {
+        document.querySelectorAll('input[name="phase_1"], input[name="phase_2"], input[name="ipsec_interface"]').forEach((input) => {
+            input.value = '';
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const ipsecSelect = document.getElementById('ipsec');
+    if (ipsecSelect) {
+        ipsecSelect.addEventListener('change', toggleIpsecFields);
+        toggleIpsecFields();
+    }
+});
+
 </script>
 @endsection

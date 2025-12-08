@@ -178,13 +178,64 @@
 
             </tr>
 
-            <tr>
+            <!-- <tr>
 
                 <th>Hardware Model Name</th>
 
                 <td><?php echo e($feasibility->hardware_model_name ?? '-'); ?></td>
 
-            </tr>
+            </tr> -->
+      <?php
+    $hardwareDetails = $feasibility->hardware_details;
+    if (is_string($hardwareDetails)) {
+        $hardwareDetails = json_decode($hardwareDetails, true) ?? [];
+    }
+?>
+
+<div class="col-md-12">
+    <th>Hardware Details:</th>
+    <?php if(!empty($hardwareDetails)): ?>
+    <td>
+         <tr>
+                    <th>Make</th>
+                    <th>Model</th>
+                </tr>
+        <?php $__currentLoopData = $hardwareDetails; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <tr>
+                        <td><?php echo e($item['make'] ?? '-'); ?></td>
+                        <td><?php echo e($item['model'] ?? '-'); ?></td>
+                    </tr>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+    </td>
+     <?php else: ?>
+        <p class="form-control-plaintext">N/A</p>
+    <?php endif; ?>
+
+<!-- 
+    <label class="form-label fw-semibold">Hardware Details</label>
+    <?php if(!empty($hardwareDetails)): ?>
+        <table class="table table-bordered table-striped">
+            <thead class="table-light">
+                <tr>
+                    <th>Make</th>
+                    <th>Model</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php $__currentLoopData = $hardwareDetails; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <tr>
+                        <td><?php echo e($item['make'] ?? '-'); ?></td>
+                        <td><?php echo e($item['model'] ?? '-'); ?></td>
+                    </tr>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </tbody>
+        </table>
+    <?php else: ?>
+        <p class="form-control-plaintext">N/A</p>
+    <?php endif; ?>
+</div>
+ -->
+
 
             <tr>
 

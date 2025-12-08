@@ -260,21 +260,25 @@
 
             </div>
 
+@if(!empty($record->feasibility->hardware_details))
+    <div class="col-md-3">
+        <label class="form-label fw-semibold">Hardware Model Name</label>
+        @foreach(json_decode($record->feasibility->hardware_details, true) as $item)
+            <p class="mb-1">
+                Make: {{ $item['make'] }} <br>
+                Model: {{ $item['model'] }}
+            </p>
+        @endforeach
+    </div>
+@else
+    <div class="col-md-3">
+        <label class="form-label fw-semibold">Hardware Model Name</label>
+        <p class="form-control-plaintext">N/A</p>
+    </div>
+@endif
 
 
-            {{-- Hardware Model Name --}}
 
-            @if($record->feasibility->hardware_required)
-
-            <div class="col-md-3">
-
-                <label class="form-label fw-semibold">Hardware Model Name</label>
-
-                <p class="form-control-plaintext">{{ $record->feasibility->hardware_model_name }}</p>
-
-            </div>
-
-            @endif
 
 
 
@@ -307,9 +311,12 @@
         </div>
 
         {{-- Vendor Information Section --}}
-
-       {{-- Vendor Information Section --}}
-@if($record->vendor1_name || $record->vendor2_name || $record->vendor3_name || $record->vendor4_name)
+@if(
+    $record->vendor1_name || $record->vendor1_arc || $record->vendor1_otc || $record->vendor1_static_ip_cost || $record->vendor1_delivery_timeline ||
+    $record->vendor2_name || $record->vendor2_arc || $record->vendor2_otc || $record->vendor2_static_ip_cost || $record->vendor2_delivery_timeline ||
+    $record->vendor3_name || $record->vendor3_arc || $record->vendor3_otc || $record->vendor3_static_ip_cost || $record->vendor3_delivery_timeline ||
+    $record->vendor4_name || $record->vendor4_arc || $record->vendor4_otc || $record->vendor4_static_ip_cost || $record->vendor4_delivery_timeline
+)
 
 <hr class="my-4">
 <h5 class="text-primary fw-bold mb-3">Vendor Information</h5>
