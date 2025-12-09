@@ -1,7 +1,5 @@
 
 
-
-
 <?php $__env->startSection('content'); ?>
 
 <div class="container-fluid py-4">
@@ -164,9 +162,6 @@
                                     </button>
 
                                 </form>
-
-
-
                                 
 
                                    <?php if($permissions->can_view): ?>
@@ -178,9 +173,6 @@
                                     </a>
 
                                      <?php endif; ?>
-
-
-
                             </td>
 
                             <!-- <td><?php echo e($key+1); ?></td> -->

@@ -1,7 +1,5 @@
 @extends('layouts.app')
 
-
-
 @section('content')
 
 <div class="container-fluid py-4">
@@ -162,9 +160,6 @@
                                     </button>
 
                                 </form>
-
-
-
                                 {{-- View --}}
 
                                    @if($permissions->can_view)
@@ -176,9 +171,6 @@
                                     </a>
 
                                      @endif
-
-
-
                             </td>
 
                             <!-- <td>{{ $key+1 }}</td> -->

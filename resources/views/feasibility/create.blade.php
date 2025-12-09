@@ -109,9 +109,7 @@
             @csrf
 
             <div class="row g-3">
-
-
-
+                <!-- Feasibility ID -->
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Feasibility Request ID</label>
@@ -121,8 +119,7 @@
                     <!-- <small class="text-muted">ID will be generated automatically when saved</small> -->
 
                 </div>
-
-
+                <!-- Type Of Service -->
 
                 <div class="col-md-3">
 
@@ -142,8 +139,7 @@
                     </select>
 
                 </div>
-
-
+                <!-- Company Name -->
 
                 <div class="col-md-3">
 
@@ -163,8 +159,7 @@
 
                 </div>
 
-
-
+                <!-- Client Name -->
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Client Name <span class="text-danger">*</span></label>
@@ -183,10 +178,7 @@
 
                 </div>
 
-
-
-
-
+                <!-- pincode -->
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Pincode <span class="text-danger">*</span></label>
@@ -196,8 +188,7 @@
            <!-- <button type="button" id="pincodeVerifyBtn" class="btn btn-primary">Verify</button> -->
 
                 </div>
-
-
+                <!-- Select State -->
 
                 <div class="col-md-3">
 
@@ -217,8 +208,7 @@
                     </select>
 
                 </div>
-
-
+                <!-- Select District -->
 
                 <div class="col-md-3">
 
@@ -238,9 +228,7 @@
                     </select>
 
                 </div>
-
-
-
+                <!-- Select Area -->
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Area <span class="text-danger">*</span></label>
@@ -258,9 +246,7 @@
                     </select>
 
                 </div>
-
-
-
+                <!-- Address -->
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Address <span class="text-danger">*</span></label>
@@ -268,9 +254,7 @@
                     <textarea name="address" class="form-control" rows="1" required>{{ old('address', $importRow['address'] ?? '') }}</textarea>
 
                 </div>
-
-
-
+                <!-- SPOC Name -->
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">SPOC Name <span class="text-danger">*</span></label>
@@ -278,9 +262,7 @@
                     <input type="text" name="spoc_name" class="form-control" value="{{ old('spoc_name', $importRow['spoc_name'] ?? '') }}" required>
 
                 </div>
-
-
-
+                <!-- SPOC Contact 1-->
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">SPOC Contact 1 <span class="text-danger">*</span></label>
@@ -288,9 +270,7 @@
                     <input type="text" name="spoc_contact1" class="form-control" value="{{ old('spoc_contact1', $importRow['spoc_contact1'] ?? '') }}" required>
 
                 </div>
-
-
-
+                <!-- SPOC Contact2 -->
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">SPOC Contact 2</label>
@@ -298,9 +278,7 @@
                     <input type="text" name="spoc_contact2" class="form-control" value="{{ old('spoc_contact2', $importRow['spoc_contact2'] ?? '') }}">
 
                 </div>
-
-
-
+                <!-- SPOC Email -->
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">SPOC Email</label>
@@ -308,9 +286,7 @@
                     <input type="email" name="spoc_email" class="form-control" value="{{ old('spoc_email', $importRow['spoc_email'] ?? '') }}" >
 
                 </div>
-
-
-
+                <!-- No Of Links -->
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">No. of Links <span class="text-danger">*</span></label>
@@ -330,7 +306,7 @@
                     </select>
 
                 </div>
-
+                <!-- Vendor Type -->
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Vendor Type <span class="text-danger">*</span></label>
@@ -355,6 +331,7 @@
 
                 </div>
 
+                <!-- Speed -->
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Speed <span class="text-danger">*</span></label>
@@ -362,9 +339,7 @@
                     <input type="text" name="speed" placeholder="Mbps or Gbps" class="form-control" value="{{ old('speed', $importRow['speed'] ?? '') }}" required>
 
                 </div>
-
-
-
+                <!-- Static IP -->
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Static IP <span class="text-danger">*</span></label>
@@ -381,7 +356,7 @@
                     </select>
 
                 </div>
-
+                <!-- Static IP Subnet -->
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Static IP Subnet</label>
@@ -411,14 +386,7 @@
                     <small class="text-muted">Select subnet only if Static IP is Yes</small>
 
                 </div>
-
-                
-
-
-
-
-
-
+                <!-- Expected Delivery -->
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Expected Delivery <span class="text-danger">*</span></label>
@@ -426,9 +394,7 @@
                     <input type="date" name="expected_delivery" class="form-control" value="{{ old('expected_delivery', $importRow['expected_delivery'] ?? '') }}" required>
 
                 </div>
-
-
-
+                <!-- Expected Activation -->
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Expected Activation <span class="text-danger">*</span></label>
@@ -436,9 +402,7 @@
                     <input type="date" name="expected_activation" class="form-control" value="{{ old('expected_activation', $importRow['expected_activation'] ?? '') }}" required>
 
                 </div>
-
-
-
+                <!-- Hardware Required -->
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Hardware Required <span class="text-danger">*</span></label>
@@ -459,13 +423,33 @@
 <div id="hardware_container">
     <div class="row hardware_row" style="display:none;">
         <div class="col-md-3">
-            <label class="form-label fw-semibold">Hardware Make</label>
-            <input type="text" name="hardware_make[]" class="form-control" placeholder="Enter Make">
+             <label>Make</label>
+        <select name="make_type_id" class="form-control" required>
+            <option value="">Select Make</option>
+            @foreach($makes as $m)
+                <option value="{{ $m->id }}" {{ isset($asset) && $asset->make_type_id == $m->id ? 'selected' : '' }}>
+                    {{ $m->make_name }}
+                </option>
+            @endforeach
+        </select>
+            <!-- <label class="form-label fw-semibold">Hardware Make</label>
+            <input type="text" name="hardware_make[]" class="form-control" placeholder="Enter Make"> -->
         </div>
 
         <div class="col-md-3">
-            <label class="form-label fw-semibold">Hardware Model Name</label>
-            <input type="text" name="hardware_model_name[]" class="form-control">
+            <label>Model</label>
+        <select name="model_id" class="form-control" required>
+            <option value="">Select Model</option>
+            @foreach($models as $m)
+                <option value="{{ $m->id }}" {{ isset($asset) && $asset->model_id == $m->id ? 'selected' : '' }}>
+                    {{ $m->model_name }}
+                </option>
+            @endforeach
+        
+             
+        </select>
+            <!-- <label class="form-label fw-semibold">Hardware Model Name</label>
+            <input type="text" name="hardware_model_name[]" class="form-control"> -->
         </div>
     </div>
 </div>

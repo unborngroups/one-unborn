@@ -37,14 +37,15 @@
 
         @auth
         @if(isset($onlineSince))
-    <span class="me-3 fw-semibold text-primary" style="font-size: 15px;">
-        ⏱ Online: {{ $onlineSince }}
-        @if(!empty($onlineDurationLabel))
-            ({{ $onlineDurationLabel }})
+            <span id="onlineStatusTicker" class="me-3 fw-semibold text-primary" style="font-size: 15px;" data-login-time="{{ $onlineLoginTimeIso }}">
+                ⏱ Online since <span id="onlineSinceValue">{{ $onlineSince }}</span>
+                @if(!empty($onlineDurationLabel))
+                    (<span id="onlineDurationLabel">{{ $onlineDurationLabel }}</span>)
+                @else
+                    (<span id="onlineDurationLabel">0s</span>)
+                @endif
+            </span>
         @endif
-    </span>
-@endif
-
 
         <div class="dropdown">
 
@@ -96,3 +97,40 @@
 
 </nav>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const ticker = document.getElementById('onlineStatusTicker');
+        if (!ticker || !ticker.dataset.loginTime) {
+            return;
+        }
+
+        const durationSpan = document.getElementById('onlineDurationLabel');
+        const loginTime = new Date(ticker.dataset.loginTime);
+
+        const formatDuration = (milliseconds) => {
+            const totalSeconds = Math.floor(milliseconds / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            const parts = [];
+            if (hours) {
+                parts.push(hours + 'h');
+            }
+            if (minutes) {
+                parts.push(minutes + 'm');
+            }
+            parts.push(seconds + 's');
+            return parts.join(' ');
+        };
+
+        const updateDuration = () => {
+            const elapsed = Math.max(Date.now() - loginTime.getTime(), 0);
+            if (durationSpan) {
+                durationSpan.textContent = formatDuration(elapsed);
+            }
+        };
+
+        updateDuration();
+        setInterval(updateDuration, 1000);
+    });
+</script>

@@ -40,17 +40,17 @@
         <div class="row g-3 mb-3">
             <div class="col-md-12">
                 <button class="btn btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#importCard" aria-expanded="false" aria-controls="importCard">
-                    Import Feasibility
+                    Import Vendors via Excel
                 </button>
                 <div class="collapse mt-3" id="importCard">
                     <div class="card border-info">
                         <div class="card-body">
-                            <p class="mb-3 small text-muted">Download the sample format, populate it with feasibility data, and then upload it via Import Excel.</p>
-                            <form action="{{ route('feasibility.import') }}" method="POST" enctype="multipart/form-data">
+                            <p class="mb-3 small text-muted">Download the sample format, populate it with vendor data, and then upload it via Import Excel.</p>
+                            <form action="{{ route('vendors.import') }}" method="POST" enctype="multipart/form-data">
                                 @csrf
                                 <div class="input-group">
-                                    <input type="file" name="file" class="form-control" required>
-                                    <!-- <a href="{{ asset('images/feasibilityimport/feasibility_import_69255ee5caa5f.xlsx') }}" target="_blank" class="btn btn-outline-secondary" title="Download import template">Download Format</a> -->
+                                    <input type="file" name="file" class="form-control" required  accept=".xlsx, .xls,.csv,.xlsm,.ods">
+                                    <a href="{{ asset('images/importvendor/vendor_import_6937cc228b94e.xlsx') }}" target="_blank" class="btn btn-outline-secondary" title="Download vendor sample">Download Format</a>
                                     <button type="submit" class="btn btn-primary">Import Excel</button>
                                 </div>
                             </form>
@@ -385,7 +385,7 @@ function fetchGST() {
 
     if (pan.length !== 10 || state === "") {
 
-        gstStatus.innerHTML = "⚠️ Enter valid PAN + Select State";
+        gstStatus.innerHTML = "⚠ Enter valid PAN + Select State";
 
         return;
 
@@ -429,7 +429,7 @@ function fetchGST() {
 
         .catch(() => {
 
-            gstStatus.innerHTML = "⚠️ Server Error";
+            gstStatus.innerHTML = "⚠ Server Error";
 
         });
 
@@ -466,7 +466,7 @@ document.addEventListener('DOMContentLoaded', function () {
         emailInput.value = selected.dataset.email || '';
 
         // Optionally request server to compute AssetID immediately (AJAX)
-        fetch(`{{ url('vendor-makes') }}/${selected.value}`)
+        fetch("{{ url('vendor-makes') }}/" + selected.value)
             .then(res => res.json())
             .then(data => {
                 // server returned make + company name — request generated asset id from backend (optional)
@@ -481,7 +481,7 @@ document.addEventListener('DOMContentLoaded', function () {
             alert('Asset ID not yet generated. Save vendor to auto-generate Asset ID, then click Generate Barcode.');
             return;
         }
-        barcodePreview.innerHTML = `<img src="{{ url('vendors') }}/${asset}/barcode.png" alt="Barcode">`;
+        barcodePreview.innerHTML = "<img src=\"{{ url('vendors') }}/" + asset + "/barcode.png\" alt=\"Barcode\">";
     });
 });
 
@@ -507,4 +507,3 @@ $('#make_id').change(function () {
 <script src="{{ asset('js/gstin-fetch-vendor.js') }}"></script>
 
 @endsection
-

@@ -26,7 +26,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-         /** ⬇️ IMPORTANT - Fix created_at & updated_at timezone issue */
+         /** ⬇ IMPORTANT - Fix created_at & updated_at timezone issue */
         DB::statement("SET time_zone = '+05:30'");   // IST Time
          // 🟩 Auto-share menus with all views
         View::composer('*', function ($view) {
@@ -98,6 +98,7 @@ class AppServiceProvider extends ServiceProvider
                 'onlineSince' => $onlineSince,
                 'onlineMinutes' => $onlineMinutes,
                 'onlineDurationLabel' => $onlineDurationLabel,
+                'onlineLoginTimeIso' => $log ? Carbon::parse($log->login_time)->toIso8601String() : null,
             ]);
         }
     });

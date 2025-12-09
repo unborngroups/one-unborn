@@ -20,7 +20,8 @@
                 @foreach($logs as $key => $log)
                 <tr>
                     <td>{{ $key + 1 }}</td>
-                    <td>{{ $log->user->name }}</td>
+                    <td>{{ $log->user->name ?? 'Unknown User' }}</td>
+
                     <td>{{ $log->login_time }}</td>
                     <td>{{ $log->logout_time ?? 'Active Now' }}</td>
                     <td>{{ $log->total_minutes ?? 'Calculating...' }}</td>

@@ -327,3 +327,12 @@ VALUES
   (43, 'Asset Master', 'superadmin', 'Asset Type', 'assetmaster.asset_type.index', 'bi bi-tag', 1, 1, 1, 1, 1),
   (44, 'Asset Master', 'superadmin', 'Make Type', 'assetmaster.make_type.index', 'bi bi-tools', 1, 1, 1, 1, 1),
   (45, 'Asset', 'superadmin', 'Asset', 'asset.index', 'bi bi-shield-check', 1, 1, 1, 1, 1),
+
+  
+ALTER TABLE `assets`
+DROP COLUMN `warranty_date`;
+
+ADD COLUMN `warranty` VARCHAR(255) NULL AFTER `purchase_date`,
+
+-- login log table
+ALTER TABLE login_logs MODIFY login_time DATETIME NOT NULL;

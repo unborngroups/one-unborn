@@ -110,7 +110,10 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
                             <?php endif; ?>
 
                             <!--  -->
-                          <?php if($Asset && $Asset->can_menu): ?>
+                        <?php
+                            $assetMasterRoutesAvailable = Route::has('assetmaster.asset_type.index') || Route::has('assetmaster.make_type.index');
+                        ?>
+                        <?php if($Asset && $Asset->can_menu && $assetMasterRoutesAvailable): ?>
 <li>
     <a class="nav-link text-white d-flex justify-content-between align-items-center"
        data-bs-toggle="collapse" href="#assetMasterMenu" role="button"
@@ -123,7 +126,7 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
     <div class="collapse <?php echo e(request()->is('assetmaster/*') ? 'show' : ''); ?>" id="assetMasterMenu">
         <ul class="nav flex-column ms-3 mt-1">
 
-            <?php if($assetType && $assetType->can_menu): ?>
+            <?php if($assetType && $assetType->can_menu && Route::has('assetmaster.asset_type.index')): ?>
                 <li>
                     <a href="<?php echo e(route('assetmaster.asset_type.index')); ?>"
                        class="nav-link text-white menu-item <?php echo e(request()->is('assetmaster/asset_type*') ? 'active' : ''); ?>">
@@ -132,7 +135,7 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
                 </li>
             <?php endif; ?>
 
-            <?php if($makeType && $makeType->can_menu): ?>
+            <?php if($makeType && $makeType->can_menu && Route::has('assetmaster.make_type.index')): ?>
                 <li>
                     <a href="<?php echo e(route('assetmaster.make_type.index')); ?>"
                        class="nav-link text-white menu-item <?php echo e(request()->is('assetmaster/make_type*') ? 'active' : ''); ?>">

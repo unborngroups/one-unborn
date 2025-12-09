@@ -224,75 +224,6 @@
 </div>
                 <!-- product Category -->
                  <!-- resources/views/vendors/form.blade.php (or create.blade.php) -->
-<!-- <div class="row">
-    <div class="col-md-4">
-        <label>Product Category</label>
-        <select name="product_category" id="product_category" class="form-control">
-            <option value="">-- Select --</option>
-            <option value="Switch" <?php echo e(old('product_category', $vendor->product_category ?? '') == 'Switch' ? 'selected' : ''); ?>>Switch</option>
-            <option value="Router" <?php echo e(old('product_category', $vendor->product_category ?? '') == 'Router' ? 'selected' : ''); ?>>Router</option>
-            <option value="SD WAN" <?php echo e(old('product_category', $vendor->product_category ?? '') == 'SD WAN' ? 'selected' : ''); ?>>SD WAN</option>
-        </select>
-    </div>
-
-    <div class="col-md-4">
-        <label>Make</label>
-        <select name="make_id" id="make_id" class="form-control">
-    <option value="">-- Select Make --</option>
-    <?php $__currentLoopData = $vendorMakes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $make): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-    <option value="<?php echo e($make->id); ?>"
-        data-company="<?php echo e($make->company_name); ?>"
-        data-contact="<?php echo e($make->contact_no); ?>"
-        data-email="<?php echo e($make->email_id); ?>">
-        <?php echo e($make->make_name); ?>
-
-    </option>
-<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-</select>
-    </div>
-
-    <div class="col-md-4">
-        <label>Company Name</label>
-        <input type="text" name="company_name" id="company_name" class="form-control" value="<?php echo e(old('company_name', $vendor->company_name ?? '')); ?>">
-    </div>
-
-    <div class="col-md-4 mt-3">
-        <label>Contact No</label>
-        <input type="text" name="make_contact_no" id="make_contact_no" class="form-control" value="<?php echo e(old('make_contact_no', $vendor->make_contact_no ?? '')); ?>">
-    </div>
-
-    <div class="col-md-4 mt-3">
-        <label>Email ID</label>
-        <input type="email" name="make_email" id="make_email" class="form-control" value="<?php echo e(old('make_email', $vendor->make_email ?? '')); ?>">
-    </div>
-
-    <div class="col-md-4 mt-3">
-        <label>Model No</label>
-        <input type="text" name="model_no" class="form-control" value="<?php echo e(old('model_no', $vendor->model_no ?? '')); ?>">
-    </div>
-
-    <div class="col-md-4 mt-3">
-        <label>Serial No</label>
-        <input type="text" name="serial_no" class="form-control" value="<?php echo e(old('serial_no', $vendor->serial_no ?? '')); ?>">
-    </div>
-
-    <div class="col-md-4 mt-3">
-        <label>Asset ID</label>
-        <div class="input-group">
-            <input type="text" name="asset_id" id="asset_id" class="form-control" value="<?php echo e(old('asset_id', $vendor->asset_id ?? '')); ?>" readonly>
-            <button type="button" id="generate_barcode" class="btn btn-outline-secondary">Generate Barcode</button>
-        </div>
-        <div id="barcode_preview" class="mt-2">
-            <?php if(!empty($vendor->asset_id)): ?>
-                <img src="<?php echo e(route('vendors.barcode', ['assetId' => $vendor->asset_id])); ?>" alt="Barcode">
-            <?php endif; ?>
-        </div>
-    </div>
-</div>
- -->
-                 
-
-
             
 
             <h5 class="text-dark-primary mt-3">Contact Person</h5>
@@ -438,39 +369,73 @@ document.getElementById('make_id').addEventListener('change', function () {
 });
 
 
-// GST Fetch
 function fetchGST() {
+
     let pan = document.getElementById("pan_number").value.trim();
+
+    let state = document.getElementById("gst_state").value;
+
     let gstStatus = document.getElementById("gstStatus");
 
-    if (pan.length !== 10) {
-        gstStatus.innerHTML = "⚠️ Enter valid PAN";
+
+
+    if (pan.length !== 10 || state === "") {
+
+        gstStatus.innerHTML = "⚠️ Enter valid PAN + Select State";
+
         return;
+
     }
+
+
 
     gstStatus.innerHTML = "⏳ Fetching GST details...";
 
-    fetch(`/api/gst/fetch/${pan}`)
+
+
+    fetch(`/api/gst/fetch/${pan}/${state}`)
+
         .then(res => res.json())
+
         .then(data => {
+
             if (data.success) {
+
                 document.getElementById("gstin").value = data.data.gstin;
+
                 document.getElementById("business_display_name").value = data.data.trade_name;
+
                 document.getElementById("address1").value = data.data.address;
+
                 document.getElementById("billing_spoc_email").value = data.data.company_email;
+
                 document.getElementById("billing_spoc_contact").value = data.data.company_phone;
+
+
+
                 gstStatus.innerHTML = "✅ GST Details Auto-filled!";
+
             } else {
-                gstStatus.innerHTML = "❌ GST Not Found for this PAN";
+
+                gstStatus.innerHTML = "❌ GST Not Found for this PAN + State";
+
             }
+
         })
-        .catch(() => gstStatus.innerHTML = "⚠ Server Error");
+
+        .catch(() => {
+
+            gstStatus.innerHTML = "⚠️ Server Error";
+
+        });
+
 }
+
 
 
 document.getElementById("pan_number").addEventListener("blur", fetchGST);
 
-// document.getElementById("gst_state").addEventListener("change", fetchGST);
+document.getElementById("gst_state").addEventListener("change", fetchGST);
 
 <!-- include jQuery -->
 
@@ -533,10 +498,9 @@ $('#make_id').change(function () {
 
 </script>
 
-<script src="<?php echo e(asset('js/gstin-fetch.js')); ?>"></script>
 
 
-<!-- <script src="<?php echo e(asset('js/gstin-fetch-vendor.js')); ?>"></script> -->
+<script src="<?php echo e(asset('js/gstin-fetch-vendor.js')); ?>"></script>
 
 <?php $__env->stopSection(); ?>
 

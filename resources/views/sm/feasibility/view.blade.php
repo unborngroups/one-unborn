@@ -259,14 +259,17 @@
                 <p class="form-control-plaintext">{{ $record->feasibility->hardware_required ? 'Yes' : 'No' }}</p>
 
             </div>
-
 @if(!empty($record->feasibility->hardware_details))
     <div class="col-md-3">
         <label class="form-label fw-semibold">Hardware Model Name</label>
         @foreach(json_decode($record->feasibility->hardware_details, true) as $item)
+            @php
+                $make = \App\Models\MakeType::find($item['make_type_id']);
+                $model = \App\Models\Asset::select('model')->find($item['model_id']);
+            @endphp
             <p class="mb-1">
-                Make: {{ $item['make'] }} <br>
-                Model: {{ $item['model'] }}
+                Make: {{ $make->make_name ?? 'N/A' }} <br>
+                Model: {{ $model->model ?? 'N/A' }}
             </p>
         @endforeach
     </div>

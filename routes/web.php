@@ -28,10 +28,10 @@ use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\AccountController;
-use App\Http\Controllers\HrController;
+use App\Http\Controllers\hrController;
 use App\Http\Controllers\ComplianceController;
 use App\Http\Controllers\Asset_typeController;
-use App\Http\Controllers\make_typeController;
+use App\Http\Controllers\Make_typeController;
 use App\Http\Controllers\VendorMakeController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\TrainingController;
@@ -143,6 +143,11 @@ Route::delete('users/{user}', [UserController::class, 'destroy'])
         'clients' => ClientController::class,
         'emails' => EmailTemplateController::class,
     ]);
+    // vendor import route
+    Route::post('/vendors/import', [
+        VendorController::class,
+        'import'
+    ])->name('vendors.import');
 
     //view path
     Route::get('/users/{id}/view', [UserController::class, 'view'])->name('users.view');
@@ -308,6 +313,8 @@ Route::post('/import-feasibility', [FeasibilityExcelController::class, 'import']
 
     });
 
+   
+
     Route::prefix('sm')->name('sm.')->middleware(['auth'])->group(function () {
 
     Route::prefix('proposal')->name('proposal.')->group(function () {
@@ -323,18 +330,46 @@ Route::post('/import-feasibility', [FeasibilityExcelController::class, 'import']
     });
 
 
-Route::get('/hr', [HrController::class, 'index'])->name('hr.index');
+Route::get('/hr', [hrController::class, 'index'])->name('hr.index');
 Route::get('/compliance', [ComplianceController::class, 'index'])->name('compliance.index');
 Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
 Route::get('/training', [TrainingController::class, 'index'])->name('training.index');
 Route::get('/strategy', [StrategyController::class, 'index'])->name('strategy.index');
 Route::get('/assurance', [AssuranceController::class, 'index'])->name('assurance.index');
-Route::get('/assetmaster/asset_type', [Asset_typeController::class, 'index'])->name('assetmaster.asset_type.index');
-Route::get('/assetmaster/make_type', [Make_typeController::class, 'index'])->name('assetmaster.make_type.index');
-Route::get('/asset', [AssetController::class, 'index'])->name('asset.index');
-Route::get('/asset', [AssetController::class, 'index'])->name('asset.create');
 
+// Route::get('/assetmaster/asset_type', [Asset_typeController::class, 'index'])->name('assetmaster.asset_type.index');
+// Route::get('/assetmaster/make_type', [Make_typeController::class, 'index'])->name('assetmaster.make_type.index');
 
+ 
+Route::prefix('assetmaster/asset_type')->name('assetmaster.asset_type.')->group(function () {
+    Route::get('/', [Asset_typeController::class, 'index'])->name('index');
+    Route::get('/create', [Asset_typeController::class, 'create'])->name('create');
+    Route::post('/', [Asset_typeController::class, 'store'])->name('store');
+    Route::get('/{assetType}/edit', [Asset_typeController::class, 'edit'])->name('edit');
+    Route::put('/{assetType}', [Asset_typeController::class, 'update'])->name('update');
+    Route::delete('/{assetType}', [Asset_typeController::class, 'destroy'])->name('destroy');
+});
+Route::prefix('assetmaster/make_type')->name('assetmaster.make_type.')->group(function () {
+    Route::get('/', [Make_typeController::class, 'index'])->name('index');
+    Route::get('/create', [Make_typeController::class, 'create'])->name('create');
+    Route::post('/', [Make_typeController::class, 'store'])->name('store');
+    Route::get('/{makeType}/edit', [Make_typeController::class, 'edit'])->name('edit');
+    Route::put('/{makeType}', [Make_typeController::class, 'update'])->name('update');
+    Route::delete('/{makeType}', [Make_typeController::class, 'destroy'])->name('destroy');
+    Route::get('/generate-id/{company}/{brand}', [AssetController::class, 'generateAssetId']);
+});
+Route::resource('assets', AssetController::class);
+Route::get('/assets/next-asset-id', [AssetController::class, 'nextAssetID']);
+//  Route::delete('/asset/{asset}', [AssetController::class, 'destroy'])->name('destroy');
+
+Route::get('/asset', [AssetController::class, 'index'])->name('asset.index');     // list page
+Route::get('/asset/create', [AssetController::class, 'create'])->name('asset.create'); // add page
+Route::post('/asset/store', [AssetController::class, 'store'])->name('asset.store'); // store action
+Route::get('/asset/{asset}/view', [AssetController::class, 'view'])->name('asset.view');
+Route::get('/asset/{id}/edit', [AssetController::class, 'edit'])->name('asset.edit'); // edit page
+Route::put('/asset/{id}', [AssetController::class, 'update'])->name('asset.update'); // update action   
+// Route::delete('/asset/{asset}', [AssetController::class, 'destroy'])->name('asset.destroy'); // delete action
+Route::delete('/asset/{asset}', [AssetController::class, 'destroy'])->name('asset.destroy');
 
 
 

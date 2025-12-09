@@ -11,6 +11,8 @@ use App\Models\FeasibilityStatus;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use App\Models\MakeType;
+use App\Models\Asset;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\FeasibilityImport;
 use App\Helpers\EmailHelper;
@@ -66,8 +68,10 @@ class FeasibilityController extends Controller
         
         // Clients are always independent - show all clients to everyone
         $clients = Client::all();
-        
-        return view('feasibility.create', compact('clients', 'companies'));
+        $makes     = MakeType::all();
+        $models = Asset::select('id', 'model as model_name')->get();
+
+        return view('feasibility.create', compact('clients', 'companies', 'makes', 'models'));
     }
 
     public function store(Request $request)
@@ -102,32 +106,6 @@ class FeasibilityController extends Controller
     'static_ip_subnet' => $request->static_ip == 'Yes' ? 'required' : 'nullable',
         ]);
 
-    //     $feasibility = new Feasibility();
-    // $feasibility->hardware_required = $request->hardware_required;
-
-    // // Build JSON array
-    // $hardwareData = [];
-
-    // if ($request->hardware_required == '1') {
-
-    //     for ($i = 0; $i < count($request->hardware_make); $i++) {
-
-    //         // Skip blank entries
-    //         if (empty($request->hardware_make[$i]) && empty($request->hardware_model_name[$i])) {
-    //             continue;
-    //         }
-
-    //         $hardwareData[] = [
-    //             'make'  => $request->hardware_make[$i],
-    //             'model' => $request->hardware_model_name[$i],
-    //         ];
-    //          }
-    // }
-
-    // $feasibility->hardware_details = json_encode($hardwareData);
-
-    // $feasibility->save();
-
          // 🧠 Convert DD-MM-YYYY to YYYY-MM-DD before saving
     $validated['expected_delivery'] = date('Y-m-d', strtotime(str_replace('-', '/', $request->expected_delivery)));
     $validated['expected_activation'] = date('Y-m-d', strtotime(str_replace('-', '/', $request->expected_activation)));
@@ -138,19 +116,15 @@ class FeasibilityController extends Controller
     // Add created_by
     $validated['created_by'] = Auth::user()->id;
     // Build hardware JSON
-    $hardwareData = [];
-    if ($request->hardware_required == '1') {
-        for ($i = 0; $i < count($request->hardware_make); $i++) {
-            if (empty($request->hardware_make[$i]) && empty($request->hardware_model_name[$i])) {
-                continue;
-            }
+   $hardwareData = [];
 
-            $hardwareData[] = [
-                'make' => $request->hardware_make[$i],
-                'model' => $request->hardware_model_name[$i],
-            ];
-        }
-    }
+if ($request->hardware_required == '1') {
+    $hardwareData[] = [
+        'make_type_id' => $request->make_type_id,
+        'model_id'     => $request->model_id,
+    ];
+}
+
 
     // Store JSON in validated array
     $validated['hardware_details'] = json_encode($hardwareData);
@@ -221,25 +195,7 @@ private function sendCreatedEmail($feasibility)
         ]);
     }
 }
-//         // Convert to array of email strings
-//         $emails = collect($operationUsers)->pluck('official_email')->filter()->toArray();
 
-//         if (!empty($emails)) {
-//             Mail::to($emails)->send(
-//                 new \App\Mail\FeasibilityStatusMail(
-//                     $feasibility,
-//                     'Created',
-//                     null,
-//                     Auth::user(),
-//                     'created'
-//                 )
-//             );
-//         }
-
-//     } catch (\Exception $e) {
-//         Log::error('Feasibility create email failed', ['error' => $e->getMessage()]);
-//     }
-// }
 
 private function sendUpdatedEmail($feasibility)
 {
@@ -295,30 +251,6 @@ private function sendUpdatedEmail($feasibility)
             'hardware_model' => 'array|nullable',
             'status' => 'required|in:Active,Inactive',
         ]);
-    //     $feasibility = Feasibility::findOrFail($id);
-    // $feasibility->hardware_required = $request->hardware_required;
-
-    // // Build JSON array again
-    // $hardwareData = [];
-
-    // if ($request->hardware_required == '1') {
-
-    //     for ($i = 0; $i < count($request->hardware_make); $i++) {
-
-    //         if (empty($request->hardware_make[$i]) && empty($request->hardware_model_name[$i])) {
-    //             continue;
-    //         }
-
-    //         $hardwareData[] = [
-    //             'make'  => $request->hardware_make[$i],
-    //             'model' => $request->hardware_model_name[$i],
-    //         ];
-    //     }
-    // }
-    
-    // $feasibility->hardware_details = json_encode($hardwareData);
-
-    // $feasibility->save();
 
          // 🧠 Convert DD-MM-YYYY to YYYY-MM-DD before saving
     $validated['expected_delivery'] = date('Y-m-d', strtotime(str_replace('-', '/', $request->expected_delivery)));

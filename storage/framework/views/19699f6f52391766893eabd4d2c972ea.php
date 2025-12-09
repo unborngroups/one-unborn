@@ -37,15 +37,15 @@
 
         <?php if(auth()->guard()->check()): ?>
         <?php if(isset($onlineSince)): ?>
-    <span class="me-3 fw-semibold text-primary" style="font-size: 15px;">
-        ⏱ Online: <?php echo e($onlineSince); ?>
-
-        <?php if(!empty($onlineDurationLabel)): ?>
-            (<?php echo e($onlineDurationLabel); ?>)
+            <span id="onlineStatusTicker" class="me-3 fw-semibold text-primary" style="font-size: 15px;" data-login-time="<?php echo e($onlineLoginTimeIso); ?>">
+                ⏱ Online since <span id="onlineSinceValue"><?php echo e($onlineSince); ?></span>
+                <?php if(!empty($onlineDurationLabel)): ?>
+                    (<span id="onlineDurationLabel"><?php echo e($onlineDurationLabel); ?></span>)
+                <?php else: ?>
+                    (<span id="onlineDurationLabel">0s</span>)
+                <?php endif; ?>
+            </span>
         <?php endif; ?>
-    </span>
-<?php endif; ?>
-
 
         <div class="dropdown">
 
@@ -97,4 +97,40 @@
 
 </nav>
 
-<?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views/layouts/navbar.blade.php ENDPATH**/ ?>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const ticker = document.getElementById('onlineStatusTicker');
+        if (!ticker || !ticker.dataset.loginTime) {
+            return;
+        }
+
+        const durationSpan = document.getElementById('onlineDurationLabel');
+        const loginTime = new Date(ticker.dataset.loginTime);
+
+        const formatDuration = (milliseconds) => {
+            const totalSeconds = Math.floor(milliseconds / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            const parts = [];
+            if (hours) {
+                parts.push(hours + 'h');
+            }
+            if (minutes) {
+                parts.push(minutes + 'm');
+            }
+            parts.push(seconds + 's');
+            return parts.join(' ');
+        };
+
+        const updateDuration = () => {
+            const elapsed = Math.max(Date.now() - loginTime.getTime(), 0);
+            if (durationSpan) {
+                durationSpan.textContent = formatDuration(elapsed);
+            }
+        };
+
+        updateDuration();
+        setInterval(updateDuration, 1000);
+    });
+</script><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views/layouts/navbar.blade.php ENDPATH**/ ?>

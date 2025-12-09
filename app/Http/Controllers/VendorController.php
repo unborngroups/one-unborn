@@ -473,7 +473,12 @@ public function export()
     public function import(Request $request)
     {
         $request->validate([
-            'file' => ['required', 'file', 'mimes:xlsx,csv,ods']
+            'file' => [
+                'required',
+                'file',
+                'mimes:xlsx,csv,ods,xls',
+                'mimetypes:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/octet-stream'
+            ]
         ]);
 
         $this->importErrors = [];
@@ -491,58 +496,35 @@ public function export()
 
         foreach ((new FastExcel)->import($importPath) as $row) {
             $rowNumber++;
-            $companyIdentifier = $row['Company ID'] ?? $row['Company Name'] ?? $row['Company'] ?? 'unknown';
-            $clientIdentifier = $row['Client ID'] ?? $row['Client Name'] ?? $row['Client'] ?? 'unknown';
-
-            $companyId = $this->resolveCompanyId($companyIdentifier);
-            $clientId = $this->resolveClientId($clientIdentifier);
-
-            if (!$companyId) {
-                $this->importErrors[] = "Row {$rowNumber}: Company '{$companyIdentifier}' not found.";
-                $failureCount++;
-                continue;
-            }
-
-            if (!$clientId) {
-                $this->importErrors[] = "Row {$rowNumber}: Client '{$clientIdentifier}' not found.";
-                $failureCount++;
-                continue;
-            }
+            $normalizedRow = $this->normalizeImportRow($row);
 
             $prepared = [
-                'vendor_name' => $this->normalizeString($row['Vendor Name'] ?? $row['Vendor Name'] ?? null),
-                'user_name' => $this->normalizeString($row['Pincode'] ?? $row['Pin Code'] ?? null),
-                'vendor_code' => $this->normalizeString($row['Pincode'] ?? $row['Pin Code'] ?? null),
-                'business_display_name' => $this->normalizeString($row['State'] ?? null),
-                'address1' => $this->normalizeString($row['City'] ?? null),
-                'address2' => $this->normalizeString($row['District'] ?? null),
-                'address3' => $this->normalizeString($row['Area'] ?? null),
-                'city' => $this->normalizeString($row['Address'] ?? null),
-                'state' => $this->normalizeString($row['SPOC Name'] ?? $row['SPOC Contact Name'] ?? null),
-                'country' => $this->normalizeString($row['SPOC Contact1'] ?? $row['SPOC Contact 1'] ?? null),
-                'pincode' => $this->normalizeString($row['SPOC Contact2'] ?? $row['SPOC Contact 2'] ?? null),
-                'contact_person_name' => $this->normalizeString($row['SPOC Email'] ?? $row['SPOC Email ID'] ?? null),
-                'contact_person_mobile' => $this->normalizeString($row['No of Links'] ?? null),
-                'contact_person_email' => $this->normalizeString($row['Vendor Type'] ?? $row['Vendor'] ?? null),
-                'gstin' => $this->normalizeString($row['Speed'] ?? null),
-                'pan_no' => $this->normalizeStaticIp($row['Static IP'] ?? null),
-                'bank_account_no' => $this->normalizeString($row['Static IP Subnet'] ?? null),
-                'ifsc_code' => $this->parseDate($row['Expected Delivery'] ?? $row['Delivery Date'] ?? null),
-                'product_category' => $this->parseDate($row['Expected Activation'] ?? $row['Activation Date'] ?? null),
-                'make_id' => $this->normalizeHardwareRequired($row['Hardware Required'] ?? null),
-                'company_name' => $this->normalizeString($row['Hardware Model Name'] ?? $row['Hardware Model'] ?? null),
-                'make_contact_no' => $this->normalizeStatus($row['Status'] ?? null),
-                'make_email' => $this->normalizeStatus($row['Status'] ?? null),
-                'model_no' => $this->normalizeStatus($row['Status'] ?? null),
-                'serial_no' => $this->normalizeStatus($row['Status'] ?? null),
-                'asset_id' => $this->normalizeStatus($row['Status'] ?? null),
-                
-                
+                'vendor_name' => $this->normalizeString($this->getFirstMatchingValue($normalizedRow, ['vendor_name', 'vendor'])),
+                'user_name' => $this->normalizeString($this->getFirstMatchingValue($normalizedRow, ['user_name', 'username'])),
+                'vendor_code' => $this->normalizeString($this->getFirstMatchingValue($normalizedRow, ['vendor_code', 'code'])),
+                'business_display_name' => $this->normalizeString($this->getFirstMatchingValue($normalizedRow, ['business_display_name', 'business_name', 'company_name', 'trade_name'])),
+                'address1' => $this->normalizeString($this->getFirstMatchingValue($normalizedRow, ['address1', 'address_1', 'address_line_1'])),
+                'address2' => $this->normalizeString($this->getFirstMatchingValue($normalizedRow, ['address2', 'address_2', 'address_line_2'])),
+                'address3' => $this->normalizeString($this->getFirstMatchingValue($normalizedRow, ['address3', 'address_3', 'address_line_3'])),
+                'city' => $this->normalizeString($this->getFirstMatchingValue($normalizedRow, ['city'])),
+                'state' => $this->normalizeString($this->getFirstMatchingValue($normalizedRow, ['state', 'province'])),
+                'country' => $this->normalizeString($this->getFirstMatchingValue($normalizedRow, ['country'])),
+                'pincode' => $this->normalizeString($this->getFirstMatchingValue($normalizedRow, ['pincode', 'pin_code', 'postal_code', 'zip_code'])),
+                'contact_person_name' => $this->normalizeString($this->getFirstMatchingValue($normalizedRow, ['contact_person_name', 'contact_person', 'spoc_name'])),
+                'contact_person_mobile' => $this->normalizeString($this->getFirstMatchingValue($normalizedRow, ['contact_person_mobile', 'contact_mobile', 'spoc_contact1', 'spoc_contact_1'])),
+                'contact_person_email' => $this->normalizeString($this->getFirstMatchingValue($normalizedRow, ['contact_person_email', 'contact_email', 'spoc_email'])),
+                'gstin' => $this->normalizeString($this->getFirstMatchingValue($normalizedRow, ['gstin'])),
+                'pan_no' => $this->normalizeString($this->getFirstMatchingValue($normalizedRow, ['pan_no', 'pan'])),
+                'branch_name' => $this->normalizeString($this->getFirstMatchingValue($normalizedRow, ['branch_name', 'branch'])),
+                'bank_name' => $this->normalizeString($this->getFirstMatchingValue($normalizedRow, ['bank_name', 'bank'])),
+                'bank_account_no' => $this->normalizeString($this->getFirstMatchingValue($normalizedRow, ['bank_account_no', 'bank_account_number', 'account_number'])),
+                'ifsc_code' => $this->normalizeString($this->getFirstMatchingValue($normalizedRow, ['ifsc_code', 'ifsc'])),
+                'status' => $this->normalizeStatus($this->getFirstMatchingValue($normalizedRow, ['status'])),
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
 
-            $missingFields = $this->validateRequiredFields($prepared, $companyIdentifier, $clientIdentifier);
+            $missingFields = $this->validateVendorImportFields($prepared, $rowNumber);
 
             if (!empty($missingFields)) {
                 $this->importErrors = array_merge($this->importErrors, $missingFields);
@@ -551,11 +533,7 @@ public function export()
             }
 
             try {
-                $vendor = Vendor::create($prepared);
-                Vendor::create([
-                    'feasibility_id' => $vendor->id,
-                    'status' => 'Open',
-                ]);
+                Vendor::create($prepared);
                 $successCount++;
             } catch (\Exception $e) {
                 $this->importErrors[] = "Row {$rowNumber}: Failed to save - " . $e->getMessage();
@@ -667,67 +645,43 @@ public function export()
         return 'Active';
     }
 
-    protected function validateRequiredFields(array $rowData, string $companyIdentifier, string $clientIdentifier): array
+    protected function validateVendorImportFields(array $rowData, int $rowNumber): array
     {
         $missing = [];
-        $required = [
-            'type_of_service',
-            'company_id',
-            'client_id',
-            'pincode',
-            'state',
-            'district',
-            'area',
-            'address',
-            'spoc_name',
-            'spoc_contact1',
-            'no_of_links',
-            'vendor_type',
-            'speed',
-            'static_ip',
-            'expected_delivery',
-            'expected_activation',
-        ];
 
-        foreach ($required as $field) {
-            if (empty($rowData[$field])) {
-                $missing[] = "Feasibility row for company '{$companyIdentifier}' and client '{$clientIdentifier}' is missing required field '{$field}'.";
-            }
+        if (empty($rowData['vendor_name'])) {
+            $missing[] = "Row {$rowNumber}: Vendor Name is required.";
         }
 
         return $missing;
     }
 
-    protected function resolveCompanyId($value)
+    protected function normalizeImportRow(array $row): array
     {
-        $value = $this->normalizeString($value);
-        if (!$value) {
-            return null;
+        $normalized = [];
+        foreach ($row as $key => $value) {
+            $cleanKey = strtolower(trim($key));
+            $cleanKey = preg_replace('/\s+/', '_', $cleanKey);
+            $cleanKey = preg_replace('/[^a-z0-9_]/', '', $cleanKey);
+
+            if ($cleanKey === '') {
+                continue;
+            }
+
+            $normalized[$cleanKey] = $value;
         }
 
-        if (is_numeric($value)) {
-            return Company::find((int) $value)?->id;
-        }
-
-        return Company::whereRaw('LOWER(company_name) = ?', [Str::lower($value)])->value('id');
+        return $normalized;
     }
 
-    protected function resolveClientId($value)
+    protected function getFirstMatchingValue(array $row, array $keys)
     {
-        $value = $this->normalizeString($value);
-        if (!$value) {
-            return null;
+        foreach ($keys as $key) {
+            if (array_key_exists($key, $row) && $row[$key] !== null && $row[$key] !== '') {
+                return $row[$key];
+            }
         }
 
-        if (is_numeric($value)) {
-            return Vendor::find((int) $value)?->id;
-        }
-
-        return Vendor::where(function ($query) use ($value) {
-            $query->whereRaw('LOWER(client_name) = ?', [Str::lower($value)])
-                ->orWhereRaw('LOWER(business_display_name) = ?', [Str::lower($value)]);
-        })->value('id');
+        return null;
     }
 }
-
-

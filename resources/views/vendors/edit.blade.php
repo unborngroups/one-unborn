@@ -24,6 +24,36 @@
 
         @endif
 
+         @php
+            $importRow = session('imported_row', []);
+        @endphp
+     
+    <!-- <h5 class="mb-3 ">Import Feasibility</h5> -->
+        <div class="row g-3 mb-3">
+            <div class="col-md-12">
+                <button class="btn btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#importCard" aria-expanded="false" aria-controls="importCard">
+                    Import Vendors via Excel
+                </button>
+                <div class="collapse mt-3" id="importCard">
+                    <div class="card border-info">
+                        <div class="card-body">
+                            <p class="mb-3 small text-muted">Download the sample format, populate it with vendor data, and then upload it via Import Excel.</p>
+                            <form action="{{ route('vendors.import') }}" method="POST" enctype="multipart/form-data">
+                                @csrf
+                                <div class="input-group">
+                                    <input type="file" name="file" class="form-control" required  accept=".xlsx, .xls,.csv,.xlsm,.ods">
+                                    <a href="{{ asset('images/importvendor/vendor_import_6937cc228b94e.xlsx') }}" target="_blank" class="btn btn-outline-secondary" title="Download vendor sample">Download Format</a>
+                                    <button type="submit" class="btn btn-primary">Import Excel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
 <div class="container py-4">
 
     <h3 class="mb-3 text-primary">Edit Vendor</h3>
@@ -140,7 +170,7 @@
 
                    value="{{ old('address3', $vendor->address3) }}">
 
-            {{-- 🗺️ City, State, Country dropdowns --}}
+            {{-- 🗺 City, State, Country dropdowns --}}
 
             <div class="row">
 
@@ -360,7 +390,7 @@ function fetchGST() {
 
     if (pan.length !== 10 || state === "") {
 
-        gstStatus.innerHTML = "⚠️ Enter valid PAN + Select State";
+        gstStatus.innerHTML = "⚠ Enter valid PAN + Select State";
 
         return;
 
@@ -404,7 +434,7 @@ function fetchGST() {
 
         .catch(() => {
 
-            gstStatus.innerHTML = "⚠️ Server Error";
+            gstStatus.innerHTML = "⚠ Server Error";
 
         });
 
@@ -423,4 +453,3 @@ document.getElementById("gst_state").addEventListener("change", fetchGST);
 <script src="{{ asset('js/gstin-fetch-vendor.js') }}"></script>
 
 @endsection
-
