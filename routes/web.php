@@ -64,27 +64,13 @@ Route::post('/login', [AuthController::class, 'login']);
 });
 // Logout route
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
-
-// Route::post('/logout', function () {
-//     Auth::logout();
-//     return redirect()->route('login');
-// })->name('logout');
-
-// Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
-
-// Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
-
-
-
+// Password forgot Routes
 Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotForm']);
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink']);
-
-
+// reset password routes
 Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm']);
 Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword']);
-
-
+// 👤 Profile Routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
     Route::get('/profile/create', [ProfileController::class, 'create'])->name('profile.create');
@@ -98,40 +84,18 @@ Route::middleware(['auth'])->group(function () {
 // 🚫 MAIN APP ACCESS — only if profile created (or superadmin)
 //
 Route::middleware(['auth', \App\Http\Middleware\CheckProfileCreated::class])->group(function () {
-
-// Route::middleware(['auth', 'profile.created'])->group(function () {
-// Route::middleware(['auth', CheckProfileCreated::class])->group(function () {
     // 🏠 Dashboard
-    Route::get('/welcome', [DashboardController::class, 'index'])
-        ->name('welcome');
+Route::get('/welcome', [DashboardController::class, 'index'])->name('welcome');
 
     //     // 👤 Users (Privilege control)
     // 👤 User routes (Privilege controlled)
-Route::get('users', [UserController::class, 'index'])
-    ->middleware(\App\Http\Middleware\CheckPrivilege::class .':view')
-    ->name('users.index');
-
-Route::get('users/create', [UserController::class, 'create'])
-    ->middleware(\App\Http\Middleware\CheckPrivilege::class .':add')
-    ->name('users.create');
-
-Route::post('users', [UserController::class, 'store'])
-    ->middleware(\App\Http\Middleware\CheckPrivilege::class .':add')
-    ->name('users.store');
-
-Route::get('users/{user}/edit', [UserController::class, 'edit'])
-    ->middleware(\App\Http\Middleware\CheckPrivilege::class .':edit')
-    ->name('users.edit');
-
-Route::put('users/{user}', [UserController::class, 'update'])
-    ->middleware(\App\Http\Middleware\CheckPrivilege::class .':edit')
-    ->name('users.update');
-
-Route::delete('users/{user}', [UserController::class, 'destroy'])
-    ->middleware(\App\Http\Middleware\CheckPrivilege::class .':delete')
-    ->name('users.destroy');
-
-    Route::patch('/users/{id}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
+Route::get('users', [UserController::class, 'index'])->middleware(\App\Http\Middleware\CheckPrivilege::class .':view')->name('users.index');
+Route::get('users/create', [UserController::class, 'create'])->middleware(\App\Http\Middleware\CheckPrivilege::class .':add')->name('users.create');
+Route::post('users', [UserController::class, 'store'])->middleware(\App\Http\Middleware\CheckPrivilege::class .':add')->name('users.store');
+Route::get('users/{user}/edit', [UserController::class, 'edit'])->middleware(\App\Http\Middleware\CheckPrivilege::class .':edit')->name('users.edit');
+Route::put('users/{user}', [UserController::class, 'update'])->middleware(\App\Http\Middleware\CheckPrivilege::class .':edit')->name('users.update');
+Route::delete('users/{user}', [UserController::class, 'destroy'])->middleware(\App\Http\Middleware\CheckPrivilege::class .':delete')->name('users.destroy');
+Route::patch('/users/{id}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
    
 
 
@@ -143,11 +107,13 @@ Route::delete('users/{user}', [UserController::class, 'destroy'])
         'clients' => ClientController::class,
         'emails' => EmailTemplateController::class,
     ]);
-    // vendor import route
-    Route::post('/vendors/import', [
-        VendorController::class,
-        'import'
-    ])->name('vendors.import');
+    // bulk delete routes
+    Route::post('/clients/bulk-delete', [ClientController::class, 'bulkDestroy'])->name('clients.bulk-delete');
+    Route::post('/vendors/bulk-delete', [VendorController::class, 'bulkDestroy'])->name('vendors.bulk-delete');
+    Route::post('/users/bulk-delete', [UserController::class, 'bulkDestroy'])->name('users.bulk-delete');
+    Route::post('/usertypetable/bulk-delete', [UserTypeController::class, 'bulkDestroy'])->name('usertypetable.bulk-delete');
+    Route::post('/companies/bulk-delete', [CompanyController::class, 'bulkDestroy'])->name('companies.bulk-delete');
+    
 
     //view path
     Route::get('/users/{id}/view', [UserController::class, 'view'])->name('users.view');
@@ -182,30 +148,27 @@ Route::delete('/menus/{menu}', [MenuController::class, 'destroy'])->name('menus.
 // ✅ User Privileges
 Route::get('/menus/privileges/{userId}', [MenuController::class, 'editPrivileges'])->name('menus.editPrivileges');
 Route::post('/menus/privileges/{userId}', [MenuController::class, 'updatePrivileges'])->name('menus.updatePrivileges');
+Route::get('/get-privileges/{usertype}', [UserController::class, 'getPrivileges']);
 
 // ✅ User Type Privileges 
 Route::get('/menus/usertype-privileges/{userTypeId}', [MenuController::class, 'editUserTypePrivileges'])->name('menus.editUserTypePrivileges');
 Route::post('/menus/usertype-privileges/{userTypeId}', [MenuController::class, 'updateUserTypePrivileges'])->name('menus.updateUserTypePrivileges');
 
-    // 🧩 User Type Master
-    Route::resource('usertypetable', UserTypeController::class);
-    Route::patch('/usertypetable/{id}/toggle-status', [UserTypeController::class, 'toggleStatus'])->name('usertypetable.toggle-status');
+// 🧩 User Type Master
+Route::resource('usertypetable', UserTypeController::class);
+Route::patch('/usertypetable/{id}/toggle-status', [UserTypeController::class, 'toggleStatus'])->name('usertypetable.toggle-status');
 
-    // 🏢 Company Config + Status
-    Route::patch('/companies/{company}/toggle-status', [CompanyController::class, 'toggleStatus'])->name('companies.toggle-status');
-    Route::get('/companies/{id}/email-config', [CompanyController::class, 'emailConfig'])->name('companies.email.config');
-    Route::post('/companies/{id}/email-config', [CompanyController::class, 'saveEmailConfig'])->name('companies.save.email.config');
+// 🏢 Company Config + Status
+Route::patch('/companies/{company}/toggle-status', [CompanyController::class, 'toggleStatus'])->name('companies.toggle-status');
+Route::get('/companies/{id}/email-config', [CompanyController::class, 'emailConfig'])->name('companies.email.config');
+Route::post('/companies/{id}/email-config', [CompanyController::class, 'saveEmailConfig'])->name('companies.save.email.config');
     
-    // 🔍 Company PAN Fetch for Client Form
-    Route::get('/company/fetch/{pan}', [CompanyController::class, 'fetchByPan'])->name('company.fetch-by-pan');
+// 🔍 Company PAN Fetch for Client Form
+Route::get('/company/fetch/{pan}', [CompanyController::class, 'fetchByPan'])->name('company.fetch-by-pan');
 
-    // 📧 Template Toggle
+// 📧 Template Toggle
     Route::patch('/templates/{id}/toggle-status', [EmailTemplateController::class, 'toggleStatus'])->name('templates.toggle-status');
-
-    // 👨‍💼 Client Toggle
     Route::patch('/clients/{id}/toggle-status', [ClientController::class, 'toggleStatus'])->name('clients.toggle-status');
-
-    // 🧾 Vendor Toggle
     Route::patch('/vendors/{id}/toggle-status', [VendorController::class, 'toggleStatus'])->name('vendors.toggle-status');
 
     // 🏢 GSTIN by PAN API Routes
@@ -286,11 +249,13 @@ Route::get('/test-email', function () {
     Route::resource('feasibility', FeasibilityController::class);
    // Export all users to Excel
 Route::get('/export-feasibility', [FeasibilityExcelController::class, 'export'])->name('feasibility.export');
-// Import feasibilitys from Excel
+// Import Route
+// Route::get('/feasibility/open/{id}', [FeasibilityController::class, 'open'])
+// ->name('feasibility.open');
+
 Route::post('/import-feasibility', [FeasibilityExcelController::class, 'import'])->name('feasibility.import');
+Route::post('/vendors/import', [VendorController::class, 'import'])->name('vendors.import');
 
-
-    // Route::post('feasibility-import', [FeasibilityController::class, 'import'])->name('feasibility.import');
     Route::get('/get-client-details/{id}', [ClientController::class, 'getDetails']);
 
 
@@ -361,7 +326,8 @@ Route::prefix('assetmaster/make_type')->name('assetmaster.make_type.')->group(fu
 Route::resource('assets', AssetController::class);
 Route::get('/assets/next-asset-id', [AssetController::class, 'nextAssetID']);
 //  Route::delete('/asset/{asset}', [AssetController::class, 'destroy'])->name('destroy');
-
+Route::post('/asset/import', [AssetController::class, 'import'])->name('asset.import');
+Route::get('/assets/export', [AssetController::class, 'exportAssets'])->name('asset.export');
 Route::get('/asset', [AssetController::class, 'index'])->name('asset.index');     // list page
 Route::get('/asset/create', [AssetController::class, 'create'])->name('asset.create'); // add page
 Route::post('/asset/store', [AssetController::class, 'store'])->name('asset.store'); // store action
@@ -370,6 +336,8 @@ Route::get('/asset/{id}/edit', [AssetController::class, 'edit'])->name('asset.ed
 Route::put('/asset/{id}', [AssetController::class, 'update'])->name('asset.update'); // update action   
 // Route::delete('/asset/{asset}', [AssetController::class, 'destroy'])->name('asset.destroy'); // delete action
 Route::delete('/asset/{asset}', [AssetController::class, 'destroy'])->name('asset.destroy');
+// print route
+Route::get('/asset/{id}/print', [AssetController::class, 'print'])->name('asset.print');
 
 
 

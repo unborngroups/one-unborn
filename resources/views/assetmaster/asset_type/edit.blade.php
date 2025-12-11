@@ -8,28 +8,6 @@
             @csrf
             @method('PUT')
 
-            <div class="mb-3">
-                <label class="form-label">Company</label>
-                <select name="company_id" class="form-control">
-                    <option value="">Select company</option>
-                    @foreach($companies as $company)
-                        <option value="{{ $company->id }}" {{ (old('company_id', $assetType->company_id) == $company->id) ? 'selected' : '' }}>
-                            {{ $company->company_name }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('company_id')
-                    <div class="text-danger small mt-1">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <!-- <div class="mb-3">
-                <label class="form-label">Asset Type Name</label>
-                <input type="text" name="type_name" class="form-control" value="{{ old('type_name', $assetType->type_name) }}">
-                @error('type_name')
-                    <div class="text-danger small mt-1">{{ $message }}</div>
-                @enderror
-            </div> -->
             <!-- Select Asset type -->
              <div class="col-md-12">
 
@@ -48,8 +26,10 @@
 
                 </div>
 
-            <button class="btn btn-primary">Update Asset Type</button>
-            <a href="{{ route('assetmaster.asset_type.index') }}" class="btn btn-light ms-2">Cancel</a>
+                <div class="mt-3">
+            <button class="btn btn-primary float-start">Update Asset Type</button>
+            </div>
+            <a href="{{ route('assetmaster.asset_type.index') }}" class="btn btn-light ms-2 float-end">Cancel</a>
         </form>
     </div>
 </div>

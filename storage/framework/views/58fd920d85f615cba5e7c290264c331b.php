@@ -51,9 +51,23 @@
 
         <div class="card-header bg-light d-flex justify-content-between">
 
-            <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search...">
+             
+         <?php if($permissions->can_delete): ?>
+         <form id="bulkDeleteForm" action="<?php echo e(route('vendors.bulk-delete')); ?>" method="POST" class="d-inline float-start ms-2">
+             <?php echo csrf_field(); ?>
+             <div id="bulkDeleteInputs"></div>
+         </form>
+         <button id="deleteSelectedBtn" class="btn btn-danger d-none">
+             <i class="bi bi-trash"></i>
+         </button>
+         <?php endif; ?>
+
+            <input type="text" id="tableSearch" class="form-control form-control-sm w-25 float-end" placeholder="Search...">
 
         </div>
+
+
+            
 
         
 
@@ -258,12 +272,57 @@ document.getElementById('tableSearch').addEventListener('keyup', function() {
 // ✅ Select / Deselect all checkboxes
 
 document.getElementById('selectAll').addEventListener('change', function(){
-
     let isChecked = this.checked;
-
-    document.querySelectorAll('.rowCheckbox').forEach(cb => cb.checked = isChecked);
-
+    document.querySelectorAll('.rowCheckbox').forEach(cb => {
+        cb.checked = isChecked;
+    });
+    updateDeleteButtonVisibility();
 });
+
+// Update Delete Button Visibility
+document.getElementById('deleteSelectedBtn')?.addEventListener('click', function () {
+    const selectedIds = Array.from(document.querySelectorAll('.rowCheckbox:checked')).map(cb => cb.value);
+    if (!selectedIds.length) {
+        return;
+    }
+
+    if (!confirm(`Delete ${selectedIds.length} selected client(s)?`)) {
+        return;
+    }
+
+    const inputsContainer = document.getElementById('bulkDeleteInputs');
+    inputsContainer.innerHTML = '';
+    selectedIds.forEach(id => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'ids[]';
+        input.value = id;
+        inputsContainer.appendChild(input);
+    });
+
+    document.getElementById('bulkDeleteForm')?.submit();
+});
+// 
+function updateDeleteButtonVisibility() {
+    const totalChecked = document.querySelectorAll('.rowCheckbox:checked').length;
+    const deleteBtn = document.getElementById('deleteSelectedBtn');
+    if (!deleteBtn) {
+        return;
+    }
+    if (totalChecked > 0) {
+        deleteBtn.classList.remove('d-none');
+    } else {
+        deleteBtn.classList.add('d-none');
+    }
+}
+
+document.querySelectorAll('.rowCheckbox').forEach(cb => {
+    cb.addEventListener('change', updateDeleteButtonVisibility);
+});
+
+// Keep the delete button state correct on page load
+updateDeleteButtonVisibility();
+
 
 </script>
 

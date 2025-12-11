@@ -36,9 +36,14 @@
         <!-- Right: Profile Dropdown -->
 
         @auth
-        @if(isset($onlineSince))
+        @if(isset($clockDisplay) || isset($onlineSince))
             <span id="onlineStatusTicker" class="me-3 fw-semibold text-primary" style="font-size: 15px;" data-login-time="{{ $onlineLoginTimeIso }}">
-                ⏱ Online since <span id="onlineSinceValue">{{ $onlineSince }}</span>
+                ⏱
+                @if(isset($clockDisplay))
+                    <span id="onlineSinceValue">{{ $clockDisplay }}</span>
+                @else
+                    <span id="onlineSinceValue">Online since {{ $onlineSince }}</span>
+                @endif
                 @if(!empty($onlineDurationLabel))
                     (<span id="onlineDurationLabel">{{ $onlineDurationLabel }}</span>)
                 @else

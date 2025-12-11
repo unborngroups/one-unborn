@@ -16,7 +16,7 @@
             <tr>
                 <th>S.No</th>
                 <th width="140">Actions</th>
-                <th>Company</th>
+                <!-- <th>Company</th> -->
                 <th>Make Name</th>
                 <th>Created Date</th>
                 
@@ -34,7 +34,6 @@
                             <button onclick="return confirm('Are you sure?')" class="btn btn-danger btn-sm">Delete</button>
                         </form>
                     </td>
-                    <td><?php echo e($mk->company->company_name); ?></td>
                     <td><?php echo e($mk->make_name); ?></td>
                     <td><?php echo e($mk->created_at->format('d-m-Y')); ?></td>
                     

@@ -14,7 +14,7 @@ class AdminController extends Controller
     // }
 public function index()
 {
-    $logs = LoginLog::with('user')->orderBy('login_time', 'desc')->get();
+    $logs = LoginLog::with('user')->orderBy('login_time', 'asc')->get();
 
     foreach ($logs as $log) {
         if ($log->logout_time) {

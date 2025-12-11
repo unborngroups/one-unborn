@@ -8,21 +8,6 @@
             @csrf
 
             <div class="mb-3">
-                <label class="form-label">Company</label>
-                <select name="company_id" class="form-control">
-                    <option value="">Select company</option>
-                    @foreach($companies as $company)
-                        <option value="{{ $company->id }}" {{ old('company_id') == $company->id ? 'selected' : '' }}>
-                            {{ $company->company_name }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('company_id')
-                    <div class="text-danger small mt-1">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <div class="mb-3">
                 <label class="form-label">Make Name</label>
                 <input type="text" name="make_name" class="form-control" value="{{ old('make_name') }}">
                 @error('make_name')

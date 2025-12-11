@@ -32,6 +32,7 @@
     <th>Model</th>
     <th>Serial No</th>
     <th>Purchase Date</th>
+    <th>Print</th>
     
 </tr>
 </thead>
@@ -73,15 +74,23 @@
            
     </td>
 
-    <td>
-        <p>{!! DNS1D::getBarcodeHTML($a->asset_id, 'C128', 1.4, 40) !!} 
-        {{ $a->asset_id }}</p>
-    </td>
+   <td>
+   <img src="/barcode.php?code={{ $a->asset_id }}" height="2px" >
+<p>{{ $a->asset_id }}</p>
+
+</td>
+
 
     <td>{{ $a->brand }}</td>
     <td>{{ $a->model }}</td>
     <td>{{ $a->serial_no }}</td>
     <td>{{ $a->purchase_date }}</td>
+    <!-- print button -->
+    <td>
+        <a href="{{ route('asset.print', $a->id) }}" class="btn btn-dark" target="_blank">
+    <i class="bi bi-printer"></i> Print
+</a>
+    </td>
     
 </tr>
 @endforeach

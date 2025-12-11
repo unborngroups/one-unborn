@@ -186,6 +186,22 @@ Client::create($validated);
     }
 
     /**
+     * Bulk delete clients selected from the index table.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'required|integer|exists:clients,id',
+        ]);
+
+        Client::whereIn('id', $request->input('ids'))->delete();
+
+        return redirect()->route('clients.index')
+            ->with('success', count($request->input('ids')) . ' client(s) deleted successfully.');
+    }
+
+    /**
      * 
      */
     public function toggleStatus($id)
@@ -443,7 +459,7 @@ public function sendPassword(Request $request)
     \n\nYour portal login credentials:
     \nUsername: {$request->user_name}
     \nPassword: $password  
-    \n\nLogin URL: http://127.0.0.1:8000/client/login
+    \n\nLogin URL: https://one.unborn.in/client/login
     \n\nThank you!", function ($msg) use ($email) {
         $msg->to($email)->subject('Client Portal Credentials');
     });

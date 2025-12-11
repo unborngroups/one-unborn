@@ -201,6 +201,22 @@ class VendorController extends Controller
     }
 
     /**
+     * Bulk delete clients selected from the index table.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'required|integer|exists:vendors,id',
+        ]);
+
+        Vendor::whereIn('id', $request->input('ids'))->delete();
+
+        return redirect()->route('vendors.index')
+            ->with('success', count($request->input('ids')) . ' vendor(s) deleted successfully.');
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(Vendor $vendor)

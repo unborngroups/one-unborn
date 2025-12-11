@@ -15,7 +15,7 @@
         <thead class="table-dark-primary">
             <tr>
                 <th>S.No</th>
-                <th>Company</th>
+                <!-- <th>Company</th> -->
                 <th>Asset Type</th>
                 <th>Created Date</th>
                 <th width="140">Actions</th>
@@ -25,7 +25,6 @@
             @forelse($assetTypes as $key => $at)
                 <tr>
                     <td>{{ $key + 1 }}</td>
-                    <td>{{ $at->company->company_name }}</td>
                     <td>{{ $at->type_name }}</td>
                     <td>{{ $at->created_at->format('d-m-Y') }}</td>
                     <td>

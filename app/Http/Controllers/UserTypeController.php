@@ -115,4 +115,20 @@ class UserTypeController extends Controller
     return redirect()->route('usertypetable.index')
                      ->with('success', 'usertype status updated successfully.');
 }
+
+ /**
+     * Bulk delete clients selected from the index table.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'required|integer|exists:user_types,id',
+        ]);
+
+        UserType::whereIn('id', $request->input('ids'))->delete();
+
+        return redirect()->route('usertypetable.index')
+            ->with('success', count($request->input('ids')) . ' user type(s) deleted successfully.');
+    }
 }

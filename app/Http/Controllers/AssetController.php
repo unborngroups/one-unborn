@@ -1,22 +1,28 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Helpers\TemplateHelper;
-use App\Models\Vendor;
-use App\Models\VendorMake;
-use Carbon\Carbon;
 use App\Models\Asset;
 use App\Models\Company;
 use App\Models\AssetType;
 use App\Models\MakeType;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Rap2hpoutre\FastExcel\FastExcel;
+use Shuchkin\SimpleXLSX;
+require_once app_path('Libraries/SimpleXLSX.php');
+
 
 class AssetController extends Controller
 {
-    // List Assets
-    public function index()
-{
-    // $assets = Asset::latest()->get();
+    private ?int $globalSerial = null;
+
+    public function index(Request $request)
+    {
         $assets = Asset::orderBy('id', 'asc')->paginate(20);
         $permissions = TemplateHelper::getUserMenuPermissions('Asset') ?? (object)[
             'can_menu' => true,
@@ -25,114 +31,472 @@ class AssetController extends Controller
             'can_delete' => true,
             'can_view' => true,
         ];
+        $companies = Company::all();
+        $assetTypes = AssetType::all();
+        $makes = MakeType::all();
 
-    return view('asset.index', compact('assets', 'permissions'));
-}
-// Create Asset
-public function create()
-{
-    $companies = Company::all();
-    $assetTypes = AssetType::all();
-    $makes = MakeType::all();
-    return view('asset.create', compact('companies', 'assetTypes', 'makes'));
-}
-// Store Asset
+        return view('asset.index', compact('assets', 'companies', 'assetTypes', 'makes', 'permissions'));
+    }
+
+    public function create()
+    {
+        $companies = Company::all();
+        $assetTypes = AssetType::all();
+        $makes = MakeType::all();
+        $permissions = TemplateHelper::getUserMenuPermissions('Asset') ?? (object)[
+            'can_menu' => true,
+            'can_add' => true,
+            'can_edit' => true,
+            'can_delete' => true,
+            'can_view' => true,
+        ];
+
+        return view('asset.create', compact('companies', 'assetTypes', 'makes', 'permissions'));
+    }
+
     public function store(Request $request)
     {
+        $validated = $request->validate([
+            'company_id' => 'required|exists:companies,id',
+            'asset_type_id' => 'required|exists:asset_types,id',
+            'make_type_id' => 'required|exists:make_types,id',
+            'model' => 'required|string|max:255',
+            'brand' => 'nullable|string|max:255',
+            'serial_no' => 'required|string|max:255',
+            'mac_no' => 'nullable|string|max:255',
+            'procured_from' => 'nullable|string|max:255',
+            'purchase_date' => 'nullable|date',
+            'warranty' => 'nullable|string|max:100',
+            'po_no' => 'nullable|string|max:255',
+            'mrp' => 'nullable|numeric|min:0',
+            'purchase_cost' => 'nullable|numeric|min:0',
+        ]);
+
+        $company = Company::findOrFail($validated['company_id']);
+        $brandValue = $validated['brand'] ?? '';
+        $prefix = $this->makeAssetPrefix($company->company_name, $brandValue);
+
+        if (!empty($validated['purchase_date'])) {
+            try {
+                $validated['purchase_date'] = Carbon::createFromFormat('d-m-Y', $validated['purchase_date'])->format('Y-m-d');
+            } catch (\Exception $e) {
+                $validated['purchase_date'] = Carbon::parse($validated['purchase_date'])->format('Y-m-d');
+            }
+        }
+
+        $asset = new Asset($validated);
+        $asset->asset_id = $prefix . $this->generateNextSerial();
+        $asset->save();
+
+        return redirect()->route('asset.index')->with('success', 'Asset created successfully.');
+    }
+
+    public function edit($id)
+    {
+        $asset = Asset::findOrFail($id);
+        $companies = Company::all();
+        $assetTypes = AssetType::all();
+        $makes = MakeType::all();
+        $permissions = TemplateHelper::getUserMenuPermissions('Asset') ?? (object)[
+            'can_menu' => true,
+            'can_add' => true,
+            'can_edit' => true,
+            'can_delete' => true,
+            'can_view' => true,
+        ];
+
+        return view('asset.edit', compact('asset', 'companies', 'assetTypes', 'makes', 'permissions'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $asset = Asset::findOrFail($id);
+
+        $validated = $request->validate([
+            'company_id' => 'required|exists:companies,id',
+            'asset_type_id' => 'required|exists:asset_types,id',
+            'make_type_id' => 'required|exists:make_types,id',
+            'model' => 'required|string|max:255',
+            'brand' => 'nullable|string|max:255',
+            'serial_no' => 'required|string|max:255',
+            'mac_no' => 'nullable|string|max:255',
+            'procured_from' => 'nullable|string|max:255',
+            'purchase_date' => 'nullable|date',
+            'warranty' => 'nullable|string|max:100',
+            'po_no' => 'nullable|string|max:255',
+            'mrp' => 'nullable|numeric|min:0',
+            'purchase_cost' => 'nullable|numeric|min:0',
+        ]);
+
+        $asset->update($validated);
+
+        return redirect()->route('asset.index')->with('success', 'Asset updated successfully.');
+    }
+
+    public function view($id)
+    {
+        $asset = Asset::with(['company', 'assetType', 'makeType'])->findOrFail($id);
+        $permissions = TemplateHelper::getUserMenuPermissions('Asset') ?? (object)[
+            'can_menu' => true,
+            'can_add' => true,
+            'can_edit' => true,
+            'can_delete' => true,
+            'can_view' => true,
+        ];
+
+        return view('asset.view', compact('asset', 'permissions'));
+    }
+
+    public function destroy(Asset $asset)
+    {
+        $asset->delete();
+        return redirect()->route('asset.index')->with('success', 'Asset deleted successfully.');
+    }
+
+    public function nextAssetID(Request $request)
+    {
+        $companySegment = $this->makeAssetSegment($request->query('company', ''));
+        $brandSegment = $this->makeAssetSegment($request->query('brand', ''));
+        $prefix = $companySegment . $brandSegment;
+        $serial = $this->peekNextSerial();
+
+        return response()->json([
+            'prefix' => $prefix,
+            'no' => $serial,
+        ]);
+    }
+
+    public function import(Request $request)
+{
     $request->validate([
-        'company_id' => 'required',
-        'asset_type_id' => 'required',
-        'make_type_id' => 'required',
-        'model' => 'required',
-        'brand' => 'nullable|string|max:255',
-        'warranty' => 'nullable|string|max:100',
-        'purchase_date' => 'required',
-        'purchase_cost' => 'required',
-        'po_no' => 'required',
-        'serial_no' => 'required',
+        'file' => 'required|file|mimes:csv,txt,xlsx,xls,ods',
     ]);
 
-    $company = Company::findOrFail($request->company_id);
-    $makeType = MakeType::findOrFail($request->make_type_id);
-    $brandSource = trim($request->brand ?: $makeType->make_name);
-    $prefix = $this->makeAssetPrefix($company->company_name, $brandSource);
+    $extension = $request->file->getClientOriginalExtension();
+    $filepath = $request->file->getRealPath();
 
-    $next = $this->nextSerial();
-    $serial = str_pad($next, 4, '0', STR_PAD_LEFT);
+    $rows = [];
 
-    $asset = new Asset($request->all());
-    $asset->asset_id = $prefix . $serial;
+    // =======================
+    // CASE 1 → CSV or TXT
+    // =======================
+    if (in_array($extension, ['csv', 'txt'])) {
+        $handle = fopen($filepath, 'r');
+        $header = fgetcsv($handle);
 
-    if ($request->purchase_date) {
-        $asset->purchase_date = Carbon::createFromFormat('d-m-Y', $request->purchase_date)->format('Y-m-d');
+        while (($data = fgetcsv($handle)) !== false) {
+            $rows[] = array_combine($header, $data);
+        }
+
+        fclose($handle);
     }
 
-    $asset->save();
+    // =======================
+    // CASE 2 → XLSX / XLS / ODS
+    // =======================
+    else {
+        if (!$xlsx = SimpleXLSX::parse($filepath)) {
+            return back()->with('error', SimpleXLSX::parseError());
+        }
 
-    return redirect()->route('asset.index')->with('success', 'Asset Created');
-}
+        $sheet = $xlsx->rows();
+        $header = array_map('trim', $sheet[0]);
 
-// Edit Asset
-public function edit($id)
-{
-    $asset = Asset::findOrFail($id);
-    $companies = Company::all();
-    $assetTypes = AssetType::all();
-    $makes = MakeType::all();
-    return view('asset.edit', compact('asset','companies','assetTypes','makes'));
-}
-// Update Asset
-public function update(Request $request, $id)
-{
-    $asset = Asset::findOrFail($id);
-
-    // Don't allow asset_id to change
-    $data = $request->except('asset_id');
-
-    // Convert date before update
-    if ($request->purchase_date) {
-        $data['purchase_date'] = Carbon::createFromFormat('d-m-Y', $request->purchase_date)->format('Y-m-d');
+        for ($i = 1; $i < count($sheet); $i++) {
+            $rows[] = array_combine($header, $sheet[$i]);
+        }
     }
 
-    $asset->update($data);
+    // =======================
+    // PROCESS INSERT LOGIC
+    // =======================
 
-    return redirect()->route('asset.index')->with('success', 'Asset Updated');
+    $imported = 0;
+    $errors = [];
+
+    foreach ($rows as $index => $row) {
+
+        $rowNumber = $index + 2; // because row 1 is header
+
+        // Normalize row
+        $data = $this->normalizeImportRow($row);
+
+        // Resolve relations
+        $company = $this->resolveCompany($data, $rowNumber, $errors);
+        $assetType = $this->resolveAssetType($data, $rowNumber, $errors);
+        $makeType = $this->resolveMakeType($data, $rowNumber, $errors);
+
+        if (!$company || !$assetType || !$makeType) {
+            continue;
+        }
+
+        // Prepare data
+        $assetData = [
+            'company_id' => $company->id,
+            'asset_type_id' => $assetType->id,
+            'make_type_id' => $makeType->id,
+            'model' => $data['model'] ?? null,
+            'brand' => $data['brand'] ?? $makeType->make_name,
+            'serial_no' => $data['serial_no'] ?? null,
+            'mac_no' => $data['mac_no'] ?? null,
+            'procured_from' => $data['procured_from'] ?? null,
+            'warranty' => $data['warranty'] ?? null,
+            'po_no' => $data['po_no'] ?? null,
+            'mrp' => $data['mrp'] ?? null,
+            'purchase_cost' => $data['purchase_cost'] ?? null,
+        ];
+
+        if (!empty($data['purchase_date'])) {
+            $normalizedDate = $this->normalizePurchaseDate($data['purchase_date']);
+            if (!$normalizedDate) {
+                $errors[] = "Row $rowNumber: Invalid purchase_date";
+                continue;
+            }
+            $assetData['purchase_date'] = $normalizedDate;
+        }
+
+        $prefix = $this->makeAssetPrefix($company->company_name, $assetData['brand']);
+        $assetData['asset_id'] = $prefix . $this->generateNextSerial();
+
+        try {
+            Asset::create($assetData);
+            $imported++;
+        } catch (\Throwable $e) {
+            $errors[] = "Row $rowNumber: Failed to save (" . $e->getMessage() . ")";
+        }
+    }
+    // Final response
+    $response = back()->with('success', "$imported assets imported successfully.");
+
+    if (!empty($errors)) {
+        $response->with('import_errors', $errors);
+    }
+
+    return $response;
 }
 
-
-// View Asset
-public function view($id)
+private function normalizePurchaseDate(mixed $value): ?string
 {
-    $asset = Asset::with(['company', 'assetType', 'makeType'])->findOrFail($id);
-    return view('asset.view', compact('asset'));
+    if (empty($value)) {
+        return null;
+    }
+
+    if (is_numeric($value)) {
+        $timestamp = ($value - 25569) * 86400;
+        return Carbon::createFromTimestampUTC((int) floor($timestamp))->format('Y-m-d');
+    }
+
+    $value = trim((string) $value);
+    $formats = ['d-m-Y', 'd/m/Y', 'd.m.Y', 'Y-m-d', 'Y/m/d'];
+    foreach ($formats as $format) {
+        try {
+            return Carbon::createFromFormat($format, $value)->format('Y-m-d');
+        } catch (\Exception $e) {
+            // try next format
+        }
+    }
+
+    try {
+        return Carbon::parse($value)->format('Y-m-d');
+    } catch (\Exception $e) {
+        return null;
+    }
 }
 
-// Generate next Asset ID
-public function nextAssetID(Request $request)
-{
-    $companySegment = $this->makeAssetSegment($request->query('company', ''));
-    $brandSegment = $this->makeAssetSegment($request->query('brand', ''));
-    $prefix = $companySegment . $brandSegment;
 
-        $num = $this->nextSerial();
 
-    return response()->json([
-        'no' => str_pad($num, 4, '0', STR_PAD_LEFT),
-        'prefix' => $prefix,
-    ]);
-}
+//     public function import(Request $request)
+// {
+//     $request->validate([
+//         'file' => 'required|file|mimes:csv,txt',
+//     ]);
+
+//     $file = $request->file('file');
+
+//     $handle = fopen($file->getRealPath(), 'r');
+//     if (!$handle) {
+//         return back()->with('error', 'Unable to read file.');
+//     }
+
+//     $header = fgetcsv($handle); // Read first row as header
+
+//     $imported = 0;
+//     $errors = [];
+//     $rowNumber = 1;
+
+//     while (($row = fgetcsv($handle)) !== false) {
+//         $rowNumber++;
+//         $data = array_combine($header, $row);
+
+//         // Normalize keys
+//         $data = $this->normalizeImportRow($data);
+
+//         // Resolve relationships
+//         $company = $this->resolveCompany($data, $rowNumber, $errors);
+//         $assetType = $this->resolveAssetType($data, $rowNumber, $errors);
+//         $makeType = $this->resolveMakeType($data, $rowNumber, $errors);
+
+//         if (!$company || !$assetType || !$makeType) {
+//             continue;
+//         }
+
+//         // Prepare insert data
+//         $assetData = [
+//             'company_id' => $company->id,
+//             'asset_type_id' => $assetType->id,
+//             'make_type_id' => $makeType->id,
+//             'model' => $data['model'] ?? null,
+//             'brand' => $data['brand'] ?? $makeType->make_name,
+//             'serial_no' => $data['serial_no'] ?? null,
+//             'mac_no' => $data['mac_no'] ?? null,
+//             'procured_from' => $data['procured_from'] ?? null,
+//             'warranty' => $data['warranty'] ?? null,
+//             'po_no' => $data['po_no'] ?? null,
+//             'mrp' => $data['mrp'] ?? null,
+//             'purchase_cost' => $data['purchase_cost'] ?? null,
+//         ];
+
+//         if (!empty($data['purchase_date'])) {
+//             try {
+//                 $assetData['purchase_date'] = Carbon::parse($data['purchase_date'])->format('Y-m-d');
+//             } catch (\Exception $e) {
+//                 $errors[] = "Row $rowNumber: Invalid purchase_date";
+//                 continue;
+//             }
+//         }
+
+//         $prefix = $this->makeAssetPrefix($company->company_name, $assetData['brand']);
+//         $assetData['asset_id'] = $prefix . $this->generateNextSerial();
+
+//         try {
+//             Asset::create($assetData);
+//             $imported++;
+//         } catch (\Throwable $e) {
+//             $errors[] = "Row $rowNumber: Failed to save (" . $e->getMessage() . ")";
+//         }
+//     }
+// // app/Libraries/SimpleXLSX.php
+
+//     fclose($handle);
+
+//     $response = back()->with('success', "$imported assets imported successfully.");
+//     if (!empty($errors)) {
+//         $response->with('import_errors', $errors);
+//     }
+
+//     return $response;
+// }
+
+    private function resolveCompany(array $data, int $rowNumber, array &$errors): ?Company
+    {
+        if (!empty($data['company_id'])) {
+            return Company::find($data['company_id']);
+        }
+
+        if (!empty($data['company_name'])) {
+            return Company::where('company_name', $data['company_name'])->first();
+        }
+
+        if (!empty($data['company'])) {
+            return Company::where('company_name', $data['company'])->first();
+        }
+
+        $errors[] = "Row $rowNumber: company_id/company_name is required";
+        return null;
+    }
+
+    private function resolveAssetType(array $data, int $rowNumber, array &$errors): ?AssetType
+    {
+        if (!empty($data['asset_type_id'])) {
+            return AssetType::find($data['asset_type_id']);
+        }
+
+        if (!empty($data['asset_type'])) {
+            return AssetType::where('type_name', $data['asset_type'])->first();
+        }
+
+        if (!empty($data['asset_type_name'])) {
+            return AssetType::where('type_name', $data['asset_type_name'])->first();
+        }
+
+        $errors[] = "Row $rowNumber: asset_type_id/asset_type is required";
+        return null;
+    }
+
+    private function resolveMakeType(array $data, int $rowNumber, array &$errors): ?MakeType
+    {
+        if (!empty($data['make_type_id'])) {
+            return MakeType::find($data['make_type_id']);
+        }
+
+        if (!empty($data['make_name'])) {
+            return MakeType::where('make_name', $data['make_name'])->first();
+        }
+
+        if (!empty($data['make_type'])) {
+            return MakeType::where('make_name', $data['make_type'])->first();
+        }
+
+        if (!empty($data['make'])) {
+            return MakeType::where('make_name', $data['make'])->first();
+        }
+
+        $errors[] = "Row $rowNumber: make_type_id/make_name is required";
+        return null;
+    }
+
+    private function normalizeImportRow(array $row): array
+    {
+        return collect($row)->mapWithKeys(function ($value, $key) {
+            $normalizedKey = Str::of($key)
+                ->lower()
+                ->trim()
+                ->replaceMatches('/[^a-z0-9]+/', '_')
+                ->trim('_')
+                ->__toString();
+
+            $cleanValue = $value;
+            if ($cleanValue instanceof \DateTimeInterface) {
+                $cleanValue = $cleanValue->format('Y-m-d');
+            }
+            if ($cleanValue !== null) {
+                $cleanValue = trim((string) $cleanValue);
+                if ($cleanValue === '') {
+                    $cleanValue = null;
+                }
+            }
+
+            return [$normalizedKey => $cleanValue];
+        })->toArray();
+    }
 
     private function makeAssetPrefix(string $companyName, string $brandName): string
     {
         return $this->makeAssetSegment($companyName) . $this->makeAssetSegment($brandName);
     }
 
-    private function nextSerial(): int
-{
-    $maxSerial = Asset::selectRaw('MAX(CAST(RIGHT(asset_id, 4) AS UNSIGNED)) as max_serial')->value('max_serial');
-    return ($maxSerial ?? 0) + 1;
-}
+    private function getCurrentMaxSerial(): int
+    {
+        if ($this->globalSerial === null) {
+            $maxSerial = Asset::selectRaw('MAX(CAST(RIGHT(asset_id, 4) AS UNSIGNED)) as max_serial')
+                ->value('max_serial');
+            $this->globalSerial = $maxSerial ?? 0;
+        }
 
+        return $this->globalSerial;
+    }
+
+    private function generateNextSerial(): string
+    {
+        $next = $this->getCurrentMaxSerial() + 1;
+        $this->globalSerial = $next;
+        return str_pad($next, 4, '0', STR_PAD_LEFT);
+    }
+
+    private function peekNextSerial(): string
+    {
+        return str_pad($this->getCurrentMaxSerial() + 1, 4, '0', STR_PAD_LEFT);
+    }
 
     private function makeAssetSegment(string $value): string
     {
@@ -142,11 +506,80 @@ public function nextAssetID(Request $request)
         }
         return str_pad(substr($clean, 0, 3), 3, 'X', STR_PAD_RIGHT);
     }
-// Delete Asset
-    public function destroy(Asset $asset)
+    // 
+   
+
+// public function import(Request $request)
+// {
+//     $file = $request->file('file')->getRealPath();
+
+//     if ($xlsx = SimpleXLSX::parse($file)) {
+
+//         $rows = $xlsx->rows();
+
+//     } else {
+//         return back()->with('error', SimpleXLSX::parseError());
+//     }
+
+//     // your logic...
+// }
+
+
+    // 
+    public function exportAssets()
 {
-    $asset->delete();
-    return redirect()->route('asset.index')->with('success', 'Asset deleted.');
+    $assets = Asset::with(['company', 'assetType', 'makeType'])->get();
+
+    $filename = "assets_" . date('Y-m-d_H-i-s') . ".csv";
+
+    return response()->streamDownload(function () use ($assets) {
+        $file = fopen('php://output', 'w');
+
+        // CSV Header
+        fputcsv($file, [
+            'Asset ID',
+            'Company',
+            'Asset Type',
+            'Make / Brand',
+            'Model',
+            'Serial No',
+            'MAC No',
+            'Procured From',
+            'Purchase Date',
+            'Warranty',
+            'PO No',
+            'MRP',
+            'Purchase Cost'
+        ]);
+
+        // CSV Rows
+        foreach ($assets as $a) {
+            fputcsv($file, [
+                $a->asset_id,
+                $a->company->company_name ?? '',
+                $a->assetType->type_name ?? '',
+                $a->makeType->make_name ?? '',
+                $a->model,
+                $a->serial_no,
+                $a->mac_no,
+                $a->procured_from,
+                $a->purchase_date,
+                $a->warranty,
+                $a->po_no,
+                $a->mrp,
+                $a->purchase_cost
+            ]);
+        }
+
+        fclose($file);
+    }, $filename);
 }
 
+
+
+    public function print($id)
+    {
+        $asset = Asset::findOrFail($id);
+        return view('asset.print', compact('asset'));
+    }
 }

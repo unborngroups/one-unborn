@@ -259,14 +259,17 @@
                 <p class="form-control-plaintext"><?php echo e($record->feasibility->hardware_required ? 'Yes' : 'No'); ?></p>
 
             </div>
-
 <?php if(!empty($record->feasibility->hardware_details)): ?>
     <div class="col-md-3">
         <label class="form-label fw-semibold">Hardware Model Name</label>
         <?php $__currentLoopData = json_decode($record->feasibility->hardware_details, true); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <?php
+                $make = \App\Models\MakeType::find($item['make_type_id']);
+                $model = \App\Models\Asset::select('model')->find($item['model_id']);
+            ?>
             <p class="mb-1">
-                Make: <?php echo e($item['make']); ?> <br>
-                Model: <?php echo e($item['model']); ?>
+                Make: <?php echo e($make->make_name ?? 'N/A'); ?> <br>
+                Model: <?php echo e($model->model ?? 'N/A'); ?>
 
             </p>
         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>

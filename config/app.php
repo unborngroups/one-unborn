@@ -123,4 +123,17 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'aliases' => [
+
+    // existing aliases...
+
+    'DNS1D' => Milon\Barcode\Facades\DNS1DFacade::class,
+    'DNS2D' => Milon\Barcode\Facades\DNS2DFacade::class,
+    'Auth' => Illuminate\Support\Facades\Auth::class,
+    'Route' => Illuminate\Support\Facades\Route::class,
+    'Excel' => Maatwebsite\Excel\Facades\Excel::class,
+    'import' => Maatwebsite\Excel\Facades\Excel::class,
+    
+
+],
 ];

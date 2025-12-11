@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('asset_types', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('company_id')->constrained('companies')->onDelete('cascade');
+            // $table->foreignId('company_id')->constrained('companies')->onDelete('cascade');
     $table->string('type_name'); 
             $table->timestamps();
         });

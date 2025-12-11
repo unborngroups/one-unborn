@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MakeType extends Model
 {
-    protected $fillable = ['company_id', 'make_name'];
+    protected $fillable = ['make_name'];
 
     public function company() { return $this->belongsTo(Company::class); }
 }

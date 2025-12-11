@@ -185,7 +185,21 @@ public function index()
             ->with('error', 'Failed to delete company.');
     }
 }
+ /**
+     * Bulk delete clients selected from the index table.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'required|integer|exists:companies,id',
+        ]);
 
+        Company::whereIn('id', $request->input('ids'))->delete();
+
+        return redirect()->route('companies.index')
+            ->with('success', count($request->input('ids')) . ' company(s) deleted successfully.');
+    }
 
     // Active or Inactive button
 

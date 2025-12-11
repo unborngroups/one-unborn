@@ -36,9 +36,14 @@
         <!-- Right: Profile Dropdown -->
 
         <?php if(auth()->guard()->check()): ?>
-        <?php if(isset($onlineSince)): ?>
+        <?php if(isset($clockDisplay) || isset($onlineSince)): ?>
             <span id="onlineStatusTicker" class="me-3 fw-semibold text-primary" style="font-size: 15px;" data-login-time="<?php echo e($onlineLoginTimeIso); ?>">
-                ⏱ Online since <span id="onlineSinceValue"><?php echo e($onlineSince); ?></span>
+                ⏱
+                <?php if(isset($clockDisplay)): ?>
+                    <span id="onlineSinceValue"><?php echo e($clockDisplay); ?></span>
+                <?php else: ?>
+                    <span id="onlineSinceValue">Online since <?php echo e($onlineSince); ?></span>
+                <?php endif; ?>
                 <?php if(!empty($onlineDurationLabel)): ?>
                     (<span id="onlineDurationLabel"><?php echo e($onlineDurationLabel); ?></span>)
                 <?php else: ?>

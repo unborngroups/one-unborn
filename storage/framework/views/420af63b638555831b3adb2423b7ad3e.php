@@ -3,19 +3,19 @@
 <?php $__env->startSection('content'); ?>
 
 <div class="container py-4">
-    <h3 class="mb-3 text-primary">Asset Type List</h3>
+    <h3 class="mb-3 text-primary float-start">Asset Type List</h3>
 
-    <a href="<?php echo e(route('assetmaster.asset_type.create')); ?>" class="btn btn-success mb-3">+ Add Asset Type</a>
+    <a href="<?php echo e(route('assetmaster.asset_type.create')); ?>" class="btn btn-success mb-3 float-end">+ Add Asset Type</a>
 
     <?php if(session('success')): ?>
         <div class="alert alert-success"><?php echo e(session('success')); ?></div>
     <?php endif; ?>
 
     <table class="table table-bordered table-striped">
-        <thead class="table-dark">
+        <thead class="table-dark-primary">
             <tr>
                 <th>S.No</th>
-                <th>Company</th>
+                <!-- <th>Company</th> -->
                 <th>Asset Type</th>
                 <th>Created Date</th>
                 <th width="140">Actions</th>
@@ -25,7 +25,6 @@
             <?php $__empty_1 = true; $__currentLoopData = $assetTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $at): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                 <tr>
                     <td><?php echo e($key + 1); ?></td>
-                    <td><?php echo e($at->company->company_name); ?></td>
                     <td><?php echo e($at->type_name); ?></td>
                     <td><?php echo e($at->created_at->format('d-m-Y')); ?></td>
                     <td>

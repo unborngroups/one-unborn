@@ -39,7 +39,7 @@
                                 @csrf
                                 <div class="input-group">
                                     <input type="file" name="file" class="form-control" required>
-                                    <a href="{{ asset('images/feasibilityimport/feasibility_import_69255ee5caa5f.xlsx') }}" target="_blank" class="btn btn-outline-secondary" title="Download import template">Download Format</a>
+                                    <a href="{{ asset('images/feasibilityimport/Book 4 (9).xlsx') }}" target="_blank" class="btn btn-outline-secondary" title="Download import template">Download Format</a>
                                     <button type="submit" class="btn btn-primary">Import Excel</button>
                                 </div>
                             </form>

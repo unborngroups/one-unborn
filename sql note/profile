@@ -336,3 +336,13 @@ ADD COLUMN `warranty` VARCHAR(255) NULL AFTER `purchase_date`,
 
 -- login log table
 ALTER TABLE login_logs MODIFY login_time DATETIME NOT NULL;
+
+ALTER TABLE `make_types`
+DROP FOREIGN KEY `make_types_company_id_foreign`;
+ALTER TABLE `make_types`
+DROP COLUMN `company_id`;
+
+ALTER TABLE `asset_types`
+DROP FOREIGN KEY `asset_types_company_id_foreign`;
+ALTER TABLE `asset_types`
+DROP COLUMN `company_id`;

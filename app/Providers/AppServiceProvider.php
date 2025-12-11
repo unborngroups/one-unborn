@@ -72,6 +72,13 @@ class AppServiceProvider extends ServiceProvider
             $onlineSince = null;
             $onlineMinutes = null;
             $onlineDurationLabel = null;
+            $localClock = Carbon::now(config('app.timezone'));
+            $cloudClock = Carbon::now('UTC');
+            $clockDisplay = sprintf(
+                '%s | Cloud Server Time : %s',
+                $localClock->format('l, F j, Y h:i:s A'),
+                $cloudClock->format('D, d-M-Y h:i:s A')
+            );
 
             if ($log) {
                 $onlineSince = Carbon::parse($log->login_time)->format('h:i A');
@@ -99,6 +106,7 @@ class AppServiceProvider extends ServiceProvider
                 'onlineMinutes' => $onlineMinutes,
                 'onlineDurationLabel' => $onlineDurationLabel,
                 'onlineLoginTimeIso' => $log ? Carbon::parse($log->login_time)->toIso8601String() : null,
+                'clockDisplay' => $clockDisplay,
             ]);
         }
     });

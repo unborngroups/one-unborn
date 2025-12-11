@@ -8,46 +8,28 @@
             <?php echo csrf_field(); ?>
             <?php echo method_field('PUT'); ?>
 
-            <div class="mb-3">
-                <label class="form-label">Company</label>
-                <select name="company_id" class="form-control">
-                    <option value="">Select company</option>
-                    <?php $__currentLoopData = $companies; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $company): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <option value="<?php echo e($company->id); ?>" <?php echo e((old('company_id', $assetType->company_id) == $company->id) ? 'selected' : ''); ?>>
-                            <?php echo e($company->company_name); ?>
+            <!-- Select Asset type -->
+             <div class="col-md-12">
 
-                        </option>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                </select>
-                <?php $__errorArgs = ['company_id'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                    <div class="text-danger small mt-1"><?php echo e($message); ?></div>
-                <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
+                    <label class="form-label">Asset Type</label>
+
+                    <select name="type_name" class="form-select select2-tags">
+
+                        <option value="">Select or Type City</option>
+
+                        <option value="Switch" <?php echo e((old('type_name', $assetType->type_name) == 'Switch') ? 'selected' : ''); ?>>Switch</option>
+
+                        <option value="Router" <?php echo e((old('type_name', $assetType->type_name) == 'Router') ? 'selected' : ''); ?>>Router</option>
+
+                        <option value="SD WAN" <?php echo e((old('type_name', $assetType->type_name) == 'SD WAN') ? 'selected' : ''); ?>>SD WAN</option>
+                    </select>
+
+                </div>
+
+                <div class="mt-3">
+            <button class="btn btn-primary float-start">Update Asset Type</button>
             </div>
-
-            <div class="mb-3">
-                <label class="form-label">Asset Type Name</label>
-                <input type="text" name="type_name" class="form-control" value="<?php echo e(old('type_name', $assetType->type_name)); ?>">
-                <?php $__errorArgs = ['type_name'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                    <div class="text-danger small mt-1"><?php echo e($message); ?></div>
-                <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-            </div>
-
-            <button class="btn btn-primary">Update Asset Type</button>
-            <a href="<?php echo e(route('assetmaster.asset_type.index')); ?>" class="btn btn-light ms-2">Cancel</a>
+            <a href="<?php echo e(route('assetmaster.asset_type.index')); ?>" class="btn btn-light ms-2 float-end">Cancel</a>
         </form>
     </div>
 </div>

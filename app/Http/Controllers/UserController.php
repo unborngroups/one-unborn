@@ -314,12 +314,15 @@ if (!empty(array_diff($validated['companies'], $user->companies->pluck('id')->to
     $shouldSendEmail = true;
 }
 
-         $password = Str::random(10);
+        $password = Str::random(10);
+        // when usertype changes, we need to resync privileges
+        $previousUserTypeId = $user->user_type_id;
+
         $user->update([
             'name'             => $validated['name'],
             'user_type_id'     => $validated['user_type_id'],
             'official_email'   => $validated['official_email'],
-        'personal_email'   => $validated['personal_email'] ?? null,
+            'personal_email'   => $validated['personal_email'] ?? null,
             'mobile'           => $validated['mobile'] ?? null,
             'Date_of_Birth'    => $dob,
             'Date_of_Joining'  => $doj,
@@ -331,8 +334,26 @@ if (!empty(array_diff($validated['companies'], $user->companies->pluck('id')->to
         // Sync company assignments
          $user->companies()->sync($validated['companies']);
 
-         
-// ✅ If checkbox NOT TICKED → do not send email
+        if ($previousUserTypeId !== $validated['user_type_id']) {
+            UserMenuPrivilege::where('user_id', $user->id)->delete();
+
+            $userTypePrivileges = UserTypeMenuPrivilege::where('user_type_id', $validated['user_type_id'])->get();
+            foreach ($userTypePrivileges as $typePriv) {
+                UserMenuPrivilege::create([
+                    'user_id' => $user->id,
+                    'menu_id' => $typePriv->menu_id,
+                    'can_menu' => $typePriv->can_menu,
+                    'can_add' => $typePriv->can_add,
+                    'can_edit' => $typePriv->can_edit,
+                    'can_delete' => $typePriv->can_delete,
+                    'can_view' => $typePriv->can_view,
+                ]);
+            }
+
+            Log::info("✅ User privileges resynced for user: {$user->name} to user type ID: {$validated['user_type_id']}");
+        }
+
+        // ✅ If checkbox NOT TICKED → do not send email
 if (!$request->has('send_email')) {
     return redirect()->route('users.index')->with('success', 'User updated successfully!');
 }
@@ -422,6 +443,21 @@ try {
         $user->delete();
 
         return redirect()->route('users.index')->with('success', 'User deleted successfully!');
+    }
+     /**
+     * Bulk delete clients selected from the index table.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'required|integer|exists:users,id',
+        ]);
+
+        User::whereIn('id', $request->input('ids'))->delete();
+
+        return redirect()->route('users.index')
+            ->with('success', count($request->input('ids')) . ' user(s) deleted successfully.');
     }
 
     /**

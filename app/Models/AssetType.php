@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class AssetType extends Model
 {
-    protected $fillable = ['company_id', 'type_name'];
+    protected $fillable = ['type_name'];
 
     public function company() { return $this->belongsTo(Company::class); }
 }

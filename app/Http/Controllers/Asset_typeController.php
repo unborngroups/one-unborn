@@ -11,9 +11,10 @@ class Asset_typeController extends Controller
 {
     public function index()
     {
-        $assetTypes = AssetType::with('company')
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+        // $assetTypes = AssetType::with('company')
+        //     ->orderBy('created_at', 'desc')
+        //     ->paginate(20);
+        $assetTypes = AssetType::orderBy('id', 'asc')->paginate(20);
 
             $permissions = TemplateHelper::getUserMenuPermissions('Asset Type') ?? (object)[
             'can_menu' => true,
@@ -28,14 +29,14 @@ class Asset_typeController extends Controller
 
     public function create()
     {
-        $companies = Company::orderBy('company_name')->get();
-        return view('assetmaster.asset_type.create', compact('companies'));
+        // $companies = Company::orderBy('company_name')->get();
+        return view('assetmaster.asset_type.create');
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'company_id' => 'required|exists:companies,id',
+            // 'company_id' => 'required|exists:companies,id',
             'type_name' => 'required|string|max:255',
         ]);
 
@@ -47,14 +48,14 @@ class Asset_typeController extends Controller
 
     public function edit(AssetType $assetType)
     {
-        $companies = Company::orderBy('company_name')->get();
-        return view('assetmaster.asset_type.edit', compact('assetType', 'companies'));
+        // $companies = Company::orderBy('company_name')->get();
+        return view('assetmaster.asset_type.edit', compact('assetType'));
     }
 
     public function update(Request $request, AssetType $assetType)
     {
         $data = $request->validate([
-            'company_id' => 'required|exists:companies,id',
+            // 'company_id' => 'required|exists:companies,id',
             'type_name' => 'required|string|max:255',
         ]);
 

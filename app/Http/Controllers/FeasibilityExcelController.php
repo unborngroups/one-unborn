@@ -8,263 +8,204 @@ use App\Models\Feasibility;
 use App\Models\FeasibilityStatus;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Rap2hpoutre\FastExcel\FastExcel;
+use Shuchkin\SimpleXLSX;
+require_once app_path('Libraries/SimpleXLSX.php');
+
+
 
 class FeasibilityExcelController extends Controller
 {
     protected array $importErrors = [];
+
     public function index()
     {
         $Feasibilitys = Feasibility::all();
         return view('feasibility.create', compact('Feasibilitys'));
     }
 
-    public function export()
-    {
-        $Feasibilitys = Feasibility::select(
-            'id',
-            'type_of_service',
-            'company_id',
-            'client_id',
-            'pincode',
-            'state',
-            'city',
-            'district',
-            'area',
-            'address',
-            'spoc_name',
-            'spoc_contact1',
-            'spoc_contact2',
-            'spoc_email',
-            'no_of_links',
-            'vendor_type',
-            'speed',
-            'static_ip',
-            'static_ip_subnet',
-            'expected_delivery',
-            'expected_activation',
-            'hardware_required',
-            'hardware_model_name'
-        )->get();
-
-        return (new FastExcel($Feasibilitys))->download('Feasibilitys.xlsx');
-    }
-
     public function import(Request $request)
-    {
-        $request->validate([
-            'file' => ['required', 'file', 'mimes:xlsx,csv,ods']
-        ]);
+{
+    $request->validate([
+        'file' => 'required|file|mimes:csv,xlsx'
+    ]);
 
-        $this->importErrors = [];
-        $importFile = $request->file('file');
-        $targetDir = public_path('images/feasibilityimport');
-        File::ensureDirectoryExists($targetDir);
-        $filename = 'feasibility_import_' . uniqid() . '.' . $importFile->extension();
-        $storedPath = $targetDir . DIRECTORY_SEPARATOR . $filename;
-        File::copy($importFile->getRealPath(), $storedPath);
-        $importPath = $storedPath;
+    $file = $request->file('file');
+    $extension = strtolower($file->getClientOriginalExtension());
+    $path = $file->getRealPath();
+    $rows = [];
 
-        $successCount = 0;
-        $failureCount = 0;
-        $rowNumber = 0;
-
-        foreach ((new FastExcel)->import($importPath) as $row) {
-            $rowNumber++;
-            $companyIdentifier = $row['Company ID'] ?? $row['Company Name'] ?? $row['Company'] ?? 'unknown';
-            $clientIdentifier = $row['Client ID'] ?? $row['Client Name'] ?? $row['Client'] ?? 'unknown';
-
-            $companyId = $this->resolveCompanyId($companyIdentifier);
-            $clientId = $this->resolveClientId($clientIdentifier);
-
-            if (!$companyId) {
-                $this->importErrors[] = "Row {$rowNumber}: Company '{$companyIdentifier}' not found.";
-                $failureCount++;
-                continue;
+    /** CSV **/
+    if ($extension === 'csv') {
+        if (($handle = fopen($path, 'r')) !== false) {
+            while (($data = fgetcsv($handle, 10000, ',')) !== false) {
+                $rows[] = $data;
             }
+            fclose($handle);
+        }
+    }
 
-            if (!$clientId) {
-                $this->importErrors[] = "Row {$rowNumber}: Client '{$clientIdentifier}' not found.";
-                $failureCount++;
-                continue;
-            }
+    /** XLSX **/
+    if ($extension === 'xlsx') {
+        $xlsx = SimpleXLSX::parse($path);
+        if (!$xlsx) {
+            return back()->with('error', SimpleXLSX::parseError());
+        }
+        $rows = $xlsx->rows();
+    }
 
-            $prepared = [
-                'type_of_service' => $this->normalizeString($row['Type of Service'] ?? $row['Service Type'] ?? null),
-                'company_id' => $companyId,
-                'client_id' => $clientId,
-                'pincode' => $this->normalizeString($row['Pincode'] ?? $row['Pin Code'] ?? null),
-                'state' => $this->normalizeString($row['State'] ?? null),
-                'city' => $this->normalizeString($row['City'] ?? null),
-                'district' => $this->normalizeString($row['District'] ?? null),
-                'area' => $this->normalizeString($row['Area'] ?? null),
-                'address' => $this->normalizeString($row['Address'] ?? null),
-                'spoc_name' => $this->normalizeString($row['SPOC Name'] ?? $row['SPOC Contact Name'] ?? null),
-                'spoc_contact1' => $this->normalizeString($row['SPOC Contact1'] ?? $row['SPOC Contact 1'] ?? null),
-                'spoc_contact2' => $this->normalizeString($row['SPOC Contact2'] ?? $row['SPOC Contact 2'] ?? null),
-                'spoc_email' => $this->normalizeString($row['SPOC Email'] ?? $row['SPOC Email ID'] ?? null),
-                'no_of_links' => $this->normalizeString($row['No of Links'] ?? null),
-                'vendor_type' => $this->normalizeString($row['Vendor Type'] ?? $row['Vendor'] ?? null),
-                'speed' => $this->normalizeString($row['Speed'] ?? null),
-                'static_ip' => $this->normalizeStaticIp($row['Static IP'] ?? null),
-                'static_ip_subnet' => $this->normalizeString($row['Static IP Subnet'] ?? null),
-                'expected_delivery' => $this->parseDate($row['Expected Delivery'] ?? $row['Delivery Date'] ?? null),
-                'expected_activation' => $this->parseDate($row['Expected Activation'] ?? $row['Activation Date'] ?? null),
-                'hardware_required' => $this->normalizeHardwareRequired($row['Hardware Required'] ?? null),
-                'hardware_model_name' => $this->normalizeString($row['Hardware Model Name'] ?? $row['Hardware Model'] ?? null),
-                'status' => $this->normalizeStatus($row['Status'] ?? null),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
+    if (count($rows) <= 1) {
+        return back()->with('error', 'No data found in file.');
+    }
 
-            $missingFields = $this->validateRequiredFields($prepared, $companyIdentifier, $clientIdentifier);
+    $headers = array_map([$this, 'normalizeColumnKey'], $rows[0]);
+    $this->importErrors = [];
+    $imported = 0;
+    $lastFeasibilityId = null;
 
-            if (!empty($missingFields)) {
-                $this->importErrors = array_merge($this->importErrors, $missingFields);
-                $failureCount++;
-                continue;
-            }
+    foreach ($rows as $index => $row) {
 
+        if ($index === 0) continue;
+
+        /** BUILD $rowData **/
+        $rowData = [];
+        foreach ($headers as $colIndex => $name) {
+            $value = $row[$colIndex] ?? null;
+            $rowData[$name] = $value === null ? null : trim((string)$value);
+        }
+
+        /** YES/NO → 1/0 **/
+        $staticIpFlag     = strtoupper($rowData['static_ip'] ?? '') === 'YES' ? 1 : 0;
+        $hardwareFlag     = strtoupper($rowData['hardware_required'] ?? '') === 'YES' ? 1 : 0;
+
+        /** Resolve Company & Client **/
+        $companyId = $this->resolveCompanyId($rowData['company_name'] ?? null);
+        $clientId  = $this->resolveClientId($rowData['client_name'] ?? null);
+
+        if (!$companyId) {
+            $this->importErrors[] = "Row " . ($index + 1) . ": Company not found.";
+            continue;
+        }
+
+        if (!$clientId) {
+            $this->importErrors[] = "Row " . ($index + 1) . ": Client not found.";
+            continue;
+        }
+
+        /** Pincode API **/
+        $state = $rowData['state'] ?? null;
+        $district = $rowData['district'] ?? null;
+        $area = $rowData['area'] ?? null;
+
+        if (!empty($rowData['pincode'])) {
             try {
-                $feasibility = Feasibility::create($prepared);
-                FeasibilityStatus::create([
-                    'feasibility_id' => $feasibility->id,
-                    'status' => 'Open',
-                ]);
-                $successCount++;
-            } catch (\Exception $e) {
-                $this->importErrors[] = "Row {$rowNumber}: Failed to save - " . $e->getMessage();
-                $failureCount++;
-            }
+                $apiResponse = file_get_contents("https://api.postalpincode.in/pincode/" . $rowData['pincode']);
+                $decoded = json_decode($apiResponse, true);
+
+                if ($decoded && $decoded[0]['Status'] === 'Success') {
+                    $post = $decoded[0]['PostOffice'][0];
+                    $state = $state ?: $post['State'];
+                    $district = $district ?: $post['District'];
+                    $area = $area ?: $post['Name'];
+                }
+            } catch (\Throwable $e) {}
         }
 
-        File::delete($storedPath);
+        /** Prepare Insert **/
+        $prepared = [
+            'type_of_service' => $rowData['type_of_service'],
+            'company_id' => $companyId,
+            'client_id' => $clientId,
+            'pincode' => $rowData['pincode'],
+            'state' => $state,
+            'district' => $district,
+            'area' => $area,
+            'address' => $rowData['address'],
+            'spoc_name' => $rowData['spoc_name'],
+            'spoc_contact1' => $rowData['spoc_contact1'],
+            'spoc_contact2' => $rowData['spoc_contact2'],
+            'spoc_email' => $rowData['spoc_email'],
+            'no_of_links' => $rowData['no_of_links'],
+            'vendor_type' => $rowData['vendor_type'],
+            'speed' => $rowData['speed'],
+            'static_ip' => $staticIpFlag,
+            'static_ip_subnet' => $rowData['static_ip_subnet'],
+            'expected_delivery' => $this->parseDate($rowData['expected_delivery']),
+            'expected_activation' => $this->parseDate($rowData['expected_activation']),
+            'hardware_required' => $hardwareFlag,
+        ];
 
-        $message = "Import completed! {$successCount} records added successfully.";
-        if ($failureCount > 0) {
-            $message .= " ({$failureCount} rows failed)";
+        try {
+            $feasibility = Feasibility::create($prepared);
+
+            FeasibilityStatus::create([
+                'feasibility_id' => $feasibility->id,
+                'status' => 'Open',
+            ]);
+
+            $lastFeasibilityId = $feasibility->id;
+            $imported++;
+
+        } catch (\Throwable $e) {
+            $this->importErrors[] = 
+                "Row " . ($index + 1) . ": Failed to save - " . $e->getMessage();
         }
-
-        $redirect = back()->with('success', $message);
-
-        if (!empty($this->importErrors)) {
-            $redirect = $redirect->with('import_errors', $this->importErrors);
-        }
-
-        return $redirect;
     }
 
-    protected function normalizeString($value)
-    {
-        $value = trim((string) ($value ?? ''));
-        return $value === '' ? null : $value;
+    if ($lastFeasibilityId) {
+        $response = redirect()
+            ->route('sm.feasibility.open', $lastFeasibilityId)
+            ->with('success', "$imported Records Imported Successfully!");
+    } else {
+        $response = back()->with('error', "No valid rows imported.");
     }
 
-    protected function toInteger($value)
-    {
-        if (is_numeric($value)) {
-            return (int) $value;
-        }
-
-        $cleaned = preg_replace('/[^0-9]/', '', (string) $value);
-
-        return $cleaned === '' ? null : (int) $cleaned;
+    if (!empty($this->importErrors)) {
+        $response->with('import_errors', $this->importErrors);
     }
+
+    return $response;
+}
+
+    /* ========================================
+     *  Utility Functions
+     * ====================================== */
 
     protected function parseDate($value)
     {
-        if (empty($value)) {
-            return null;
+        if ($value === null || $value === '') return null;
+
+        // Excel number date
+        if (is_numeric($value)) {
+            $timestamp = ($value - 25569) * 86400;
+            return Carbon::createFromTimestampUTC((int)$timestamp)->format('Y-m-d');
         }
 
+        // Normal date string
         try {
             return Carbon::parse($value)->format('Y-m-d');
-        } catch (\Throwable $exception) {
+        } catch (\Throwable) {
             return null;
         }
     }
 
-    protected function normalizeBoolean($value)
+    private function normalizeColumnKey(?string $value): string
     {
-        $value = strtolower((string) ($value ?? ''));
-        return in_array($value, ['1', 'true', 'yes', 'y']);
-    }
-
-    protected function normalizeHardwareRequired($value)
-    {
-        $normalized = $this->normalizeString($value);
-
-        if ($normalized === null) {
-            return null;
-        }
-
-        return $this->normalizeBoolean($normalized) ? '1' : '0';
-    }
-
-    protected function normalizeStaticIp($value)
-    {
-        $normalized = $this->normalizeString($value);
-
-        if ($normalized === null) {
-            return null;
-        }
-
-        return $this->normalizeBoolean($normalized) ? 'Yes' : 'No';
-    }
-
-    
-
-    protected function normalizeChoice($value)
-    {
-        if (empty($value)) {
-            return null;
-        }
-
-        $upper = strtoupper(trim($value));
-        return in_array($upper, ['YES', 'Y']) ? 'YES' : (in_array($upper, ['NO', 'N']) ? 'NO' : $upper);
-    }
-
-    protected function normalizeStatus($value)
-    {
-        $normalized = $this->normalizeString($value);
-        $allowed = ['Active', 'Inactive'];
-
-        if (!$normalized) {
-            return 'Active';
-        }
-
-        foreach ($allowed as $status) {
-            if (strtolower($normalized) === strtolower($status)) {
-                return $status;
-            }
-        }
-
-        return 'Active';
+        return (string)Str::of($value ?? '')
+            ->lower()
+            ->replaceMatches('/[^a-z0-9]+/', '_')
+            ->trim('_');
     }
 
     protected function validateRequiredFields(array $rowData, string $companyIdentifier, string $clientIdentifier): array
     {
         $missing = [];
+
         $required = [
-            'type_of_service',
-            'company_id',
-            'client_id',
-            'pincode',
-            'state',
-            'district',
-            'area',
-            'address',
-            'spoc_name',
-            'spoc_contact1',
-            'no_of_links',
-            'vendor_type',
-            'speed',
-            'static_ip',
-            'expected_delivery',
-            'expected_activation',
+            'type_of_service', 'company_id', 'client_id', 'pincode', 'state',
+            'district', 'area', 'address', 'spoc_name', 'spoc_contact1',
+            'no_of_links', 'vendor_type', 'speed', 'static_ip',
+            'expected_delivery', 'expected_activation',
         ];
 
         foreach ($required as $field) {
@@ -273,37 +214,33 @@ class FeasibilityExcelController extends Controller
             }
         }
 
-        return $missing;
+        return $this->importErrors = array_merge($this->importErrors, $missing);
     }
 
     protected function resolveCompanyId($value)
     {
-        $value = $this->normalizeString($value);
-        if (!$value) {
-            return null;
-        }
+        $value = trim(strtolower($value ?? ''));
+        if (!$value) return null;
 
         if (is_numeric($value)) {
-            return Company::find((int) $value)?->id;
+            return Company::find((int)$value)?->id;
         }
 
-        return Company::whereRaw('LOWER(company_name) = ?', [Str::lower($value)])->value('id');
+        return Company::whereRaw('LOWER(company_name)=?', [$value])->value('id');
     }
 
     protected function resolveClientId($value)
     {
-        $value = $this->normalizeString($value);
-        if (!$value) {
-            return null;
-        }
+        $value = trim(strtolower($value ?? ''));
+        if (!$value) return null;
 
         if (is_numeric($value)) {
-            return Client::find((int) $value)?->id;
+            return Client::find((int)$value)?->id;
         }
 
-        return Client::where(function ($query) use ($value) {
-            $query->whereRaw('LOWER(client_name) = ?', [Str::lower($value)])
-                ->orWhereRaw('LOWER(business_display_name) = ?', [Str::lower($value)]);
+        return Client::where(function ($q) use ($value) {
+            $q->whereRaw('LOWER(client_name)=?', [$value])
+              ->orWhereRaw('LOWER(business_display_name)=?', [$value]);
         })->value('id');
     }
 }

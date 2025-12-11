@@ -8,29 +8,6 @@
             <?php echo csrf_field(); ?>
 
             <div class="mb-3">
-                <label class="form-label">Company</label>
-                <select name="company_id" class="form-control">
-                    <option value="">Select company</option>
-                    <?php $__currentLoopData = $companies; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $company): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <option value="<?php echo e($company->id); ?>" <?php echo e(old('company_id') == $company->id ? 'selected' : ''); ?>>
-                            <?php echo e($company->company_name); ?>
-
-                        </option>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                </select>
-                <?php $__errorArgs = ['company_id'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                    <div class="text-danger small mt-1"><?php echo e($message); ?></div>
-                <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-            </div>
-
-            <div class="mb-3">
                 <label class="form-label">Make Name</label>
                 <input type="text" name="make_name" class="form-control" value="<?php echo e(old('make_name')); ?>">
                 <?php $__errorArgs = ['make_name'];

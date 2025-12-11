@@ -20,7 +20,8 @@
                 <?php $__currentLoopData = $logs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $log): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <tr>
                     <td><?php echo e($key + 1); ?></td>
-                    <td><?php echo e($log->user->name); ?></td>
+                    <td><?php echo e($log->user->name ?? 'Unknown User'); ?></td>
+
                     <td><?php echo e($log->login_time); ?></td>
                     <td><?php echo e($log->logout_time ?? 'Active Now'); ?></td>
                     <td><?php echo e($log->total_minutes ?? 'Calculating...'); ?></td>

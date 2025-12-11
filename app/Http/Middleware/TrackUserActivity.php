@@ -10,6 +10,8 @@ class TrackUserActivity
 {
     public function handle($request, Closure $next)
     {
+        LoginLog::markStaleOffline();
+
         if (Auth::check()) {
 
             $log = LoginLog::where('user_id', Auth::id())
