@@ -74,7 +74,8 @@ class AssetController extends Controller
 
         $company = Company::findOrFail($validated['company_id']);
         $brandValue = $validated['brand'] ?? '';
-        $prefix = $this->makeAssetPrefix($company->company_name, $brandValue);
+        $modelValue = $validated['model'] ?? '';    
+        $prefix = $this->makeAssetPrefix($company->company_name, $brandValue, $modelValue);
 
         if (!empty($validated['purchase_date'])) {
             try {
@@ -155,9 +156,11 @@ class AssetController extends Controller
 
     public function nextAssetID(Request $request)
     {
-        $companySegment = $this->makeAssetSegment($request->query('company', ''));
-        $brandSegment = $this->makeAssetSegment($request->query('brand', ''));
-        $prefix = $companySegment . $brandSegment;
+        $prefix = $this->makeAssetPrefix(
+            $request->query('company', ''),
+            $request->query('brand', ''),
+            $request->query('model', '')
+        );
         $serial = $this->peekNextSerial();
 
         return response()->json([
@@ -255,7 +258,7 @@ class AssetController extends Controller
             $assetData['purchase_date'] = $normalizedDate;
         }
 
-        $prefix = $this->makeAssetPrefix($company->company_name, $assetData['brand']);
+        $prefix = $this->makeAssetPrefix($company->company_name, $assetData['brand'], $assetData['model'] ?? '');
         $assetData['asset_id'] = $prefix . $this->generateNextSerial();
 
         try {
@@ -302,90 +305,6 @@ private function normalizePurchaseDate(mixed $value): ?string
         return null;
     }
 }
-
-
-
-//     public function import(Request $request)
-// {
-//     $request->validate([
-//         'file' => 'required|file|mimes:csv,txt',
-//     ]);
-
-//     $file = $request->file('file');
-
-//     $handle = fopen($file->getRealPath(), 'r');
-//     if (!$handle) {
-//         return back()->with('error', 'Unable to read file.');
-//     }
-
-//     $header = fgetcsv($handle); // Read first row as header
-
-//     $imported = 0;
-//     $errors = [];
-//     $rowNumber = 1;
-
-//     while (($row = fgetcsv($handle)) !== false) {
-//         $rowNumber++;
-//         $data = array_combine($header, $row);
-
-//         // Normalize keys
-//         $data = $this->normalizeImportRow($data);
-
-//         // Resolve relationships
-//         $company = $this->resolveCompany($data, $rowNumber, $errors);
-//         $assetType = $this->resolveAssetType($data, $rowNumber, $errors);
-//         $makeType = $this->resolveMakeType($data, $rowNumber, $errors);
-
-//         if (!$company || !$assetType || !$makeType) {
-//             continue;
-//         }
-
-//         // Prepare insert data
-//         $assetData = [
-//             'company_id' => $company->id,
-//             'asset_type_id' => $assetType->id,
-//             'make_type_id' => $makeType->id,
-//             'model' => $data['model'] ?? null,
-//             'brand' => $data['brand'] ?? $makeType->make_name,
-//             'serial_no' => $data['serial_no'] ?? null,
-//             'mac_no' => $data['mac_no'] ?? null,
-//             'procured_from' => $data['procured_from'] ?? null,
-//             'warranty' => $data['warranty'] ?? null,
-//             'po_no' => $data['po_no'] ?? null,
-//             'mrp' => $data['mrp'] ?? null,
-//             'purchase_cost' => $data['purchase_cost'] ?? null,
-//         ];
-
-//         if (!empty($data['purchase_date'])) {
-//             try {
-//                 $assetData['purchase_date'] = Carbon::parse($data['purchase_date'])->format('Y-m-d');
-//             } catch (\Exception $e) {
-//                 $errors[] = "Row $rowNumber: Invalid purchase_date";
-//                 continue;
-//             }
-//         }
-
-//         $prefix = $this->makeAssetPrefix($company->company_name, $assetData['brand']);
-//         $assetData['asset_id'] = $prefix . $this->generateNextSerial();
-
-//         try {
-//             Asset::create($assetData);
-//             $imported++;
-//         } catch (\Throwable $e) {
-//             $errors[] = "Row $rowNumber: Failed to save (" . $e->getMessage() . ")";
-//         }
-//     }
-// // app/Libraries/SimpleXLSX.php
-
-//     fclose($handle);
-
-//     $response = back()->with('success', "$imported assets imported successfully.");
-//     if (!empty($errors)) {
-//         $response->with('import_errors', $errors);
-//     }
-
-//     return $response;
-// }
 
     private function resolveCompany(array $data, int $rowNumber, array &$errors): ?Company
     {
@@ -470,9 +389,11 @@ private function normalizePurchaseDate(mixed $value): ?string
         })->toArray();
     }
 
-    private function makeAssetPrefix(string $companyName, string $brandName): string
+    private function makeAssetPrefix(string $companyName, string $brandName, string $modelName = ''): string
     {
-        return $this->makeAssetSegment($companyName) . $this->makeAssetSegment($brandName);
+        return $this->makeAssetSegment($companyName)
+            . $this->makeAssetSegment($brandName)
+            . $this->makeModelSegment($modelName);
     }
 
     private function getCurrentMaxSerial(): int
@@ -501,39 +422,66 @@ private function normalizePurchaseDate(mixed $value): ?string
     private function makeAssetSegment(string $value): string
     {
         $clean = preg_replace('/[^A-Za-z]/', '', strtoupper($value));
-        if ($clean === '') {
-            return 'XXX';
-        }
-        return str_pad(substr($clean, 0, 3), 3, 'X', STR_PAD_RIGHT);
+        return $clean === '' ? '' : substr($clean, 0, 3);
     }
-    // 
-   
 
-// public function import(Request $request)
-// {
-//     $file = $request->file('file')->getRealPath();
+    private function makeModelSegment(string $modelName): string
+    {
+        $clean = preg_replace('/[^A-Za-z]/', '', strtoupper($modelName));
+        return $clean === '' ? '' : substr($clean, 0, 2);
+    }
 
-//     if ($xlsx = SimpleXLSX::parse($file)) {
+    // private function makeModelSegment(string $modelName): string
+    // {
+    //     $words = preg_split('/\s+/', trim($modelName), -1, PREG_SPLIT_NO_EMPTY);
+    //     $segments = [];
 
-//         $rows = $xlsx->rows();
+    //     foreach (array_slice($words, 0, 2) as $word) {
+    //         $segment = $this->makeAssetSegment($word);
+    //         if ($segment !== '') {
+    //             $segments[] = $segment;
+    //         }
+    //     }
 
-//     } else {
-//         return back()->with('error', SimpleXLSX::parseError());
-//     }
+    //     return implode('', $segments);
+    // }
 
-//     // your logic...
-// }
+    /*
+      * Bulk delete clients selected from the index table.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'required|integer|exists:clients,id',
+        ]);
+
+        Asset::whereIn('id', $request->input('ids'))->delete();
+
+        return redirect()->route('asset.index')
+            ->with('success', count($request->input('ids')) . ' asset(s) deleted successfully.');
+    }
+
+    public function bulkPrint(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'required|integer|exists:assets,id',
+        ]);
+
+        $assets = Asset::whereIn('id', $data['ids'])->get();
+
+        return view('asset.bulk-print', compact('assets'));
+    }
 
 
-    // 
     public function exportAssets()
-{
-    $assets = Asset::with(['company', 'assetType', 'makeType'])->get();
+    {
+        $assets = Asset::with(['company', 'assetType', 'makeType'])->get();
+        $filename = "assets_" . date('Y-m-d_H-i-s') . ".csv";
 
-    $filename = "assets_" . date('Y-m-d_H-i-s') . ".csv";
-
-    return response()->streamDownload(function () use ($assets) {
-        $file = fopen('php://output', 'w');
+        return response()->streamDownload(function () use ($assets) {
+            $file = fopen('php://output', 'w');
 
         // CSV Header
         fputcsv($file, [
@@ -571,9 +519,9 @@ private function normalizePurchaseDate(mixed $value): ?string
             ]);
         }
 
-        fclose($file);
-    }, $filename);
-}
+            fclose($file);
+        }, $filename);
+    }
 
 
 

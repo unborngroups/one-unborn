@@ -37,7 +37,7 @@
 
         <?php if(auth()->guard()->check()): ?>
         <?php if(isset($clockDisplay) || isset($onlineSince)): ?>
-            <span id="onlineStatusTicker" class="me-3 fw-semibold text-primary" style="font-size: 15px;" data-login-time="<?php echo e($onlineLoginTimeIso); ?>">
+            <span id="onlineStatusTicker" class="me-3 fw-semibold text-white" style="font-size: 15px;" data-login-time="<?php echo e($onlineLoginTimeIso); ?>">
                 ⏱
                 <?php if(isset($clockDisplay)): ?>
                     <span id="onlineSinceValue"><?php echo e($clockDisplay); ?></span>
@@ -66,9 +66,9 @@
 
                     alt="Profile" class="rounded-circle" width="35" height="35"
 
-                    style="object-fit: cover; border: 2px solid #0d6efd;">
+                    style="object-fit: cover; border: 2px solid #e7eaeeff;">
 
-                <span class="ms-2 fw-semibold text-dark"><?php echo e(Auth::user()->name); ?></span>
+                <span class="ms-2 fw-semibold text-white"><?php echo e(Auth::user()->name); ?></span>
 
             </a>
 

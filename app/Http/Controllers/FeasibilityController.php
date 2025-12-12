@@ -175,7 +175,7 @@ $status->save();
 private function sendCreatedEmail($feasibility)
 {
     try {
-        $teamType = \App\Models\UserType::where('name', 'Team')->first();
+        $teamType = \App\Models\UserType::where('name', 'Team OPSS')->first();
 
         if ($teamType && $teamType->email) {
             Mail::to($teamType->email)->send(

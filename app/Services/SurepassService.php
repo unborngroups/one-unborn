@@ -189,16 +189,16 @@ class SurepassService
             // Use advanced API data if available, fallback to basic data
             $tradeName = $gstin['legal_name'] ?? $gstin['trade_name'] ?? '';
             $businessName = $gstin['trade_name'] ?? $gstin['legal_name'] ?? '';
-            
-            // Get address - try principal place first, then registered office
-            $address = $gstin['principal_place_address'] ?? $gstin['pradr'] ?? [];
-            $addr = $this->normalizeAddressComponents($address);
-            
+
+            $structuredAddress = $this->resolveStructuredAddress($gstin);
+            $addr = $structuredAddress ? $this->normalizeAddressComponents($structuredAddress) : [];
+            $primaryAddress = $structuredAddress ? $this->formatAddress($addr) : trim($gstin['principal_place_address'] ?? '');
+
             $formatted[] = [
                 'gstin' => $gstin['gstin'] ?? '',
                 'trade_name' => $businessName,
                 'legal_name' => $tradeName,
-                'principal_business_address' => $this->formatAddress($addr),
+                'principal_business_address' => $primaryAddress,
                 'building_name' => $addr['building_name'] ?? null,
                 'building_number' => $addr['building_number'] ?? null,
                 'floor_number' => $addr['floor_number'] ?? null,
@@ -229,7 +229,13 @@ class SurepassService
             return '';
         }
 
-        $parts = array_filter([
+        $parts = array_filter(array_map([
+            $this,
+            'cleanField'
+        ], [
+            $address['address_line1'] ?? '',
+            $address['address_line2'] ?? '',
+            $address['address_line3'] ?? '',
             $address['building_name'] ?? '',
             $address['building_number'] ?? '',
             $address['floor_number'] ?? '',
@@ -239,7 +245,7 @@ class SurepassService
             $address['city'] ?? '',
             $address['state'] ?? '',
             $address['pincode'] ?? '',
-        ]);
+        ]));
 
         return implode(', ', $parts);
     }
@@ -248,6 +254,28 @@ class SurepassService
      * Normalize address components from different API response shapes
      * Supports both advanced 'pradr' style keys and already-normalized keys
      */
+    private function resolveStructuredAddress(array $gstin): ?array
+    {
+        $pradr = $gstin['pradr'] ?? null;
+
+        if (is_array($pradr) && !empty($pradr)) {
+            if (isset($pradr['addr']) && is_array($pradr['addr'])) {
+                return $pradr['addr'];
+            }
+            return $pradr;
+        }
+
+        $principal = $gstin['principal_place_address'] ?? null;
+        if (is_array($principal) && !empty($principal)) {
+            if (isset($principal['addr']) && is_array($principal['addr'])) {
+                return $principal['addr'];
+            }
+            return $principal;
+        }
+
+        return null;
+    }
+
     private function normalizeAddressComponents($address): array
     {
         // If address is nested in 'addr' (common in Surepass advanced), pull it out
@@ -255,16 +283,37 @@ class SurepassService
             $address = $address['addr'];
         }
 
+        // Some responses use different keys for each address piece; include broad fallbacks
+        $addressLine1 = $address['address1'] ?? $address['addr1'] ?? $address['address_line1'] ?? $address['addr_lin1'] ?? null;
+        $addressLine2 = $address['address2'] ?? $address['addr2'] ?? $address['address_line2'] ?? $address['addr_lin2'] ?? null;
+        $addressLine3 = $address['address3'] ?? $address['addr3'] ?? $address['address_line3'] ?? $address['addr_lin3'] ?? null;
+
         return [
-            'building_name' => $address['building_name'] ?? $address['bnm'] ?? null,
-            'building_number' => $address['building_number'] ?? $address['bno'] ?? null,
-            'floor_number' => $address['floor_number'] ?? $address['flno'] ?? null,
-            'street' => $address['street'] ?? $address['st'] ?? null,
-            'location' => $address['location'] ?? $address['loc'] ?? null,
-            'district' => $address['district'] ?? $address['dst'] ?? null,
-            'city' => $address['city'] ?? null, // Not always provided; left null if absent
-            'state' => $address['state'] ?? $address['stcd'] ?? null,
-            'pincode' => $address['pincode'] ?? $address['pncd'] ?? null,
+            'address_line1' => $this->cleanField($addressLine1),
+            'address_line2' => $this->cleanField($addressLine2),
+            'address_line3' => $this->cleanField($addressLine3),
+            'building_name' => $this->cleanField($address['building_name'] ?? $address['bnm'] ?? $address['bldg_name'] ?? null),
+            'building_number' => $this->cleanField($address['building_number'] ?? $address['bno'] ?? null),
+            'floor_number' => $this->cleanField($address['floor_number'] ?? $address['flno'] ?? null),
+            'street' => $this->cleanField($address['street'] ?? $address['st'] ?? $address['street_name'] ?? null),
+            'location' => $this->cleanField($address['location'] ?? $address['loc'] ?? null),
+            'district' => $this->cleanField($address['district'] ?? $address['dst'] ?? null),
+            'city' => $this->cleanField($address['city'] ?? $address['town'] ?? $address['city_name'] ?? null),
+            'state' => $this->cleanField($address['state'] ?? $address['stcd'] ?? $address['state_name'] ?? $address['state_desc'] ?? $address['state_code'] ?? null),
+            'pincode' => $this->cleanField($address['pincode'] ?? $address['pncd'] ?? $address['pin_code'] ?? $address['postcode'] ?? $address['zipcode'] ?? null),
         ];
+    }
+
+    private function cleanField($value)
+    {
+        if (is_string($value)) {
+            $value = trim($value);
+
+            if ($value === '' || strcasecmp($value, 'n/a') === 0) {
+                return null;
+            }
+        }
+
+        return $value;
     }
 }

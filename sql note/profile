@@ -346,3 +346,34 @@ ALTER TABLE `asset_types`
 DROP FOREIGN KEY `asset_types_company_id_foreign`;
 ALTER TABLE `asset_types`
 DROP COLUMN `company_id`;
+/****************************************************************************************************/
+ALTER TABLE deliverables
+ADD COLUMN arc_cost DECIMAL(12,2) DEFAULT NULL,
+ADD COLUMN otc_cost DECIMAL(12,2) DEFAULT NULL,
+ADD COLUMN static_ip_cost DECIMAL(12,2) DEFAULT NULL;
+
+-- 1. Add column only if it doesn't exist
+ALTER TABLE deliverables 
+ADD COLUMN purchase_order_id BIGINT UNSIGNED NULL;
+
+-- 2. Add index (ignore if already exists)
+ALTER TABLE deliverables 
+ADD INDEX deliverables_purchase_order_id_index (purchase_order_id);
+
+-- 3. Remove invalid foreign key values
+UPDATE deliverables 
+SET purchase_order_id = NULL
+WHERE purchase_order_id IS NOT NULL
+AND purchase_order_id NOT IN (SELECT id FROM purchase_orders);
+
+-- 4. Add the new foreign key constraint
+ALTER TABLE deliverables
+ADD CONSTRAINT fk_deliverables_purchase_order
+FOREIGN KEY (purchase_order_id)
+REFERENCES purchase_orders(id)
+ON DELETE CASCADE;
+
+
+INSERT INTO menus (id, module_name, user_type, name, route, icon, can_menu, can_add, can_edit, can_delete, can_view)
+VALUES
+  (46, 'Sales & Marketing', 'superadmin', 'sm Deliverables', 'sm.deliverables.open', 'bi bi-truck', 1, 1, 1, 1, 1),

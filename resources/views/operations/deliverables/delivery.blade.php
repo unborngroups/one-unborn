@@ -46,10 +46,12 @@
                                 <td>{{ $index + 1 }}</td>
 
                                 <td>
+                                    @if($permissions->can_view)
                                     <a href="{{ route('operations.deliverables.view', $record->id) }}" 
                                        class="btn btn-sm btn-info">
                                         <i class="bi bi-eye"></i> View
                                     </a>
+                                    @endif
                                 </td>
 
                                 <td>{{ $record->po_number ?? 'N/A' }}</td>

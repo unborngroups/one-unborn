@@ -113,6 +113,8 @@ Route::patch('/users/{id}/toggle-status', [UserController::class, 'toggleStatus'
     Route::post('/users/bulk-delete', [UserController::class, 'bulkDestroy'])->name('users.bulk-delete');
     Route::post('/usertypetable/bulk-delete', [UserTypeController::class, 'bulkDestroy'])->name('usertypetable.bulk-delete');
     Route::post('/companies/bulk-delete', [CompanyController::class, 'bulkDestroy'])->name('companies.bulk-delete');
+    Route::post('/asset/bulk-delete', [AssetController::class, 'bulkDestroy'])->name('asset.bulk-delete');
+    Route::post('/asset/bulk-print', [AssetController::class, 'bulkPrint'])->name('asset.bulk-print');
     
 
     //view path
@@ -229,8 +231,13 @@ Route::get('/test-email', function () {
     Route::get('/operations/deliverables/{id}/edit', [DeliverablesController::class, 'operationsEdit'])->name('operations.deliverables.edit');
     Route::post('/operations/deliverables/{id}/save', [DeliverablesController::class, 'operationsSave'])->name('operations.deliverables.save');
     Route::post('/operations/deliverables/{id}/submit', [DeliverablesController::class, 'operationsSubmit'])->name('operations.deliverables.submit');
-    Route::post('/operations/deliverables/create-from-feasibility/{feasibilityId}', [DeliverablesController::class, 'createFromFeasibility'])->name('operations.deliverables.create-from-feasibility');
+    Route::get('/operations/deliverables/create-from-feasibility/{feasibilityId}', [DeliverablesController::class, 'createFromFeasibility'])->name('operations.deliverables.create-from-feasibility');
     Route::get('/calculate-subnet', [App\Http\Controllers\DeliverablesController::class, 'calculateSubnet'])->name('calculate.subnet');
+
+    // ✅ Sales & Marketing Deliverables keep their own URLs but reuse the operations controller
+    Route::get('/sm/deliverables/open', [DeliverablesController::class, 'smOpen'])->name('sm.deliverables.open');
+    Route::get('/sm/deliverables/inprogress', [DeliverablesController::class, 'smInProgress'])->name('sm.deliverables.inprogress');
+    Route::get('/sm/deliverables/delivery', [DeliverablesController::class, 'smDelivery'])->name('sm.deliverables.delivery');
 
 
     // ✅ Legacy operations Feasibility Status Routes (Keep for backward compatibility)
@@ -254,7 +261,7 @@ Route::get('/export-feasibility', [FeasibilityExcelController::class, 'export'])
 // ->name('feasibility.open');
 
 Route::post('/import-feasibility', [FeasibilityExcelController::class, 'import'])->name('feasibility.import');
-Route::post('/vendors/import', [VendorController::class, 'import'])->name('vendors.import');
+// Route::post('/vendors/import', [VendorController::class, 'import'])->name('vendors.import');
 
     Route::get('/get-client-details/{id}', [ClientController::class, 'getDetails']);
 
@@ -268,14 +275,11 @@ Route::post('/vendors/import', [VendorController::class, 'import'])->name('vendo
         Route::get('/{id}/view', [PurchaseOrderController::class, 'show'])->name('view');
         Route::get('/{id}/edit', [PurchaseOrderController::class, 'edit'])->name('edit');
         Route::put('/{id}', [PurchaseOrderController::class, 'update'])->name('update');
-        // Route::post('/{id}/toggle-status', [PurchaseOrderController::class, 'toggleStatus'])->name('toggleStatus');
         Route::delete('/{id}', [PurchaseOrderController::class, 'destroy'])->name('destroy');
         Route::get('/feasibility/{id}/details', [PurchaseOrderController::class, 'getFeasibilityDetails'])->name('feasibility.details');
-    Route::patch('/{id}/toggle-status', [PurchaseOrderController::class, 'toggleStatus'])->name('toggle-status');
-        // Route::get('/check-po-number', [PurchaseOrderController::class, 'checkPONumber']);
-        // Route::get('/sm/purchaseorder/check-po/{po}', [PurchaseOrderController::class, 'checkPo'])->name('po.check');
-           Route::get('/check-po-number', [PurchaseOrderController::class, 'checkPoNumber']);
-
+        Route::patch('/{id}/toggle-status', [PurchaseOrderController::class, 'toggleStatus'])->name('toggle-status');
+        // Route::get('/check-po-number', [PurchaseOrderController::class, 'checkPoNumber'])->name('check-po-number');
+        Route::get('/purchase-order/check-po-number', [PurchaseOrderController::class, 'checkPoNumber'])->name('check-po-number');
     });
 
    

@@ -1,10 +1,10 @@
 
 
-<div class="sidebar bg-dark-primary text-white vh-100 overflow-auto" style="width: 250px; position: fixed; top: 0; left: 0;">
+<div class="sidebar bg-dark-info text-white vh-100 overflow-auto" style="width: 250px; position: fixed; top: 0; left: 0;">
 
     <div class="p-3">
 
-        <h5 class="text-center mb-4"><i class="bi bi-grid-3x3-gap"></i> ERP Menu</h5>
+        <!-- <h5 class="text-center mb-4"><i class="bi bi-grid-3x3-gap"></i> ERP Menu</h5> -->
 
 
 
@@ -69,7 +69,7 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
 
                         <span><i class="bi bi-collection"></i> Masters</span>
 
-                        <i class="bi bi-chevron-down small"></i>
+                        <i class="bi bi-chevron-down arrow-icon"></i>
 
                     </a>
 
@@ -120,7 +120,7 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
        aria-expanded="<?php echo e(request()->is('assetmaster/asset_type*') || request()->is('assetmaster/make_type*') ? 'true' : 'false'); ?>"
        aria-controls="assetMasterMenu">
        <span><i class="bi bi-box-seam"></i> Asset Master</span>
-       <i class="bi bi-chevron-right small"></i>
+       <i class="bi bi-chevron-down arrow-icon"></i>
     </a>
 
     <div class="collapse <?php echo e(request()->is('assetmaster/*') ? 'show' : ''); ?>" id="assetMasterMenu">
@@ -168,11 +168,12 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
 
     $purchaseOrder = \App\Helpers\TemplateHelper::getUserMenuPermissions('Purchase Order');
     $proposal = \App\Helpers\TemplateHelper::getUserMenuPermissions('Proposal');
+    $smDeliverables = \App\Helpers\TemplateHelper::getUserMenuPermissions('sm Deliverables');
 
 
 ?>
 
-<?php if(($feasibilityMaster && $feasibilityMaster->can_menu) || ($purchaseOrder && $purchaseOrder->can_menu) || ($proposal && $proposal->can_menu)): ?>
+<?php if(($feasibilityMaster && $feasibilityMaster->can_menu) || ($purchaseOrder && $purchaseOrder->can_menu) || ($proposal && $proposal->can_menu) || ($smDeliverables && $smDeliverables->can_menu)): ?>
 
 <li class="nav-item">
 
@@ -186,7 +187,7 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
 
         <span><i class="bi bi-briefcase"></i> Sales & Marketing</span>
 
-        <i class="bi bi-chevron-down small"></i>
+        <i class="bi bi-chevron-down arrow-icon"></i>
 
     </a>
 
@@ -212,7 +213,7 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
 
                     <span><i class="bi bi-diagram-3 me-2"></i> Feasibility</span>
 
-                    <i class="bi bi-chevron-right small"></i>
+                    <i class="bi bi-chevron-down arrow-icon"></i>
 
                 </a>
 
@@ -230,14 +231,14 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
 
                                href="<?php echo e(route('feasibility.create')); ?>">
 
-                               <i class="bi bi-plus-circle me-2"></i> Add Feasibility
+                               <i class="bi bi-plus-circle"></i> Add Feasibility
 
                             </a>
                             <a class="nav-link text-white menu-item <?php echo e(request()->is('feasibility') || request()->is('feasibility/*/edit') ? 'active bg-primary fw-bold' : ''); ?>"
 
                                href="<?php echo e(route('feasibility.index')); ?>">
 
-                               <i class="bi bi-pencil me-2"></i> Edit Feasibility
+                               <i class="bi bi-pencil"></i> Edit Feasibility
 
                             </a>
 
@@ -376,6 +377,22 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
             </li>
 
             <?php endif; ?>
+            
+            
+
+            <?php if($proposal && $proposal->can_menu): ?>
+
+            <li>
+
+                <a class="nav-link text-white menu-item <?php echo e(request()->is('sm/proposal*') ? 'active' : ''); ?>" href="<?php echo e(route('sm.proposal.index')); ?>">
+
+                    <span><i class="bi bi-receipt me-2"></i> Proposal</span>
+
+                </a>
+
+            </li>
+
+            <?php endif; ?>
 
             
 
@@ -393,20 +410,103 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
 
             <?php endif; ?>
 
+            <?php
+                $isSmDeliverablesOpenActive = false;
+                $isSmDeliverablesInProgressActive = false;
+                $isSmDeliverablesDeliveryActive = false;
+
+                if (request()->is('sm/deliverables/open')) {
+                    $isSmDeliverablesOpenActive = true;
+                } elseif (request()->is('sm/deliverables/inprogress')) {
+                    $isSmDeliverablesInProgressActive = true;
+                } elseif (request()->is('sm/deliverables/delivery')) {
+                    $isSmDeliverablesDeliveryActive = true;
+                }
+
+                if (request()->is('sm/deliverables/*/view') || request()->is('sm/deliverables/*/edit')) {
+                    $recordId = request()->segment(3);
+                    if ($recordId) {
+                        try {
+                            $record = \App\Models\Deliverables::find($recordId);
+                            if ($record && $record->status) {
+                                switch ($record->status) {
+                                    case 'Open':
+                                        $isSmDeliverablesOpenActive = true;
+                                        break;
+                                    case 'InProgress':
+                                        $isSmDeliverablesInProgressActive = true;
+                                        break;
+                                    case 'Delivery':
+                                        $isSmDeliverablesDeliveryActive = true;
+                                        break;
+                                }
+                            }
+                        } catch (Exception $e) {
+                            // Fallback - no active state
+                        }
+                    }
+                }
+                $smDeliverablesOpenRoute = url('/sm/deliverables/open');
+                $smDeliverablesInProgressRoute = url('/sm/deliverables/inprogress');
+                $smDeliverablesDeliveryRoute = url('/sm/deliverables/delivery');
+            ?>
+
             
-
-            <?php if($proposal && $proposal->can_menu): ?>
-
+            <?php if($smDeliverables && $smDeliverables->can_menu): ?>
             <li>
 
-                <a class="nav-link text-white menu-item <?php echo e(request()->is('sm/proposal*') ? 'active' : ''); ?>" href="<?php echo e(route('sm.proposal.index')); ?>">
+                <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#smDeliverablesMenu" role="button" aria-expanded="<?php echo e(request()->is('sm/deliverables*') ? 'true' : 'false'); ?>" aria-controls="smDeliverablesMenu">
 
-                    <span><i class="bi bi-receipt me-2"></i> Proposal</span>
+                    <span><i class="bi bi-truck me-2"></i> Deliverables</span>
+
+                    <i class="bi bi-chevron-down arrow-icon"></i>
 
                 </a>
+                
+                <div class="collapse <?php echo e(request()->is('sm/deliverables*') ? 'show' : ''); ?>" id="smDeliverablesMenu">
 
+                    <ul class="nav flex-column ms-3 mt-1">
+
+                        
+
+                        <li>
+
+                            <a class="nav-link text-white menu-item <?php echo e($isSmDeliverablesOpenActive ? 'active' : ''); ?>" href="<?php echo e($smDeliverablesOpenRoute); ?>">
+
+                               <i class="bi bi-hourglass-split me-2"></i> Open
+
+                            </a>
+
+                        </li>
+
+                        
+
+                        <li>
+
+                            <a class="nav-link text-white menu-item <?php echo e($isSmDeliverablesInProgressActive ? 'active' : ''); ?>" href="<?php echo e($smDeliverablesInProgressRoute); ?>">
+
+                               <i class="bi bi-clock-history me-2"></i> In Progress
+
+                            </a>
+
+                        </li>
+
+                        
+
+                        <li>
+
+                            <a class="nav-link text-white menu-item <?php echo e($isSmDeliverablesDeliveryActive ? 'active' : ''); ?>" href="<?php echo e($smDeliverablesDeliveryRoute); ?>">
+
+                               <i class="bi bi-truck-flatbed me-2"></i> Delivered
+
+                            </a>
+
+                        </li>
+
+                    </ul>
+
+                </div>
             </li>
-
             <?php endif; ?>
 
         </ul>
@@ -590,7 +690,7 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
 
         <span><i class="bi bi-gear-wide-connected"></i> Operations</span>
 
-        <i class="bi bi-chevron-down small"></i>
+        <i class="bi bi-chevron-down arrow-icon"></i>
 
     </a>
     <!--  -->
@@ -609,7 +709,7 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
 
                     <span><i class="bi bi-diagram-3 me-2"></i> Feasibility</span>
 
-                    <i class="bi bi-chevron-right small"></i>
+                    <i class="bi bi-chevron-down arrow-icon"></i>
 
                 </a>
     <!--  -->
@@ -670,7 +770,7 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
 
                     <span><i class="bi bi-truck me-2"></i> Deliverables</span>
 
-                    <i class="bi bi-chevron-right small"></i>
+                    <i class="bi bi-chevron-down arrow-icon"></i>
 
                 </a>
     <!--  -->
@@ -753,7 +853,7 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
                        aria-expanded="<?php echo e(request()->is('finance/accounts*') ? 'true' : 'false'); ?>"
                        aria-controls="financeMenu">
                         <span><i class="bi bi-cash-coin"></i> Finance</span>
-                        <i class="bi bi-chevron-down small"></i>
+                        <i class="bi bi-chevron-down arrow-icon"></i>
                     </a>
 
                     <div class="collapse <?php echo e(request()->is('finance/accounts*') ? 'show' : ''); ?>" id="financeMenu">
@@ -945,7 +1045,7 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
 
                         <span><i class="bi bi-gear"></i> System</span>
 
-                        <i class="bi bi-chevron-down small"></i>
+                        <i class="bi bi-chevron-down arrow-icon"></i>
 
                     </a>
 

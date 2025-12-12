@@ -190,7 +190,7 @@
 
 
 
-                                     <!-- <?php
+                                     <?php
 
                                      $role = strtolower(auth()->user()->userType->name ?? '');
 
@@ -202,7 +202,7 @@
 
                                     </a>
 
-                                    <?php endif; ?> -->
+                                    <?php endif; ?>
 
                                      <ul class="sidebar-menu">
 

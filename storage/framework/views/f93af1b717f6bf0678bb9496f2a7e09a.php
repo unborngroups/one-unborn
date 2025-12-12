@@ -46,10 +46,12 @@
                                 <td><?php echo e($index + 1); ?></td>
 
                                 <td>
+                                    <?php if($permissions->can_view): ?>
                                     <a href="<?php echo e(route('operations.deliverables.view', $record->id)); ?>" 
                                        class="btn btn-sm btn-info">
                                         <i class="bi bi-eye"></i> View
                                     </a>
+                                    <?php endif; ?>
                                 </td>
 
                                 <td><?php echo e($record->po_number ?? 'N/A'); ?></td>

@@ -434,11 +434,11 @@ public function sendPassword(Request $request)
     ]);
 
     $email = $request->email;
-    $client = Client::where('billing_spoc_email', $email)->first();
+    $client = Client::where('support_spoc_email', $email)->first();
 
     if (!$client) {
         $client = new Client();
-        $client->billing_spoc_email = $email;
+        $client->support_spoc_email = $email;
         $client->client_name = $request->client_name ?: $request->user_name;
         $lastClientId = Client::latest('id')->value('id') ?? 0;
         $client->client_code = 'CLI' . str_pad($lastClientId + 1, 3, '0', STR_PAD_LEFT);

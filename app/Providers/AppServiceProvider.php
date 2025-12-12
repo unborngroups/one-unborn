@@ -63,53 +63,53 @@ class AppServiceProvider extends ServiceProvider
 
         // 
         view()->composer('*', function ($view) {
-        if (Auth::check()) {
-            $log = LoginLog::where('user_id', Auth::id())
-                ->where('status', 'Online')
-                ->latest()
-                ->first();
+            if (Auth::check()) {
+                $log = LoginLog::where('user_id', Auth::id())
+                    ->where('status', 'Online')
+                    ->latest()
+                    ->first();
 
-            $onlineSince = null;
-            $onlineMinutes = null;
-            $onlineDurationLabel = null;
-            $localClock = Carbon::now(config('app.timezone'));
-            $cloudClock = Carbon::now('UTC');
-            $clockDisplay = sprintf(
-                '%s | Cloud Server Time : %s',
-                $localClock->format('l, F j, Y h:i:s A'),
-                $cloudClock->format('D, d-M-Y h:i:s A')
-            );
+                $onlineSince = null;
+                $onlineMinutes = null;
+                $onlineDurationLabel = null;
+                $localClock = Carbon::now(config('app.timezone'));
+                $cloudClock = Carbon::now('Asia/Kolkata');
+                $clockDisplay = sprintf(
+                    '%s | Cloud Server Time (GMT+5:30) : %s',
+                    $localClock->format('l, F j, Y h:i:s A'),
+                    $cloudClock->format('D, d-M-Y h:i:s A')
+                );
 
-            if ($log) {
-                $onlineSince = Carbon::parse($log->login_time)->format('h:i A');
+                if ($log) {
+                    $onlineSince = Carbon::parse($log->login_time)->format('h:i A');
 
-                $secondsOnline = Carbon::parse($log->login_time)->diffInSeconds(now());
-                $secondsOnline = max($secondsOnline, 0);
-                $onlineMinutes = round($secondsOnline / 60, 1);
+                    $secondsOnline = Carbon::parse($log->login_time)->diffInSeconds(now());
+                    $secondsOnline = max($secondsOnline, 0);
+                    $onlineMinutes = round($secondsOnline / 60, 1);
 
-                $interval = CarbonInterval::seconds($secondsOnline)->cascade();
-                $parts = [];
-                if ($interval->h) {
-                    $parts[] = $interval->h . 'h';
+                    $interval = CarbonInterval::seconds($secondsOnline)->cascade();
+                    $parts = [];
+                    if ($interval->h) {
+                        $parts[] = $interval->h . 'h';
+                    }
+                    if ($interval->i) {
+                        $parts[] = $interval->i . 'm';
+                    }
+                    if ($interval->s || empty($parts)) {
+                        $parts[] = $interval->s . 's';
+                    }
+                    $onlineDurationLabel = implode(' ', $parts);
                 }
-                if ($interval->i) {
-                    $parts[] = $interval->i . 'm';
-                }
-                if ($interval->s || empty($parts)) {
-                    $parts[] = $interval->s . 's';
-                }
-                $onlineDurationLabel = implode(' ', $parts);
+
+                $view->with([
+                    'onlineSince' => $onlineSince,
+                    'onlineMinutes' => $onlineMinutes,
+                    'onlineDurationLabel' => $onlineDurationLabel,
+                    'onlineLoginTimeIso' => $log ? Carbon::parse($log->login_time)->toIso8601String() : null,
+                    'clockDisplay' => $clockDisplay,
+                ]);
             }
-
-            $view->with([
-                'onlineSince' => $onlineSince,
-                'onlineMinutes' => $onlineMinutes,
-                'onlineDurationLabel' => $onlineDurationLabel,
-                'onlineLoginTimeIso' => $log ? Carbon::parse($log->login_time)->toIso8601String() : null,
-                'clockDisplay' => $clockDisplay,
-            ]);
-        }
-    });
+        });
     }
 
 }

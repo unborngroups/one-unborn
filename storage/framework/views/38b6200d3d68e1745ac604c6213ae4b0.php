@@ -18,7 +18,7 @@
 
             
 
-            <div class="col-md-6">
+                    <div class="col-md-2 static-ip-cost-column">
 
                 <h6 class="fw-semibold text-muted">Feasibility Request ID:</h6>
 
@@ -530,10 +530,39 @@ function applyStaticIPRule() {
     }
 }
 
-applyStaticIPRule();
+    applyStaticIPRule();
+
+    const staticIpEnabled = "<?php echo e(strtolower($record->feasibility->static_ip ?? 'No')); ?>" === 'yes';
+
+    function updateStaticIpCostVisibility() {
+        document.querySelectorAll('.static-ip-cost-column').forEach(column => {
+            const input = column.querySelector('input');
+            if (staticIpEnabled) {
+                column.style.display = '';
+                if (input) {
+                    input.disabled = false;
+                }
+            } else {
+                column.style.display = 'none';
+                if (input) {
+                    input.disabled = true;
+                    input.required = false;
+                    input.value = '';
+                }
+            }
+        });
+    }
+
+    updateStaticIpCostVisibility();
 
 
 });
+
+// in add feasibility static ip cost hide on vendor amount input    
+$('#vendor_amount').on('input', function() {
+    $('#static_ip_cost_row').hide();
+});
+
 </script>
 
 <?php $__env->stopSection(); ?>

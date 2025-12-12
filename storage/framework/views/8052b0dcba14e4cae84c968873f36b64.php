@@ -1,8 +1,8 @@
-@extends('layouts.app')
 
 
 
-@section('content')
+
+<?php $__env->startSection('content'); ?>
 
 <div class="container-fluid py-4">
 
@@ -12,59 +12,59 @@
 
     <div class="card shadow border-0 p-4">
 
-        {{-- Feasibility Details Header --}}
+        
 
         <div class="row mb-4">
 
-            {{-- Feasibility Request ID --}}
+            
 
                     <div class="col-md-2 static-ip-cost-column">
 
                 <h6 class="fw-semibold text-muted">Feasibility Request ID:</h6>
 
-                <p><span class="badge bg-info fs-6">{{ $record->feasibility->feasibility_request_id ?? 'N/A' }}</span></p>
+                <p><span class="badge bg-info fs-6"><?php echo e($record->feasibility->feasibility_request_id ?? 'N/A'); ?></span></p>
 
             </div>
 
 
 
-            {{-- Client Name --}}
+            
 
             <div class="col-md-6">
 
                 <h6 class="fw-semibold text-muted">Client:</h6>
 
-                <p>{{ $record->feasibility->client->client_name ?? 'N/A' }}</p>
+                <p><?php echo e($record->feasibility->client->client_name ?? 'N/A'); ?></p>
 
             </div>
 
 
 
-            {{-- Type of Service --}}
+            
 
             <div class="col-md-6">
 
                 <h6 class="fw-semibold text-muted">Feasibility Type:</h6>
 
-                <p>{{ $record->feasibility->type_of_service ?? 'N/A' }}</p>
+                <p><?php echo e($record->feasibility->type_of_service ?? 'N/A'); ?></p>
 
             </div>
 
 
 
-            {{-- No of links --}}
+            
 
             <div class="col-md-6">
 
                 <h6 class="fw-semibold text-muted">No. of Links:</h6>
 
-                <p>{{ $record->feasibility->no_of_links ?? 'N/A' }}</p>
+                <p><?php echo e($record->feasibility->no_of_links ?? 'N/A'); ?></p>
 
             </div>
 
             
 
-            {{-- Current Status --}}
+            
 
             <div class="col-md-6">
 
@@ -74,15 +74,16 @@
 
                     <span class="badge 
 
-                        @if($record->status == 'Open') bg-primary
+                        <?php if($record->status == 'Open'): ?> bg-primary
 
-                        @elseif($record->status == 'InProgress') bg-warning text-dark
+                        <?php elseif($record->status == 'InProgress'): ?> bg-warning text-dark
 
-                        @elseif($record->status == 'Closed') bg-success
+                        <?php elseif($record->status == 'Closed'): ?> bg-success
 
-                        @endif">
+                        <?php endif; ?>">
 
-                        {{ $record->status }}
+                        <?php echo e($record->status); ?>
+
 
                     </span>
 
@@ -98,15 +99,15 @@
 
 
 
-        {{-- ✅ Main form - no action applied, JS sets action dynamically --}}
+        
 
         <form id="feasibilityForm" method="POST">
 
-            @csrf
+            <?php echo csrf_field(); ?>
 
 
 
-            @php
+            <?php
 
             // Number of links determines how many vendor sections are mandatory
 
@@ -116,85 +117,87 @@
 
                 $maxVendors = 4; // Always show all 4 vendor sections
 
-            @endphp
+            ?>
 
 
 
-            {{-- ✅ Vendor Sections Loop --}}
+            
 
-            @for($i = 1; $i <= $maxVendors; $i++)
+            <?php for($i = 1; $i <= $maxVendors; $i++): ?>
 
                 <h5 class="fw-bold text-primary mb-3">
 
-                    Vendor {{ $i }}
+                    Vendor <?php echo e($i); ?>
 
-                    {{-- Required vendor tags --}}
 
-                    @if($i <= $noOfLinks)
+                    
 
-                        @if($noOfLinks == 1)
+                    <?php if($i <= $noOfLinks): ?>
+
+                        <?php if($noOfLinks == 1): ?>
 
                             <small class="text-success">(Required - Default Vendor)</small>
 
-                        @else
+                        <?php else: ?>
 
-                            <small class="text-success">(Required - Link {{ $i }})</small>
+                            <small class="text-success">(Required - Link <?php echo e($i); ?>)</small>
 
-                        @endif
+                        <?php endif; ?>
 
-                    @else
+                    <?php else: ?>
 
                         <small class="text-muted">(Optional - Additional Vendor)</small>
 
-                    @endif
+                    <?php endif; ?>
 
                 </h5>
 
-                {{-- ✅ Vendor Input Row --}}
+                
 
-                <div class="row g-3 mb-4" id="vendor{{ $i }}_section">
+                <div class="row g-3 mb-4" id="vendor<?php echo e($i); ?>_section">
 
-                    {{-- Vendor Name Dropdown --}}
+                    
 
                     <div class="col-md-3">
 
                         <label class="form-label fw-semibold">Name 
 
-                            @if($i <= $noOfLinks)
+                            <?php if($i <= $noOfLinks): ?>
 
                                 <span class="text-danger">*</span>
 
-                            @endif
+                            <?php endif; ?>
 
                         </label>
 
 
 
-                        {{-- Vendor dropdown with duplicate validation --}}
+                        
 
-                        <select name="vendor{{ $i }}_name" 
+                        <select name="vendor<?php echo e($i); ?>_name" 
 
                                 class="form-select vendor-dropdown" 
 
-                                data-vendor-number="{{ $i }}"
+                                data-vendor-number="<?php echo e($i); ?>"
 
-                                @if($i <= $noOfLinks) required @endif>
+                                <?php if($i <= $noOfLinks): ?> required <?php endif; ?>>
 
                             <option value="">Select Vendor</option>
 
-                             {{-- Populate vendor list --}}
+                             
 
-                            @foreach($vendors as $vendor)
+                            <?php $__currentLoopData = $vendors; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $vendor): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 
-                                <option value="{{ $vendor->vendor_name }}" 
+                                <option value="<?php echo e($vendor->vendor_name); ?>" 
 
-                                        @if($record->{'vendor' . $i . '_name'} == $vendor->vendor_name) selected @endif>
+                                        <?php if($record->{'vendor' . $i . '_name'} == $vendor->vendor_name): ?> selected <?php endif; ?>>
 
-                                    {{ $vendor->vendor_name }}
+                                    <?php echo e($vendor->vendor_name); ?>
+
 
                                 </option>
 
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
                         </select>
 
@@ -206,49 +209,49 @@
 
                     </div>
 
-                    {{-- ARC --}}
+                    
 
                     <div class="col-md-2">
 
                         <label class="form-label fw-semibold">ARC</label>
 
-                        <input type="number" name="vendor{{ $i }}_arc" class="form-control" value="{{ $record->{'vendor' . $i . '_arc'} }}">
+                        <input type="number" name="vendor<?php echo e($i); ?>_arc" class="form-control" value="<?php echo e($record->{'vendor' . $i . '_arc'}); ?>">
 
                     </div>
 
-                     {{-- OTC --}}
+                     
 
                     <div class="col-md-2">
 
                         <label class="form-label fw-semibold">OTC</label>
 
-                        <input type="number" name="vendor{{ $i }}_otc" class="form-control" value="{{ $record->{'vendor' . $i . '_otc'} }}">
+                        <input type="number" name="vendor<?php echo e($i); ?>_otc" class="form-control" value="<?php echo e($record->{'vendor' . $i . '_otc'}); ?>">
 
                     </div>
 
-                    {{-- Static IP Cost --}}
+                    
 
                     <div class="col-md-2">
 
                         <label class="form-label fw-semibold">Static IP Cost</label>
 
-                        <input type="number" name="vendor{{ $i }}_static_ip_cost" class="form-control" value="{{ $record->{'vendor' . $i . '_static_ip_cost'} }}">
+                        <input type="number" name="vendor<?php echo e($i); ?>_static_ip_cost" class="form-control" value="<?php echo e($record->{'vendor' . $i . '_static_ip_cost'}); ?>">
 
                     </div>
 
-                    {{-- Delivery Timeline --}}
+                    
 
                     <div class="col-md-3">
 
                         <label class="form-label fw-semibold">Delivery Timeline</label>
 
-                        <input type="text" name="vendor{{ $i }}_delivery_timeline" class="form-control" value="{{ $record->{'vendor' . $i . '_delivery_timeline'} }}">
+                        <input type="text" name="vendor<?php echo e($i); ?>_delivery_timeline" class="form-control" value="<?php echo e($record->{'vendor' . $i . '_delivery_timeline'}); ?>">
 
                     </div>
 
                 </div>
 
-            @endfor
+            <?php endfor; ?>
 
 
 
@@ -256,7 +259,7 @@
 
 
 
-            {{-- Action Buttons --}}
+            
 
             <div class="mt-4">
 
@@ -266,7 +269,7 @@
 
                     <div class="col-md-8">
 
-                        {{-- Save → Move to InProgress --}}
+                        
 
                         <button type="button" class="btn btn-warning me-2" onclick="saveToInProgress()">
 
@@ -276,7 +279,7 @@
 
 
 
-                        {{-- Submit → Move to Closed --}}
+                        
 
                         <button type="button" class="btn btn-success me-2" onclick="submitToClosed()">
 
@@ -286,21 +289,21 @@
 
 
 
-                        {{-- Cancel Route Based on Status --}}
+                        
 
-                        @if($record->status == 'Open')
+                        <?php if($record->status == 'Open'): ?>
 
-                            <a href="{{ route('operations.feasibility.open') }}" class="btn btn-secondary">Cancel</a>
+                            <a href="<?php echo e(route('operations.feasibility.open')); ?>" class="btn btn-secondary">Cancel</a>
 
-                        @elseif($record->status == 'InProgress')
+                        <?php elseif($record->status == 'InProgress'): ?>
 
-                            <a href="{{ route('operations.feasibility.inprogress') }}" class="btn btn-secondary">Cancel</a>
+                            <a href="<?php echo e(route('operations.feasibility.inprogress')); ?>" class="btn btn-secondary">Cancel</a>
 
-                        @else
+                        <?php else: ?>
 
-                            <a href="{{ route('operations.feasibility.closed') }}" class="btn btn-secondary">Cancel</a>
+                            <a href="<?php echo e(route('operations.feasibility.closed')); ?>" class="btn btn-secondary">Cancel</a>
 
-                        @endif
+                        <?php endif; ?>
 
                     </div>
 
@@ -316,11 +319,11 @@
 
 
 
-@endsection
+<?php $__env->stopSection(); ?>
 
 
 
-@section('scripts')
+<?php $__env->startSection('scripts'); ?>
 
 <script>
 
@@ -329,7 +332,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // -----------------------------
     // Vendor Type Logic
     // -----------------------------
-    const vendorType = "{{ $record->feasibility->vendor_type }}";
+    const vendorType = "<?php echo e($record->feasibility->vendor_type); ?>";
     const ownCompanies = ["UBN", "UBS", "UBL", "INF"];   // SELF vendors
     const normalVendors = ["same vendor", "different vendor"];
 
@@ -361,9 +364,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
             let vendorOptions = `
                 <option value="">Select Vendor</option>
-                @foreach($vendors as $v)
-                    <option value="{{ $v->vendor_name }}">{{ $v->vendor_name }}</option>
-                @endforeach
+                <?php $__currentLoopData = $vendors; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $v): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <option value="<?php echo e($v->vendor_name); ?>"><?php echo e($v->vendor_name); ?></option>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             `;
 
             dd.innerHTML = vendorOptions;
@@ -394,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const names = [];
         let isValid = true;
 
-        const noOfLinks = parseInt('{{ $noOfLinks }}');
+        const noOfLinks = parseInt('<?php echo e($noOfLinks); ?>');
 
         dropdowns.forEach((dd, index) => {
 
@@ -484,7 +487,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const form = document.getElementById('feasibilityForm');
-        form.action = "{{ route('operations.feasibility.save', $record->id) }}";
+        form.action = "<?php echo e(route('operations.feasibility.save', $record->id)); ?>";
         form.submit();
     };
 
@@ -500,7 +503,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (confirm('Are you sure you want to submit this feasibility? This will move it to Closed status.')) {
             const form = document.getElementById('feasibilityForm');
-            form.action = "{{ route('operations.feasibility.submit', $record->id) }}";
+            form.action = "<?php echo e(route('operations.feasibility.submit', $record->id)); ?>";
             form.submit();
         }
     };
@@ -508,7 +511,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // ********************************************
 // Static IP Cost Rule (ILL → Optional, Others → Required)
 // ********************************************
-const feasibilityType = "{{ $record->feasibility->type_of_service }}";
+const feasibilityType = "<?php echo e($record->feasibility->type_of_service); ?>";
 
 function applyStaticIPRule() {
     for (let i = 1; i <= 4; i++) {
@@ -529,7 +532,7 @@ function applyStaticIPRule() {
 
     applyStaticIPRule();
 
-    const staticIpEnabled = "{{ strtolower($record->feasibility->static_ip ?? 'No') }}" === 'yes';
+    const staticIpEnabled = "<?php echo e(strtolower($record->feasibility->static_ip ?? 'No')); ?>" === 'yes';
 
     function updateStaticIpCostVisibility() {
         document.querySelectorAll('.static-ip-cost-column').forEach(column => {
@@ -562,4 +565,5 @@ $('#vendor_amount').on('input', function() {
 
 </script>
 
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views/operations/feasibility/edit.blade.php ENDPATH**/ ?>

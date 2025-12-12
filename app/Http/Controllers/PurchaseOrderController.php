@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 
 class PurchaseOrderController extends Controller
 {
+    
     public function index()
     {
         $purchaseOrders = PurchaseOrder::orderBy('id', 'asc')->get();
@@ -44,7 +45,8 @@ class PurchaseOrderController extends Controller
         // Basic validation for main fields
         $rules = [
             'feasibility_id' => 'required|exists:feasibilities,id',
-            'po_number' => 'required|string|max:255|unique:purchase_orders,po_number',
+            'po_number' => 'required|string|max:255',
+            'allow_reuse' => 'required|in:0,1',
             'po_date' => 'required|date',
             'no_of_links' => 'required|integer|min:1|max:4',
             'contract_period' => 'required|integer|min:1',
@@ -59,7 +61,15 @@ class PurchaseOrderController extends Controller
         }
 
         $validated = $request->validate($rules);
-        
+
+        $allowReuse = $validated['allow_reuse'] === '1';
+        if (!$allowReuse && PurchaseOrder::where('po_number', $validated['po_number'])->exists()) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'PO number already exists. Please use a different PO number.')
+                ->with('po_duplicate', $validated['po_number']);
+        }
+
         // Calculate totals from individual link pricing
         $totalARC = 0;
         $totalOTC = 0;
@@ -352,6 +362,17 @@ class PurchaseOrderController extends Controller
         return redirect()->route('sm.purchaseorder.index')
             ->with('success', 'Purchase Order deleted successfully!');
     }
+    public function checkPoNumber(Request $request)
+    {
+        $poNumber = trim((string) $request->query('po_number', ''));
+        $exists = false;
+
+        if ($poNumber !== '') {
+            $exists = PurchaseOrder::where('po_number', $poNumber)->exists();
+        }
+
+        return response()->json(['exists' => $exists]);
+    }
 
     // AJAX method to get feasibility details
     public function getFeasibilityDetails($id)
@@ -423,6 +444,7 @@ class PurchaseOrderController extends Controller
         ]);
     }
 
+ 
     /**
      * Create deliverable from purchase order
      */

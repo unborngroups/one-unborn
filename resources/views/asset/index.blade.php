@@ -16,15 +16,37 @@
          @endif
 {{-- 🔍 Search box --}}
 
-        <div class="card-header bg-light d-flex justify-content-between">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
 
             <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search...">
 
+            <div class="d-flex align-items-center gap-2">
+                @if($permissions->can_delete)
+                    <form id="bulkDeleteForm" action="{{ route('asset.bulk-delete') }}" method="POST" class="d-inline">
+                        @csrf
+                        <div id="bulkDeleteInputs"></div>
+                    </form>
+                    <button id="deleteSelectedBtn" class="btn btn-danger d-none">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                @endif
+
+                @if($permissions->can_view)
+                    <form id="bulkPrintForm" action="{{ route('asset.bulk-print') }}" method="POST" target="_blank" class="d-inline">
+                        @csrf
+                        <div id="bulkPrintInputs"></div>
+                    </form> 
+                    <button id="printSelectedBtn" class="btn btn-dark d-none">
+                        <i class="bi bi-printer"></i>
+                    </button>
+                @endif
+            </div>
         </div>
 
 <table class="table table-bordered" id="asset">
 <thead class="table-dark-primary">
 <tr>
+    <th><input type="checkbox" id="selectAll"></th>
     <th>S.No</th>
     <th>Action</th>
     <th>Asset ID / Barcode</th>
@@ -40,6 +62,8 @@
 <tbody>
 @foreach($assets as $a)
 <tr>
+      <td><input type="checkbox" class="rowCheckbox" value="{{ $a->id }}"></td>
+
     <td>
         {{ $assets instanceof \Illuminate\Pagination\LengthAwarePaginator 
             ? $loop->iteration + ($assets->currentPage() - 1) * $assets->perPage() 
@@ -110,6 +134,88 @@ document.getElementById('tableSearch').addEventListener('keyup', function() {
     });
 
 });
+
+
+document.getElementById('selectAll').addEventListener('change', function(){
+    let isChecked = this.checked;
+    document.querySelectorAll('.rowCheckbox').forEach(cb => {
+        cb.checked = isChecked;
+    });
+    updateDeleteButtonVisibility();
+});
+
+document.getElementById('deleteSelectedBtn')?.addEventListener('click', function () {
+    const selectedIds = Array.from(document.querySelectorAll('.rowCheckbox:checked')).map(cb => cb.value);
+    if (!selectedIds.length) {
+        return;
+    }
+
+    if (!confirm(`Delete ${selectedIds.length} selected asset(s)?`)) {
+        return;
+    }
+
+    const inputsContainer = document.getElementById('bulkDeleteInputs');
+    inputsContainer.innerHTML = '';
+    selectedIds.forEach(id => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'ids[]';
+        input.value = id;
+        inputsContainer.appendChild(input);
+    });
+
+    document.getElementById('bulkDeleteForm')?.submit();
+});
+
+document.getElementById('printSelectedBtn')?.addEventListener('click', function () {
+    const selectedIds = Array.from(document.querySelectorAll('.rowCheckbox:checked')).map(cb => cb.value);
+    if (!selectedIds.length) {
+        return;
+    }
+
+    const inputsContainer = document.getElementById('bulkPrintInputs');
+    inputsContainer.innerHTML = '';
+    selectedIds.forEach(id => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'ids[]';
+        input.value = id;
+        inputsContainer.appendChild(input);
+    });
+
+    document.getElementById('bulkPrintForm')?.submit();
+});
+
+
+function updateDeleteButtonVisibility() {
+    const totalChecked = document.querySelectorAll('.rowCheckbox:checked').length;
+    const deleteBtn = document.getElementById('deleteSelectedBtn');
+    const printBtn = document.getElementById('printSelectedBtn');
+
+    if (deleteBtn) {
+        if (totalChecked > 0) {
+            deleteBtn.classList.remove('d-none');
+        } else {
+            deleteBtn.classList.add('d-none');
+        }
+    }
+
+    if (printBtn) {
+        if (totalChecked > 0) {
+            printBtn.classList.remove('d-none');
+        } else {
+            printBtn.classList.add('d-none');
+        }
+    }
+}
+
+document.querySelectorAll('.rowCheckbox').forEach(cb => {
+    cb.addEventListener('change', updateDeleteButtonVisibility);
+});
+
+// Keep the delete button state correct on page load
+updateDeleteButtonVisibility();
+
 </script>
 
 @endsection

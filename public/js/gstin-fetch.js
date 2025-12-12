@@ -49,6 +49,10 @@ function displayGSTINOptions(gstins) {
     html += '<h6 class="text-primary mb-3">Select GSTIN(s) - You can select multiple locations:</h6>';
     
     gstins.forEach((gstin, index) => {
+        const tradeLine = gstin.trade_name ? `<strong>Trade Name:</strong> ${gstin.trade_name}<br>` : '';
+        const legalLine = gstin.legal_name ? `<strong>Legal Name:</strong> ${gstin.legal_name}<br>` : '';
+        const addressLine = `<strong>Address:</strong> ${gstin.principal_business_address || ''}<br>`;
+        const stateLine = `<strong>State:</strong> ${gstin.state || ''} | <strong>Pincode:</strong> ${gstin.pincode || ''}<br>`;
         html += `
             <div class="form-check mb-3 p-3 border rounded" style="background: white;">
                 <div class="row">
@@ -58,11 +62,10 @@ function displayGSTINOptions(gstins) {
                                onchange="handleGSTINSelection(${index})">
                         <label class="form-check-label" for="gstin_${index}">
                             <strong class="text-primary">${gstin.gstin}</strong><br>
-                            <strong>Trade Name:</strong> ${gstin.trade_name || 'N/A'}<br>
-                            ${gstin.legal_name ? `<strong>Legal Name:</strong> ${gstin.legal_name}<br>` : ''}
-                            <strong>Address:</strong> ${gstin.principal_business_address || 'N/A'}<br>
-                            <strong>State:</strong> ${gstin.state || 'N/A'} | 
-                            <strong>Pincode:</strong> ${gstin.pincode || 'N/A'}
+                            ${tradeLine}
+                            ${legalLine}
+                            ${addressLine}
+                            ${stateLine}
                         </label>
                     </div>
                     <div class="col-md-2 text-end">

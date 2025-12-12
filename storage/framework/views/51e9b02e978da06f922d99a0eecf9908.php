@@ -35,7 +35,7 @@
             font-weight: 600;
         }
         .label-title {
-            font-size: 24px;
+            font-size: 10                                                                                          px;
             font-weight: 700;
             color: #0f172a;
             margin: 4px 0 12px;

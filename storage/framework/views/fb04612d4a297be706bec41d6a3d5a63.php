@@ -50,6 +50,10 @@
     <!-- style -->
 
      <style>
+        body{
+            background:#f4f6f9;
+            /* background: #f4f6f9; */
+        }
 
     /* Sidebar default for large screens */
 
@@ -67,7 +71,7 @@
 
     left: 0;
 
-    background-color: #121722ff;
+    background-color: #07173dff;
 
     z-index: 100;
 
@@ -77,13 +81,51 @@
 
         .nav-link.menu-item {
 
-            padding: 10px 15px;
+            padding: 5px 20px;
 
             border-radius: 6px;
 
             transition: background-color 0.3s ease;
 
         }
+        /* .navbar {
+    background: #122558ff !important;
+} */
+
+/* 🔥 Slim Professional Navbar */
+.navbar {
+    background: #051644ff !important;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+    height: 55px !important; /* reduced height */
+    /* display: flex; */
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0; /* touch left edge */
+    width: 100%;
+    z-index: 1000;
+}
+/* Make the navbar full width and start from left edge */
+
+/* Push the main content down below navbar */
+.main-content {
+    margin-top: 70px; /* adjust based on your navbar height */
+}
+
+/* Sidebar stays below navbar */
+.sidebar {
+    margin-top: 50px;
+    /* width: 450px; */
+}
+
+.navbar .nav-link,
+.navbar-brand,
+.navbar-text {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
 
         .nav-link.menu-item:hover {
 
@@ -135,7 +177,10 @@
     padding: 0; /* remove extra padding causing push */
 
 }
-
+/* .sidebar{
+    background-color: #030445ff;
+    width: 480px;
+} */
     /* Mobile hamburger button */
 
     @media (max-width: 767px) {
@@ -178,7 +223,7 @@
 
             transition: left 0.3s ease;
 
-            background-color: #121722ff !important;
+            background-color: #0c2359ff !important;
 
             overflow-y: auto;
 
@@ -273,6 +318,14 @@
             transition: opacity 0.3s ease;
 
         }
+        .arrow-icon {
+    transition: transform 0.3s ease;
+}
+
+.nav-link:not(.collapsed) .arrow-icon {
+    transform: rotate(180deg);
+}
+
 
         #sidebarOverlay.show {
 
@@ -465,7 +518,7 @@
 
         <?php echo $__env->make('layouts.navbar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
-        <main class="p-4">
+        <main class="p-4 mt-5">
 
             <?php echo $__env->yieldContent('content'); ?>
 

@@ -9,7 +9,19 @@
                     <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Create Purchase Order</h4>
                 </div>
                 <div class="card-body position-relative">
-                    @if(session('error'))
+                        <div id="poDuplicateAlert" class="alert alert-warning mt-3 d-none" role="alert">
+                            <div class="d-flex align-items-start justify-content-between">
+                                <div>
+                                    <strong id="poDuplicateMessage">PO number already exists.</strong>
+                                    <p class="mb-2 small text-muted">You can either reuse the existing PO or enter a new number.</p>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-warning btn-sm me-2" id="poDuplicateReuse">Use this PO</button>
+                                    <button type="button" class="btn btn-outline-danger btn-sm" id="poDuplicateNew">Create new</button>
+                                </div>
+                            </div>
+                        </div>
+                    @if(session('error') && !session('po_duplicate'))
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
                             <strong>Validation Error:</strong> {{ session('error') }}
@@ -17,9 +29,12 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('sm.purchaseorder.store') }}" method="POST" id="purchaseOrderForm">
-                    
-                    <form action="{{ route('sm.purchaseorder.store') }}" method="POST" id="purchaseOrderForm">
+    <!-- .dynamic-pricing-row.hide-static-ip .pricing-col {
+        flex: 0 0 50%;
+        max-width: 50%;
+    } -->
+
+</style>
                         @csrf
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -41,21 +56,22 @@
                                 <input type="text" class="form-control" id="po_number" name="po_number" onblur="checkPoNumber()" required>
                                 <input type="hidden" id="allow_reuse" name="allow_reuse" value="0">
                                 <input type="hidden" id="forceSubmit" name="forceSubmit" value="0">
-                                <div class="border rounded-2 border-danger bg-danger bg-opacity-10 text-danger small d-none mt-2" id="poTakenAlert" role="alert">
-                                    <div class="d-flex align-items-center justify-content-between gap-2 p-2">
-                                        <div class="d-flex align-items-center gap-1">
-                                            <i class="bi bi-exclamation-circle-fill"></i>
-                                            That PO number already exists. Would you like to reuse it?
-                                        </div>
-                                        <div class="d-flex gap-1">
-                                            <button type="button" class="btn btn-sm btn-outline-danger" id="reuseNo">Change</button>
-                                            <button type="button" class="btn btn-sm btn-danger" id="reuseYes">Reuse</button>
-                                        </div>
-                                    </div>
-                                </div>
                                 @error('po_number')
                                     <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
+
+                                <div id="poDuplicateAlert" class="alert alert-warning mt-3 d-none" role="alert">
+                                    <div class="d-flex align-items-start justify-content-between">
+                                        <div>
+                                            <strong id="poDuplicateMessage">PO number already exists.</strong>
+                                            <p class="mb-2 small text-muted">You can either reuse the existing PO or enter a new number.</p>
+                                        </div>
+                                        <div>
+                                            <button type="button" class="btn btn-warning btn-sm me-2" id="poDuplicateReuse">Use this PO</button>
+                                            <button type="button" class="btn btn-outline-danger btn-sm" id="poDuplicateNew">Create new</button>
+                                        </div>
+                                    </div>
+                                </div>
 
                             </div>
 
@@ -103,6 +119,7 @@
                                 <button type="submit" class="btn btn-success">Create Purchase Order</button>
                             </div>
                         </div>
+                        <!-- <input type="hidden" id="duplicatePoNumberFromServer" value="{{ session('po_duplicate') ?? '' }}"> -->
                     </form>
                 </div>
             </div>
@@ -111,60 +128,180 @@
 </div>
 
 <script>
-function checkPoNumber() {
-    let poNumber = document.getElementById("po_number").value.trim();
-    if (poNumber === "") {
-        togglePoTakenAlert(false);
-        return;
+let poDuplicateAlert = null;
+let poDuplicateMessage = null;
+function checkPoNumber(forceCheck = false) {
+    const poNumberInput = document.getElementById("po_number");
+    const allowReuseInput = document.getElementById('allow_reuse');
+    const poNumber = poNumberInput?.value.trim();
+    if (!poNumber) {
+        return Promise.resolve({ exists: false });
     }
 
-    fetch("/check-po-number?po_number=" + encodeURIComponent(poNumber))
+    const allowReuse = allowReuseInput?.value === '1';
+    if (allowReuse && !forceCheck) {
+        return Promise.resolve({ exists: true, skipped: true });
+    }
+
+     return fetch("{{ route('sm.purchaseorder.check-po-number') }}?po_number=" + encodeURIComponent(poNumber))
         .then(response => response.json())
         .then(data => {
-            if (data.exists) {
-                document.getElementById('allow_reuse').value = 0;
-                togglePoTakenAlert(true);
-            } else {
-                document.getElementById('allow_reuse').value = 0;
-                togglePoTakenAlert(false);
+            if (data.exists && !allowReuse) {
+                allowReuseInput.value = 0;
+                showPoDuplicateModal(poNumber);
             }
+            return data;
         })
-        .catch(error => console.error("Error checking PO number:", error));
+        .catch(error => {
+            console.error("Error checking PO number:", error);
+            return { exists: false };
+        });
 }
 
-function togglePoTakenAlert(show) {
-    const alertBox = document.getElementById('poTakenAlert');
-    if (!alertBox) return;
-    alertBox.classList.toggle('d-none', !show);
+function triggerPoCheck(force = false) {
+    const poNumberInput = document.getElementById('po_number');
+    if (!poNumberInput?.value.trim()) {
+        hideDuplicateAlert();
+        return;
+    }
+    checkPoNumber(force);
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    const reuseYes = document.getElementById('reuseYes');
-    const reuseNo = document.getElementById('reuseNo');
+    const reuseButton = document.getElementById('poDuplicateReuse');
+    const newButton = document.getElementById('poDuplicateNew');
+    poDuplicateAlert = document.getElementById('poDuplicateAlert');
+    poDuplicateMessage = document.getElementById('poDuplicateMessage');
+    const poNumberInput = document.getElementById('po_number');
+    const allowReuseInput = document.getElementById('allow_reuse');
+    const purchaseOrderForm = document.getElementById('purchaseOrderForm');
+    let skipSubmitCheck = false;
 
-    if (reuseYes) {
-        reuseYes.addEventListener('click', function () {
-            document.getElementById('allow_reuse').value = 1;
-            togglePoTakenAlert(false);
+    if (reuseButton) {
+        reuseButton.addEventListener('click', function () {
+            allowReuseInput.value = 1;
+            hideDuplicateAlert();
         });
     }
 
-    if (reuseNo) {
-        reuseNo.addEventListener('click', function () {
-            document.getElementById('allow_reuse').value = 0;
-            document.getElementById('po_number').value = '';
-            togglePoTakenAlert(false);
-            document.getElementById('po_number').focus();
+    if (newButton) {
+        newButton.addEventListener('click', function () {
+            allowReuseInput.value = 0;
+            if (poNumberInput) {
+                poNumberInput.value = '';
+                poNumberInput.focus();
+            }
+            hideDuplicateAlert();
+        });
+    }
+
+    if (poNumberInput) {
+        poNumberInput.addEventListener('input', function () {
+            if (allowReuseInput) {
+                allowReuseInput.value = 0;
+            }
+            triggerPoCheck();
+        });
+
+        poNumberInput.addEventListener('blur', function () {
+            triggerPoCheck(true);
+        });
+
+        poNumberInput.addEventListener('focusout', function () {
+            triggerPoCheck(true);
+        });
+
+        poNumberInput.addEventListener('keydown', function (event) {
+            if (event.key === 'Tab' || event.key === 'Enter') {
+                triggerPoCheck(true);
+            }
+        });
+    }
+
+    const duplicatePoNumber = <?php echo json_encode(session('po_duplicate', null)); ?>;
+    if (duplicatePoNumber) {
+        if (poNumberInput) {
+            poNumberInput.value = duplicatePoNumber;
+            poNumberInput.focus();
+        }
+        showPoDuplicateModal(duplicatePoNumber);
+    }
+
+    const poDateInput = document.getElementById('po_date');
+    if (poDateInput && poNumberInput) {
+        poDateInput.addEventListener('focus', function () {
+            if (poNumberInput.value.trim()) {
+                checkPoNumber(true);
+            }
+        });
+    }
+
+    document.addEventListener('focusin', function (event) {
+        if (!poNumberInput) {
+            return;
+        }
+
+        if (event.target === poNumberInput) {
+            poLastFocusedElement = poNumberInput;
+            return;
+        }
+
+        if (poLastFocusedElement === poNumberInput) {
+            triggerPoCheck(true);
+        }
+
+        poLastFocusedElement = event.target;
+    });
+
+    if (purchaseOrderForm) {
+        purchaseOrderForm.addEventListener('submit', function (event) {
+            if (skipSubmitCheck) {
+                skipSubmitCheck = false;
+                return;
+            }
+
+            if (allowReuseInput?.value === '1') {
+                return;
+            }
+
+            event.preventDefault();
+            checkPoNumber().then(data => {
+                if (!data.exists) {
+                    skipSubmitCheck = true;
+                    purchaseOrderForm.submit();
+                }
+            });
         });
     }
 });
 
+
+
+
+function hideDuplicateAlert() {
+    if (poDuplicateAlert) {
+        poDuplicateAlert.classList.add('d-none');
+    }
+}
+
+function showPoDuplicateModal(poNumber) {
+    if (!poDuplicateAlert) {
+        poDuplicateAlert = document.getElementById('poDuplicateAlert');
+        poDuplicateMessage = document.getElementById('poDuplicateMessage');
+    }
+    if (!poDuplicateAlert || !poDuplicateMessage) return;
+    poDuplicateMessage.textContent = `PO number ${poNumber} already exists. You can reuse it or create a new one.`;
+    poDuplicateAlert.classList.remove('d-none');
+}
+
 let feasibilityAmounts = {};
+let staticIpRequiredForFeasibility = false;
 
 function loadFeasibilityDetails() {
     const id = document.getElementById('feasibility_id').value;
     if (!id) {
         feasibilityAmounts = {};
+        staticIpRequiredForFeasibility = false;
         document.getElementById('dynamicPricingContainer').style.display = 'none';
         return;
     }
@@ -178,6 +315,8 @@ function loadFeasibilityDetails() {
                 static_ip_cost_per_link: parseFloat(d.static_ip_cost_per_link) || 0,
                 vendor_type: (d.vendor_type || '').toUpperCase()
             };
+            staticIpRequiredForFeasibility = (d.static_ip || '').toString().toLowerCase() === 'yes';
+            updateStaticIpFieldVisibility();
         });
 }
 
@@ -197,8 +336,8 @@ function showDynamicPricing() {
         c.innerHTML += `
         <div class="col-12 mb-2"><h6 class="text-primary">Link ${i} Pricing</h6></div>
 
-        <div class="row mb-3">
-            <div class="col-md-4">
+        <div class="row mb-3 dynamic-pricing-row">
+            <div class="col-md-4 pricing-col">
                 <label class="form-label">ARC - Link ${i} *</label>
                 <div class="input-group">
                     <input type="number" step="0.01" min="0" id="arc_link_${i}" name="arc_link_${i}" class="form-control" onblur="validateEnteredAmount('arc_link_${i}', 'arc_per_link')" oninput="calculateTotal()">
@@ -206,7 +345,7 @@ function showDynamicPricing() {
                 </div>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-4 pricing-col">
                 <label class="form-label">OTC - Link ${i} *</label>
                 <div class="input-group">
                     <input type="number" step="0.01" min="0" id="otc_link_${i}" name="otc_link_${i}" class="form-control" onblur="validateEnteredAmount('otc_link_${i}', 'otc_per_link')" oninput="calculateTotal()">
@@ -214,7 +353,7 @@ function showDynamicPricing() {
                 </div>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-4 pricing-col static-ip-field">
                 <label class="form-label">Static IP - Link ${i} *</label>
                 <div class="input-group">
                     <input type="number" step="0.01" min="0" id="static_ip_link_${i}" name="static_ip_link_${i}" class="form-control" onblur="validateEnteredAmount('static_ip_link_${i}', 'static_ip_cost_per_link')" oninput="calculateTotal()">
@@ -225,6 +364,31 @@ function showDynamicPricing() {
     }
 
     document.getElementById('dynamicPricingContainer').style.display = 'block';
+    updateStaticIpFieldVisibility();
+}
+
+function updateStaticIpFieldVisibility() {
+    document.querySelectorAll('.dynamic-pricing-row').forEach(row => {
+        const staticIpContainer = row.querySelector('.static-ip-field');
+        if (!staticIpContainer) return;
+        const input = staticIpContainer.querySelector('input');
+        if (staticIpRequiredForFeasibility) {
+            row.classList.remove('hide-static-ip');
+            staticIpContainer.style.display = '';
+            if (input) {
+                input.disabled = false;
+                input.required = true;
+            }
+        } else {
+            row.classList.add('hide-static-ip');
+            staticIpContainer.style.display = 'none';
+            if (input) {
+                input.disabled = true;
+                input.required = false;
+                input.value = '';
+            }
+        }
+    });
 }
 
 function validateEnteredAmount(inputId, key) {
@@ -298,6 +462,21 @@ function redirectToFeasibilityView() {
         right: 1rem;
         z-index: 5;
         border-radius: .35rem;
+    }
+
+    .dynamic-pricing-row.hide-static-ip .pricing-col {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+
+    /* Hide Static IP column entirely when not required */
+    .dynamic-pricing-row.hide-static-ip .static-ip-field {
+        display: none !important;
+    }
+
+    .dynamic-pricing-row.hide-static-ip .static-ip-field input {
+        outline: none;
+        border-color: transparent;
     }
 </style>
 @endsection

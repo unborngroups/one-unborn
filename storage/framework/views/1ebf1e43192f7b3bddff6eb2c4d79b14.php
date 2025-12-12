@@ -9,6 +9,18 @@
                     <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Create Purchase Order</h4>
                 </div>
                 <div class="card-body position-relative">
+                        <div id="poDuplicateAlert" class="alert alert-warning mt-3 d-none" role="alert">
+                            <div class="d-flex align-items-start justify-content-between">
+                                <div>
+                                    <strong id="poDuplicateMessage">PO number already exists.</strong>
+                                    <p class="mb-2 small text-muted">You can either reuse the existing PO or enter a new number.</p>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-warning btn-sm me-2" id="poDuplicateReuse">Use this PO</button>
+                                    <button type="button" class="btn btn-outline-danger btn-sm" id="poDuplicateNew">Create new</button>
+                                </div>
+                            </div>
+                        </div>
                     <?php if(session('error') && !session('po_duplicate')): ?>
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
@@ -18,10 +30,10 @@
                         </div>
                     <?php endif; ?>
 
-    .dynamic-pricing-row.hide-static-ip .pricing-col {
+    <!-- .dynamic-pricing-row.hide-static-ip .pricing-col {
         flex: 0 0 50%;
         max-width: 50%;
-    }
+    } -->
 
 </style>
                         <?php echo csrf_field(); ?>
@@ -465,6 +477,16 @@ function redirectToFeasibilityView() {
         flex: 0 0 50%;
         max-width: 50%;
     }
+
+    /* Hide Static IP column entirely when not required */
+    .dynamic-pricing-row.hide-static-ip .static-ip-field {
+        display: none !important;
+    }
+
+    .dynamic-pricing-row.hide-static-ip .static-ip-field input {
+        outline: none;
+        border-color: transparent;
+    }
 </style>
 <?php $__env->stopSection(); ?>
-<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\sm\purchaseorder\create.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views/sm/purchaseorder/create.blade.php ENDPATH**/ ?>

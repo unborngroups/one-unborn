@@ -508,7 +508,7 @@ private function getEmailRecipients($feasibility, $newStatus, $previousStatus = 
     // Open → Send to Operations Team
     if ($newStatus == 'Open') {
         return \App\Models\User::whereHas('userType', function ($q) {
-            $q->where('name', 'Operations');
+            $q->where('name', 'Team OPSS');
         })
         ->whereNotNull('official_email')
         ->pluck('official_email')
@@ -523,94 +523,4 @@ private function getEmailRecipients($feasibility, $newStatus, $previousStatus = 
 
     return [];
 }
-
-
-    // private function getEmailRecipients($feasibility, $newStatus, $previousStatus = null)
-    // {
-    //     $recipients = [];
-        
-    //     // Always include the SPOC email if available
-    //     if ($feasibility->spoc_email) {
-    //         $recipients[] = $feasibility->spoc_email;
-    //     }
-        
-    //     // Add the person who created the feasibility
-    //     if ($feasibility->createdBy && $feasibility->createdBy->email) {
-    //         $recipients[] = $feasibility->createdBy->email;
-    //     }
-        
-    //     // Status-specific recipients
-    //     switch ($newStatus) {
-    //         case 'InProgress':
-    //             // Notify S&M team when operations starts working
-    //             $smEmails = \App\Models\User::whereHas('userType', function($q) {
-    //                 $q->where('name', 'like', '%sales%')
-    //                   ->orWhere('name', 'like', '%marketing%');
-    //             })->pluck('email')->toArray();
-    //             $recipients = array_merge($recipients, $smEmails);
-    //             break;
-                
-    //         case 'Closed':
-    //             // Notify original requester and management when completed
-    //             if ($feasibility->createdBy && $feasibility->createdBy->email) {
-    //                 $recipients[] = $feasibility->createdBy->email;
-    //             }
-                
-    //             // 🎯 FIXED: If direct Open→Closed, also notify S&M team
-    //             if ($previousStatus === 'Open') {
-    //                 $smEmails = \App\Models\User::whereHas('userType', function($q) {
-    //                     $q->where('name', 'like', '%sales%')
-    //                       ->orWhere('name', 'like', '%marketing%');
-    //                 })->pluck('email')->toArray();
-    //                 $recipients = array_merge($recipients, $smEmails);
-    //             }
-    //             break;
-    //     }
-        
-    //     // Remove duplicates and empty emails
-    //     return array_unique(array_filter($recipients));
-    // }
-
-    /**
-     * Create deliverable from feasibility when it's closed
-     */
-    // private function createDeliverableFromFeasibility($feasibilityStatus)
-    // {
-    //     try {
-    //         // Check if deliverable already exists
-    //         $existingDeliverable = Deliverables::where('feasibility_id', $feasibilityStatus->feasibility_id)->first();
-            
-    //         if ($existingDeliverable) {
-    //             Log::info("Deliverable already exists for feasibility ID: {$feasibilityStatus->feasibility_id}");
-    //             return;
-    //         }
-            
-    //         $feasibility = $feasibilityStatus->feasibility;
-            
-    //         if (!$feasibility) {
-    //             Log::error("Feasibility not found for FeasibilityStatus ID: {$feasibilityStatus->id}");
-    //             return;
-    //         }
-            
-    //         // Create new deliverable with feasibility data
-    //         $deliverable = Deliverables::create([
-    //             'feasibility_id' => $feasibility->id,
-    //             'status' => 'Open',
-    //             'site_address' => $feasibility->site_address ?? '',
-    //             'local_contact' => $feasibility->contact_person ?? '',
-    //             'state' => $feasibility->state ?? '',
-    //             'gst_number' => $feasibility->gst_number ?? '',
-    //             'link_type' => $feasibility->connection_type ?? '',
-    //             'speed_in_mbps' => $feasibility->bandwidth ?? '',
-    //             'no_of_links' => 1, // Default value
-    //             'vendor' => $feasibilityStatus->vendor1_name ?? '', // Use selected vendor from feasibility
-    //         ]);
-            
-    //         Log::info("Deliverable created successfully with ID: {$deliverable->id} for feasibility: {$feasibility->feasibility_request_id}");
-            
-    //     } catch (\Exception $e) {
-    //         Log::error("Failed to create deliverable from feasibility: " . $e->getMessage());
-    //     }
-    // }
-
 }

@@ -48,7 +48,7 @@
 
             {{-- ✅ PAN Input --}}
 
-            <div class="col-md-4">
+            <!-- <div class="col-md-4">
 
                 <label class="form-label">PAN Number</label>
 
@@ -58,7 +58,7 @@
 
 
 
-            <small id="panStatus" class="text-muted mt-1 d-block"></small>
+            <small id="panStatus" class="text-muted mt-1 d-block"></small> -->
 
 
 
@@ -372,7 +372,7 @@
 
                 <div class="col-md-4">
 
-                    <input type="email" name="support_spoc_email" class="form-control mb-2"
+                    <input type="email" name="support_spoc_email" id="support_spoc_email" class="form-control mb-2"
 
                            value="{{ old('support_spoc_email', $client->support_spoc_email) }}"
 
@@ -492,12 +492,12 @@ document.getElementById("gst_state").addEventListener("change", fetchGST);
 // ⭐ Password Send Btn
 document.getElementById("sendPwdBtn").addEventListener("click", function () {
     let clientId = document.getElementById("client_id").value;
-    let email = document.getElementById("billing_spoc_email").value;
+    let email = document.getElementById("support_spoc_email").value;
     let userName = document.getElementById("user_name").value;
     let pwdStatus = document.getElementById("pwdStatus");
 
     if (!email) {
-        pwdStatus.innerHTML = "⚠️ Enter Billing Email first!";
+        pwdStatus.innerHTML = "⚠️ Enter Technical support Email first!";
         return;
     }
 

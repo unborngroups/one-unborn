@@ -525,18 +525,27 @@
 //     document.getElementById('hardware_make_div').style.display = this.value == '1' ? 'block' : 'none';
 
 // });
-document.getElementById('hardware_required').addEventListener('change', function () {
+const hardwareRequiredSelect = document.getElementById('hardware_required');
+const hardwareRow = document.querySelector('.hardware_row');
+const addHardwareBtnDiv = document.getElementById('add_btn_div');
 
-    let value = this.value;
+function setHardwareRowState(row, enabled) {
+    const selects = row.querySelectorAll('select');
+    selects.forEach(select => {
+        select.disabled = !enabled;
+        if (!enabled) {
+            select.value = '';
+        }
+    });
+    row.style.display = enabled ? 'flex' : 'none';
+}
 
-    // Show when "Yes"
-    if (value == '1') {
-        document.querySelector('.hardware_row').style.display = 'flex';
-        document.getElementById('add_btn_div').style.display = 'block';
-    } else {
-        document.querySelector('.hardware_row').style.display = 'none';
-        document.getElementById('add_btn_div').style.display = 'none';
-    }
+setHardwareRowState(hardwareRow, false);
+
+hardwareRequiredSelect.addEventListener('change', function () {
+    const isRequired = this.value === '1';
+    setHardwareRowState(hardwareRow, isRequired);
+    addHardwareBtnDiv.style.display = isRequired ? 'block' : 'none';
 });
 document.getElementById('add_hardware_btn').addEventListener('click', function () {
 
@@ -550,6 +559,11 @@ document.getElementById('add_hardware_btn').addEventListener('click', function (
     });
 
     newRow.style.display = 'flex';
+
+    newRow.querySelectorAll('select').forEach(select => {
+        select.disabled = false;
+        select.value = '';
+    });
 
     // Append to container
     document.getElementById('hardware_container').appendChild(newRow);
@@ -923,22 +937,20 @@ document.addEventListener('DOMContentLoaded', function() {
         noOfLinksSelect.dispatchEvent(new Event('change'));
 
     }
-    
-    // ✅ Static IP Subnet dropdown logic
-    const staticIPSelect = document.getElementById('static_ip');
+    const staticIpSelect = document.getElementById('static_ip');
     const subnetSelect = document.getElementById('static_ip_subnet');
-    
+    const staticIpSubnetWrapper = document.getElementById('static_ip_subnet_wrapper');
+    const typeOfServiceSelect = document.getElementById('type_of_service');
+
     // =======================
 // 🔐 Static IP Validation
 // =======================
 
-const typeOfService = document.getElementById('type_of_service');
-const staticIp = document.getElementById('static_ip');
 
 function checkStaticIP() {
-    if (typeOfService.value === 'ILL' && staticIp.value === 'No') {
+    if (typeOfServiceSelect.value === 'ILL' && staticIpSelect.value === 'No') {
         alert("For ILL service, Static IP is mandatory. Please select Yes.");
-        staticIp.value = "Yes";   // Auto-correct to Yes
+        staticIpSelect.value = "Yes";   // Auto-correct to Yes
     }
 }
 
@@ -952,6 +964,17 @@ typeOfService.addEventListener('change', function () {
 // When Static IP dropdown changes → validate
 staticIp.addEventListener('change', checkStaticIP);
 
+    function updateStaticIpSubnetVisibility() {
+        if (!staticIpSubnetWrapper || !subnetSelect) return;
+        const shouldShow = staticIPSelect?.value === 'Yes';
+        staticIpSubnetWrapper.style.display = shouldShow ? '' : 'none';
+        subnetSelect.disabled = !shouldShow;
+        subnetSelect.required = shouldShow;
+        if (!shouldShow) {
+            subnetSelect.value = '';
+        }
+    }
+
     staticIPSelect.addEventListener('change', function() {
         if (this.value === 'Yes') {
             subnetSelect.disabled = false;
@@ -961,10 +984,12 @@ staticIp.addEventListener('change', checkStaticIP);
             subnetSelect.required = false;
             subnetSelect.value = '';
         }
+        updateStaticIpSubnetVisibility();
     });
 
+    updateStaticIpSubnetVisibility();
+
     // ✅ Auto-select Static IP = "Yes" when Type of Service = "ILL"
-    const typeOfServiceSelect = document.getElementById('type_of_service');
     
 typeOfServiceSelect.addEventListener('change', function() {
     if (this.value === 'ILL') {
@@ -981,32 +1006,9 @@ typeOfServiceSelect.addEventListener('change', function() {
 // document.getElementById('importexcel').
 
 function excelImport() {
-    
-    if (!links) {
-        c.innerHTML = '';
-        document.getElementById('excelImport').style.display = 'none';
-        return;
-    }
-
-    c.innerHTML = '';
-    {
-        c.innerHTML += `
-
-        <div class=" card-body row mb-3">
-            <div class="col-md-4">
-                <label class="form-label"></label>
-                <div class="input-group">
-                    <input type="number" step="0.01" min="0" id="arc_link_${i}" name="arc_link_${i}" class="form-control" onblur="validateEnteredAmount('arc_link_${i}', 'arc_per_link')" oninput="calculateTotal()">
-                    <button type="button" class="btn btn-outline-info btn-sm" onclick="redirectToFeasibilityView()"><i class="bi bi-info-circle"></i></button>
-                </div>
-            </div>
-
-
-        </div>`;
-    }
-
-    document.getElementById('dynamicPricingContainer').style.display = 'block';
+    // Excel import logic removed; reintroduce carefully if required.
 }
+
 
 </script>
 @endsection

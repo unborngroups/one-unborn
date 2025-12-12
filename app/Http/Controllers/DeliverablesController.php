@@ -12,6 +12,7 @@ use App\Models\PurchaseOrder;
 use App\Models\Deliverables;
 use App\Models\ClientLink;
 use App\Models\Vendor;
+use App\Helpers\TemplateHelper;
 use IPLib\Address\IPv4;
 use Carbon\Carbon;
 
@@ -24,39 +25,53 @@ class DeliverablesController extends Controller
 
     public function operationsOpen()
     {
-        $deliverables = Deliverables::orderBy('id', 'asc')->get();
-
-        $records = Deliverables::with([
-            'feasibility',
-            'feasibility.client',
-            'feasibility.company',
-            'feasibility.feasibilityStatus'
-        ])
-        ->where('status', 'Open')
-        ->orderBy('id', 'asc')
-        ->get();
-
-        return view('operations.deliverables.open', compact('records', 'deliverables'));
+        return $this->renderDeliverablesPage('open', 'Open', $this->deliverablesPermissions('operations Deliverables'));
     }
 
     public function operationsInProgress()
     {
-        $deliverables = Deliverables::orderBy('id', 'asc')->get();
-
-        $records = Deliverables::with([
-            'feasibility',
-            'feasibility.client',
-            'feasibility.company',
-            'feasibility.feasibilityStatus'
-        ])
-        ->where('status', 'InProgress')
-        ->orderBy('id', 'asc')
-        ->get();
-
-        return view('operations.deliverables.inprogress', compact('records', 'deliverables'));
+        return $this->renderDeliverablesPage('inprogress', 'InProgress', $this->deliverablesPermissions('operations Deliverables'));
     }
 
     public function operationsDelivery()
+    {
+        return $this->renderDeliverablesPage('delivery', 'Delivery', $this->deliverablesPermissions('operations Deliverables'));
+    }
+
+    public function smOpen()
+    {
+        return $this->renderDeliverablesPage('open', 'Open', $this->deliverablesPermissions('sm Deliverables'));
+    }
+
+    public function smInProgress()
+    {
+        return $this->renderDeliverablesPage('inprogress', 'InProgress', $this->deliverablesPermissions('sm Deliverables'));
+    }
+
+    public function smDelivery()
+    {
+        return $this->renderDeliverablesPage('delivery', 'Delivery', $this->deliverablesPermissions('sm Deliverables'));
+    }
+
+    private function renderDeliverablesPage(string $view, string $status, object $permissions)
+    {
+        $data = $this->loadDeliverablesByStatus($status);
+        $data['permissions'] = $permissions;
+        return view("operations.deliverables.{$view}", $data);
+    }
+
+    private function deliverablesPermissions(string $menuName): object
+    {
+        return TemplateHelper::getUserMenuPermissions($menuName) ?? (object)[
+            'can_menu' => true,
+            'can_add' => true,
+            'can_edit' => true,
+            'can_delete' => true,
+            'can_view' => true,
+        ];
+    }
+
+    private function loadDeliverablesByStatus(string $status): array
     {
         $deliverables = Deliverables::orderBy('id', 'asc')->get();
 
@@ -66,11 +81,11 @@ class DeliverablesController extends Controller
             'feasibility.company',
             'feasibility.feasibilityStatus'
         ])
-        ->where('status', 'Delivery')
+        ->where('status', $status)
         ->orderBy('id', 'asc')
         ->get();
 
-        return view('operations.deliverables.delivery', compact('records', 'deliverables'));
+        return compact('records', 'deliverables');
     }
 
     // ====================================
@@ -151,9 +166,9 @@ class DeliverablesController extends Controller
     'lan_ip_3' => 'nullable|string|max:255',
     'lan_ip_4' => 'nullable|string|max:255',
     'ipsec' => 'nullable|in:Yes,No',
-    'phase_1' => $request->ipsec == 'Yes' ? 'required|string|max:255' : 'nullable|string|max:255',
-    'phase_2' => $request->ipsec == 'Yes' ? 'required|string|max:255' : 'nullable|string|max:255',
-    'ipsec_interface' => $request->ipsec == 'Yes' ? 'required|string|max:255' : 'nullable|string|max:255',
+    'phase_1' => $request->ipsec == 'Yes' ? 'nullable|string|max:255' : 'nullable|string|max:255',
+    'phase_2' => $request->ipsec == 'Yes' ? 'nullable|string|max:255' : 'nullable|string|max:255',
+    'ipsec_interface' => $request->ipsec == 'Yes' ? 'nullable|string|max:255' : 'nullable|string|max:255',
             'account_id' => 'nullable|string|max:255',    
             'asset_id' => 'nullable|string|max:255',
             'asset_serial_no' => 'nullable|string|max:255',

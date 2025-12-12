@@ -28,33 +28,7 @@
 
         <?php endif; ?>
 
-         <?php
-            $importRow = session('imported_row', []);
-        ?>
-     
-    <!-- <h5 class="mb-3 ">Import Feasibility</h5> -->
-        <div class="row g-3 mb-3">
-            <div class="col-md-12">
-                <button class="btn btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#importCard" aria-expanded="false" aria-controls="importCard">
-                    Import Vendors via Excel
-                </button>
-                <div class="collapse mt-3" id="importCard">
-                    <div class="card border-info">
-                        <div class="card-body">
-                            <p class="mb-3 small text-muted">Download the sample format, populate it with vendor data, and then upload it via Import Excel.</p>
-                            <form action="<?php echo e(route('vendors.import')); ?>" method="POST" enctype="multipart/form-data">
-                                <?php echo csrf_field(); ?>
-                                <div class="input-group">
-                                    <input type="file" name="file" class="form-control" required  accept=".xlsx, .xls,.csv,.xlsm,.ods">
-                                    <a href="<?php echo e(asset('images/importvendor/vendor_import_6937cc228b94e.xlsx')); ?>" target="_blank" class="btn btn-outline-secondary" title="Download vendor sample">Download Format</a>
-                                    <button type="submit" class="btn btn-primary">Import Excel</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        
 
 
 
@@ -66,7 +40,7 @@
 
               
 
-            <div class="col-md-4">
+            <!-- <div class="col-md-4">
 
                 <label class="form-label">PAN Number</label>
 
@@ -76,7 +50,7 @@
 
 
 
-            <small id="panStatus" class="text-muted mt-1 d-block"></small>
+            <small id="panStatus" class="text-muted mt-1 d-block"></small> -->
 
 
 

@@ -57,11 +57,11 @@
     </div>
     <div class="col-md-4 mt-3">
         <label>Serial No</label>
-        <input type="number" value="<?php echo e($asset->serial_no ?? ''); ?>" name="serial_no" class="form-control" required>
+        <input type="text" value="<?php echo e($asset->serial_no ?? ''); ?>" name="serial_no" class="form-control" required>
     </div>
     <div class="col-md-4 mt-3">
         <label>MAC No</label>
-        <input type="number" value="<?php echo e($asset->mac_no ?? ''); ?>" name="mac_no" class="form-control">
+        <input type="text" value="<?php echo e($asset->mac_no ?? ''); ?>" name="mac_no" class="form-control">
     </div>
     <div class="col-md-4 mt-3">
         <label>Procured From</label>
@@ -108,9 +108,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function generateAssetID() {
         let company = document.querySelector('select[name="company_id"] option:checked')?.text || '';
         let brand = document.querySelector('input[name="brand"]').value;
+        let model = document.querySelector('input[name="model"]').value;
 
         if (company && brand) {
-            fetch("<?php echo e(url('/assets/next-asset-id')); ?>?company=" + encodeURIComponent(company) + "&brand=" + encodeURIComponent(brand))
+            fetch("<?php echo e(url('/assets/next-asset-id')); ?>?company=" + encodeURIComponent(company) + "&brand=" + encodeURIComponent(brand) + "&model=" + encodeURIComponent(model))
                 .then(res => res.json())
                 .then(data => {
                     document.getElementById('asset_id').value = data.prefix + data.no;
@@ -120,6 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelector('select[name="company_id"]').addEventListener('change', generateAssetID);
     document.querySelector('input[name="brand"]').addEventListener('input', generateAssetID);
+    document.querySelector('input[name="model"]').addEventListener('input', generateAssetID);
 });
 </script>
 

@@ -31,9 +31,10 @@ class MenuSeeder extends Seeder
 
             // 🛠️ Sales & Marketing - Feasibility Master
             ['module_name' => 'Sales & Marketing', 'user_type' => 'superadmin', 'name' => 'Feasibility Master', 'route' => 'feasibility.index', 'icon' => 'bi bi-diagram-3', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
+            ['module_name' => 'Sales & Marketing', 'user_type' => 'superadmin', 'name' => 'Proposal', 'route' => 'sm.proposal.index', 'icon' => 'bi bi-receipt', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             ['module_name' => 'Sales & Marketing', 'user_type' => 'superadmin', 'name' => 'Purchase Order', 'route' => 'sm.purchaseorder.index', 'icon' => 'bi bi-receipt', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             ['module_name' => 'Sales & Marketing', 'user_type' => 'superadmin', 'name' => 'Proposal', 'route' => 'sm.proposal.index', 'icon' => 'bi bi-receipt', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
-            
+            ['module_name' => 'Sales & Marketing', 'user_type' => 'superadmin', 'name' => 'sm Deliverables', 'route' => 'sm.deliverables.open', 'icon' => 'bi bi-truck', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             // 📦 operations Module - Feasibility Status
             ['module_name' => 'operations', 'user_type' => 'superadmin', 'name' => 'operations Feasibility', 'route' => 'operations.feasibility.status', 'icon' => 'bi bi-kanban', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             ['module_name' => 'operations', 'user_type' => 'superadmin', 'name' => 'operations Deliverables', 'route' => 'operations.deliverables.open', 'icon' => 'bi bi-truck', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
