@@ -10,8 +10,10 @@ class TrackUserActivity
 {
     public function handle($request, Closure $next)
     {
+        // 1️⃣ Force inactive users Offline
         LoginLog::markStaleOffline();
 
+        // 2️⃣ Update current user's activity
         if (Auth::check()) {
 
             $log = LoginLog::where('user_id', Auth::id())
@@ -20,9 +22,9 @@ class TrackUserActivity
                 ->first();
 
             if ($log) {
-                $minutes = $log->login_time->diffInMinutes(now());
                 $log->update([
-                    'total_minutes' => $minutes
+                    'last_activity' => now(),
+                    'total_minutes' => $log->login_time->diffInMinutes(now())
                 ]);
             }
         }

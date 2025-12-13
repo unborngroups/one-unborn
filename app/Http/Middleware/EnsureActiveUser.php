@@ -12,6 +12,7 @@ class EnsureActiveUser
     /**
      * Handle an incoming request.
      */
+    // admin lock user if not active
     public function handle(Request $request, Closure $next): Response
     {
         $user = Auth::user();

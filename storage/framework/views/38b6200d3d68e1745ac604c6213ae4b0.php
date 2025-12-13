@@ -18,7 +18,7 @@
 
             
 
-                    <div class="col-md-2 static-ip-cost-column">
+                    <div class="col-md-6">
 
                 <h6 class="fw-semibold text-muted">Feasibility Request ID:</h6>
 
@@ -104,6 +104,8 @@
         <form id="feasibilityForm" method="POST">
 
             <?php echo csrf_field(); ?>
+            <input type="hidden" name="feasibility_id" value="<?php echo e($record->feasibility_id); ?>">
+            <input type="hidden" name="connection_type" value="<?php echo e($record->feasibility->type_of_service); ?>">
 
 
 
@@ -231,13 +233,13 @@
 
                     
 
-                    <div class="col-md-2">
+                    <div class="col-md-2 static-ip-cost-column">
+    <label class="form-label fw-semibold">Static IP Cost</label>
+    <input type="number" name="vendor<?php echo e($i); ?>_static_ip_cost"
+           class="form-control"
+           value="<?php echo e($record->{'vendor' . $i . '_static_ip_cost'}); ?>">
+</div>
 
-                        <label class="form-label fw-semibold">Static IP Cost</label>
-
-                        <input type="number" name="vendor<?php echo e($i); ?>_static_ip_cost" class="form-control" value="<?php echo e($record->{'vendor' . $i . '_static_ip_cost'}); ?>">
-
-                    </div>
 
                     
 
@@ -486,11 +488,12 @@ document.addEventListener('DOMContentLoaded', function () {
             return false;
         }
 
+        if (confirm('Are you sure you want to save this feasibility? This will move it to Inprogress status.')) {
         const form = document.getElementById('feasibilityForm');
         form.action = "<?php echo e(route('operations.feasibility.save', $record->id)); ?>";
         form.submit();
+        }
     };
-
 
     // -----------------------------
     // Submit → Closed
@@ -500,7 +503,6 @@ document.addEventListener('DOMContentLoaded', function () {
             alert('Please fill all required vendor names and ensure they are different.');
             return false;
         }
-
         if (confirm('Are you sure you want to submit this feasibility? This will move it to Closed status.')) {
             const form = document.getElementById('feasibilityForm');
             form.action = "<?php echo e(route('operations.feasibility.submit', $record->id)); ?>";
@@ -509,59 +511,43 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // ********************************************
-// Static IP Cost Rule (ILL → Optional, Others → Required)
-// ********************************************
-const feasibilityType = "<?php echo e($record->feasibility->type_of_service); ?>";
+    // Static IP Cost Rule (ILL → Optional, Others → Required)
+    // ********************************************
+    const feasibilityType = "<?php echo e($record->feasibility->type_of_service); ?>";
+    const staticIpEnabled = "<?php echo e(strtolower($record->feasibility->static_ip ?? 'No')); ?>" === 'yes';
 
-function applyStaticIPRule() {
-    for (let i = 1; i <= 4; i++) {
-        let field = document.querySelector(`input[name="vendor${i}_static_ip_cost"]`);
-        if (!field) continue;
+    function applyStaticIPRule() {
+        for (let i = 1; i <= 4; i++) {
+            const field = document.querySelector(`input[name="vendor${i}_static_ip_cost"]`);
+            if (!field) continue;
 
-        if (feasibilityType === "ILL") {
-            field.required = false;      // ❗ Not mandatory
-            field.readOnly = false;      // User can type
-            field.placeholder = "Optional for ILL";
-        } else {
-            field.required = true;       // 🔥 Mandatory
             field.readOnly = false;
-            field.placeholder = "Required";
+            field.required = feasibilityType === "ILL" ? false : true;
+            field.placeholder = feasibilityType === "ILL" ? "Optional for ILL" : "Required";
         }
     }
-}
-
-    applyStaticIPRule();
-
-    const staticIpEnabled = "<?php echo e(strtolower($record->feasibility->static_ip ?? 'No')); ?>" === 'yes';
 
     function updateStaticIpCostVisibility() {
         document.querySelectorAll('.static-ip-cost-column').forEach(column => {
             const input = column.querySelector('input');
+            if (!input) return;
+
             if (staticIpEnabled) {
                 column.style.display = '';
-                if (input) {
-                    input.disabled = false;
-                }
+                input.disabled = false;
             } else {
                 column.style.display = 'none';
-                if (input) {
-                    input.disabled = true;
-                    input.required = false;
-                    input.value = '';
-                }
+                input.disabled = true;
+                input.required = false;
+                input.value = '';
             }
         });
     }
 
+    applyStaticIPRule();
     updateStaticIpCostVisibility();
-
-
 });
 
-// in add feasibility static ip cost hide on vendor amount input    
-$('#vendor_amount').on('input', function() {
-    $('#static_ip_cost_row').hide();
-});
 
 </script>
 

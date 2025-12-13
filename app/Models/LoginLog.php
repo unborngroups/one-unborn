@@ -25,22 +25,16 @@ class LoginLog extends Model
 
     public const STALE_TIMEOUT_MINUTES = 10;
 
-    public static function markStaleOffline(int $minutes = self::STALE_TIMEOUT_MINUTES): void
-    {
-        $cutoff = Carbon::now()->subMinutes($minutes);
-        $logoutTime = Carbon::now();
+    public static function markStaleOffline()
+{
+    $timeout = config('session.lifetime'); // 30 mins
 
-        static::where('status', 'Online')
-            ->where('updated_at', '<', $cutoff)
-            ->chunkById(100, function ($logs) use ($logoutTime) {
-                foreach ($logs as $log) {
-                    $totalMinutes = $log->login_time->diffInMinutes($logoutTime);
-                    $log->update([
-                        'logout_time' => $logoutTime,
-                        'total_minutes' => $totalMinutes,
-                        'status' => 'Offline',
-                    ]);
-                }
-            });
-    }
+    self::where('status', 'Online')
+        ->whereNotNull('last_activity')
+        ->where('last_activity', '<', now()->subMinutes($timeout))
+        ->update([
+            'status' => 'Offline',
+            'logout_time' => now()
+        ]);
+}
 }

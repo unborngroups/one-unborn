@@ -226,7 +226,7 @@ public function editSave(Request $request, $id)
         }
 
         FeasibilityStatus::updateOrCreate(
-            ['feasibility_id' => $request->feasibility_id],
+            ['feasibility_id' => $data['feasibility_id']],
             $data
         );
 
@@ -286,48 +286,72 @@ public function editSave(Request $request, $id)
    // ============================
     // OPERATIONS SAVE
     // ============================
-    public function operationsSave(Request $request)
-    {
-        $connectionType = $request->input('connection_type');
+    public function operationsSave(Request $request, $id)
+{
+    $data = $request->validate([
+            'vendor1_name' => 'nullable|string',
+            'vendor1_arc' => 'nullable|string',
+            'vendor1_otc' => 'nullable|string',
+            'vendor1_static_ip_cost' => 'nullable|string',
+            'vendor1_delivery_timeline' => 'nullable|string',
 
-        $rules = [];
+            'vendor2_name' => 'nullable|string',
+            'vendor2_arc' => 'nullable|string',
+            'vendor2_otc' => 'nullable|string',
+            'vendor2_static_ip_cost' => 'nullable|string',
+            'vendor2_delivery_timeline' => 'nullable|string',
 
-        // Dynamic validation for vendor1 - vendor4
-        for ($i = 1; $i <= 4; $i++) {
+            'vendor3_name' => 'nullable|string',
+            'vendor3_arc' => 'nullable|string',
+            'vendor3_otc' => 'nullable|string',
+            'vendor3_static_ip_cost' => 'nullable|string',
+            'vendor3_delivery_timeline' => 'nullable|string',
 
-            // Vendor name always optional
-            $rules["vendor{$i}_name"] = "nullable|string";
-
-            // If name entered → ARC / OTC / Delivery mandatory
-            if ($request->input("vendor{$i}_name")) {
-                $rules["vendor{$i}_arc"] = "required|string";
-                $rules["vendor{$i}_otc"] = "required|string";
-                $rules["vendor{$i}_delivery_timeline"] = "required|string";
-
-                // Static IP Cost rule based on connection type
-                if ($connectionType == "ILL") {
-                    $rules["vendor{$i}_static_ip_cost"] = "nullable|string";
-                } else {
-                    $rules["vendor{$i}_static_ip_cost"] = "required|string";
-                }
-            }
-        }
-
-        $data = $request->validate($rules);
-        $data['feasibility_id'] = $request->feasibility_id;
-
-        FeasibilityStatus::updateOrCreate(
-            ['feasibility_id' => $request->feasibility_id],
-            $data
-        );
-
-        Feasibility::where('id', $request->feasibility_id)->update([
-            'status' => 'operations_open'
+            'vendor4_name' => 'nullable|string',
+            'vendor4_arc' => 'nullable|string',
+            'vendor4_otc' => 'nullable|string',
+            'vendor4_static_ip_cost' => 'nullable|string',
+            'vendor4_delivery_timeline' => 'nullable|string',
         ]);
 
-        return back()->with('success', 'Feasibility Updated Successfully');
+        $record = FeasibilityStatus::findOrFail($id);
+        
+        $data['status'] = 'InProgress';
+        $record->update($data);
+
+    $connectionType = $request->input('connection_type');
+
+    $rules = [];
+
+    for ($i = 1; $i <= 4; $i++) {
+        $rules["vendor{$i}_name"] = "nullable|string";
+
+        if ($request->input("vendor{$i}_name")) {
+            $rules["vendor{$i}_arc"] = "required|string";
+            $rules["vendor{$i}_otc"] = "required|string";
+            $rules["vendor{$i}_delivery_timeline"] = "required|string";
+
+            $rules["vendor{$i}_static_ip_cost"] =
+                $connectionType === "ILL" ? "nullable|string" : "required|string";
+        }
     }
 
+    $data = $request->validate($rules);
+
+    // ✅ Load the correct record
+    // $record = FeasibilityStatus::findOrFail($id);
+
+    // ✅ Update vendors
+    $record->update($data);
+
+    // ✅ THIS IS THE MAIN FIX
+    $record->status = 'InProgress';
+    $record->save();
+
+    return redirect()
+        ->route('operations.feasibility.inprogress')
+        ->with('success', 'Feasibility moved to In Progress successfully');
+}
 
     public function operationsSubmit(Request $request, $id)
     {
@@ -482,28 +506,15 @@ public function editSave(Request $request, $id)
             ]);
         }
     }
-    
+
     /**
      * Get email recipients based on status change
-     * 
+     *
      * @param \App\Models\Feasibility $feasibility The feasibility record
      * @param string $newStatus The new status
-     * @param string|null $previousStatus The previous status
      * @return array Array of email addresses
      */
-  
-// private function getEmailRecipients($feasibility, $newStatus, $previousStatus = null)
-// {
-//     // Fetch all users who belong to user_type = Team
-//     $teamUsers = \App\Models\User::whereHas('userType', function ($q) {
-//         $q->where('name', 'Team');
-//     })->pluck('email')->toArray();
-
-
-//     return array_unique(array_filter($teamUsers));
-// }
-
-private function getEmailRecipients($feasibility, $newStatus, $previousStatus = null)
+    private function getEmailRecipients($feasibility, $newStatus, $previousStatus = null)
 {
     // Open → Send to Operations Team
     if ($newStatus == 'Open') {

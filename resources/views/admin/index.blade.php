@@ -23,8 +23,15 @@
                     <td>{{ $log->user->name ?? 'Unknown User' }}</td>
 
                     <td>{{ $log->login_time }}</td>
+                    
+
                     <td>{{ $log->logout_time ?? 'Active Now' }}</td>
-                    <td>{{ $log->total_minutes ?? 'Calculating...' }}</td>
+                    <!-- <td>{{ $log->total_minutes ?? 'Calculating...' }}</td> -->
+                    <td>{{ $log->total_minutes }}
+                        @if(!$log->logout_time)
+                        <small class="text-muted">(Live)</small>
+                        @endif
+                    </td>
                     <td>
                         @if($log->status === 'Online')
                             <span class="badge bg-success">Online</span>

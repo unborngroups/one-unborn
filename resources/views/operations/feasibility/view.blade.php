@@ -9,7 +9,6 @@
     <h4 class="text-primary fw-bold mb-3">View Feasibility Details</h4>
 
 
-
     <div class="card shadow border-0 p-4">
 
         {{-- ✅ Display Feasibility Details in Read-Only Text Format --}}
@@ -212,6 +211,15 @@
 
             </div>
 
+             {{-- Static IP Subnet --}}
+
+            <div class="col-md-3">
+
+                <label class="form-label fw-semibold">Static IP Subnet</label>
+
+                <p class="form-control-plaintext">{{ $record->feasibility->static_ip_subnet ?? 'N/A' }}</p>
+
+            </div>
 
 
             {{-- Expected Delivery --}}
@@ -248,14 +256,17 @@
 
             </div>
 
-
 @if(!empty($record->feasibility->hardware_details))
     <div class="col-md-3">
         <label class="form-label fw-semibold">Hardware Model Name</label>
         @foreach(json_decode($record->feasibility->hardware_details, true) as $item)
+            @php
+                $make = \App\Models\MakeType::find($item['make_type_id']);
+                $model = \App\Models\Asset::select('model')->find($item['model_id']);
+            @endphp
             <p class="mb-1">
-                Make: {{ $item['make'] }} <br>
-                Model: {{ $item['model'] }}
+                Make: {{ $make->make_name ?? 'N/A' }} <br>
+                Model: {{ $model->model ?? 'N/A' }}
             </p>
         @endforeach
     </div>
@@ -265,8 +276,6 @@
         <p class="form-control-plaintext">N/A</p>
     </div>
 @endif
-
-
 
             {{-- Status --}}
 
@@ -298,6 +307,81 @@
 
         </div>
 
+       {{-- Vendor Information Section --}}
+@if(
+    $record->vendor1_name || $record->vendor1_arc || $record->vendor1_otc || $record->vendor1_static_ip_cost || $record->vendor1_delivery_timeline ||
+    $record->vendor2_name || $record->vendor2_arc || $record->vendor2_otc || $record->vendor2_static_ip_cost || $record->vendor2_delivery_timeline ||
+    $record->vendor3_name || $record->vendor3_arc || $record->vendor3_otc || $record->vendor3_static_ip_cost || $record->vendor3_delivery_timeline ||
+    $record->vendor4_name || $record->vendor4_arc || $record->vendor4_otc || $record->vendor4_static_ip_cost || $record->vendor4_delivery_timeline
+)
+
+<hr class="my-4">
+<h5 class="text-primary fw-bold mb-3">Vendor Information</h5>
+
+<div class="row g-3">
+
+    @for($i = 1; $i <= 4; $i++)
+
+        @php
+            $vName = 'vendor'.$i.'_name';
+            $vArc  = 'vendor'.$i.'_arc';
+            $vOtc  = 'vendor'.$i.'_otc';
+            $vIp   = 'vendor'.$i.'_static_ip_cost';
+            $vTime = 'vendor'.$i.'_delivery_timeline';
+        @endphp
+
+        {{-- show vendor even if name NULL but costs present --}}
+    @if($record->$vName !== null || $record->$vArc !== null || $record->$vOtc !== null || $record->$vIp !== null || $record->$vTime !== null)
+
+
+        <div class="col-md-12">
+            <div class="card bg-light">
+                <div class="card-body">
+
+                    <h6 class="fw-bold text-secondary mb-3">Vendor {{ $i }}</h6>
+
+                    <div class="row">
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Name</label>
+                            <p class="form-control-plaintext">
+                                {{ ($record->$vName == 'Self' || $record->$vName == 0) ? 'Self' : $record->$vName }}
+                            </p>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">ARC</label>
+                            <p class="form-control-plaintext">{{ $record->$vArc ?? 'N/A' }}</p>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">OTC</label>
+                            <p class="form-control-plaintext">{{ $record->$vOtc ?? 'N/A' }}</p>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">Static IP Cost</label>
+                            <p class="form-control-plaintext">{{ $record->$vIp ?? 'N/A' }}</p>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Delivery Timeline</label>
+                            <p class="form-control-plaintext">{{ $record->$vTime ?? 'N/A' }}</p>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        @endif
+
+    @endfor
+
+</div>
+
+@endif
 
 
         {{-- ✅ Back button --}}

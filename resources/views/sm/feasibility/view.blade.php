@@ -280,11 +280,6 @@
     </div>
 @endif
 
-
-
-
-
-
             {{-- Status --}}
 
             <div class="col-md-3">

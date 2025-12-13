@@ -33,17 +33,26 @@ class Kernel extends HttpKernel
      */
     protected $middlewareGroups = [
         'web' => [
-            \App\Http\Middleware\EncryptCookies::class,
-            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-            \Illuminate\Session\Middleware\StartSession::class,
-            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-            \App\Http\Middleware\VerifyCsrfToken::class,
-            \App\Http\Middleware\EnsureActiveUser::class,
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            \App\Http\Middleware\TrackUserActivity::class,
-            // ✅ Prevent back after logout
-            \App\Http\Middleware\PreventBackHistory::class,
-        ],
+    \App\Http\Middleware\EncryptCookies::class,
+    \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+    \Illuminate\Session\Middleware\StartSession::class,
+
+    \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+    \App\Http\Middleware\VerifyCsrfToken::class,
+
+    // 🔐 Auth state checks FIRST
+    \App\Http\Middleware\EnsureActiveUser::class,
+    \App\Http\Middleware\ForceLogoutIfOffline::class,
+
+    // ⏱️ Activity tracking AFTER validation
+    \App\Http\Middleware\TrackUserActivity::class,
+
+    \Illuminate\Routing\Middleware\SubstituteBindings::class,
+
+    // 🚫 Prevent browser back after logout
+    \App\Http\Middleware\PreventBackHistory::class,
+],
+
 
         'api' => [
             \Illuminate\Routing\Middleware\SubstituteBindings::class,

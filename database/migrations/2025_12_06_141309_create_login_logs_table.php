@@ -13,6 +13,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->timestamp('login_time');
             $table->timestamp('logout_time')->nullable();
+            $table->timestamp('last_activity')->nullable();
             $table->integer('total_minutes')->nullable();
             $table->enum('status', ['Online', 'Offline'])->default('Online');
             $table->timestamps();

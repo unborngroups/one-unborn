@@ -377,3 +377,7 @@ ON DELETE CASCADE;
 INSERT INTO menus (id, module_name, user_type, name, route, icon, can_menu, can_add, can_edit, can_delete, can_view)
 VALUES
   (46, 'Sales & Marketing', 'superadmin', 'sm Deliverables', 'sm.deliverables.open', 'bi bi-truck', 1, 1, 1, 1, 1),
+
+
+ALTER TABLE login_logs
+ADD COLUMN last_activity TIMESTAMP NULL AFTER logout_time;

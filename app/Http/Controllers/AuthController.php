@@ -36,6 +36,7 @@ public function showLogin()
             LoginLog::create([
                 'user_id' => $user->id,
                 'login_time' => now(),
+                'last_activity' => now(),
                 'status' => 'Online',
             ]);
 
@@ -67,6 +68,7 @@ public function showLogin()
                 $log->update([
                     'logout_time' => $logoutTime,
                     'total_minutes' => $minutes,
+                    'last_activity' => now(),
                     'status' => 'Offline',
                 ]);
             }

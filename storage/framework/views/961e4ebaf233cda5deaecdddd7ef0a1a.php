@@ -883,103 +883,16 @@ pincodeInput.addEventListener('blur', lookupPincode);
 
 // Trigger on Enter key press
 
-pincodeInput.addEventListener('keypress', function(e) {
+document.addEventListener('DOMContentLoaded', function () {
 
-  if (e.key === 'Enter') {
+    const staticIpSelect   = document.getElementById('static_ip');
+    const subnetSelect     = document.getElementById('static_ip_subnet');
+    const typeServiceSelect = document.getElementById('type_of_service');
 
-    e.preventDefault(); // Prevent form submission
+    function updateStaticIpSubnetState() {
+        if (!staticIpSelect || !subnetSelect) return;
 
-    lookupPincode();
-
-  }
-
-});
-
-// Trigger on input with debouncing (wait for user to stop typing)
-
-let pincodeTimeout;
-
-pincodeInput.addEventListener('input', function() {
-
-  // Clear previous timeout
-
-  if (pincodeTimeout) {
-
-    clearTimeout(pincodeTimeout);
-
-  }
-
-  // Set new timeout to trigger after 1 second of no typing
-
-  pincodeTimeout = setTimeout(() => {
-
-    const value = this.value.trim();
-
-    if (/^\d{6}$/.test(value)) {
-
-      lookupPincode();
-
-    }
-
-  }, 1000);
-
-});
-
-// Initialize the vendor type field state on page load
-
-document.addEventListener('DOMContentLoaded', function() {
-
-    const noOfLinksSelect = document.querySelector('select[name="no_of_links"]');
-
-    const vendorTypeSelect = document.querySelector('select[name="vendor_type"]');
-
-    // If there's already a value selected, trigger the change event
-
-    if (noOfLinksSelect.value) {
-
-        noOfLinksSelect.dispatchEvent(new Event('change'));
-
-    }
-    const staticIpSelect = document.getElementById('static_ip');
-    const subnetSelect = document.getElementById('static_ip_subnet');
-    const staticIpSubnetWrapper = document.getElementById('static_ip_subnet_wrapper');
-    const typeOfServiceSelect = document.getElementById('type_of_service');
-
-    // =======================
-// 🔐 Static IP Validation
-// =======================
-
-
-function checkStaticIP() {
-    if (typeOfServiceSelect.value === 'ILL' && staticIpSelect.value === 'No') {
-        alert("For ILL service, Static IP is mandatory. Please select Yes.");
-        staticIpSelect.value = "Yes";   // Auto-correct to Yes
-    }
-}
-
-// When Type of Service changes → if ILL, force Static IP to Yes
-typeOfService.addEventListener('change', function () {
-    if (this.value === 'ILL') {
-        staticIp.value = 'Yes';
-    }
-});
-
-// When Static IP dropdown changes → validate
-staticIp.addEventListener('change', checkStaticIP);
-
-    function updateStaticIpSubnetVisibility() {
-        if (!staticIpSubnetWrapper || !subnetSelect) return;
-        const shouldShow = staticIPSelect?.value === 'Yes';
-        staticIpSubnetWrapper.style.display = shouldShow ? '' : 'none';
-        subnetSelect.disabled = !shouldShow;
-        subnetSelect.required = shouldShow;
-        if (!shouldShow) {
-            subnetSelect.value = '';
-        }
-    }
-
-    staticIPSelect.addEventListener('change', function() {
-        if (this.value === 'Yes') {
+        if (staticIpSelect.value === 'Yes') {
             subnetSelect.disabled = false;
             subnetSelect.required = true;
         } else {
@@ -987,24 +900,26 @@ staticIp.addEventListener('change', checkStaticIP);
             subnetSelect.required = false;
             subnetSelect.value = '';
         }
-        updateStaticIpSubnetVisibility();
-    });
-
-    updateStaticIpSubnetVisibility();
-
-    // ✅ Auto-select Static IP = "Yes" when Type of Service = "ILL"
-    
-typeOfServiceSelect.addEventListener('change', function() {
-    if (this.value === 'ILL') {
-        staticIPSelect.value = 'Yes';
-        staticIPSelect.required = true; // <-- Make Static IP mandatory
-        staticIPSelect.dispatchEvent(new Event('change'));
-    } else {
-        staticIPSelect.required = true; // For other services, user selects manually
     }
-});
 
+    function enforceStaticIpForILL() {
+        if (!typeServiceSelect || !staticIpSelect) return;
+
+        if (typeServiceSelect.value === 'ILL') {
+            staticIpSelect.value = 'Yes';
+            updateStaticIpSubnetState();
+        }
+    }
+
+    // Events
+    staticIpSelect.addEventListener('change', updateStaticIpSubnetState);
+    typeServiceSelect.addEventListener('change', enforceStaticIpForILL);
+
+    // Initial load (IMPORTANT for edit/import)
+    updateStaticIpSubnetState();
+    enforceStaticIpForILL();
 });
+// document.getElementById('importexcel').
 
 // document.getElementById('importexcel').
 

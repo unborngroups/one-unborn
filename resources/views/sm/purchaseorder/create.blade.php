@@ -9,15 +9,15 @@
                     <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Create Purchase Order</h4>
                 </div>
                 <div class="card-body position-relative">
-                        <div id="poDuplicateAlert" class="alert alert-warning mt-3 d-none" role="alert">
+                        <div id="poDuplicateAlert" class="alert alert-white mt-3 d-none" role="alert">
                             <div class="d-flex align-items-start justify-content-between">
                                 <div>
                                     <strong id="poDuplicateMessage">PO number already exists.</strong>
                                     <p class="mb-2 small text-muted">You can either reuse the existing PO or enter a new number.</p>
                                 </div>
                                 <div>
-                                    <button type="button" class="btn btn-warning btn-sm me-2" id="poDuplicateReuse">Use this PO</button>
-                                    <button type="button" class="btn btn-outline-danger btn-sm" id="poDuplicateNew">Create new</button>
+                                    <button type="button" class="btn btn-primary btn-sm me-2" id="poDuplicateReuse">Use this PO</button>
+                                    <button type="button" class="btn btn-danger btn-sm" id="poDuplicateNew">Create new</button>
                                 </div>
                             </div>
                         </div>
@@ -60,7 +60,7 @@
                                     <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
 
-                                <div id="poDuplicateAlert" class="alert alert-warning mt-3 d-none" role="alert">
+                                <!-- <div id="poDuplicateAlert" class="alert alert-warning mt-3 d-none" role="alert">
                                     <div class="d-flex align-items-start justify-content-between">
                                         <div>
                                             <strong id="poDuplicateMessage">PO number already exists.</strong>
@@ -71,7 +71,7 @@
                                             <button type="button" class="btn btn-outline-danger btn-sm" id="poDuplicateNew">Create new</button>
                                         </div>
                                     </div>
-                                </div>
+                                </div> -->
 
                             </div>
 
@@ -127,6 +127,7 @@
     </div>
 </div>
 
+
 <script>
 let poDuplicateAlert = null;
 let poDuplicateMessage = null;
@@ -157,7 +158,6 @@ function checkPoNumber(forceCheck = false) {
             return { exists: false };
         });
 }
-
 function triggerPoCheck(force = false) {
     const poNumberInput = document.getElementById('po_number');
     if (!poNumberInput?.value.trim()) {
@@ -166,7 +166,6 @@ function triggerPoCheck(force = false) {
     }
     checkPoNumber(force);
 }
-
 document.addEventListener('DOMContentLoaded', function () {
     const reuseButton = document.getElementById('poDuplicateReuse');
     const newButton = document.getElementById('poDuplicateNew');
@@ -274,16 +273,11 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
-
-
-
-
 function hideDuplicateAlert() {
     if (poDuplicateAlert) {
         poDuplicateAlert.classList.add('d-none');
     }
 }
-
 function showPoDuplicateModal(poNumber) {
     if (!poDuplicateAlert) {
         poDuplicateAlert = document.getElementById('poDuplicateAlert');
@@ -293,10 +287,8 @@ function showPoDuplicateModal(poNumber) {
     poDuplicateMessage.textContent = `PO number ${poNumber} already exists. You can reuse it or create a new one.`;
     poDuplicateAlert.classList.remove('d-none');
 }
-
 let feasibilityAmounts = {};
 let staticIpRequiredForFeasibility = false;
-
 function loadFeasibilityDetails() {
     const id = document.getElementById('feasibility_id').value;
     if (!id) {
@@ -319,7 +311,6 @@ function loadFeasibilityDetails() {
             updateStaticIpFieldVisibility();
         });
 }
-
 function showDynamicPricing() {
     const links = parseInt(document.getElementById('no_of_links_dropdown').value);
     const c = document.getElementById('pricingFieldsContainer');
@@ -353,7 +344,7 @@ function showDynamicPricing() {
                 </div>
             </div>
 
-            <div class="col-md-4 pricing-col static-ip-field">
+            <div class="col-md-4 pricing-col static-ip-field static-ip-cost-column">
                 <label class="form-label">Static IP - Link ${i} *</label>
                 <div class="input-group">
                     <input type="number" step="0.01" min="0" id="static_ip_link_${i}" name="static_ip_link_${i}" class="form-control" onblur="validateEnteredAmount('static_ip_link_${i}', 'static_ip_cost_per_link')" oninput="calculateTotal()">
@@ -366,7 +357,6 @@ function showDynamicPricing() {
     document.getElementById('dynamicPricingContainer').style.display = 'block';
     updateStaticIpFieldVisibility();
 }
-
 function updateStaticIpFieldVisibility() {
     document.querySelectorAll('.dynamic-pricing-row').forEach(row => {
         const staticIpContainer = row.querySelector('.static-ip-field');
@@ -390,7 +380,6 @@ function updateStaticIpFieldVisibility() {
         }
     });
 }
-
 function validateEnteredAmount(inputId, key) {
     const v = parseFloat(document.getElementById(inputId).value) || 0;
     const f = feasibilityAmounts[key] || 0;
@@ -422,7 +411,6 @@ function validateEnteredAmount(inputId, key) {
         document.getElementById(inputId).value = '';
     }
 }
-
 function calculateTotal() {
     let t = 0;
     const links = parseInt(document.getElementById('no_of_links_dropdown').value) || 0;
@@ -435,7 +423,6 @@ function calculateTotal() {
 
     document.getElementById('totalCost').value = '₹' + t.toFixed(2);
 }
-
 function redirectToFeasibilityView() {
     const select = document.getElementById('feasibility_id');
     const selectedOption = select?.selectedOptions?.[0];
@@ -444,7 +431,6 @@ function redirectToFeasibilityView() {
         window.open(`/sm/feasibility/${statusId}/view`, '_blank');
     }
 }
-
 </script>
 <style>
     .card-body.position-relative {
@@ -464,19 +450,5 @@ function redirectToFeasibilityView() {
         border-radius: .35rem;
     }
 
-    .dynamic-pricing-row.hide-static-ip .pricing-col {
-        flex: 0 0 50%;
-        max-width: 50%;
-    }
-
-    /* Hide Static IP column entirely when not required */
-    .dynamic-pricing-row.hide-static-ip .static-ip-field {
-        display: none !important;
-    }
-
-    .dynamic-pricing-row.hide-static-ip .static-ip-field input {
-        outline: none;
-        border-color: transparent;
-    }
 </style>
 @endsection
