@@ -52,12 +52,87 @@
      <style>
         body{
             background:#f4f6f9;
+            overflow-y: auto !important;
             /* background: #f4f6f9; */
         }
-
+        /* Ensure main content starts below navbar and status bar on mobile */
+        @media (max-width: 767px) {
+            .content-wrapper {
+                margin-left: 0 !important;
+                width: 100vw !important;
+                padding: 0 !important;
+            }
+            .navbar {
+                top: 0 !important;
+                left: 0 !important;
+                width: 100vw !important;
+                z-index: 1200 !important;
+            }
+            /* Status/time bar fixed below navbar */
+            .status-bar, .cloud-server-time, .top-status-bar {
+                position: fixed !important;
+                top: 55px !important;
+                left: 0 !important;
+                width: 100vw !important;
+                z-index: 1100 !important;
+                margin-top: 0 !important;
+                font-size: 0.95rem !important;
+                background: #0a2a6b !important;
+                color: #fff !important;
+                border-radius: 0 !important;
+                padding: 4px 0 !important;
+                text-align: left;
+            }
+            main.p-4 {
+                padding: 1rem !important;
+                margin-top: 95px !important; /* 55px navbar + 40px status bar */
+            }
+            .add-btn, .btn-add, .add-button, .top-add-btn {
+                margin-top: 1.2rem !important;
+                display: inline-block;
+            }
+        }
+        /* Responsive main content and form for mobile */
+        @media (max-width: 767px) {
+            .content-wrapper {
+                margin-left: 0 !important;
+                width: 100% !important;
+                padding: 0 !important;
+            }
+            main.p-4 {
+                padding: 1rem !important;
+            }
+            .form-container, .card, form {
+                max-width: 98vw !important;
+                min-width: unset !important;
+                margin: 0 auto !important;
+                box-sizing: border-box;
+            }
+            .card {
+                padding: 1rem !important;
+            }
+            h1, h2, h3, h4, h5, h6 {
+                font-size: 1.2rem !important;
+                word-break: break-word;
+            }
+            .form-control {
+                font-size: 1rem !important;
+                padding: 8px !important;
+            }
+            label, .form-label {
+                font-size: 0.98rem !important;
+            }
+            /* Fix heading overflow */
+            .page-title, .main-title, .add-client-title {
+                font-size: 1.3rem !important;
+                text-align: center !important;
+                word-break: break-word;
+                margin-top: 1.2rem !important;
+            }
+        }
     /* Sidebar default for large screens */
 
-  #sidebar {
+  /* #sidebar {
 
     width: 250px;
 
@@ -71,10 +146,23 @@
 
     left: 0;
 
-    background-color: #07173dff;
+    background-color: #061c5cff;
 
     z-index: 100;
 
+} */
+
+    #sidebar {
+    width: 260px;
+    min-width: 260px;
+    max-width: 260px;
+    position: fixed;
+    top: 55px; /* same as navbar height */
+    left: 0;
+    height: calc(100vh - 55px);
+    background-color: #061c5c;
+    overflow-y: auto;
+    z-index: 1050;
 }
 
      /* ✅ Active & Hover Colors */
@@ -94,7 +182,7 @@
 
 /* 🔥 Slim Professional Navbar */
 .navbar {
-    background: #051644ff !important;
+    background: #010144ff !important;
     padding-top: 6px !important;
     padding-bottom: 6px !important;
     height: 55px !important; /* reduced height */
@@ -105,20 +193,12 @@
     left: 0; /* touch left edge */
     width: 100%;
     z-index: 1000;
+    border-bottom: 1px solid rgba(13, 110, 253, 0.15);
+    box-shadow: none !important;
 }
 /* Make the navbar full width and start from left edge */
 
 /* Push the main content down below navbar */
-.main-content {
-    margin-top: 70px; /* adjust based on your navbar height */
-}
-
-/* Sidebar stays below navbar */
-.sidebar {
-    margin-top: 50px;
-    /* width: 450px; */
-}
-
 .navbar .nav-link,
 .navbar-brand,
 .navbar-text {
@@ -168,19 +248,11 @@
 
     .content-wrapper {
 
-    margin-left: 230px; /* a bit smaller for better balance */
-
-    width: calc(100% - 230px);
-
-    transition: margin-left 0.3s ease, width 0.3s ease;
-
-    padding: 0; /* remove extra padding causing push */
-
+    margin-left: 260px;
+    width: calc(100% - 260px);
+    transition: all 0.3s ease;
 }
-/* .sidebar{
-    background-color: #030445ff;
-    width: 480px;
-} */
+
     /* Mobile hamburger button */
 
     @media (max-width: 767px) {
@@ -206,48 +278,13 @@
     @media (max-width: 768px) {
 
         #sidebar {
+        left: -260px;
+        transform: none;
+    }
 
-            position: fixed !important;
-
-            left: -280px !important; /* Hidden off-screen by default */
-
-            top: 0;
-
-            height: 100vh !important;
-
-            width: 280px !important;
-
-            max-width: 80vw !important;
-
-            z-index: 1050 !important;
-
-            transition: left 0.3s ease;
-
-            background-color: #0c2359ff !important;
-
-            overflow-y: auto;
-
-            transform: translateX(-100%); /* Extra ensure it's hidden */
-
-        }
-
-        #sidebar.active {
-
-            left: 0 !important;
-
-            transform: translateX(0); /* Slide in when active */
-
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
-
-        }
-
-        .content-wrapper {
-
-            margin-left: 0 !important;
-
-            width: 100% !important;
-
-        }
+    #sidebar.active {
+        left: 0;
+    }
 
         /* Mobile menu styling improvements */
 
@@ -301,31 +338,35 @@
 
             position: fixed;
 
-            top: 0;
+            top: 55px;
 
             left: 0;
 
             width: 100%;
 
-            height: 100vh;
+            height: calc(100vh - 55px);
 
             background: rgba(0, 0, 0, 0.5);
 
             z-index: 1040;
 
-            opacity: 0;
-
-            transition: opacity 0.3s ease;
-
         }
+         #sidebar.active + #sidebarOverlay {
+
+        display: block;
+
+    }  
+        #sidebarOverlay.show {
+    display: block;
+}
+
         .arrow-icon {
     transition: transform 0.3s ease;
 }
 
-.nav-link:not(.collapsed) .arrow-icon {
+.nav-link[aria-expanded="true"] .arrow-icon {
     transform: rotate(180deg);
 }
-
 
         #sidebarOverlay.show {
 
@@ -352,13 +393,7 @@
         }
 
     }
-
-    #sidebar.active + #sidebarOverlay {
-
-        display: block;
-
-    }  
-
+    /* Form input styling */
     .form-control {
 
         border-radius: 8px;
@@ -522,6 +557,8 @@
 
             <?php echo $__env->yieldContent('content'); ?>
 
+            <?php echo $__env->yieldPushContent('scripts'); ?>
+
         </main>
 
     </div>
@@ -641,8 +678,6 @@ $('#sidebarToggle').on('click', function(e) {
 
     });
 
-
-
 // ✅ Close sidebar when overlay is clicked
 
 $('#sidebarOverlay').on('click', function() {
@@ -657,8 +692,6 @@ $('#sidebarOverlay').on('click', function() {
 
 });
 
-
-
 // ✅ Close sidebar when close button is clicked (mobile)
 
 $(document).on('click', '#sidebarClose', function() {
@@ -672,9 +705,6 @@ $(document).on('click', '#sidebarClose', function() {
     setTimeout(() => $('#sidebarOverlay').hide(), 300);
 
 });
-
-
-
 // ✅ Close menu when clicking any menu item (mobile)
 
 $(document).on('click', '#sidebar .nav-link', function() {
@@ -692,23 +722,9 @@ $(document).on('click', '#sidebar .nav-link', function() {
     }
 
 });
-
-
-
-
-
     // ✅ Active menu item highlighting
 
-    $('.menu-item').on('click', function() {
-
-        $('.menu-item').removeClass('active');
-
-        $(this).addClass('active');
-
-    });
-
-
-
+    
     flatpickr("input[type=date]", {
 
     dateFormat: "d-m-Y", // change format to DD-MM-YYYY
@@ -722,9 +738,6 @@ $(document).on('click', '#sidebar .nav-link', function() {
     // theme: "dark"      // uncomment for dark mode
 
 });
-
-
-
 $(document).ready(function () {
 
     $('.select2-tags').select2({
@@ -743,15 +756,34 @@ $(document).ready(function () {
 
 });
 
-
-
 });
-
-
-
 </script>
 
 
+<script>
+// Heartbeat: ping server every 2 minutes to update user last activity
+setInterval(function() {
+    fetch("<?php echo e(url('user/heartbeat')); ?>", {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+    });
+}, 2 * 60 * 1000); // 2 minutes
+
+// On tab close, update last_activity and set status to Offline
+window.addEventListener('beforeunload', function (e) {
+    if (navigator.sendBeacon) {
+        navigator.sendBeacon("<?php echo e(url('user/tab-close')); ?>");
+    } else {
+        // fallback for older browsers
+        fetch("<?php echo e(url('user/tab-close')); ?>", {method: 'POST', headers: {'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']').getAttribute('content')}});
+    }
+});
+</script>
 
 <?php echo $__env->yieldContent('scripts'); ?>
 

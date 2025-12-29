@@ -1,6 +1,6 @@
 {{-- resources/views/layouts/sidebar.blade.php --}}
 
-<div class="sidebar bg-dark-info text-white vh-100 overflow-auto" style="width: 250px; position: fixed; top: 0; left: 0;">
+<!-- <div class="sidebar bg-dark-info text-white vh-100 overflow-auto"> -->
 
     <div class="p-3">
 
@@ -34,12 +34,8 @@
 
             @endif
 
-
-
             {{-- Masters Dropdown --}}
-
             @php
-
                 $company = \App\Helpers\TemplateHelper::getUserMenuPermissions('Company Details');
 
                 $users = \App\Helpers\TemplateHelper::getUserMenuPermissions('Manage User');
@@ -50,8 +46,8 @@
 
                 $vendor = \App\Helpers\TemplateHelper::getUserMenuPermissions('Vendor Master');
                 $Asset = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset Master');
-$assetType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset Type');
-$makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
+                $assetType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset Type');
+                $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
 
             @endphp
 
@@ -516,13 +512,14 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
 </li>
 
 @endif
-            {{-- operations Dropdown --}}
+            <!-- {{-- operations Dropdown --}} -->
 
 @php
 
     $operationsFeasibility = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Feasibility');
     $operationsDeliverables = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Deliverables');
-    
+    $operationsAsset = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset');
+    $operationsRenewals = \App\Helpers\TemplateHelper::getUserMenuPermissions('Renewals');
 
     // Determine which operations feasibility menu item should be active
 
@@ -676,7 +673,7 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
 
 @endphp
 
-@if(($operationsFeasibility && $operationsFeasibility->can_menu) || ($operationsDeliverables && $operationsDeliverables->can_menu))
+@if(($operationsAsset && $operationsAsset->can_menu) || ($operationsRenewals && $operationsRenewals->can_menu) || ($operationsFeasibility && $operationsFeasibility->can_menu) || ($operationsDeliverables && $operationsDeliverables->can_menu))
 
 <li class="nav-item">
 
@@ -684,7 +681,7 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
 
        data-bs-toggle="collapse" href="#operationsMenu" role="button"
 
-       aria-expanded="{{ request()->is('operations/feasibility*') || request()->is('operations/deliverables*') ? 'true' : 'false' }}"
+       aria-expanded="{{ request()->is('operations/asset*') || request()->is('operations/renewals*') || request()->is('operations/feasibility*') || request()->is('operations/deliverables*') ? 'true' : 'false' }}"
 
        aria-controls="operationsMenu">
 
@@ -695,11 +692,30 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
     </a>
     <!--  -->
 
-    <div class="collapse {{ request()->is('operations/feasibility*') || request()->is('operations/deliverables*') || request()->is('operations/purchaseorder*') ? 'show' : '' }}" id="operationsMenu">
+    <div class="collapse {{ request()->is('operations/asset*') || request()->is('operations/renewals*') || request()->is('operations/feasibility*') || request()->is('operations/deliverables*') || request()->is('operations/purchaseorder*') ? 'show' : '' }}" id="operationsMenu">
 
         <ul class="nav flex-column ms-3 mt-1">
+            <!-- Asset in operations -->
 
-            {{-- Feasibility Main Menu --}}
+        <li class="nav-item">
+
+                    <a class="nav-link text-white menu-item {{ request()->is('operations/asset/*') ? 'active' : '' }}" href="{{ route('operations.asset.index') }}">
+                        <i class="bi bi-gear-fill"></i> Asset
+
+                    </a>
+
+                </li>
+
+                <!-- Renewals in operations -->
+                      <li>
+                        <a class="nav-link text-white menu-item {{ request()->is('operations/renewals*') ? 'active' : '' }}"
+                                   href="{{ route('operations.renewals.index') }}">
+                            <i class="bi bi-receipt me-2"></i> Renewals
+                        </a>
+                        </li>
+                          
+
+            <!-- Feasibility Main Menu --> 
 
             <li>
 
@@ -712,14 +728,14 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
                     <i class="bi bi-chevron-down arrow-icon"></i>
 
                 </a>
-    <!--  -->
 
 
     <div class="collapse {{ request()->is('operations/feasibility*') ? 'show' : '' }}" id="operationsFeasibilityMenu">
 
         <ul class="nav flex-column ms-3 mt-1">
 
-            {{-- Open Status --}}
+               <!-- operations feasibility open menu -->
+
 
             <li>
 
@@ -732,7 +748,8 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
                 </a>
 
             </li>
-            {{-- In Progress Status --}}
+               <!-- operations feasibility In progress menu -->
+
 
             <li>
 
@@ -745,7 +762,8 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
                 </a>
 
             </li>
-            {{-- Closed Status --}}
+                <!-- operations feasibility closed menu -->
+
 
             <li>
 
@@ -762,7 +780,7 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
     </div>
             </li>
 
-            {{-- Deliverables Main Menu --}}
+            <!-- Operations Deliverables Main Menu -->
             @if($operationsDeliverables && $operationsDeliverables->can_menu)
             <li>
 
@@ -780,7 +798,8 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
 
         <ul class="nav flex-column ms-3 mt-1">
 
-            {{-- Open Status --}}
+                       <!-- Operations Deliverables open Menu -->
+
 
             <li>
 
@@ -792,9 +811,7 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
 
             </li>
 
-
-
-            {{-- In Progress Status --}}
+            <!-- Operations Deliverables In Progress Menu -->
 
             <li>
 
@@ -806,7 +823,7 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
 
             </li>
 
-            {{-- Delivery Status --}}
+            <!-- Operations Deliverables Delivered Menu -->
 
             <li>
 
@@ -815,32 +832,30 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
                    href="{{ route('operations.deliverables.delivery') }}">
 
                    <i class="bi bi-truck-flatbed me-2"></i> Delivered
-
                 </a>
-
             </li>
-
         </ul>
-
     </div>
             </li>
             @endif
         </ul>
     </div>
-
-
-
 </li>
-
 @endif
 
-
-
-            {{-- Finance Dropdown --}}
+            <!-- Finance Dropdown -->
 
             @php
 
                 $finance = \App\Helpers\TemplateHelper::getUserMenuPermissions('Accounts');
+                $banking = \App\Helpers\TemplateHelper::getUserMenuPermissions('Banking');
+                $gst = \App\Helpers\TemplateHelper::getUserMenuPermissions('GST');
+                $purchase = \App\Helpers\TemplateHelper::getUserMenuPermissions('Purchases');
+                $reports = \App\Helpers\TemplateHelper::getUserMenuPermissions('Reports');
+                $sales = \App\Helpers\TemplateHelper::getUserMenuPermissions('Sales');
+                $settings = \App\Helpers\TemplateHelper::getUserMenuPermissions('Settings');
+                $tds = \App\Helpers\TemplateHelper::getUserMenuPermissions('TDS');
+                
 
             @endphp
 
@@ -850,13 +865,13 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
                        data-bs-toggle="collapse"
                        href="#financeMenu"
                        role="button"
-                       aria-expanded="{{ request()->is('finance/accounts*') ? 'true' : 'false' }}"
+                       aria-expanded="{{ request()->is('finance/accounts*') || request()->is('finance/sales*') || request()->is('finance/purchases*') || request()->is('finance/gst*') || request()->is('finance/tds*') || request()->is('finance/banking*') || request()->is('finance/reports*') || request()->is('finance/settings*') ? 'true' : 'false' }}"
                        aria-controls="financeMenu">
                         <span><i class="bi bi-cash-coin"></i> Finance</span>
                         <i class="bi bi-chevron-down arrow-icon"></i>
                     </a>
 
-                    <div class="collapse {{ request()->is('finance/accounts*') ? 'show' : '' }}" id="financeMenu">
+                    <div class="collapse {{ request()->is('finance/accounts*') || request()->is('finance/sales*') || request()->is('finance/purchases*') || request()->is('finance/gst*') || request()->is('finance/tds*') || request()->is('finance/banking*') || request()->is('finance/reports*') || request()->is('finance/settings*') ? 'show' : '' }}" id="financeMenu">
                         <ul class="nav flex-column ms-3 mt-1">
                             <li>
                                 <a class="nav-link text-white menu-item {{ request()->is('finance/accounts*') ? 'active' : '' }}"
@@ -864,6 +879,71 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
                                     <span><i class="bi bi-receipt me-2"></i> Accounts</span>
                                 </a>
                             </li>
+
+                            @if(Route::has('finance.sales.index'))
+                            <li>
+                                <a class="nav-link text-white menu-item {{ request()->is('finance/sales*') ? 'active' : '' }}"
+                                   href="{{ route('finance.sales.index') }}">
+                                   <i class="bi bi-receipt me-2"></i> Sales
+                                </a>
+                            </li>
+                            @endif
+
+                            @if(Route::has('finance.purchases.index'))
+                            <li>
+                                <a class="nav-link text-white menu-item {{ request()->is('finance/purchases*') ? 'active' : '' }}"
+                                   href="{{ route('finance.purchases.index') }}">
+                                   <i class="bi bi-cart-check me-2"></i> Purchases
+                                </a>
+                            </li>
+                            @endif
+
+                            @if(Route::has('finance.gst.index'))
+            <li>
+                <a class="nav-link text-white menu-item {{ request()->is('finance/gst*') ? 'active' : '' }}"
+                   href="{{ route('finance.gst.index') }}">
+                   <i class="bi bi-percent me-2"></i> GST
+                </a>
+            </li>
+            @endif
+
+                            @if(Route::has('finance.tds.index'))
+            <li>
+                <a class="nav-link text-white menu-item {{ request()->is('finance/tds*') ? 'active' : '' }}"
+                   href="{{ route('finance.tds.index') }}">
+                   <i class="bi bi-scissors me-2"></i> TDS
+                </a>
+            </li>
+            @endif
+
+                            @if(Route::has('finance.banking.index'))
+            <li>
+                <a class="nav-link text-white menu-item {{ request()->is('finance/banking*') ? 'active' : '' }}"
+                   href="{{ route('finance.banking.index') }}">
+                   <i class="bi bi-bank me-2"></i> Banking
+                </a>
+            </li>
+            @endif
+
+            
+
+                            @if(Route::has('finance.reports.index'))
+            <li>
+                <a class="nav-link text-white menu-item {{ request()->is('finance/reports*') ? 'active' : '' }}"
+                   href="{{ route('finance.reports.index') }}">
+                   <i class="bi bi-bar-chart-line me-2"></i> Reports
+                </a>
+            </li>
+            @endif
+
+                            @if(Route::has('finance.settings.index'))
+            <li>
+                <a class="nav-link text-white menu-item {{ request()->is('finance/settings*') ? 'active' : '' }}"
+                   href="{{ route('finance.settings.index') }}">
+                   <i class="bi bi-gear me-2"></i> Settings
+                </a>
+            </li>
+            @endif
                         </ul>
                     </div>
                 </li>
@@ -973,26 +1053,7 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
 
             @endif
 
-            {{-- Asset --}}
-
-            @php
-
-                $asset = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset');
-            @endphp
-
-            @if($asset && $asset->can_menu)
-
-                <li class="nav-item">
-
-                    <a class="nav-link text-white menu-item {{ request()->is('asset/*') ? 'active' : '' }}" href="{{ url('/asset') }}">
-                        <i class="bi bi-gear-fill"></i> Asset
-
-                    </a>
-
-                </li>
-
-            @endif
-
+           
              {{-- Strategy --}}
 
             @php
@@ -1113,7 +1174,7 @@ $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
 
     </div>
 
-</div>
+<!-- </div> -->
 
 
 

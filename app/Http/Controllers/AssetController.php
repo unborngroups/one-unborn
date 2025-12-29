@@ -23,7 +23,7 @@ class AssetController extends Controller
 
     public function index(Request $request)
     {
-        $assets = Asset::orderBy('id', 'asc')->paginate(20);
+        // $assets = Asset::orderBy('id', 'asc')->paginate(20);
         $permissions = TemplateHelper::getUserMenuPermissions('Asset') ?? (object)[
             'can_menu' => true,
             'can_add' => true,
@@ -35,7 +35,13 @@ class AssetController extends Controller
         $assetTypes = AssetType::all();
         $makes = MakeType::all();
 
-        return view('asset.index', compact('assets', 'companies', 'assetTypes', 'makes', 'permissions'));
+        $perPage = (int) $request->get('per_page', 10);
+    $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+
+    // Paginated vendors
+    $assets = Asset::orderBy('id', 'asc')->paginate($perPage);
+
+        return view('operations.asset.index', compact('assets', 'companies', 'assetTypes', 'makes', 'permissions'));
     }
 
     public function create()
@@ -51,7 +57,7 @@ class AssetController extends Controller
             'can_view' => true,
         ];
 
-        return view('asset.create', compact('companies', 'assetTypes', 'makes', 'permissions'));
+        return view('operations.asset.create', compact('companies', 'assetTypes', 'makes', 'permissions'));
     }
 
     public function store(Request $request)
@@ -89,7 +95,7 @@ class AssetController extends Controller
         $asset->asset_id = $prefix . $this->generateNextSerial();
         $asset->save();
 
-        return redirect()->route('asset.index')->with('success', 'Asset created successfully.');
+        return redirect()->route('operations.asset.index')->with('success', 'Asset created successfully.');
     }
 
     public function edit($id)
@@ -106,7 +112,7 @@ class AssetController extends Controller
             'can_view' => true,
         ];
 
-        return view('asset.edit', compact('asset', 'companies', 'assetTypes', 'makes', 'permissions'));
+        return view('operations.asset.edit', compact('asset', 'companies', 'assetTypes', 'makes', 'permissions'));
     }
 
     public function update(Request $request, $id)
@@ -131,7 +137,7 @@ class AssetController extends Controller
 
         $asset->update($validated);
 
-        return redirect()->route('asset.index')->with('success', 'Asset updated successfully.');
+        return redirect()->route('operations.asset.index')->with('success', 'Asset updated successfully.');
     }
 
     public function view($id)
@@ -145,13 +151,13 @@ class AssetController extends Controller
             'can_view' => true,
         ];
 
-        return view('asset.view', compact('asset', 'permissions'));
+        return view('operations.asset.view', compact('asset', 'permissions'));
     }
 
     public function destroy(Asset $asset)
     {
         $asset->delete();
-        return redirect()->route('asset.index')->with('success', 'Asset deleted successfully.');
+        return redirect()->route('operations.asset.index')->with('success', 'Asset deleted successfully.');
     }
 
     public function nextAssetID(Request $request)
@@ -471,7 +477,7 @@ private function normalizePurchaseDate(mixed $value): ?string
 
         $assets = Asset::whereIn('id', $data['ids'])->get();
 
-        return view('asset.bulk-print', compact('assets'));
+        return view('operations.asset.bulk-print', compact('assets'));
     }
 
 
@@ -528,6 +534,6 @@ private function normalizePurchaseDate(mixed $value): ?string
     public function print($id)
     {
         $asset = Asset::findOrFail($id);
-        return view('asset.print', compact('asset'));
+        return view('operations.asset.print', compact('asset'));
     }
 }

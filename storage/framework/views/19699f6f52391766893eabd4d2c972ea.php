@@ -1,6 +1,6 @@
 <!-- Navbar -->
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+<nav class="navbar navbar-expand-lg navbar-dark bg-light shadow-sm">
 
     <div class="container-fluid d-flex justify-content-between align-items-center">
 

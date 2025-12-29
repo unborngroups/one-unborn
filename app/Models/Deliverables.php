@@ -4,12 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\DeliverablePlan;
 
 class Deliverables extends Model
 {
+    public function deliverablePlans()
+    {
+        return $this->hasMany(DeliverablePlan::class, 'deliverable_id', 'id')
+            ->from('deliverable_plans');
+    }
     protected $fillable = [
         'feasibility_id',
-        'purchase_order_id',   // IMPORTANT FIX
+        'purchase_order_id',
         'status',
         'delivery_id',
         'site_address',
@@ -21,33 +27,38 @@ class Deliverables extends Model
         'no_of_links',
         'vendor',
         'circuit_id',
+        'client_circuit_id',
+        'client_feasibility',
+        'vendor_code',
         'plans_name',
         'speed_in_mbps_plan',
         'no_of_months_renewal',
         'date_of_activation',
         'date_of_expiry',
         'sla',
+        
         'mode_of_delivery',
-        'pppoe_username_1', 'pppoe_password_1', 'pppoe_vlan_1',
-'pppoe_username_2', 'pppoe_password_2', 'pppoe_vlan_2',
-'pppoe_username_3', 'pppoe_password_3', 'pppoe_vlan_3',
-'pppoe_username_4', 'pppoe_password_4', 'pppoe_vlan_4',
+        'pppoe_username', 
+        'pppoe_password', 'pppoe_vlan',
 
         // dhcp details
         'dhcp_ip_address',
         'dhcp_vlan',
-        
+    
         //    static details
         'static_ip_address',
         'static_vlan',
+        'network_ip',
         'static_subnet_mask',
         'static_gateway',
+        'usable_ips',
         'static_vlan_tag',
        //payment details    
         'payment_login_url',
         'payment_quick_url',
         'payment_account_or_username',
         'payment_password',
+        'info_ip_address',
 
         'status_of_link',
         'mtu',
@@ -57,6 +68,8 @@ class Deliverables extends Model
         'lan_ip_2',
         'lan_ip_3',
         'lan_ip_4',
+        'router_username',
+        'router_password',
         'ipsec',
         'phase_1',
         'phase_2',
@@ -68,7 +81,6 @@ class Deliverables extends Model
         'delivery_notes',
         'arc_cost',
         'otc_cost',
-        'account_id',
         'static_ip_cost',
         'export_file',
         'asset_id',
@@ -79,6 +91,14 @@ class Deliverables extends Model
 
     protected $casts = [
         'date_of_activation' => 'date',
+        'date_of_activation_1' => 'date',
+        'date_of_activation_2' => 'date',
+        'date_of_activation_3' => 'date',
+        'date_of_activation_4' => 'date',
+        'date_of_expiry_1' => 'date',
+        'date_of_expiry_2' => 'date',
+        'date_of_expiry_3' => 'date',
+        'date_of_expiry_4' => 'date',
         'delivered_at' => 'datetime',
         'otc_extra_charges' => 'decimal:2'
     ];
@@ -126,4 +146,9 @@ class Deliverables extends Model
     {
         return $query->where('status', 'Delivery');
     }
+    public function purchaseOrder()
+{
+    return $this->belongsTo(PurchaseOrder::class);
+}
+
 }

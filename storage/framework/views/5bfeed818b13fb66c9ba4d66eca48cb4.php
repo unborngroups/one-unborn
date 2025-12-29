@@ -34,10 +34,18 @@
                         <?php endif; ?>
                     </td>
                     <td>
-                        <?php if($log->status === 'Online'): ?>
-                            <span class="badge bg-success">Online</span>
+                        <?php if(method_exists($log, 'getDynamicStatusAttribute')): ?>
+                            <?php if($log->dynamic_status === 'Online'): ?>
+                                <span class="badge bg-success">Online</span>
+                            <?php else: ?>
+                                <span class="badge bg-secondary">Offline</span>
+                            <?php endif; ?>
                         <?php else: ?>
-                            <span class="badge bg-secondary">Offline</span>
+                            <?php if($log->status === 'Online'): ?>
+                                <span class="badge bg-success">Online</span>
+                            <?php else: ?>
+                                <span class="badge bg-secondary">Offline</span>
+                            <?php endif; ?>
                         <?php endif; ?>
                     </td>
                 </tr>

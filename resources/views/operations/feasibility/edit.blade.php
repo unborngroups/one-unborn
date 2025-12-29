@@ -18,7 +18,7 @@
 
             {{-- Feasibility Request ID --}}
 
-                    <div class="col-md-6">
+                    <div class="col-md-4">
 
                 <h6 class="fw-semibold text-muted">Feasibility Request ID:</h6>
 
@@ -30,7 +30,7 @@
 
             {{-- Client Name --}}
 
-            <div class="col-md-6">
+            <div class="col-md-4">
 
                 <h6 class="fw-semibold text-muted">Client:</h6>
 
@@ -38,11 +38,20 @@
 
             </div>
 
+            {{-- Company Name --}}
+
+            <div class="col-md-4">
+
+                <h6 class="fw-semibold text-muted">Company:</h6>
+                <p>{{ $record->feasibility->company->company_name ?? 'N/A' }}</p>
+
+            </div>
+
 
 
             {{-- Type of Service --}}
 
-            <div class="col-md-6">
+            <div class="col-md-4">
 
                 <h6 class="fw-semibold text-muted">Feasibility Type:</h6>
 
@@ -54,7 +63,7 @@
 
             {{-- No of links --}}
 
-            <div class="col-md-6">
+            <div class="col-md-4">
 
                 <h6 class="fw-semibold text-muted">No. of Links:</h6>
 
@@ -62,12 +71,19 @@
 
             </div>
 
-            
+            {{-- Client Name --}}
+
+            <div class="col-md-4">
+
+                <h6 class="fw-semibold text-muted">Address:</h6>
+
+                <p>{{ $record->feasibility->address ?? 'N/A' }}</p>
+
+            </div>
 
             {{-- Current Status --}}
 
-            <div class="col-md-6">
-
+            <div class="col-md-4">
                 <h6 class="fw-semibold text-muted">Current Status:</h6>
 
                 <p>
@@ -511,8 +527,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // Static IP Cost Rule (ILL → Optional, Others → Required)
     // ********************************************
     const feasibilityType = "{{ $record->feasibility->type_of_service }}";
-    const staticIpEnabled = "{{ strtolower($record->feasibility->static_ip ?? 'No') }}" === 'yes';
+    const staticIpValue = "{{ strtolower(trim($record->feasibility->static_ip ?? 'no')) }}";
+    console.log("static_ip value:", staticIpValue);
+    const staticIpEnabled = ["yes", "y", "1", "true"].includes(staticIpValue);
 
+    // this is static IP cost field requirement based on feasibility type
     function applyStaticIPRule() {
         for (let i = 1; i <= 4; i++) {
             const field = document.querySelector(`input[name="vendor${i}_static_ip_cost"]`);
@@ -524,6 +543,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // this is static IP cost column visibility based on static IP enabled or not
     function updateStaticIpCostVisibility() {
         document.querySelectorAll('.static-ip-cost-column').forEach(column => {
             const input = column.querySelector('input');

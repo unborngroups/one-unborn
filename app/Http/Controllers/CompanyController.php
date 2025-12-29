@@ -16,7 +16,7 @@ class CompanyController extends Controller
      /**
      * Display a listing of the resource.
      */
-public function index()
+public function index(Request $request)
 {
      $companies = Company::orderBy('id', 'asc')->get();
     /** @var \App\Models\User $user */
@@ -40,6 +40,9 @@ public function index()
         'can_view' => true,
     ];
 
+    
+$perPage = $request->input('per_page', 10);
+$companies = Company::orderBy('id', 'asc')->paginate($perPage);
     return view('companies.index', compact('companies', 'permissions'));
 }
 

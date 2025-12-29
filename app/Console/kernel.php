@@ -9,14 +9,18 @@ class Kernel extends ConsoleKernel
 {
     protected function schedule(Schedule $schedule)
     {
-        // SLA Monthly calculation
-        $schedule->call(function () {
-            foreach (\App\Models\ClientLink::all() as $link) {
-                app(\App\Http\Controllers\SlaReportController::class)->calculate($link->id);
-            }
-        })->monthlyOn(1, '01:30');
-        $schedule->job(new \App\Jobs\CollectLinkMetrics)->everyFiveMinutes();
+        // ✅ Monthly SLA calculation (ONLY ONE)
+        $schedule->command('sla:calculate-monthly')
+                 ->monthlyOn(1, '00:15');
 
+        // ✅ Collect live link metrics
+        $schedule->job(new \App\Jobs\CollectLinkMetrics)
+                 ->everyFiveMinutes();
+
+        // ✅ Mark stale logins offline
+        $schedule->call(function () {
+            \App\Models\LoginLog::markStaleOffline();
+        })->everyMinute();
     }
 
     protected function commands()
@@ -25,3 +29,4 @@ class Kernel extends ConsoleKernel
         require base_path('routes/console.php');
     }
 }
+    

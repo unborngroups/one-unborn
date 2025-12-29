@@ -13,11 +13,9 @@ class UserTypeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-     $usertypetable = UserType::orderBy('id', 'asc')->get();
 
-        $usertypetable = UserType::orderBy('id', 'asc')->get();
          // ✅ Use the helper correctly
         $permissions = TemplateHelper::getUserMenuPermissions('User Type') ?? (object)[
     'can_add' => true,
@@ -25,6 +23,11 @@ class UserTypeController extends Controller
     'can_delete' => true,
     'can_view' => true,
 ];
+$perPage = (int) $request->get('per_page', 10);
+    $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+
+        $usertypetable = UserType::orderBy('id', 'asc')->paginate($perPage);
+
         return view('usertypetable.index', compact('usertypetable', 'permissions'));
     }
 

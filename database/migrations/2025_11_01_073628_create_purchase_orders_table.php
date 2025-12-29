@@ -20,6 +20,7 @@ return new class extends Migration
             $table->decimal('otc_per_link', 10, 2); 
             $table->decimal('static_ip_cost_per_link', 10, 2);
             $table->integer('no_of_links');
+            $table->string('import_file')->nullable();
             $table->integer('contract_period'); // in months
             $table->enum('status', ['Draft', 'Submitted', 'Approved', 'Cancelled'])->default('Draft');
             // $table->text('remarks')->nullable();

@@ -6,8 +6,8 @@
 
 <style>
     .dashboard-card {
-        padding: 10px;
-        border-radius: 15px;
+        padding: 5px;
+        border-radius: 3px;
         color: white;
         margin-bottom: 25px;
         box-shadow: 0 5px 15px rgba(0,0,0,0.2);
@@ -219,7 +219,7 @@
         <h3>Upcoming Renewals</h3>
         <div class="row g-4 mt-2">
             <div class="col-md-4 col-sm-6">
-                <a href="<?php echo e(url('operation/renewals/today')); ?>" class="text-decoration-none">
+                <a href="<?php echo e(route('operations.renewals.index')); ?>" class="text-decoration-none">
                     <div class="dashboard-card" style="background:#845ec2;">
                         <h3 class="fw-bold m-0">0</h3>
                         <h4>Today</h4>
@@ -232,7 +232,7 @@
             </div>
 
             <div class="col-md-4 col-sm-6">
-                <a href="<?php echo e(url('operation/renewals/tomorrow')); ?>" class="text-decoration-none">
+                <a href="<?php echo e(route('operations.renewals.index')); ?>" class="text-decoration-none">
                     <div class="dashboard-card" style="background:#d65db1;">
                         <h3 class="fw-bold m-0">0</h3>
                         <h4>Tomorrow</h4>
@@ -245,7 +245,7 @@
             </div>
 
             <div class="col-md-4 col-sm-6">
-                <a href="<?php echo e(url('operation/renewals/week')); ?>" class="text-decoration-none">
+                <a href="<?php echo e(route('operations.renewals.index')); ?>" class="text-decoration-none">
                     <div class="dashboard-card" style="background:#ff9671;">
                         <h3 class="fw-bold m-0">0</h3>
                         <h4>This Week</h4>

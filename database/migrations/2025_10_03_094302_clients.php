@@ -13,7 +13,10 @@ return new class extends Migration
     {
         Schema::create('clients', function (Blueprint $table) {
     $table->id();
-    $table->string('client_code')->unique(); // auto-generate
+    $table->string('office_type')->nullable();
+    $table->string('short_name')->nullable();
+    $table->string('client_code')->nullable(); // auto-generate
+    $table->bigInteger('head_office_id')->nullable();
     $table->string('client_name');
     $table->string('user_name')->nullable();                   // User Name
 
@@ -35,7 +38,7 @@ return new class extends Migration
     $table->string('billing_spoc_email')->nullable();
     $table->string('gstin', 20)->nullable();
     $table->string('invoice_email')->nullable();
-    $table->string('invoice_cc')->nullable();
+    $table->string('invoice_cc', 1000)->nullable();
 
     // Technical Support
     $table->string('support_spoc_name')->nullable();

@@ -53,7 +53,7 @@
 
                     
 
-                    <form action="<?php echo e(route('sm.purchaseorder.update', $purchaseOrder->id)); ?>" method="POST" id="purchaseOrderForm">
+                    <form action="<?php echo e(route('sm.purchaseorder.update', $purchaseOrder->id)); ?>" method="POST" enctype="multipart/form-data" id="purchaseOrderForm">
 
                         <?php echo csrf_field(); ?>
 
@@ -164,7 +164,7 @@ unset($__errorArgs, $__bag); ?>
                             </div>
 
                             
-                            <div class="col-md-6 mb-3">
+                            <!-- <div class="col-md-6 mb-3">
                                 <label for="status" class="form-label">
                                     <strong>PO Status <span class="text-danger">*</span></strong>
                                 </label>
@@ -192,7 +192,7 @@ unset($__errorArgs, $__bag); ?>
                                 <div class="form-text">
                                     <i class="bi bi-info-circle"></i> Changing status to <strong>"Active"</strong> will automatically create a Deliverable record.
                                 </div>
-                            </div>
+                            </div> -->
 
                         </div>
 
@@ -366,6 +366,21 @@ unset($__errorArgs, $__bag); ?>
                                 </div>
 
                             </div>
+
+                            <div class="row">
+                            <!-- Import Document Upload -->
+                            <div class="col-md-4 mb-3">
+                                <label for="import_file">Import Document</label>
+                                <input type="file" class="form-control" name="import_file" id="import_file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx">
+                                <?php if($purchaseOrder->import_file): ?>
+                                <a href="<?php echo e(asset($purchaseOrder->import_file)); ?>" target="_blank">
+                                    View existing file
+                                </a>
+                                <?php endif; ?>
+
+                            </div>
+                        </div>
+
 
                         </div>
 

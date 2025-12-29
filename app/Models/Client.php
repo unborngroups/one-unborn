@@ -28,8 +28,10 @@ class Client extends Authenticatable
         'client_code',
         'pan_number',
         'client_name',
+        'short_name',
         'business_display_name',
-        'company_id',
+        'office_type',
+        'head_office_id',
         'address1', 
         'address2', 
         'address3',
@@ -94,5 +96,10 @@ public function getAuthPassword()
     {
         return $this->hasMany(NotificationLog::class);
     }
+    public function headOffice()
+{
+    return $this->belongsTo(Client::class, 'head_office_id');
+}
+
 
 }

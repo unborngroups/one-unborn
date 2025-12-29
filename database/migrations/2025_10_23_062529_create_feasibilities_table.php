@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('type_of_service');
             $table->foreignId('client_id')->constrained()->onDelete('cascade');
+            $table->string('delivery_company_name')->nullable();
             $table->string('pincode');
             $table->string('state');
             $table->string('district');

@@ -3,12 +3,25 @@
 @section('content')
 <div class="container-fluid py-4">
     <div class="card shadow border-0">
+        
         <div class="card-header bg-success text-white">
             <h5 class="mb-0 float-start"><i class="bi bi-check-circle me-2"></i>Delivered / Closed Deliverables</h5>
+            
             <input type="text" id="tableSearch" class="form-control form-control-sm w-25 float-end" placeholder="Search...">
 
         </div>
         <div class="card-header bg-light d-flex justify-content-between">
+            <form id="filterForm" method="GET" class="d-flex align-items-center gap-2 w-100">
+            <label for="entriesSelect" class="mb-0">Show</label>
+            <select id="entriesSelect" name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
+                <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+            </select>
+            <!-- <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search..."> -->
+
+        </form>
 
             <!-- <h5 class="mb-0 text-danger">MANAGE USER</h5> -->
 
@@ -27,11 +40,9 @@
                                 <th class="col">PO Number</th>
                                 <th class="col">Feasibility ID</th>
                                 <th class="col">Client Name</th>
-                                <th class="col">Address</th>
-                                <th class="col">Speed</th>
+                                
                                 <th class="col">No. of Links</th>
-                                <th class="col">Vendor</th>
-                                <!-- <th class="col">Delivered At</th> -->
+                               
                                 <th class="col">Status</th>
                             </tr>
                         </thead>
@@ -60,13 +71,9 @@
 
                                 <td>{{ $record->feasibility->client->client_name ?? 'N/A' }}</td>
 
-                                <td>{{ $record->site_address ?? 'N/A' }}</td>
 
-                                <td>{{ $record->speed_in_mbps ?? 'N/A' }}</td>
 
                                 <td>{{ $record->no_of_links ?? 'N/A' }}</td>
-
-                                <td>{{ $record->vendor ?? 'N/A' }}</td>
 <!-- 
                                 <td>
                                     {{ $record->delivered_at 
@@ -89,6 +96,70 @@
                 </div>
             @endif
         </div>
+        <div class="d-flex justify-content-between align-items-center mt-2 flex-wrap">
+            <div class="text-muted small">
+                Showing
+                {{ $records->firstItem() ?? 0 }}
+                to
+                {{ $records->lastItem() ?? 0 }}
+                of
+                {{ number_format($records->total()) }} entries
+            </div>
+            <div class="ms-auto">
+                <nav>
+                    <ul class="pagination mb-0">
+                        {{-- Previous Page Link --}}
+                        @if ($records->onFirstPage())
+                            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                        @else
+                            <li class="page-item"><a class="page-link" href="{{ $records->previousPageUrl() }}" rel="prev">Previous</a></li>
+                        @endif
+
+                        {{-- Pagination Elements --}}
+                        @php
+                            $total = $records->lastPage();
+                            $current = $records->currentPage();
+                            $max = 5; // Number of page links to show
+                            $start = max(1, $current - floor($max / 2));
+                            $end = min($total, $start + $max - 1);
+                            if ($end - $start < $max - 1) {
+                                $start = max(1, $end - $max + 1);
+                            }
+                        @endphp
+
+                        @if ($start > 1)
+                            <li class="page-item"><a class="page-link" href="{{ $records->url(1) }}">1</a></li>
+                            @if ($start > 2)
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            @endif
+                        @endif
+
+                        @for ($i = $start; $i <= $end; $i++)
+                            @if ($i == $current)
+                                <li class="page-item active"><span class="page-link">{{ $i }}</span></li>
+                            @else
+                                <li class="page-item"><a class="page-link" href="{{ $records->url($i) }}">{{ $i }}</a></li>
+                            @endif
+                        @endfor
+
+                        @if ($end < $total)
+                            @if ($end < $total - 1)
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            @endif
+                            <li class="page-item"><a class="page-link" href="{{ $records->url($total) }}">{{ $total }}</a></li>
+                        @endif
+
+                        {{-- Next Page Link --}}
+                        @if ($records->hasMorePages())
+                            <li class="page-item"><a class="page-link" href="{{ $records->nextPageUrl() }}" rel="next">Next</a></li>
+                        @else
+                            <li class="page-item disabled"><span class="page-link">Next</span></li>
+                        @endif
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
     </div>
 </div>
 

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Deliverables;
 
 class PurchaseOrder extends Model
 {
@@ -10,11 +11,13 @@ class PurchaseOrder extends Model
         'po_number',
         'po_date',
         'feasibility_id',
+        'reused_from_purchase_order_id',
         'arc_per_link',
         'otc_per_link',
         'static_ip_cost_per_link',
         'no_of_links',
         'contract_period',
+        'import_file',
         'status',
         // Individual link pricing fields
         'arc_link_1', 'arc_link_2', 'arc_link_3', 'arc_link_4',
@@ -31,6 +34,7 @@ class PurchaseOrder extends Model
         'arc_link_1' => 'decimal:2', 'arc_link_2' => 'decimal:2', 'arc_link_3' => 'decimal:2', 'arc_link_4' => 'decimal:2',
         'otc_link_1' => 'decimal:2', 'otc_link_2' => 'decimal:2', 'otc_link_3' => 'decimal:2', 'otc_link_4' => 'decimal:2',
         'static_ip_link_1' => 'decimal:2', 'static_ip_link_2' => 'decimal:2', 'static_ip_link_3' => 'decimal:2', 'static_ip_link_4' => 'decimal:2',
+        'reused_from_purchase_order_id' => 'integer',
     ];
 
     // Relationship with Feasibility
@@ -44,4 +48,10 @@ class PurchaseOrder extends Model
     {
         return \App\Services\PrefixGenerator::generatePONumber($vendorId);
     }
+
+    public function deliverables()
+{
+    return $this->hasMany(Deliverables::class);
+}
+
 }

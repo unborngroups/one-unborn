@@ -113,6 +113,11 @@
                 </div>
 
                 <div class="col-md-3">
+                    <label class="form-label fw-semibold">Delivery Company Name</label>
+                    <input type="text" name="delivery_company_name" class="form-control" value="{{ old('delivery_company_name', $feasibility->delivery_company_name) }}">
+                </div>
+
+                <div class="col-md-3">
                     <label class="form-label fw-semibold">Pincode <span class="text-danger">*</span></label>
                     <input type="text" name="pincode" id="pincode" maxlength="6" value="{{ old('pincode', $feasibility->pincode) }}" class="form-control" required>
                 </div>

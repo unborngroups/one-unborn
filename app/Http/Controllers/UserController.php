@@ -24,10 +24,11 @@ use App\Models\UserMenuPrivilege;
 
 class UserController extends Controller
 {
+    // ...existing code...
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
      $users = User::orderBy('id', 'asc')->get();
 
@@ -42,8 +43,14 @@ class UserController extends Controller
     'can_edit' => true,
     'can_delete' => true,
     'can_view' => true,
-];
+     ];
 
+        $perPage = $request->input('per_page', 10); // default 10
+        $perPage = in_array($perPage, [10,25,50,100]) ? $perPage : 10;
+        // Ensure $users is a query builder before paginate
+        $usersQuery = User::orderBy('id', 'asc');
+        // Apply any filters here if needed
+        $users = $usersQuery->paginate($perPage);
         return view('users.index', compact('users', 'companies', 'usertypes', 'permissions'));
     }
 
@@ -67,7 +74,7 @@ class UserController extends Controller
     $validated = $request->validate([
         'name'             => 'required|string|max:255',
         'user_type_id'     => 'required|exists:user_types,id',
-        'official_email'   => 'required|email|unique:users,official_email',
+        'official_email'  => 'required|email|unique:users,email',
         'personal_email'   => 'nullable|email',
         'mobile'           => 'nullable|string|max:15',
         'Date_of_Birth'    => 'required|date',
@@ -279,7 +286,7 @@ try {
          $validated = $request->validate([
             'name'             => 'required|string|max:255',
             'user_type_id'     => 'required|exists:user_types,id',
-            'official_email'   => 'required|email|unique:users,official_email,' . $user->id,
+            'official_email'   => 'required|email|unique:users,email,' . $user->id,
         'personal_email'   => 'nullable|email',
             'mobile'           => 'nullable|string|max:15',
             'Date_of_Birth'    => 'required|date',

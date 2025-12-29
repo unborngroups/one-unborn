@@ -28,6 +28,17 @@
 
                 </div>
 
+                 
+         <?php if($permissions->can_delete): ?>
+         <form id="bulkDeleteForm" action="<?php echo e(route('sm.purchaseorder.bulk-delete')); ?>" method="POST" class="d-inline">
+             <?php echo csrf_field(); ?>
+             <div id="bulkDeleteInputs"></div>
+         </form>
+<button id="deleteSelectedBtn" class="btn btn-danger d-none">
+    <i class="bi bi-trash"></i>
+</button>
+<?php endif; ?>
+
                 <div class="card-body">
                     
 
@@ -65,7 +76,20 @@
 
                     <?php endif; ?>
 
+<!--  -->
+                    <div class="">
+                        <form id="filterForm" method="GET" class="d-flex align-items-center gap-2 w-100">
+            <label for="entriesSelect" class="mb-0">Show</label>
+            <select id="entriesSelect" name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                <option value="10" <?php echo e(request('per_page', 10) == 10 ? 'selected' : ''); ?>>10</option>
+                <option value="25" <?php echo e(request('per_page') == 25 ? 'selected' : ''); ?>>25</option>
+                <option value="50" <?php echo e(request('per_page') == 50 ? 'selected' : ''); ?>>50</option>
+                <option value="100" <?php echo e(request('per_page') == 100 ? 'selected' : ''); ?>>100</option>
+            </select>
+            <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search...">
 
+        </form>
+                    </div>
 
                     
 
@@ -245,6 +269,77 @@
                     </div>
 
                 </div>
+                <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap">
+    
+    
+    <div class="text-muted small">
+        Showing 
+        <?php echo e($purchaseOrders->firstItem() ?? 0); ?> 
+        to 
+        <?php echo e($purchaseOrders->lastItem() ?? 0); ?> 
+        of 
+        <?php echo e(number_format($purchaseOrders->total())); ?> entries
+    </div>
+
+    
+    <div>
+        <?php if($purchaseOrders->hasPages()): ?>
+            <nav>
+                <ul class="pagination">
+                    
+                    <?php if($purchaseOrders->onFirstPage()): ?>
+                        <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                    <?php else: ?>
+                        <li class="page-item"><a class="page-link" href="<?php echo e($purchaseOrders->previousPageUrl()); ?>" rel="prev">Previous</a></li>
+                    <?php endif; ?>
+
+                    
+                    <?php
+                        $total = $purchaseOrders->lastPage();
+                        $current = $purchaseOrders->currentPage();
+                        $max = 5; // Number of page links to show
+                        $start = max(1, $current - floor($max / 2));
+                        $end = min($total, $start + $max - 1);
+                        if ($end - $start < $max - 1) {
+                            $start = max(1, $end - $max + 1);
+                        }
+                    ?>
+
+                    <?php if($start > 1): ?>
+                        <li class="page-item"><a class="page-link" href="<?php echo e($purchaseOrders->url(1)); ?>">1</a></li>
+                        <?php if($start > 2): ?>
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        <?php endif; ?>
+                    <?php endif; ?>
+
+                    <?php for($i = $start; $i <= $end; $i++): ?>
+                        <?php if($i == $current): ?>
+                            <li class="page-item active"><span class="page-link"><?php echo e($i); ?></span></li>
+                        <?php else: ?>
+                            <li class="page-item"><a class="page-link" href="<?php echo e($purchaseOrders->url($i)); ?>"><?php echo e($i); ?></a></li>
+                        <?php endif; ?>
+                    <?php endfor; ?>
+
+                    <?php if($end < $total): ?>
+                        <?php if($end < $total - 1): ?>
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        <?php endif; ?>
+                        <li class="page-item"><a class="page-link" href="<?php echo e($purchaseOrders->url($total)); ?>"><?php echo e($total); ?></a></li>
+                    <?php endif; ?>
+
+                    
+                    <?php if($purchaseOrders->hasMorePages()): ?>
+                        <li class="page-item"><a class="page-link" href="<?php echo e($purchaseOrders->nextPageUrl()); ?>" rel="next">Next</a></li>
+                    <?php else: ?>
+                        <li class="page-item disabled"><span class="page-link">Next</span></li>
+                    <?php endif; ?>
+                </ul>
+            </nav>
+        <?php endif; ?>
+    </div>
+
+</div>
+
 
             </div>
 
@@ -255,6 +350,20 @@
 </div>
 
 <script>
+    // 
+     document.getElementById('tableSearch').addEventListener('keyup', function() {
+
+    let value = this.value.toLowerCase();
+
+    document.querySelectorAll('#purchaseorder tbody tr').forEach(row => {
+
+        row.style.display = row.textContent.toLowerCase().includes(value) ? '' : 'none';
+
+    });
+
+});
+
+
     document.addEventListener('DOMContentLoaded', function() {
     const selectAll = document.getElementById('select_all');
     const rowCheckboxes = document.querySelectorAll('.row-checkbox');
@@ -285,6 +394,30 @@ document.getElementById('tableSearch').addEventListener('keyup', function() {
 
     });
 
+});
+
+
+document.getElementById('deleteSelectedBtn')?.addEventListener('click', function () {
+    const selectedIds = Array.from(document.querySelectorAll('.rowCheckbox:checked')).map(cb => cb.value);
+    if (!selectedIds.length) {
+        return;
+    }
+
+    if (!confirm(`Delete ${selectedIds.length} selected purchase order(s)?`)) {
+        return;
+    }
+
+    const inputsContainer = document.getElementById('bulkDeleteInputs');
+    inputsContainer.innerHTML = '';
+    selectedIds.forEach(id => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'ids[]';
+        input.value = id;
+        inputsContainer.appendChild(input);
+    });
+
+    document.getElementById('bulkDeleteForm')?.submit();
 });
 
 

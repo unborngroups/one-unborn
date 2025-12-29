@@ -116,6 +116,7 @@ class FeasibilityExcelController extends Controller
             'type_of_service' => $rowData['type_of_service'],
             'company_id' => $companyId,
             'client_id' => $clientId,
+            'delivery_company_name' => $rowData['delivery_company_name'],
             'pincode' => $rowData['pincode'],
             'state' => $state,
             'district' => $district,
@@ -202,7 +203,7 @@ class FeasibilityExcelController extends Controller
         $missing = [];
 
         $required = [
-            'type_of_service', 'company_id', 'client_id', 'pincode', 'state',
+            'type_of_service', 'company_id', 'client_id', 'delivery_company_name', 'pincode', 'state',
             'district', 'area', 'address', 'spoc_name', 'spoc_contact1',
             'no_of_links', 'vendor_type', 'speed', 'static_ip',
             'expected_delivery', 'expected_activation',

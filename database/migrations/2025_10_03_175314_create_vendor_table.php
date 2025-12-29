@@ -34,16 +34,7 @@ return new class extends Migration
             $table->string('contact_person_mobile', 20)->nullable();
             $table->string('contact_person_email')->nullable();
 
-            // // 
-            //  $table->string('product_category')->nullable(); // Switch, Router, SD WAN
-            // $table->unsignedBigInteger('make_id')->nullable(); // FK to vendor_makes
-            // $table->string('company_name')->nullable(); // auto-filled from make
-            // $table->string('make_contact_no')->nullable();
-            // $table->string('make_email')->nullable();
-            // $table->string('model_no')->nullable();
-            // $table->string('serial_no')->nullable();
-            // $table->string('asset_id')->nullable();
-            // Vendor Business Details
+          
             $table->string('gstin', 20)->nullable();
             $table->string('pan_no', 20)->nullable();
             $table->string('branch_name', 30)->nullable();
@@ -55,10 +46,7 @@ return new class extends Migration
 
             $table->timestamps();
         });
-    
-    Schema::table('vendors', function (Blueprint $table) {
-            $table->foreign('make_id')->references('id')->on('vendor_makes')->onDelete('set null');
-        });
+
     }
     /**
      * Reverse the migrations.

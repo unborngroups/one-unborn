@@ -46,7 +46,16 @@
 
         <div class="card-header bg-light d-flex justify-content-between">
 
-            <!-- <h5 class="mb-0 text-danger">USER TYPE</h5> -->
+        <form id="filterForm" method="GET" class="d-flex align-items-center gap-2 w-100">
+            <label for="entriesSelect" class="mb-0">Show</label>
+            <select id="entriesSelect" name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                <option value="10" <?php echo e(request('per_page', 10) == 10 ? 'selected' : ''); ?>>10</option>
+                <option value="25" <?php echo e(request('per_page') == 25 ? 'selected' : ''); ?>>25</option>
+                <option value="50" <?php echo e(request('per_page') == 50 ? 'selected' : ''); ?>>50</option>
+                <option value="100" <?php echo e(request('per_page') == 100 ? 'selected' : ''); ?>>100</option>
+            </select>
+            <!-- <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search..."> -->
+        </form>
 
             <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search...">
  
@@ -62,14 +71,8 @@
         </div>
         </div>
 
-
-
-            
-
         <div class="card-body p-0 table-responsive">
             
-
-
             <table class="table table-hover table-bordered mb-0" id="userTable">
 
                 <thead class="table-dark-primary text-center">
@@ -95,8 +98,6 @@
 
                 </thead>
 
-
-
                 <tbody>
 
                     
@@ -108,8 +109,6 @@
                             <td><input type="checkbox" class="rowCheckbox" value="<?php echo e($usertypedata->id); ?>"></td>
 
                             <td class="text-center"><?php echo e($index+1); ?></td>
-
-
 
                             <td class="text-center d-flex justify-content-center gap-1">
 
@@ -128,14 +127,9 @@
                                 </a>
 
                                 <?php endif; ?>
-
-
-
                                  
 
                                  <?php if($permissions->can_delete): ?>
-
-
 
                                 
 
@@ -157,8 +151,6 @@
 
                                  <?php endif; ?>
 
-
-
                                 
 
                                 <form action="<?php echo e(route('usertypetable.toggle-status', $usertypedata->id)); ?>" method="POST" class="d-inline">
@@ -177,8 +169,6 @@
                                     </button>
 
                                 </form>
-
-
 
                                  
 
@@ -209,8 +199,6 @@
 
                                     <?php endif; ?>
                             </td>
-
-
 
                             
 
@@ -259,7 +247,71 @@
             </table>
 
         </div>
+<div class="d-flex justify-content-between align-items-center mt-2 flex-wrap">
+            <div class="text-muted small">
+                Showing
+                <?php echo e($usertypetable->firstItem() ?? 0); ?>
 
+                to
+                <?php echo e($usertypetable->lastItem() ?? 0); ?>
+
+                of
+                <?php echo e(number_format($usertypetable->total())); ?> entries
+            </div>
+            <div class="ms-auto">
+                <nav>
+                    <ul class="pagination mb-0">
+                        
+                        <?php if($usertypetable->onFirstPage()): ?>
+                            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                        <?php else: ?>
+                            <li class="page-item"><a class="page-link" href="<?php echo e($usertypetable->previousPageUrl()); ?>" rel="prev">Previous</a></li>
+                        <?php endif; ?>
+
+                        
+                        <?php
+                            $total = $usertypetable->lastPage();
+                            $current = $usertypetable->currentPage();
+                            $max = 5; // Number of page links to show
+                            $start = max(1, $current - floor($max / 2));
+                            $end = min($total, $start + $max - 1);
+                            if ($end - $start < $max - 1) {
+                                $start = max(1, $end - $max + 1);
+                            }
+                        ?>
+
+                        <?php if($start > 1): ?>
+                            <li class="page-item"><a class="page-link" href="<?php echo e($usertypetable->url(1)); ?>">1</a></li>
+                            <?php if($start > 2): ?>
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            <?php endif; ?>
+                        <?php endif; ?>
+
+                        <?php for($i = $start; $i <= $end; $i++): ?>
+                            <?php if($i == $current): ?>
+                                <li class="page-item active"><span class="page-link"><?php echo e($i); ?></span></li>
+                            <?php else: ?>
+                                <li class="page-item"><a class="page-link" href="<?php echo e($usertypetable->url($i)); ?>"><?php echo e($i); ?></a></li>
+                            <?php endif; ?>
+                        <?php endfor; ?>
+
+                        <?php if($end < $total): ?>
+                            <?php if($end < $total - 1): ?>
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            <?php endif; ?>
+                            <li class="page-item"><a class="page-link" href="<?php echo e($usertypetable->url($total)); ?>"><?php echo e($total); ?></a></li>
+                        <?php endif; ?>
+  
+                        
+                        <?php if($usertypetable->hasMorePages()): ?>
+                            <li class="page-item"><a class="page-link" href="<?php echo e($usertypetable->nextPageUrl()); ?>" rel="next">Next</a></li>
+                        <?php else: ?>
+                            <li class="page-item disabled"><span class="page-link">Next</span></li>
+                        <?php endif; ?>
+                    </ul>
+                </nav>
+            </div>
+        
     </div>
 
 </div>

@@ -44,11 +44,18 @@
 
     <div class="card shadow border-0">
 
-   <div class="card-header bg-light d-flex justify-content-between">
-
-            <!-- <h5 class="mb-0 text-danger">MANAGE USER</h5> -->
-
+   <div class="card-header bg-light d-flex flex-wrap align-items-center gap-2">
+        <form id="filterForm" method="GET" class="d-flex align-items-center gap-2 w-100">
+            <label for="entriesSelect" class="mb-0">Show</label>
+            <select id="entriesSelect" name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                <option value="10" <?php echo e(request('per_page', 10) == 10 ? 'selected' : ''); ?>>10</option>
+                <option value="25" <?php echo e(request('per_page') == 25 ? 'selected' : ''); ?>>25</option>
+                <option value="50" <?php echo e(request('per_page') == 50 ? 'selected' : ''); ?>>50</option>
+                <option value="100" <?php echo e(request('per_page') == 100 ? 'selected' : ''); ?>>100</option>
+            </select>
             <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search...">
+
+        </form>
 
              
          <?php if($permissions->can_delete): ?>
@@ -103,7 +110,11 @@
 
                               <td><input type="checkbox" class="rowCheckbox" value="<?php echo e($client->id); ?>"></td>
 
-                            <td class="text-center"><?php echo e($key+1); ?></td>
+                            <td class="text-center">
+                           <?php echo e(($clients->currentPage() - 1) * $clients->perPage() + $key + 1); ?>
+
+                              </td>
+
 
                              <td class="text-center d-flex justify-content-center gap-1">
 
@@ -138,8 +149,20 @@
 
                                    <?php endif; ?>
                                    
+                                   <?php if($client->status): ?>
+<form action="<?php echo e(route('clients.toggle-status', $client->id)); ?>" method="POST" class="d-inline">
+    <?php echo csrf_field(); ?>
+    <?php echo method_field('PATCH'); ?>
+    <button type="submit" class="btn btn-sm <?php echo e($client->status == 'Active' ? 'btn-success' : 'btn-secondary'); ?>">
+        <?php echo e($client->status); ?>
 
-                                <form action="<?php echo e(route('clients.toggle-status', $client->id)); ?>" method="POST" class="d-inline">
+    </button>
+</form>
+<?php else: ?>
+    <span class="badge bg-secondary">Active</span>
+<?php endif; ?>
+
+                                <!-- <form action="<?php echo e(route('clients.toggle-status', $client->id)); ?>" method="POST" class="d-inline">
 
                                     <?php echo csrf_field(); ?>
 
@@ -152,7 +175,7 @@
 
                                     </button>
 
-                                </form>
+                                </form> -->
                                 
 
                                    <?php if($permissions->can_view): ?>
@@ -207,14 +230,97 @@
 
         </div>
 
+        <!-- <div class="d-flex justify-content-center align-items-center mt-2"></div></br>
+    <div class="text-muted small">
+        Showing 
+        <?php echo e($clients->firstItem() ?? 0); ?> 
+        to 
+        <?php echo e($clients->lastItem() ?? 0); ?> 
+        of 
+        <?php echo e($clients->total()); ?> entries
+    </div> -->
+
+    <!-- <?php echo e($clients->appends(request()->query())->links()); ?> -->
+    <!-- </div> --> 
+
+    <!-- </div>
+
+</div> -->
+<div class="d-flex justify-content-between align-items-center mt-3 flex-wrap">
+    
+    
+    <div class="text-muted small">
+        Showing 
+        <?php echo e($clients->firstItem() ?? 0); ?> 
+        to 
+        <?php echo e($clients->lastItem() ?? 0); ?> 
+        of 
+        <?php echo e(number_format($clients->total())); ?> entries
+    </div>
+
+    
+    <div>
+        <?php if($clients->hasPages()): ?>
+            <nav>
+                <ul class="pagination">
+                    
+                    <?php if($clients->onFirstPage()): ?>
+                        <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                    <?php else: ?>
+                        <li class="page-item"><a class="page-link" href="<?php echo e($clients->previousPageUrl()); ?>" rel="prev">Previous</a></li>
+                    <?php endif; ?>
+
+                    
+                    <?php
+                        $total = $clients->lastPage();
+                        $current = $clients->currentPage();
+                        $max = 5; // Number of page links to show
+                        $start = max(1, $current - floor($max / 2));
+                        $end = min($total, $start + $max - 1);
+                        if ($end - $start < $max - 1) {
+                            $start = max(1, $end - $max + 1);
+                        }
+                    ?>
+
+                    <?php if($start > 1): ?>
+                        <li class="page-item"><a class="page-link" href="<?php echo e($clients->url(1)); ?>">1</a></li>
+                        <?php if($start > 2): ?>
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        <?php endif; ?>
+                    <?php endif; ?>
+
+                    <?php for($i = $start; $i <= $end; $i++): ?>
+                        <?php if($i == $current): ?>
+                            <li class="page-item active"><span class="page-link"><?php echo e($i); ?></span></li>
+                        <?php else: ?>
+                            <li class="page-item"><a class="page-link" href="<?php echo e($clients->url($i)); ?>"><?php echo e($i); ?></a></li>
+                        <?php endif; ?>
+                    <?php endfor; ?>
+
+                    <?php if($end < $total): ?>
+                        <?php if($end < $total - 1): ?>
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        <?php endif; ?>
+                        <li class="page-item"><a class="page-link" href="<?php echo e($clients->url($total)); ?>"><?php echo e($total); ?></a></li>
+                    <?php endif; ?>
+
+                    
+                    <?php if($clients->hasMorePages()): ?>
+                        <li class="page-item"><a class="page-link" href="<?php echo e($clients->nextPageUrl()); ?>" rel="next">Next</a></li>
+                    <?php else: ?>
+                        <li class="page-item disabled"><span class="page-link">Next</span></li>
+                    <?php endif; ?>
+                </ul>
+            </nav>
+        <?php endif; ?>
     </div>
 
 </div>
 
 
+
 <script>
-// 
-document.getElementById('tableSearch').addEventListener('keyup', function() {
+    document.getElementById('tableSearch').addEventListener('keyup', function() {
 
     let value = this.value.toLowerCase();
 
@@ -225,6 +331,8 @@ document.getElementById('tableSearch').addEventListener('keyup', function() {
     });
 
 });
+
+
 
 
 document.getElementById('selectAll').addEventListener('change', function(){
@@ -258,7 +366,6 @@ document.getElementById('deleteSelectedBtn')?.addEventListener('click', function
     document.getElementById('bulkDeleteForm')?.submit();
 });
 
-
 function updateDeleteButtonVisibility() {
     const totalChecked = document.querySelectorAll('.rowCheckbox:checked').length;
     const deleteBtn = document.getElementById('deleteSelectedBtn');
@@ -278,10 +385,8 @@ document.querySelectorAll('.rowCheckbox').forEach(cb => {
 
 // Keep the delete button state correct on page load
 updateDeleteButtonVisibility();
-
-
-
 </script>
+
 
 
 
@@ -298,6 +403,4 @@ updateDeleteButtonVisibility();
 </style>
 
 <?php $__env->stopSection(); ?>
-
-
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\clients\index.blade.php ENDPATH**/ ?>

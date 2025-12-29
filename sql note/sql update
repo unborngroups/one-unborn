@@ -1,0 +1,92 @@
+ALTER TABLE purchase_orders
+MODIFY arc_per_link DECIMAL(15,2),
+MODIFY otc_per_link DECIMAL(15,2),
+MODIFY static_ip_cost_per_link DECIMAL(15,2),
+MODIFY arc_link_1 DECIMAL(15,2),
+MODIFY otc_link_1 DECIMAL(15,2),
+MODIFY static_ip_link_1 DECIMAL(15,2);
+
+
+ALTER TABLE deliverables DROP INDEX circuit_id_2;
+
+ALTER TABLE deliverables
+MODIFY date_of_expiry DATE,
+ALTER TABLE deliverables
+MODIFY circuit_id VARCHAR(255) NOT NULL,
+ADD UNIQUE (circuit_id);
+
+
+ALTER TABLE deliverables
+DROP FOREIGN KEY deliverables_purchase_order_id_foreign;
+
+DROP INDEX deliverables_purchase_order_id_index ON deliverables;
+
+
+ALTER TABLE deliverables
+DROP FOREIGN KEY fk_deliverables_purchase_order;
+
+ALTER TABLE deliverables
+DROP COLUMN purchase_order_id;
+
+
+ALTER TABLE deliverables
+ADD COLUMN client_circuit_id VARCHAR(255) NULL AFTER circuit_id,
+ADD COLUMN client_feasibility VARCHAR(255) NULL AFTER client_circuit_id,
+ADD COLUMN vendor_code VARCHAR(255) NULL AFTER client_feasibility;
+
+-- Adding the new column 'import_file' to the 'purchase_orders' table 24-12-2025
+ALTER TABLE purchase_orders 
+ADD import_file VARCHAR(255) NULL AFTER contract_period;
+
+
+ALTER TABLE deliverables
+ADD COLUMN router_username VARCHAR(255) NULL AFTER wifi_password,
+ADD COLUMN router_password VARCHAR(255) NULL AFTER router_username;
+-- update pannanu
+ALTER TABLE users ADD COLUMN last_activity TIMESTAMP NULL AFTER status, ADD INDEX (last_activity);
+
+
+-- 
+ALTER TABLE deliverable_plans
+ADD COLUMN status_of_link VARCHAR(255) NULL,
+ADD COLUMN mode_of_delivery VARCHAR(255) NULL,
+
+ADD COLUMN client_circuit_id VARCHAR(255) NULL,
+ADD COLUMN client_feasibility VARCHAR(255) NULL,
+ADD COLUMN vendor_code VARCHAR(255) NULL,
+
+ADD COLUMN mtu VARCHAR(255) NULL,
+ADD COLUMN wifi_username VARCHAR(255) NULL,
+ADD COLUMN wifi_password TEXT NULL,
+ADD COLUMN router_username VARCHAR(255) NULL,
+ADD COLUMN router_password TEXT NULL,
+
+ADD COLUMN pppoe_username VARCHAR(255) NULL,
+ADD COLUMN pppoe_password TEXT NULL,
+ADD COLUMN pppoe_vlan VARCHAR(255) NULL,
+
+ADD COLUMN dhcp_ip_address VARCHAR(255) NULL,
+ADD COLUMN dhcp_vlan VARCHAR(255) NULL,
+
+ADD COLUMN static_ip_address VARCHAR(255) NULL,
+ADD COLUMN static_vlan VARCHAR(255) NULL,
+ADD COLUMN network_ip VARCHAR(255) NULL,
+ADD COLUMN static_subnet_mask VARCHAR(255) NULL,
+ADD COLUMN static_gateway VARCHAR(255) NULL,
+
+ADD COLUMN usable_ips INT NULL,
+ADD COLUMN remarks VARCHAR(255) NULL;
+-- 
+
+
+-- 
+ALTER TABLE deliverable_plans ADD circuit_id VARCHAR(255) UNIQUE AFTER link_number;
+-- 27-12-2025
+ALTER TABLE `deliverable_plans` 
+MODIFY COLUMN `no_of_months_renewal` BIGINT NULL;
+
+ALTER TABLE `deliverable_plans`
+ MODIFY COLUMN `usable_ips` VARCHAR(255) NULL;
+
+ ALTER TABLE deliverable_plans
+ADD UNIQUE KEY unique_circuit_id (circuit_id);

@@ -7,6 +7,8 @@ use App\Models\FeasibilityStatus;
 use App\Models\Menu;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Feasibility;
+use App\Models\Renewal;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -44,6 +46,13 @@ class DashboardController extends Controller
         'locations' => Feasibility::where('type_of_service', 'NNI')->distinct('area')->count('area'),
     ]
 ];
+$todayCount =   Renewal::whereDate('alert_date', Carbon::today())->count();
+$tomorrowCount = Renewal::whereDate('alert_date', Carbon::tomorrow())->count();
+$weekCount = Renewal::whereBetween(
+    'alert_date',
+    [Carbon::today(), Carbon::today()->addDays(7)]
+)->count();
+
 
 
           // Only menus that the logged-in user's type can view

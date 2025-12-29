@@ -38,9 +38,18 @@ class MenuSeeder extends Seeder
             // 📦 operations Module - Feasibility Status
             ['module_name' => 'operations', 'user_type' => 'superadmin', 'name' => 'operations Feasibility', 'route' => 'operations.feasibility.status', 'icon' => 'bi bi-kanban', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             ['module_name' => 'operations', 'user_type' => 'superadmin', 'name' => 'operations Deliverables', 'route' => 'operations.deliverables.open', 'icon' => 'bi bi-truck', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
+            ['module_name' => 'operations', 'user_type' => 'superadmin', 'name' => 'Asset', 'route' => 'operations.asset.index', 'icon' => 'bi bi-shield-check', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
+            ['module_name' => 'operations', 'user_type' => 'superadmin', 'name' => 'Renewals', 'route' => 'operations.renewals.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             
             // Finance Module
             ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Accounts', 'route' => 'finance.accounts.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
+            ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Banking', 'route' => 'finance.banking.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
+            ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'GST', 'route' => 'finance.gst.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
+            ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Purchases', 'route' => 'finance.purchases.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
+            ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Reports', 'route' => 'finance.reports.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
+            ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Sales', 'route' => 'finance.sales.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
+            ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'TDS', 'route' => 'finance.tds.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
+            ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Settings', 'route' => 'finance.settings.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             
             // compliance Module
             ['module_name' => 'Compliance', 'user_type' => 'superadmin', 'name' => 'Compliance', 'route' => 'compliance.index', 'icon' => 'bi bi-file-shield', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
@@ -49,7 +58,6 @@ class MenuSeeder extends Seeder
             ['module_name' => 'Assurance', 'user_type' => 'superadmin', 'name' => 'Assurance', 'route' => 'assurance.index', 'icon' => 'bi bi-shield-check', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             
             // 🛡️ Asset Module
-            ['module_name' => 'Asset', 'user_type' => 'superadmin', 'name' => 'Asset', 'route' => 'asset.index', 'icon' => 'bi bi-shield-check', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             
             // HR Module
             ['module_name' => 'HR', 'user_type' => 'superadmin', 'name' => 'HR', 'route' => 'hr.index', 'icon' => 'bi bi-people-fill', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],

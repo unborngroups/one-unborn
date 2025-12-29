@@ -179,6 +179,12 @@
 
                 </div>
 
+                <!-- Delivery Company Name -->
+                <div class="col-md-3">
+                    <label for="form-label fw-semibold">Delivery Company Name</label>
+                    <input type="text" name="delivery_company_name" class="form-control" value="<?php echo e(old('delivery_company_name', $importRow['delivery_company_name'] ?? '')); ?>">
+                </div>
+
                 <!-- pincode -->
                 <div class="col-md-3">
 

@@ -43,11 +43,18 @@
 
     <div class="card shadow border-0">
 
-   <div class="card-header bg-light d-flex justify-content-between">
-
-            <!-- <h5 class="mb-0 text-danger">MANAGE USER</h5> -->
-
+   <div class="card-header bg-light d-flex flex-wrap align-items-center gap-2">
+        <form id="filterForm" method="GET" class="d-flex align-items-center gap-2 w-100">
+            <label for="entriesSelect" class="mb-0">Show</label>
+            <select id="entriesSelect" name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
+                <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+            </select>
             <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search...">
+
+        </form>
 
              {{--- Delete --}}
          @if($permissions->can_delete)
@@ -102,7 +109,10 @@
 
                               <td><input type="checkbox" class="rowCheckbox" value="{{ $client->id }}"></td>
 
-                            <td class="text-center">{{ $key+1 }}</td>
+                            <td class="text-center">
+                           {{ ($clients->currentPage() - 1) * $clients->perPage() + $key + 1 }}
+                              </td>
+
 
                              <td class="text-center d-flex justify-content-center gap-1">
 
@@ -137,8 +147,19 @@
 
                                    @endif
                                    {{-- Toggle Status --}}
+                                   @if($client->status)
+<form action="{{ route('clients.toggle-status', $client->id) }}" method="POST" class="d-inline">
+    @csrf
+    @method('PATCH')
+    <button type="submit" class="btn btn-sm {{ $client->status == 'Active' ? 'btn-success' : 'btn-secondary' }}">
+        {{ $client->status }}
+    </button>
+</form>
+@else
+    <span class="badge bg-secondary">Active</span>
+@endif
 
-                                <form action="{{ route('clients.toggle-status', $client->id) }}" method="POST" class="d-inline">
+                                <!-- <form action="{{ route('clients.toggle-status', $client->id) }}" method="POST" class="d-inline">
 
                                     @csrf
 
@@ -150,7 +171,7 @@
 
                                     </button>
 
-                                </form>
+                                </form> -->
                                 {{-- View --}}
 
                                    @if($permissions->can_view)
@@ -204,14 +225,97 @@
 
         </div>
 
+        <!-- <div class="d-flex justify-content-center align-items-center mt-2"></div></br>
+    <div class="text-muted small">
+        Showing 
+        {{ $clients->firstItem() ?? 0 }} 
+        to 
+        {{ $clients->lastItem() ?? 0 }} 
+        of 
+        {{ $clients->total() }} entries
+    </div> -->
+
+    <!-- {{ $clients->appends(request()->query())->links() }} -->
+    <!-- </div> --> 
+
+    <!-- </div>
+
+</div> -->
+<div class="d-flex justify-content-between align-items-center mt-3 flex-wrap">
+    
+    {{-- Left text --}}
+    <div class="text-muted small">
+        Showing 
+        {{ $clients->firstItem() ?? 0 }} 
+        to 
+        {{ $clients->lastItem() ?? 0 }} 
+        of 
+        {{ number_format($clients->total()) }} entries
+    </div>
+
+    {{-- Right pagination --}}
+    <div>
+        @if ($clients->hasPages())
+            <nav>
+                <ul class="pagination">
+                    {{-- Previous Page Link --}}
+                    @if ($clients->onFirstPage())
+                        <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                    @else
+                        <li class="page-item"><a class="page-link" href="{{ $clients->previousPageUrl() }}" rel="prev">Previous</a></li>
+                    @endif
+
+                    {{-- Pagination Elements --}}
+                    @php
+                        $total = $clients->lastPage();
+                        $current = $clients->currentPage();
+                        $max = 5; // Number of page links to show
+                        $start = max(1, $current - floor($max / 2));
+                        $end = min($total, $start + $max - 1);
+                        if ($end - $start < $max - 1) {
+                            $start = max(1, $end - $max + 1);
+                        }
+                    @endphp
+
+                    @if ($start > 1)
+                        <li class="page-item"><a class="page-link" href="{{ $clients->url(1) }}">1</a></li>
+                        @if ($start > 2)
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        @endif
+                    @endif
+
+                    @for ($i = $start; $i <= $end; $i++)
+                        @if ($i == $current)
+                            <li class="page-item active"><span class="page-link">{{ $i }}</span></li>
+                        @else
+                            <li class="page-item"><a class="page-link" href="{{ $clients->url($i) }}">{{ $i }}</a></li>
+                        @endif
+                    @endfor
+
+                    @if ($end < $total)
+                        @if ($end < $total - 1)
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        @endif
+                        <li class="page-item"><a class="page-link" href="{{ $clients->url($total) }}">{{ $total }}</a></li>
+                    @endif
+
+                    {{-- Next Page Link --}}
+                    @if ($clients->hasMorePages())
+                        <li class="page-item"><a class="page-link" href="{{ $clients->nextPageUrl() }}" rel="next">Next</a></li>
+                    @else
+                        <li class="page-item disabled"><span class="page-link">Next</span></li>
+                    @endif
+                </ul>
+            </nav>
+        @endif
     </div>
 
 </div>
 
 
+
 <script>
-// 
-document.getElementById('tableSearch').addEventListener('keyup', function() {
+    document.getElementById('tableSearch').addEventListener('keyup', function() {
 
     let value = this.value.toLowerCase();
 
@@ -222,6 +326,8 @@ document.getElementById('tableSearch').addEventListener('keyup', function() {
     });
 
 });
+
+
 
 
 document.getElementById('selectAll').addEventListener('change', function(){
@@ -255,7 +361,6 @@ document.getElementById('deleteSelectedBtn')?.addEventListener('click', function
     document.getElementById('bulkDeleteForm')?.submit();
 });
 
-
 function updateDeleteButtonVisibility() {
     const totalChecked = document.querySelectorAll('.rowCheckbox:checked').length;
     const deleteBtn = document.getElementById('deleteSelectedBtn');
@@ -275,10 +380,8 @@ document.querySelectorAll('.rowCheckbox').forEach(cb => {
 
 // Keep the delete button state correct on page load
 updateDeleteButtonVisibility();
-
-
-
 </script>
+
 
 
 
@@ -295,4 +398,3 @@ updateDeleteButtonVisibility();
 </style>
 
 @endsection
-

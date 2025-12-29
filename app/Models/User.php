@@ -14,7 +14,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
  */
 class User extends Authenticatable
 {
-    
+    // Relationship to login_logs
+    public function loginLogs()
+    {
+        return $this->hasMany(\App\Models\LoginLog::class, 'user_id');
+    }
       use HasFactory, Notifiable;
 
       protected $table = 'users'; 

@@ -14,6 +14,11 @@ use App\Http\Controllers\MenuController;
 use App\Http\Controllers\CompanySettingsController;
 use App\Http\Controllers\TaxInvoiceSettingsController;
 use App\Http\Controllers\FeasibilityStatusController;
+use App\Http\Controllers\Finance\VendorInvoiceController;
+use App\Http\Controllers\Finance\ExpenseController;
+use App\Http\Controllers\Finance\DebitNoteController;  
+use App\Http\Controllers\RenewalController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PincodeLookupController;
 use App\Http\Controllers\SystemSettingsController;
 use App\Http\Controllers\FeasibilityController;
@@ -27,7 +32,6 @@ use App\Http\Controllers\DeliverablesController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\ProposalController;
-use App\Http\Controllers\AccountController;
 use App\Http\Controllers\hrController;
 use App\Http\Controllers\ComplianceController;
 use App\Http\Controllers\Asset_typeController;
@@ -37,6 +41,11 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\TrainingController;
 use App\Http\Controllers\StrategyController;
 use App\Http\Controllers\AssuranceController;
+use App\Http\Controllers\Finance\BankingController;
+use App\Http\Controllers\Finance\AccountController;
+use App\Http\Controllers\Finance\ReportController;
+use App\Http\Controllers\Finance\FinanceGstController;
+use App\Http\Controllers\Finance\FinanceTdsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -48,6 +57,11 @@ use Carbon\Carbon;
 use App\Models\Company;
 use App\Http\Middleware\ClientAuth;
    
+
+// User heartbeat route for online status admin panel
+Route::middleware(['auth'])->post('/user/heartbeat', [UserController::class, 'heartbeat']);
+// User tab close route for online status admin panel
+Route::middleware(['auth'])->post('/user/tab-close', [UserController::class, 'tabClose']);
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -113,8 +127,10 @@ Route::patch('/users/{id}/toggle-status', [UserController::class, 'toggleStatus'
     Route::post('/users/bulk-delete', [UserController::class, 'bulkDestroy'])->name('users.bulk-delete');
     Route::post('/usertypetable/bulk-delete', [UserTypeController::class, 'bulkDestroy'])->name('usertypetable.bulk-delete');
     Route::post('/companies/bulk-delete', [CompanyController::class, 'bulkDestroy'])->name('companies.bulk-delete');
-    Route::post('/asset/bulk-delete', [AssetController::class, 'bulkDestroy'])->name('asset.bulk-delete');
-    Route::post('/asset/bulk-print', [AssetController::class, 'bulkPrint'])->name('asset.bulk-print');
+    Route::post('/sm/purchaseorder/bulk-delete', [PurchaseOrderController::class, 'bulkDestroy'])->name('sm.purchaseorder.bulk-delete');
+    
+    Route::post('/operations/asset/bulk-delete', [AssetController::class, 'bulkDestroy'])->name('operations.asset.bulk-delete');
+    Route::post('/operations/asset/bulk-print', [AssetController::class, 'bulkPrint'])->name('operations.asset.bulk-print');
     
 
     //view path
@@ -232,7 +248,30 @@ Route::get('/test-email', function () {
     Route::post('/operations/deliverables/{id}/save', [DeliverablesController::class, 'operationsSave'])->name('operations.deliverables.save');
     Route::post('/operations/deliverables/{id}/submit', [DeliverablesController::class, 'operationsSubmit'])->name('operations.deliverables.submit');
     Route::get('/operations/deliverables/create-from-feasibility/{feasibilityId}', [DeliverablesController::class, 'createFromFeasibility'])->name('operations.deliverables.create-from-feasibility');
-    Route::get('/calculate-subnet', [App\Http\Controllers\DeliverablesController::class, 'calculateSubnet'])->name('calculate.subnet');
+    Route::get('/calculate-subnet', [DeliverablesController::class, 'calculateSubnet'])->name('calculate.subnet');
+
+    // renewal
+    route::get('/operations/renewals', [RenewalController::class, 'index'])->name('operations.renewals.index');
+    route::get('/operations/renewals/create', [RenewalController::class, 'create'])->name('operations.renewals.create');
+    route::post('/operations/renewals', [RenewalController::class, 'store'])->name('operations.renewals.store');
+    Route::get('/operations/renewals/{id}/edit', [RenewalController::class, 'edit'])->name('operations.renewals.edit');
+    Route::put('/operations/renewals/{id}', [RenewalController::class, 'update'])->name('operations.renewals.update');
+    Route::delete('/operations/renewals/{id}', [RenewalController::class, 'destroy'])->name('operations.renewals.destroy');
+    Route::get('/operations/renewals/{id}/view', [RenewalController::class, 'view'])->name('operations.renewals.view');
+
+Route::get('/operations/assets/next-asset-id', [AssetController::class, 'nextAssetID']);
+Route::post('/operations/asset/import', [AssetController::class, 'import'])->name('operations.asset.import');
+Route::get('/operations/assets/export', [AssetController::class, 'exportAssets'])->name('operations.asset.export');
+Route::get('/operations/asset', [AssetController::class, 'index'])->name('operations.asset.index');     // list page
+Route::get('/operations/asset/create', [AssetController::class, 'create'])->name('operations.asset.create'); // add page
+Route::post('/operations/asset/store', [AssetController::class, 'store'])->name('operations.asset.store'); // store action
+Route::get('/operations/asset/{asset}/view', [AssetController::class, 'view'])->name('operations.asset.view');
+Route::get('/operations/asset/{id}/edit', [AssetController::class, 'edit'])->name('operations.asset.edit'); // edit page
+Route::put('/operations/asset/{id}', [AssetController::class, 'update'])->name('operations.asset.update'); // update action   
+Route::delete('/operations/asset/{asset}', [AssetController::class, 'destroy'])->name('operations.asset.destroy');
+Route::get('/operations/asset/{id}/print', [AssetController::class, 'print'])->name('operations.asset.print');
+
+            // Route::get('renewals/{id}/view', [RenewalController::class, 'view'])->name('renewals.view');
 
     // ✅ Sales & Marketing Deliverables keep their own URLs but reuse the operations controller
     Route::get('/sm/deliverables/open', [DeliverablesController::class, 'smOpen'])->name('sm.deliverables.open');
@@ -294,9 +333,7 @@ Route::post('/import-feasibility', [FeasibilityExcelController::class, 'import']
     });
 
 });
-    Route::prefix('finance')->name('finance.')->group(function () {
-        Route::get('/accounts', [AccountController::class, 'index'])->name('accounts.index');
-    });
+    
 
 
 Route::get('/hr', [hrController::class, 'index'])->name('hr.index');
@@ -327,23 +364,49 @@ Route::prefix('assetmaster/make_type')->name('assetmaster.make_type.')->group(fu
     Route::delete('/{makeType}', [Make_typeController::class, 'destroy'])->name('destroy');
     Route::get('/generate-id/{company}/{brand}', [AssetController::class, 'generateAssetId']);
 });
-Route::resource('assets', AssetController::class);
-Route::get('/assets/next-asset-id', [AssetController::class, 'nextAssetID']);
-//  Route::delete('/asset/{asset}', [AssetController::class, 'destroy'])->name('destroy');
-Route::post('/asset/import', [AssetController::class, 'import'])->name('asset.import');
-Route::get('/assets/export', [AssetController::class, 'exportAssets'])->name('asset.export');
-Route::get('/asset', [AssetController::class, 'index'])->name('asset.index');     // list page
-Route::get('/asset/create', [AssetController::class, 'create'])->name('asset.create'); // add page
-Route::post('/asset/store', [AssetController::class, 'store'])->name('asset.store'); // store action
-Route::get('/asset/{asset}/view', [AssetController::class, 'view'])->name('asset.view');
-Route::get('/asset/{id}/edit', [AssetController::class, 'edit'])->name('asset.edit'); // edit page
-Route::put('/asset/{id}', [AssetController::class, 'update'])->name('asset.update'); // update action   
-// Route::delete('/asset/{asset}', [AssetController::class, 'destroy'])->name('asset.destroy'); // delete action
-Route::delete('/asset/{asset}', [AssetController::class, 'destroy'])->name('asset.destroy');
-// print route
-Route::get('/asset/{id}/print', [AssetController::class, 'print'])->name('asset.print');
 
+// Finance Module Routes
+Route::prefix('finance')->name('finance.')->group(function () {
+           // accounts
+    Route::get('accounts',[AccountController::class,'index'])->name('accounts.index');
+    Route::get('accounts/create',[AccountController::class,'create'])->name('accounts.create');
+    Route::post('accounts/store',[AccountController::class,'store'])->name('accounts.store');
+    Route::get('accounts/{id}/edit',[AccountController::class,'edit'])->name('accounts.edit');
+    Route::put('accounts/{account}',[AccountController::class,'update'])->name('accounts.update');
+    Route::patch('accounts/{account}/toggle',[AccountController::class,'toggle'])->name('accounts.toggle');
+    Route::post('accounts/{account}/submit',[AccountController::class,'submitForApproval'])->name('accounts.submit');
+    Route::post('accounts/{account}/approve',[AccountController::class,'approve'])->name('accounts.approve');
+    Route::post('accounts/{account}/reject',[AccountController::class,'reject'])->name('accounts.reject');
+// banking
+    Route::get('banking',[BankingController::class,'index'])->name('banking.index');
+    Route::get('banking/create',[BankingController::class,'create'])->name('banking.create');
+    Route::post('banking/store',[BankingController::class,'store'])->name('banking.store');
+    Route::get('banking/{id}/transactions',[BankingController::class,'transactions'])->name('banking.transactions');
+    Route::post('banking/transaction/store',[BankingController::class,'storeTransaction'])->name('banking.transaction.store');
+    Route::get('banking/reconcile/{txn}',[BankingController::class,'reconcile'])->name('banking.reconcile');
 
+    // 
+    Route::resource('vendor-invoices', VendorInvoiceController::class);
+    Route::resource('expenses', ExpenseController::class);
+    Route::resource('debit-notes', DebitNoteController::class);
+    Route::get('purchases', function () {
+        return view('finance.purchases.index');
+    })->name('purchases.index');
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('index');
+        Route::get('profit-loss', [ReportController::class,'profitLoss'])->name('profit_loss');
+        Route::get('balance-sheet', [ReportController::class,'balanceSheet'])->name('balance_sheet');
+        Route::get('cash-flow', [ReportController::class,'cashFlow'])->name('cash_flow');
+    });
+});
+
+Route::prefix('finance/settings')->middleware(['auth'])->name('finance.settings.')->group(function () {
+    Route::get('/', function() {return view('finance.settings.index');})->name('index');
+    Route::get('/gst', [FinanceGstController::class, 'index'])->name('gst');
+    Route::post('/gst', [FinanceGstController::class, 'update'])->name('gst.update');
+    Route::get('/tds', [FinanceTdsController::class, 'index'])->name('tds');
+    Route::post('/tds', [FinanceTdsController::class, 'update'])->name('tds.update');
+});
 
 //time log report 
 

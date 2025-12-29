@@ -75,44 +75,69 @@
 
             {{-- Client Name --}}
             <div class="row mb-3">
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Type of Office</label>
+                    <select name="office_type" id="office_type" class="form-select" required>
+                        <option value="">Select</option>
+                        <option value="head">Head Office</option>
+                        <option value="branch">Branch Office</option>
+                    </select>
+                </div>
+
+                <!-- PAN Number: only for Head Office -->
+                <div class="col-md-3 mb-3" id="panDiv">
+                    <label class="form-label">PAN Number</label>
+                    <input type="text"  name="pan_number" class="form-control">
+                </div>
+
+                <!-- Head Office selection: only for Branch Office -->
+                <div class="col-md-3 mb-3 d-none" id="headOfficeDiv">
+                    <label class="form-label">Head Office</label>
+                    <select name="head_office_id" class="form-select">
+    <option value="">Select Head Office</option>
+    @foreach($headOffices as $ho)
+        <option value="{{ $ho->id }}">
+            {{ $ho->client_name }} ({{ $ho->client_code }})
+        </option>
+    @endforeach
+</select>
+                </div>
 
                 <div class="col-md-3">
+                    <label for="form-label">Short Name</label>
+                    <input type="text" name="short_name" class="form-control">
+                </div>
 
+
+                <div class="col-md-3">
                     <label class="form-label">Client Name</label>
-
                     <input type="text" name="client_name" class="form-control" required>
-
                 </div>
 
-               <!-- {{-- Client Code --}} -->
-
-                <div class="col-md-3">
-
+                <!-- Client Code: only for Head Office -->
+                <div class="col-md-3" id="clientCodeDiv">
                     <label class="form-label">Client Code</label>
-
                     <input type="text" class="form-control" value="Auto Generated" readonly>
-
                 </div>
-                <!-- {{-- ✅ Username and pwd --}} -->
+
+                <!-- User Name -->
                 <div class="col-md-3">
-
                     <label class="form-label">User Name</label>
-<div class="input-group">
-    <input type="text" name="user_name" id="user_name" class="form-control" required>
-    <button type="button" name="portal_password" id="sendPwdBtn" class="btn btn-outline-primary">PWD</button>
-</div>
-<small id="pwdStatus" class="text-muted d-block mt-1"></small>
-
+                    <div class="input-group">
+                        <input type="text" name="user_name" id="user_name" class="form-control" required>
+                        <button type="button" name="portal_password" id="sendPwdBtn" class="btn btn-outline-primary">PWD</button>
+                    </div>
+                    <small id="pwdStatus" class="text-muted d-block mt-1"></small>
                 </div>
-                {{-- ✅ Business Name Auto-fill --}}
 
-            <div class="col-md-3 mb-3">
+                <!-- Business Display Name -->
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Business Display Name</label>
+                    <input type="text" name="business_display_name" id="business_display_name" class="form-control">
+                </div>
 
-                <label class="form-label">Business Display Name</label>
-
-                <input type="text" name="business_display_name" id="business_display_name" class="form-control">
-
-            </div>
+                <!-- Type of Office -->
+                
 
             </div>
 
@@ -329,11 +354,15 @@
 
 <script>
 
-// GST Fetch
+// GST Fetch (only if PAN field exists)
 function fetchGST() {
-    let pan = document.getElementById("pan_number").value.trim();
-    let gstStatus = document.getElementById("gstStatus");
+    const panInput = document.getElementById("pan_number");
+    const gstStatus = document.getElementById("gstStatus");
+    if (!panInput || !gstStatus) {
+        return;
+    }
 
+    const pan = panInput.value.trim();
     if (pan.length !== 10) {
         gstStatus.innerHTML = "⚠️ Enter valid PAN";
         return;
@@ -358,11 +387,16 @@ function fetchGST() {
         .catch(() => gstStatus.innerHTML = "⚠ Server Error");
 }
 
-document.getElementById("pan_number").addEventListener("blur", fetchGST);
+const panInput = document.getElementById("pan_number");
+if (panInput) {
+    panInput.addEventListener("blur", fetchGST);
+}
 
 
 // ⭐ Password Send Btn
-document.getElementById("sendPwdBtn").addEventListener("click", function () {
+const sendPwdBtn = document.getElementById("sendPwdBtn");
+if (sendPwdBtn) {
+    sendPwdBtn.addEventListener("click", function () {
     let email = document.getElementById("support_spoc_email").value;
     let userName = document.getElementById("user_name").value;
     let pwdStatus = document.getElementById("pwdStatus");
@@ -402,7 +436,64 @@ document.getElementById("sendPwdBtn").addEventListener("click", function () {
         pwdStatus.innerHTML = "⚠ Server error";
         setTimeout(() => { pwdStatus.innerHTML = ""; }, 4000);
     });
+    });
+}
+
+// ⭐ Office Type Toggle
+document.getElementById('office_type').addEventListener('change', function () {
+    let type = this.value;
+    let panDiv = document.getElementById('panDiv');
+    let headOfficeDiv = document.getElementById('headOfficeDiv');
+    let userName = document.getElementById('user_name');
+    let displayName = document.getElementById('business_display_name');
+    let panNumber = document.getElementById('pan_number');
+    let clientCodeDiv = document.getElementById('clientCodeDiv');
+
+    if (type === 'head') {
+        // Show PAN, Client Code
+        panDiv.classList.remove('d-none');
+        headOfficeDiv.classList.add('d-none');
+        clientCodeDiv.classList.remove('d-none');
+
+        // Mandatory
+        userName.required = true;
+        displayName.required = true;
+        panNumber.required = true;
+    } else if (type === 'branch') {
+        // Hide PAN, Client Code
+        panDiv.classList.add('d-none');
+        headOfficeDiv.classList.remove('d-none');
+        clientCodeDiv.classList.add('d-none');
+
+        // Remove mandatory
+        userName.required = false;
+        displayName.required = false;
+        panNumber.required = false;
+    } else {
+        // Default: show all
+        panDiv.classList.remove('d-none');
+        headOfficeDiv.classList.add('d-none');
+        clientCodeDiv.classList.remove('d-none');
+        userName.required = false;
+        displayName.required = false;
+        panNumber.required = false;
+    }
 });
+
+// ⭐ Auto-fill Basic Details from Head Office
+document.querySelector('[name="head_office_id"]').addEventListener('change', function () {
+    let headOfficeId = this.value;
+    if (!headOfficeId) return;
+
+    fetch(`/api/clients/head-office/${headOfficeId}`)
+        .then(res => res.json())
+        .then(data => {
+            document.querySelector('[name="client_name"]').value = data.client_name;
+            document.querySelector('[name="short_name"]').value = data.short_name;
+            document.querySelector('[name="business_display_name"]').value = data.business_display_name;
+        });
+});
+
 
 </script>
 

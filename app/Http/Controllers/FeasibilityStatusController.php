@@ -14,9 +14,9 @@ use App\Helpers\TemplateHelper;
 
 class FeasibilityStatusController extends Controller
 {
-    public function index($status = 'Open')
+    public function index(Request $request, $status = 'Open')
     {
-     $feasibilityStatuses = FeasibilityStatus::orderBy('id', 'asc')->get();
+    //  $feasibilityStatuses = FeasibilityStatus::orderBy('id', 'asc')->get();
 
         $statuses = ['Open', 'InProgress', 'Closed'];
         $records = FeasibilityStatus::with('feasibility')
@@ -30,6 +30,14 @@ class FeasibilityStatusController extends Controller
             'can_delete' => true,
             'can_view' => true,
         ];
+
+        // 
+         $perPage = (int) $request->get('per_page', 10);
+    $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+
+    // Paginated vendors
+            $feasibilityStatuses = FeasibilityStatus::orderBy('id', 'asc')->paginate($perPage);
+
 
         return view('feasibility.feasibility_status.index', compact('records', 'status', 'statuses', 'permissions', 'feasibilityStatuses'));
     }
@@ -132,29 +140,41 @@ public function editSave(Request $request, $id)
     // Sales & Marketing Methods
     // ====================================
 
-    public function smOpen()
+    public function smOpen(Request $request)
     {
+         $perPage = (int) $request->get('per_page', 10);
+         $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+
         $records = FeasibilityStatus::with(['feasibility', 'feasibility.client'])
             ->where('status', 'Open')
-            ->get();
-
+            ->orderBy('id', 'asc')
+            ->paginate($perPage);
+            
         return view('sm.feasibility.open', compact('records'));
     }
 
-    public function smInProgress()
+    public function smInProgress(Request $request)
     {
+         $perPage = (int) $request->get('per_page', 10);
+         $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+
         $records = FeasibilityStatus::with(['feasibility', 'feasibility.client'])
             ->where('status', 'InProgress')
-            ->get();
+            ->orderBy('id', 'asc')
+            ->paginate($perPage);
 
         return view('sm.feasibility.inprogress', compact('records'));
     }
 
-    public function smClosed()
+    public function smClosed(Request $request)
     {
+         $perPage = (int) $request->get('per_page', 10);
+         $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+
         $records = FeasibilityStatus::with(['feasibility', 'feasibility.client'])
             ->where('status', 'Closed')
-            ->get();
+            ->orderBy('id', 'asc')
+            ->paginate($perPage);
 
         return view('sm.feasibility.closed', compact('records'));
     }
@@ -237,31 +257,43 @@ public function editSave(Request $request, $id)
     // operations Methods (Read-only)
     // ====================================
 
-    public function operationsOpen()
+    public function operationsOpen(Request $request)
     {
+        $perPage = (int) $request->get('per_page', 10);
+        $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+
         $records = FeasibilityStatus::with(['feasibility', 'feasibility.client'])
             ->where('status', 'Open')
-            ->get();
+            ->orderBy('id', 'asc')
+            ->paginate($perPage);
 
         $permissions = $this->getOperationsFeasibilityPermissions();
         return view('operations.feasibility.open', compact('records', 'permissions'));
     }
 
-    public function operationsInProgress()
+    public function operationsInProgress(Request $request)
     {
+         $perPage = (int) $request->get('per_page', 10);
+         $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+
         $records = FeasibilityStatus::with(['feasibility', 'feasibility.client'])
             ->where('status', 'InProgress')
-            ->get();
-
+            ->orderBy('id', 'asc')
+            ->paginate($perPage);
+           
         $permissions = $this->getOperationsFeasibilityPermissions();
         return view('operations.feasibility.inprogress', compact('records', 'permissions'));
     }
 
-    public function operationsClosed()
+    public function operationsClosed(Request $request)
     {
+        $perPage = (int) $request->get('per_page', 10);
+        $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+
         $records = FeasibilityStatus::with(['feasibility', 'feasibility.client'])
             ->where('status', 'Closed')
-            ->get();
+            ->orderBy('id', 'asc')
+            ->paginate($perPage);
 
         $permissions = $this->getOperationsFeasibilityPermissions();
         return view('operations.feasibility.closed', compact('records', 'permissions'));

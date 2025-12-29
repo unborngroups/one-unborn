@@ -7,6 +7,7 @@ use App\Models\SlaReport;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Services\NotificationService;
+use App\Services\SLAService;
 
 class SlaReportController extends Controller
 {
@@ -86,4 +87,20 @@ class SlaReportController extends Controller
 
         return "SLA calculated successfully for Link #{$linkId}";
     }
+
+    // 
+   public function show($linkId)
+{
+    $link = ClientLink::with('router')->findOrFail($linkId);
+
+    $slaService = new SLAService();
+
+    $sla = $slaService->calculateMonthlySLA(
+        $link->id,
+        now()->format('Y-m')
+    );
+
+    return view('client_portal.link_details', compact('link', 'sla'));
+}
+
 }

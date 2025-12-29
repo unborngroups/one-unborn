@@ -33,10 +33,18 @@
                         @endif
                     </td>
                     <td>
-                        @if($log->status === 'Online')
-                            <span class="badge bg-success">Online</span>
+                        @if(method_exists($log, 'getDynamicStatusAttribute'))
+                            @if($log->dynamic_status === 'Online')
+                                <span class="badge bg-success">Online</span>
+                            @else
+                                <span class="badge bg-secondary">Offline</span>
+                            @endif
                         @else
-                            <span class="badge bg-secondary">Offline</span>
+                            @if($log->status === 'Online')
+                                <span class="badge bg-success">Online</span>
+                            @else
+                                <span class="badge bg-secondary">Offline</span>
+                            @endif
                         @endif
                     </td>
                 </tr>

@@ -19,9 +19,8 @@ use App\Helpers\EmailHelper;
 
 class FeasibilityController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $feasibilities = Feasibility::orderBy('id', 'asc')->get();
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
@@ -32,6 +31,14 @@ class FeasibilityController extends Controller
         else {
             // ✅ Normal users: only feasibility records belonging to their assigned companies
             $companyIds = $user->companies()->pluck('companies.id');
+
+            // 
+            $perPage = (int) $request->get('per_page', 10);
+    $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+
+    // Paginated vendors
+            $feasibilities = Feasibility::orderBy('id', 'asc')->paginate($perPage);
+
 
             $feasibilities = Feasibility::with(['company', 'client'])->whereIn('company_id', $companyIds)->latest()->paginate(10);
         }
@@ -67,7 +74,10 @@ class FeasibilityController extends Controller
         }
         
         // Clients are always independent - show all clients to everyone
-        $clients = Client::all();
+        $clients = Client::where('office_type', 'head')
+                 ->orderBy('client_name')
+                 ->get();
+
         $makes     = MakeType::all();
         $models = Asset::select('id', 'model as model_name')->get();
 
@@ -80,6 +90,7 @@ class FeasibilityController extends Controller
             'type_of_service' => 'required',
             'company_id' => 'required|exists:companies,id',
             'client_id' => 'required',
+            'delivery_company_name' => 'nullable|string',
             'pincode' => 'required',
             'state' => 'required',
             'district' => 'required',
@@ -102,7 +113,9 @@ class FeasibilityController extends Controller
             'hardware_model' => 'array|nullable',
             'status' => 'required|in:Active,Inactive',
 
-            'static_ip' => $request->type_of_service == 'ILL' ? 'required|in:Yes' : 'required',
+            'static_ip' => 'required|in:Yes,No',
+
+            // 'static_ip' => $request->type_of_service == 'ILL' ? 'required|in:Yes' : 'required',
     'static_ip_subnet' => $request->static_ip == 'Yes' ? 'required' : 'nullable',
         ]);
 
@@ -229,6 +242,7 @@ private function sendUpdatedEmail($feasibility)
             'type_of_service' => 'required',
             'company_id' => 'required|exists:companies,id',
             'client_id' => 'required',
+            'delivery_company_name' => 'nullable|string',
             'pincode' => 'required',
             'state' => 'required',
             'district' => 'required',

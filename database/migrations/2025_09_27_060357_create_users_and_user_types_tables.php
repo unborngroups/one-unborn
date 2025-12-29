@@ -10,7 +10,7 @@ return new class extends Migration
         Schema::create('user_types', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('email');
+            $table->string('email')->nullable();
             $table->string('Description')->nullable();
             $table->enum('status', ['Active', 'Inactive'])->default('Active');
             $table->timestamps();
@@ -38,6 +38,7 @@ return new class extends Migration
             $table->boolean('profile_created')->default(false);
             $table->unsignedBigInteger('user_type_id')->nullable();
             $table->enum('status', ['Active', 'Inactive'])->default('Active');
+            $table->timestamp('last_activity')->nullable()->index();
             $table->timestamps();
             $table->rememberToken();
             $table->foreign('user_type_id')->references('id')->on('user_types')->onDelete('cascade');

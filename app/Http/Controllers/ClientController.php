@@ -19,7 +19,7 @@ class ClientController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -41,17 +41,41 @@ class ClientController extends Controller
             }
         }
 
-        $clients = $query->paginate(10);
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('client_code', 'like', "%$search%")
+                  ->orWhere('client_name', 'like', "%$search%")
+                  ->orWhere('business_display_name', 'like', "%$search%")
+                  ->orWhere('support_spoc_name', 'like', "%$search%")
+                  ->orWhere('support_spoc_email', 'like', "%$search%")
+                  ->orWhere('support_spoc_mobile', 'like', "%$search%")
+                  ->orWhere('status', 'like', "%$search%")
+                ;
+            });
+        }
+
+        $perPage = $request->input('per_page', 10); // default 10
+        $perPage = in_array($perPage, [10,25,50,100]) ? $perPage : 10;
+        $clients = $query->paginate($perPage);
         return view('clients.index', compact('clients', 'permissions'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
+ 
     public function create()
-    {
-        return view('clients.create');
-    }
+{
+    // Fetch all clients that are head offices
+    $headOffices = Client::where('office_type', 'head')
+                        ->orderBy('client_name')
+                        ->get();
+
+    // Pass it to the view
+    return view('clients.create', compact('headOffices'));
+}
 
     /**
      * Store a newly created resource in storage.
@@ -60,10 +84,23 @@ class ClientController extends Controller
     {
        $validated =  $request->validate([
         'pan_number' => 'nullable|string|size:10',
-        'user_name'            => 'required|string|max:255',
+        'user_name' => $request->office_type === 'head'
+            ? 'required|string|max:255'
+            : 'nullable|string|max:255',
+
+        'pan_number' => $request->office_type === 'head'
+            ? 'required|string|size:10'
+            : 'nullable|string|size:10',
+
             'client_name'          => 'required|string|max:255',
-            'client_code'          => 'nullable|string|max:50|unique:clients,client_code',
+            'short_name'           => 'nullable|string|max:255',
+            'client_code'          => 'nullable|string|max:50',
             'business_display_name'=> 'nullable|string|max:255',
+            'office_type'          => 'required|in:head,branch',
+            'head_office_id' => $request->office_type === 'branch'
+    ? 'required|exists:clients,id'
+    : 'nullable',
+
             'address1'             => 'nullable|string|max:255',
             'address2'             => 'nullable|string|max:255',
             'address3'             => 'nullable|string|max:255',
@@ -89,18 +126,44 @@ class ClientController extends Controller
 
             // Client Status
             'portal_password' => 'nullable|string|max:255',
-
+             
             'status'           => 'required|in:Active,Inactive',
         ]);
+// ⭐ CLIENT CODE LOGIC
+   // ⭐ CLIENT CODE LOGIC (FINAL & CORRECT)
+
+if ($request->office_type === 'head') {
+
+    // Generate NEW client code only for Head Office
+    $lastClient = Client::whereNotNull('client_code')
+                        ->orderBy('id', 'desc')
+                        ->first();
+
+    $nextNumber = $lastClient
+        ? ((int) substr($lastClient->client_code, 2)) + 1
+        : 1;
+
+    $validated['client_code'] = 'CL' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+    $validated['head_office_id'] = null;
+
+} else { 
+    // Branch → inherit Head Office client_code
+    $headOffice = Client::findOrFail($request->head_office_id);
+
+    $validated['client_code'] = $headOffice->client_code;
+    $validated['head_office_id'] = $headOffice->id;
+}
+
+
 
         // ✅ Auto-generate client_code if not provided
-    if (empty($validated['client_code'])) {
-        $lastClient = Client::latest('id')->first();
-        $validated['client_code'] = 'CL' . str_pad(($lastClient->id ?? 0) + 1, 4, '0', STR_PAD_LEFT);
-    }
+    // if (empty($validated['client_code'])) {
+    //     $lastClient = Client::latest('id')->first();
+    //     $validated['client_code'] = 'CL' . str_pad(($lastClient->id ?? 0) + 1, 4, '0', STR_PAD_LEFT);
+    // }
     
 // ⭐ Save portal credentials
-$validated['username'] = $request->username;
+$validated['user_name'] = $request->user_name;
 $validated['portal_password'] = bcrypt($request->portal_password);
 $validated['portal_active'] = 1;
 Client::create($validated);
@@ -122,7 +185,12 @@ Client::create($validated);
      */
     public function edit(Client $client)
     {
-        return view('clients.edit', compact('client'));
+         // Fetch all clients that are head offices
+    $headOffices = Client::where('office_type', 'head')
+                        ->orderBy('client_name')
+                        ->get();
+                        
+        return view('clients.edit', compact('client', 'headOffices'));
     }
 
     /**
@@ -132,9 +200,22 @@ Client::create($validated);
     {
         $validated = $request->validate([
             'pan_number' => 'nullable|string|size:10',
-        'user_name'            => 'required|string|max:255',
+        'user_name' => $request->office_type === 'head'
+            ? 'required|string|max:255'
+            : 'nullable|string|max:255',
+
+        'pan_number' => $request->office_type === 'head'
+            ? 'required|string|size:10'
+            : 'nullable|string|size:10',
+
         'client_name'          => 'required|string|max:255',
+        'short_name'           => 'nullable|string|max:255',
+        'client_code'          => 'nullable|string|max:50',
         'business_display_name'=> 'nullable|string|max:255',
+        'office_type'          => 'required|in:head,branch',
+        'head_office_id' => $request->office_type === 'branch'
+    ? 'required|exists:clients,id'
+    : 'nullable',
         'address1'             => 'nullable|string|max:255',
         'address2'             => 'nullable|string|max:255',
         'address3'             => 'nullable|string|max:255',
@@ -162,6 +243,32 @@ Client::create($validated);
         'status'               => 'required|in:Active,Inactive',
         ]);
              
+        // ⭐ CLIENT CODE LOGIC
+    // ⭐ CLIENT CODE LOGIC (FINAL & CORRECT)
+
+if ($request->office_type === 'head') {
+
+    // Generate NEW client code only for Head Office
+    $lastClient = Client::whereNotNull('client_code')
+                        ->orderBy('id', 'desc')
+                        ->first();
+
+    $nextNumber = $lastClient
+        ? ((int) substr($lastClient->client_code, 2)) + 1
+        : 1;
+
+    $validated['client_code'] = 'CL' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+    $validated['head_office_id'] = null;
+
+} else { 
+    // Branch → inherit Head Office client_code
+    $headOffice = Client::findOrFail($request->head_office_id);
+
+    $validated['client_code'] = $headOffice->client_code;
+    $validated['head_office_id'] = $headOffice->id;
+}
+
+
        
     // Update fields
     $client->fill($validated);

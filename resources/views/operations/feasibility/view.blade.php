@@ -55,6 +55,24 @@
 
             </div>
 
+            {{-- Company Name --}}
+
+            <div class="col-md-4">
+
+                <label class="form-label fw-semibold">Company Name</label>
+                <p class="form-control-plaintext">{{ $record->feasibility->company->company_name ?? 'N/A' }}</p>
+
+            </div>
+
+            {{-- Delivery Company Name --}}
+
+            <div class="col-md-4">
+
+                <label class="form-label fw-semibold">Delivery Company Name</label>
+                <p class="form-control-plaintext">{{ $record->feasibility->delivery_company_name ?? 'N/A' }}</p>
+
+            </div>
+
 
 
             {{-- Pincode --}}

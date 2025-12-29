@@ -26,20 +26,26 @@ class VendorController extends Controller
      */
     protected array $importErrors = [];
 
-    public function index()
-    {
-     $vendors = Vendor::orderBy('id', 'asc')->get();
+   public function index(Request $request)
+{
+    // Permissions
+    $permissions = TemplateHelper::getUserMenuPermissions('Vendor Master') ?? (object)[
+        'can_add' => true,
+        'can_edit' => true,
+        'can_delete' => true,
+        'can_view' => true,
+    ];
 
-        $vendors = Vendor::orderBy('id', 'asc')->get();
-        // ✅ Use the helper correctly
-        $permissions = TemplateHelper::getUserMenuPermissions('Vendor Master') ?? (object)[
-    'can_add' => true,
-    'can_edit' => true,
-    'can_delete' => true,
-    'can_view' => true,
-];
-        return view('vendors.index', compact('vendors', 'permissions'));
-    }
+    // Per page (frontend only)
+    $perPage = (int) $request->get('per_page', 10);
+    $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+
+    // Paginated vendors
+    $vendors = Vendor::orderBy('id', 'asc')->paginate($perPage);
+
+    return view('vendors.index', compact('vendors', 'permissions'));
+}
+
 
     /**
      * Show the form for creating a new resource.

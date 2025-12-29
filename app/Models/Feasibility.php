@@ -31,6 +31,7 @@ class Feasibility extends Model
         'type_of_service',
         'company_id',
         'client_id',
+        'delivery_company_name',
         'pincode',
         'state',
         'district',

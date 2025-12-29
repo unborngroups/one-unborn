@@ -13,6 +13,7 @@ class ClientLink extends Model
         'client_id',
         'router_id',
         'interface_name',
+        'deliverable_id',
         'link_type',
         'bandwidth',
         'service_id',

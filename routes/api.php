@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\PincodeLookupController;
+use App\Models\Client;
 
 // GST API Routes
 Route::get('fetch-gst/{gst}', [CompanyController::class, 'fetchGst'])->name('api.fetch-gst');
@@ -24,3 +25,12 @@ Route::post('/pincode/lookup', [PincodeLookupController::class, 'lookup'])->name
 
 // client send password route (allow OPTIONS for preflight)
 Route::match(['post', 'options'], '/client/send-password', [ClientController::class, 'sendPassword']);
+
+// API route to get head office details in branch client creation/editing form
+Route::get('/clients/head-office/{id}', function ($id) {
+    return Client::select(
+        'client_name',
+        'short_name',
+        'business_display_name'
+    )->where('office_type', 'head')->findOrFail($id);
+});

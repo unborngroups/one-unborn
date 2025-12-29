@@ -3,539 +3,414 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\DeliverablePlan;
 use Illuminate\Support\Facades\Log;
-use App\Models\Feasibility;
-use App\Models\FeasibilityStatus;
-use App\Models\PurchaseOrder;
-use App\Models\Deliverables;
-use App\Models\ClientLink;
-use App\Models\Vendor;
+use Illuminate\Support\Facades\Crypt;
+
+use App\Models\{
+    Deliverables,
+    PurchaseOrder,
+    FeasibilityStatus,
+    ClientLink,
+    Asset
+};
 use App\Helpers\TemplateHelper;
-use IPLib\Address\IPv4;
 use Carbon\Carbon;
 
 
 class DeliverablesController extends Controller
 {
-    // ====================================
-    // LIST PAGES
-    // ====================================
-
-    public function operationsOpen()
+    /**
+     * AJAX: Calculate subnet/network details for a given IP and subnet mask.
+     * Route: /calculate-subnet (GET)
+     * Params: ip, subnet (e.g. /28)
+     * Returns: JSON { network_ip, gateway, subnet_mask, usable_ips }
+     */
+    public function calculateSubnet(Request $request)
     {
-        return $this->renderDeliverablesPage('open', 'Open', $this->deliverablesPermissions('operations Deliverables'));
+        $ip = $request->input('ip');
+        $subnet = $request->input('subnet');
+        if (!$ip || !$subnet) {
+            return response()->json(['error' => 'Missing IP or subnet'], 400);
+        }
+
+        // Convert subnet (e.g. /28) to mask
+        $prefix = (int)str_replace('/', '', $subnet);
+        if ($prefix < 1 || $prefix > 32) {
+            return response()->json(['error' => 'Invalid subnet'], 400);
+        }
+        $mask = long2ip(-1 << (32 - $prefix));
+
+        // Calculate network address
+        $ip_long = ip2long($ip);
+        $mask_long = ip2long($mask);
+        if ($ip_long === false || $mask_long === false) {
+            return response()->json(['error' => 'Invalid IP'], 400);
+        }
+        $network_long = $ip_long & $mask_long;
+        $network_ip = long2ip($network_long);
+
+        // Calculate broadcast address
+        $broadcast_long = $network_long | (~$mask_long & 0xFFFFFFFF);
+        $broadcast_ip = long2ip($broadcast_long);
+
+        // Gateway: usually first usable IP (network + 1)
+        $gateway_ip = long2ip($network_long + 1);
+
+        // Usable IP range (network+1 to broadcast-1)
+        $first_usable = $network_long + 1;
+        $last_usable = $broadcast_long - 1;
+        $usable_ips = [];
+        if ($last_usable >= $first_usable) {
+            for ($i = $first_usable; $i <= $last_usable; $i++) {
+                $usable_ips[] = long2ip($i);
+            }
+        }
+
+        // Usable IPs as string (show range or single IP)
+        $usable_ips_str = count($usable_ips) > 1
+            ? $usable_ips[0] . ' - ' . $usable_ips[count($usable_ips)-1]
+            : (count($usable_ips) === 1 ? $usable_ips[0] : '');
+
+        return response()->json([
+            'network_ip' => $network_ip,
+            'gateway' => $gateway_ip,
+            'subnet_mask' => $mask,
+            'usable_ips' => $usable_ips_str,
+            'broadcast_ip' => $broadcast_ip,
+        ]);
     }
 
-    public function operationsInProgress()
+    // Helper to get sequence for circuit_id
+    public function getCircuitSequence($companyName, $clientShortName, $state, $year)
     {
-        return $this->renderDeliverablesPage('inprogress', 'InProgress', $this->deliverablesPermissions('operations Deliverables'));
+        return Deliverables::whereYear('created_at', $year)
+            ->whereHas('feasibility.company', function($q) use ($companyName) {
+                $q->where('company_name', $companyName);
+            })
+            ->whereHas('feasibility.client', function($q) use ($clientShortName) {
+                $q->where('short_name', $clientShortName);
+            })
+            ->where('state', $state)
+            ->count() + 1;
     }
 
-    public function operationsDelivery()
+    // Operations Deliverables Views
+    public function operationsOpen()       { return $this->page('open', 'Open'); }
+    public function operationsInProgress() { return $this->page('inprogress', 'InProgress'); }
+    public function operationsDelivery()   { return $this->page('delivery', 'Delivery'); }
+
+    // S&M Deliverables Views
+    public function smOpen()       { return $this->page('open', 'Open'); }
+    public function smInProgress() { return $this->page('inprogress', 'InProgress'); }
+    public function smDelivery()   { return $this->page('delivery', 'Delivery'); }
+
+    private function page(string $view, string $status)
     {
-        return $this->renderDeliverablesPage('delivery', 'Delivery', $this->deliverablesPermissions('operations Deliverables'));
+        $perPage = request()->input('per_page', 10);
+        $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+        return view("operations.deliverables.$view", [
+            'records' => Deliverables::with([
+                'feasibility.client',
+                'feasibility.company',
+                'feasibility.feasibilityStatus'
+            ])->where('status', $status)->orderBy('id')->paginate($perPage),
+            'permissions' => TemplateHelper::getUserMenuPermissions('operations Deliverables')
+        ]);
     }
 
-    public function smOpen()
-    {
-        return $this->renderDeliverablesPage('open', 'Open', $this->deliverablesPermissions('sm Deliverables'));
-    }
-
-    public function smInProgress()
-    {
-        return $this->renderDeliverablesPage('inprogress', 'InProgress', $this->deliverablesPermissions('sm Deliverables'));
-    }
-
-    public function smDelivery()
-    {
-        return $this->renderDeliverablesPage('delivery', 'Delivery', $this->deliverablesPermissions('sm Deliverables'));
-    }
-
-    private function renderDeliverablesPage(string $view, string $status, object $permissions)
-    {
-        $data = $this->loadDeliverablesByStatus($status);
-        $data['permissions'] = $permissions;
-        return view("operations.deliverables.{$view}", $data);
-    }
-
-    private function deliverablesPermissions(string $menuName): object
-    {
-        return TemplateHelper::getUserMenuPermissions($menuName) ?? (object)[
-            'can_menu' => true,
-            'can_add' => true,
-            'can_edit' => true,
-            'can_delete' => true,
-            'can_view' => true,
-        ];
-    }
-
-    private function loadDeliverablesByStatus(string $status): array
-    {
-        $deliverables = Deliverables::orderBy('id', 'asc')->get();
-
-        $records = Deliverables::with([
-            'feasibility',
-            'feasibility.client',
-            'feasibility.company',
-            'feasibility.feasibilityStatus'
-        ])
-        ->where('status', $status)
-        ->orderBy('id', 'asc')
-        ->get();
-
-        return compact('records', 'deliverables');
-    }
-
-    // ====================================
-    // VIEW + EDIT
-    // ====================================
+    /* ===================== VIEW / EDIT ===================== */
 
     public function operationsView($id)
     {
-
-        $record = Deliverables::with(['feasibility', 'feasibility.client'])->findOrFail($id);
-        return view('operations.deliverables.view', compact('record'));
+        return view('operations.deliverables.view', [
+            'record' => Deliverables::with('feasibility.client')->findOrFail($id)
+        ]);
     }
 
     public function operationsEdit($id)
     {
-        $record = Deliverables::with(['feasibility', 'feasibility.client'])->findOrFail($id);
+        $record = Deliverables::with('feasibility.client')->findOrFail($id);
 
         if ($record->status === 'Delivery') {
-            return redirect()->route('operations.deliverables.delivery')
-                ->with('error', 'Delivered records cannot be edited.');
+            return back()->with('error', 'Delivered records cannot be edited');
         }
 
-        $assetOptions = Vendor::whereNotNull('asset_id')
-            ->whereNotNull('serial_no')
-            ->orderBy('asset_id')
-            ->get(['asset_id', 'serial_no', 'vendor_name']);
-
-        $hardwareDetails = $record->feasibility->hardware_details;
-        if (is_string($hardwareDetails)) {
-            $hardwareDetails = json_decode($hardwareDetails, true) ?: [];
-        }
-        if (!is_array($hardwareDetails)) {
-            $hardwareDetails = [];
-        }
-
-        return view('operations.deliverables.edit', compact('record', 'assetOptions', 'hardwareDetails'));
+        return view('operations.deliverables.edit', [
+            'record' => $record,
+            'assetOptions' => Asset::whereNotNull('asset_id')
+                ->whereNotNull('serial_no')
+                ->select('asset_id', 'serial_no', DB::raw("COALESCE(procured_from,'Inventory') vendor_name"))
+                ->orderBy('asset_id')->get(),
+            'hardwareDetails' => json_decode($record->feasibility->hardware_details ?? '[]', true)
+        ]);
     }
 
-    // ====================================
-    // SAVE DELIVERABLE (from edit form)
-    // ====================================
+    /* ===================== SAVE ===================== */
 
     public function operationsSave(Request $request, $id)
     {
+
         $deliverable = Deliverables::findOrFail($id);
-
-        $validated = $request->validate([
-            'plans_name' => 'nullable|string',
-            'speed_in_mbps_plan' => 'nullable|string',
-            'no_of_months_renewal' => 'nullable|integer',
-            'sla' => 'nullable|string',
-            'status_of_link' => 'nullable|string',
-            'mode_of_delivery' => 'required|string',
-            'date_of_activation' => 'nullable|date',
-            'date_of_expiry' => 'nullable|date',
-            // 'circuit_id' => 'nullable|string',
-            'circuit_id'          => 'nullable|string|max:50|unique:deliverables,circuit_id',
-
-            'pppoe_username' => 'nullable|string',
-            'pppoe_password' => 'nullable|string',
-            'pppoe_vlan' => 'nullable|string',
-            'dhcp_ip_address' => 'nullable|string',
-            'dhcp_vlan' => 'nullable|string',
-            'static_ip_address' => 'nullable|string',
-            'static_subnet_mask' => 'nullable|string',
-            'static_gateway' => 'nullable|string',
-            'static_vlan_tag' => 'nullable|string',
-
-            'payment_login_url' => 'nullable|string',
-            'payment_quick_url' => 'nullable|string',
-            'payment_account_or_username' => 'nullable|string',
-            'payment_password' => 'nullable|string',
-            'mtu' => 'required|string|max:255',
-            'wifi_username' => 'nullable|string|max:255',
-            'wifi_password' => 'nullable|string|max:255',
-    'lan_ip_1' => 'required|string|max:255',
-    'lan_ip_2' => 'nullable|string|max:255',
-    'lan_ip_3' => 'nullable|string|max:255',
-    'lan_ip_4' => 'nullable|string|max:255',
-    'ipsec' => 'nullable|in:Yes,No',
-    'phase_1' => $request->ipsec == 'Yes' ? 'nullable|string|max:255' : 'nullable|string|max:255',
-    'phase_2' => $request->ipsec == 'Yes' ? 'nullable|string|max:255' : 'nullable|string|max:255',
-    'ipsec_interface' => $request->ipsec == 'Yes' ? 'nullable|string|max:255' : 'nullable|string|max:255',
-            'account_id' => 'nullable|string|max:255',    
-            'asset_id' => 'nullable|string|max:255',
-            'asset_serial_no' => 'nullable|string|max:255',
-            'otc_extra_charges' => 'nullable|numeric',
-            'otc_bill_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
-        ]);
-
-        $updateData = [
-            'plans_name' => $request->plans_name,
-            'speed_in_mbps_plan' => $request->speed_in_mbps_plan,
-            'no_of_months_renewal' => $request->no_of_months_renewal,
-            'date_of_activation' => $this->parseDeliverableDate($request->date_of_activation),
-            'date_of_expiry' => $this->parseDeliverableDate($request->date_of_expiry),
-            'sla' => $request->sla,
-            'status_of_link' => $request->status_of_link,
-            'mode_of_delivery' => $request->mode_of_delivery,
-            // 'circuit_id' => $request->circuit_id,
-            'circuit_id'          => $request->circuit_id,
-            'mtu' => $request->mtu,
-            'wifi_username' => $request->wifi_username,
-            'wifi_password' => $request->wifi_password,
-            'lan_ip_1' => $request->lan_ip_1,
-            'lan_ip_2' => $request->lan_ip_2,
-            'lan_ip_3' => $request->lan_ip_3,
-            'lan_ip_4' => $request->lan_ip_4,
-            'ipsec' => $request->ipsec,
-            'account_id' => $request->account_id,
-            'asset_id' => $request->asset_id,
-            'asset_serial_no' => $request->asset_serial_no,
-            'otc_extra_charges' => $request->otc_extra_charges,
+        $linkCount = $deliverable->feasibility->no_of_links ?? 1;
+        $rules = [
+            'lan_ip_1' => 'required'
         ];
-
-        // PPPoE MODE
-        if ($request->mode_of_delivery === 'PPPoE') {
-            $updateData['pppoe_username'] = $request->pppoe_username;
-            $updateData['pppoe_password'] = $request->pppoe_password;
-            $updateData['pppoe_vlan'] = $request->pppoe_vlan;
+        for ($i = 1; $i <= $linkCount; $i++) {
+            $rules["mode_of_delivery_$i"] = 'required|string';
+            $rules["mtu_$i"] = 'required';
         }
-
-        // DHCP MODE
-        if ($request->mode_of_delivery === 'DHCP') {
-            $updateData['dhcp_ip_address'] = $request->dhcp_ip_address;
-            $updateData['dhcp_vlan'] = $request->dhcp_vlan;
-        }
-        // PAYMENT DETAILS
-        if ($request->mode_of_delivery === 'Payment Gateway'){
-            $updateData['payment_login_url'] = $request->payment_login_url;
-            $updateData['payment_quick_url'] = $request->payment_quick_url;
-            $updateData['payment_account_or_username'] = $request->payment_account_or_username;
-            $updateData['payment_password'] = $request->payment_password;
-        }
-
-        // Static IP MODE
-        if ($this->isStaticMode($request->mode_of_delivery)) {
-            $updateData['static_ip_address'] = $request->static_ip_address;
-            $updateData['static_subnet_mask'] = $request->static_subnet_mask;
-            $updateData['static_gateway'] = $request->gateway ?? $request->static_gateway;
-            $updateData['static_vlan_tag'] = $request->static_vlan_tag;
-        }
-
-        // IPSEC MODE
-        if ($request->ipsec === 'No') {
-            $updateData['phase_1'] = null;
-            $updateData['phase_2'] = null;
-            $updateData['ipsec_interface'] = null;
-        }
-          if ($request->ipsec === 'Yes') {
-            $updateData['phase_1'] = $request->phase_1;
-            $updateData['phase_2'] = $request->phase_2;
-            $updateData['ipsec_interface'] = $request->ipsec_interface;
-        }
-        for ($i = 1; $i <= $request->no_of_links; $i++) {
-    $updateData["pppoe_username_$i"] = $request->input("pppoe_username_$i");
-    $updateData["pppoe_password_$i"] = $request->input("pppoe_password_$i");
-    $updateData["vlan_$i"] = $request->input("vlan_$i");
-}
-        // Handle file upload
-        if ($request->hasFile('otc_bill_file')) {
-            $file = $request->file('otc_bill_file');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            
-            // Save to public/images/deliverableotcbill/
-            $destinationPath = public_path('images/deliverableotcbill');
-            if (!file_exists($destinationPath)) {
-                mkdir($destinationPath, 0755, true);
-            }
-            $file->move($destinationPath, $filename);
-            
-            $updateData['otc_bill_file'] = 'images/deliverableotcbill/' . $filename;
-        }
-
-        // 
-
-        // EXPORT FILE - Save as Temp (InProgress) OR Final (Submit)
-        if ($request->hasFile('export_file')) {
-    $file = $request->file('export_file');
-    $ext = $file->getClientOriginalExtension();
-    $safeName = 'EXPORT_' . ($deliverable->circuit_id ?: 'UNKNOWN') . '_' . time();
-    $filename = $safeName . ($ext ? '.' . $ext : '');
-
-    if ($request->action === 'save') {
-        // Temp folder
-        $path = 'images/exportdeliverables/temp/';
-    } else {
-        // Final folder
-        $path = 'images/exportdeliverables/';
-    }
-
-    $destination = public_path($path);
-    if (!file_exists($destination)) {
-        mkdir($destination, 0755, true);
-    }
-
-    $file->move($destination, $filename);
-    $updateData['export_file'] = $path . $filename;
-}
-
-        // 
-        // STATUS CHANGE based on action
-        if ($request->action === 'save') {
-            $updateData['status'] = 'InProgress';
-        } elseif ($request->action === 'submit') {
-            $updateData['status'] = 'Delivery';
-        }
-
-        $deliverable->update($updateData);
-
-        // Insert client link when status changes to Delivery
-if ($updateData['status'] === 'Delivery') {
-
-    ClientLink::updateOrCreate(
-        [
-            'service_id' => $deliverable->circuit_id,   // unique service id
-        ],
-        [
-            'client_id'  => $deliverable->feasibility->client->id,
-            'link_type'  => $deliverable->link_type ?? $deliverable->feasibility->type_of_service,
-            'router_id'  => $deliverable->router_id ? null : null,
-            'bandwidth'  => $deliverable->speed_in_mbps_plan ?? $deliverable->speed_in_mbps,
-         // 🔥 Add this mandatory field
-            'interface_name' => $deliverable->mode_of_delivery ?? 'Unknown',
-            'status' => 'Active', // or any appropriate default status
-        ]
-    );
-}
-
-        // Redirect based on new status
-        if ($updateData['status'] === 'InProgress') {
-            return redirect()->route('operations.deliverables.inprogress')
-                ->with('success', 'Deliverable saved and moved to In Progress!');
-        } elseif ($updateData['status'] === 'Delivery') {
-            return redirect()->route('operations.deliverables.delivery')
-                ->with('success', 'Deliverable submitted to Delivery!');
-        }
-
-        return redirect()->route('operations.deliverables.open')
-            ->with('success', 'Deliverable updated successfully!');
-    }
-
-    private function parseDeliverableDate(?string $value): ?string
-    {
-        if (empty($value)) {
-            return null;
-        }
-        $value = trim(str_replace('/', '-', $value));
-        $formats = ['d-m-Y', 'Y-m-d'];
-        foreach ($formats as $format) {
-            try {
-                $dt = Carbon::createFromFormat($format, $value);
-                return $dt->format('Y-m-d');
-            } catch (\Exception $e) {
-                continue;
-            }
-        }
-        return null;
-    }
-
-    // ====================================
-    // UPDATE DELIVERABLE
-    // ====================================
-
-    public function update(Request $request, $id)
-    {
-        $deliverable = Deliverables::findOrFail($id);
-
-        $validated = $request->validate([
-            'mode_of_delivery' => 'required|string',
-            'date_of_activation' => 'nullable|date',
-
-            'delivery_ip' => 'nullable|string',
-            'delivery_subnet_mask' => 'nullable|string',
-            'delivery_gateway' => 'nullable|string',
-            'delivery_dns1' => 'nullable|string',
-            'delivery_dns2' => 'nullable|string',
-
-            'pppoe_username' => 'nullable|string',
-            'pppoe_password' => 'nullable|string',
-            'pppoe_vlan' => 'nullable|string',
-
-            'static_ip_address' => 'nullable|string',
-            'static_subnet_mask' => 'nullable|string',
-            'static_gateway' => 'nullable|string',
-            'static_vlan' => 'nullable|string',
-        ]);
-
-        $updateData = [
-            'mode_of_delivery' => $request->mode_of_delivery,
-        ];
-
-        // STATIC MODE
-        if ($this->isStaticMode($request->mode_of_delivery)) {
-            $updateData['static_ip_address'] = $request->static_ip_address;
-            $updateData['static_subnet_mask'] = $request->static_subnet_mask;
-            $updateData['static_gateway'] = $request->static_gateway ?? $request->gateway;
-            $updateData['static_vlan'] = $request->static_vlan;
-        }
-
-        // PPPoE MODE
-        if ($request->mode_of_delivery === 'PPPoE') {
-            $updateData['pppoe_username'] = $request->pppoe_username;
-            $updateData['pppoe_password'] = $request->pppoe_password;
-            $updateData['pppoe_vlan'] = $request->pppoe_vlan;
-        }
-
-        // DHCP MODE
-        if ($request->mode_of_delivery === 'DHCP') {
-            $updateData['delivery_ip'] = $request->delivery_ip;
-            $updateData['delivery_subnet_mask'] = $request->delivery_subnet_mask;
-            $updateData['delivery_gateway'] = $request->delivery_gateway;
-            $updateData['delivery_dns1'] = $request->delivery_dns1;
-            $updateData['delivery_dns2'] = $request->delivery_dns2;
-        }
-
-        // STATUS CHANGE
-        if ($request->has('save')) {
-            $updateData['status'] = 'InProgress';
-        }
-
-        if ($request->has('submit')) {
-            $updateData['status'] = 'Delivery';
-        }
-
-        $deliverable->update($updateData);
-
-        return redirect()
-            ->route('deliverables.open')
-            ->with('success', 'Deliverable updated successfully');
-    }
-
-    // ====================================
-    // CREATE Deliverable when PO closes
-    // ====================================
-
-    public function createFromPurchaseOrder($purchaseOrder, $oldStatus = null)
-    {
-        try {
-            if (is_numeric($purchaseOrder)) {
-                $purchaseOrder = PurchaseOrder::find($purchaseOrder);
-            }
-
-            if (!$purchaseOrder) return;
-
-            // Prevent duplicates - check by po_number instead of purchase_order_id
-            if (Deliverables::where('po_number', $purchaseOrder->po_number)->exists()) {
-                return;
-            }
-
-            // Only if PO is Active
-            if ($purchaseOrder->status !== 'Active') return;
-
-            if ($oldStatus === 'Active') return; // already Active earlier
-
-            $feasibility = $purchaseOrder->feasibility;
-            $feasibilityStatus = FeasibilityStatus::where('feasibility_id', $purchaseOrder->feasibility_id)->first();
-       // Get Feasibility fields
-$client = optional($feasibility)->client;
-
-// Last Deliverable ID for auto numbering
-$last = Deliverables::latest('id')->first();
-$nextNumber = ($last->id ?? 0) + 1;
+        $request->validate($rules);
 
 
-$countryShort = strtoupper(substr(str_replace(' ', '', $feasibility->country ?? 'IN'), 0, 2));
-// Company short-form (first 3 letters)
-$companyName = $feasibility->company->company_name ?? 'CMP';
-$companyShort = strtoupper(substr(str_replace(' ', '', $companyName), 0, 3));
 
-// State short-form (first 3 letters)
-$stateName = $feasibility->state ?? 'Unknown';
-$stateShort = strtoupper(substr(str_replace(' ', '', $stateName), 0, 3));
-
-// Static IP from Feasibility
-$staticIp = $feasibility->static_ip_subnet ?? 'NOIP';
-
-// Build Circuit ID: 25-UNB-TAM-STATICIP-0001
-$circuitID = date('y')
-            . '' . $countryShort
-            . '' . $companyShort
-            . '' . $stateShort
-            . '' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
-
-            $deliverable = Deliverables::create([
-                'feasibility_id' => $purchaseOrder->feasibility_id,
-                'status' => 'Open',
-                'circuit_id' => $circuitID, // ✅ Auto generated
-
-                'site_address' => $purchaseOrder->site_address ?? ($feasibility->address ?? ''),
-                'local_contact' => $purchaseOrder->local_contact ?? ($feasibility->spoc_name ?? ''),
-                'state' => $purchaseOrder->state ?? ($feasibility->state ?? ''),
-                'gst_number' => $client->gstin ?? '',
-                'link_type' => $purchaseOrder->connection_type ?? $feasibility->type_of_service,
-                'speed_in_mbps' => $purchaseOrder->bandwidth ?? $feasibility->speed,
-                'no_of_links' => $purchaseOrder->no_of_links ?? $feasibility->no_of_links,
-                'vendor' => $feasibilityStatus->vendor1_name ?? '',
-                'po_number' => $purchaseOrder->po_number,
-                'po_date' => $purchaseOrder->po_date,
+            // Handle multiple plan information fields for each link
+            $linkCount = $deliverable->feasibility->no_of_links ?? 1;
+            $data = $request->only([
+                'status_of_link','mode_of_delivery','circuit_id',
+                'client_circuit_id','client_feasibility','vendor_code',
+                'mtu','wifi_username','wifi_password',
+                'router_username','router_password',
+                'lan_ip_1','lan_ip_2','lan_ip_3','lan_ip_4',
+                'asset_id','asset_serial_no','otc_extra_charges','payment_login_url',
+                'payment_quick_url','payment_account_or_username','payment_password','ipsec',
             ]);
+            // Ensure ipsec is never null
+            $data['ipsec'] = $request->input('ipsec', 'No');
 
-            Log::info("Deliverable created for PO: {$purchaseOrder->po_number}");
+            // For backward compatibility, set main fields from first link
+            $data['plans_name'] = $request->input('plans_name_1', $request->input('plans_name'));
+            $data['speed_in_mbps_plan'] = $request->input('speed_in_mbps_plan_1', $request->input('speed_in_mbps_plan'));
+            $data['no_of_months_renewal'] = $request->input('no_of_months_renewal_1', $request->input('no_of_months_renewal'));
+            $data['date_of_activation'] = $this->date($request->input('date_of_activation_1', $request->input('date_of_activation')));
+            $data['date_of_expiry'] = $this->date($request->input('date_of_expiry_1', $request->input('date_of_expiry')));
+            $data['sla'] = $request->input('sla_1', $request->input('sla'));
 
-        } catch (\Exception $e) {
-            Log::error("Deliverable creation failed: " . $e->getMessage());
-        }
+        /* ---- MODE HANDLING ---- */
+
+        for ($i = 1; $i <= $linkCount; $i++) {
+
+    $mode = $request->input("mode_of_delivery_$i");
+
+    if ($mode === 'PPPoE') {
+        $data["pppoe_username_$i"] = $request->input("pppoe_username_$i");
+        $data["pppoe_password_$i"] = $request->input("pppoe_password_$i");
+        $data["pppoe_vlan_$i"]     = $request->input("pppoe_vlan_$i");
     }
 
-    public function calculateSubnet(Request $request)
-{
-    $ip = $request->ip;
-    $subnet = str_replace('/', '', $request->subnet); // "/29" → "29"
-
-    if (!$ip || !$subnet) {
-        return response()->json([]);
+    if ($mode === 'DHCP') {
+        $data["dhcp_ip_address_$i"] = $request->input("dhcp_ip_address_$i");
+        $data["dhcp_vlan_$i"]       = $request->input("dhcp_vlan_$i");
     }
 
-    // Convert IP to long integer
-    $ipLong = ip2long($ip);
+    if (in_array($mode, ['Static IP', 'Static'])) {
+        $data["static_ip_address_$i"]   = $request->input("static_ip_address_$i");
+        $data["static_subnet_mask_$i"]  = $request->input("static_subnet_mask_$i");
+        $data["static_vlan_tag_$i"]     = $request->input("static_vlan_tag_$i");
+        $data["network_ip_$i"]          = $request->input("network_ip_$i");
+        $data["gateway_$i"]             = $request->input("gateway_$i");
+        $data["usable_ips_$i"]          = $request->input("usable_ips_$i");
+    }
 
-    // Subnet mask calculate
-    $maskLong = -1 << (32 - $subnet);
-    $mask = long2ip($maskLong);
-
-    // Network IP
-    $networkLong = $ipLong & $maskLong;
-    $networkIp = long2ip($networkLong);
-
-    // Broadcast
-    $broadcastLong = $networkLong | (~$maskLong);
-    $broadcast = long2ip($broadcastLong);
-
-    // First & last usable
-    $firstUsable = long2ip($networkLong + 1);
-    $lastUsable = long2ip($broadcastLong - 1);
-
-    // Gateway = first usable by default
-    $gateway = $firstUsable;
-
-    return response()->json([
-        'network_ip'   => $networkIp,
-        'gateway'      => $gateway,
-        'subnet_mask'  => $mask,
-        'usable_ips'   => $firstUsable . " - " . $lastUsable,
-    ]);
+    if ($mode === 'PAYMENTS') {
+        $data["payment_login_url_$i"] = $request->input("payment_login_url_$i");
+        $data["payment_quick_url_$i"] = $request->input("payment_quick_url_$i");
+        $data["payment_account_or_username_$i"] = $request->input("payment_account_or_username_$i");
+        $data["payment_password_$i"] = $request->input("payment_password_$i");
+    }
 }
 
-    private function isStaticMode(?string $mode): bool
+        if ($request->ipsec === 'Yes') {
+            $data['phase_1'] = $request->phase_1;
+            $data['phase_2'] = $request->phase_2;
+            $data['ipsec_interface'] = $request->ipsec_interface;
+        } else {
+            $data['phase_1'] = $data['phase_2'] = $data['ipsec_interface'] = null;
+        }
+
+        /* ---- FILES ---- */
+
+        if ($request->hasFile('otc_bill_file')) {
+            $data['otc_bill_file'] = $request->file('otc_bill_file')
+                ->store('images/deliverableotcbill', 'public');
+        }
+
+        if ($request->hasFile('export_file')) {
+            $folder = $request->action === 'save' ? 'temp' : '';
+            $data['export_file'] = $request->file('export_file')
+                ->store("images/exportdeliverables/$folder", 'public');
+        }
+
+        /* ---- STATUS ---- */
+
+        $data['status'] = $request->action === 'submit' ? 'Delivery' : 'InProgress';
+
+        $deliverable->update($data);
+            // Save per-link plan info in deliverable_plans table
+            DeliverablePlan::where('deliverable_id', $deliverable->id)->delete();
+
+            // Define variables needed for circuit_id generation
+            $feasibility = $deliverable->feasibility; // or fetch as needed
+            $companyName = $feasibility->company->company_name ?? '';
+            $clientShortName = $feasibility->client->short_name ?? $feasibility->client->client_name ?? '';
+            $state = $feasibility->state ?? '';
+            $year = date('Y');
+                        // State abbreviation mapping (reuse from CircuitIdHelper or define here)
+                        $stateAbbr = [
+                            'Andhra Pradesh' => 'AP', 'Arunachal Pradesh' => 'AR', 'Assam' => 'AS', 'Bihar' => 'BR',
+                            'Chhattisgarh' => 'CG', 'Goa' => 'GA', 'Gujarat' => 'GJ', 'Haryana' => 'HR', 'Himachal Pradesh' => 'HP',
+                            'Jammu and Kashmir' => 'JK', 'Jharkhand' => 'JH', 'Karnataka' => 'KA', 'Kerala' => 'KL', 'Madhya Pradesh' => 'MP',
+                            'Maharashtra' => 'MH', 'Manipur' => 'MN', 'Meghalaya' => 'ML', 'Mizoram' => 'MZ', 'Nagaland' => 'NL',
+                            'Orissa' => 'OR', 'Punjab' => 'PB', 'Rajasthan' => 'RJ', 'Sikkim' => 'SK', 'Tamil Nadu' => 'TN', 'Tripura' => 'TR',
+                            'Uttarakhand' => 'UK', 'Uttar Pradesh' => 'UP', 'West Bengal' => 'WB', 'Telangana' => 'TS',
+                            'Andaman and Nicobar Islands' => 'AN', 'Chandigarh' => 'CH', 'Dadra and Nagar Haveli' => 'DH', 'Daman and Diu' => 'DD',
+                            'Delhi' => 'DL', 'Lakshadweep' => 'LD', 'Pondicherry' => 'PY',
+                        ];
+            // Find the current max sequence for this prefix in deliverable_plans
+
+            // $prefix = substr($year, -2)
+            //     . strtoupper(substr($companyName, 0, 3))
+            //     . strtoupper(substr($clientShortName, 0, 3))
+            //     . (isset($stateAbbr[$state]) ? $stateAbbr[$state] : strtoupper(substr($state, 0, 2)));
+            // $maxSeq = DeliverablePlan::where('circuit_id', 'like', $prefix . '%')
+            //     ->selectRaw('MAX(CAST(SUBSTRING(circuit_id, LENGTH(?) + 1) AS UNSIGNED)) as max_seq', [$prefix])
+            //     ->value('max_seq');
+      $maxSeq = DeliverablePlan::whereYear('created_at', $year)
+    ->selectRaw("MAX(CAST(RIGHT(circuit_id, 4) AS UNSIGNED)) as max_seq")
+    ->value('max_seq');
+
+    $serial = $maxSeq ? intval($maxSeq) : 0;
+
+            for ($i = 1; $i <= $linkCount; $i++) {
+                $serial++;
+                $planData = [
+                    'deliverable_id' => $deliverable->id,
+                    'link_number' => $i,
+                    'circuit_id' => $this->generateCircuitId($companyName, $clientShortName, $state, $year, $serial),
+                    'plans_name' => $request->input('plans_name_' . $i),
+                    'speed_in_mbps_plan' => $request->input('speed_in_mbps_plan_' . $i),
+                    'no_of_months_renewal' => $request->input('no_of_months_renewal_' . $i),
+                    'date_of_activation' => $this->date($request->input('date_of_activation_' . $i)),
+                    'date_of_expiry' => $this->date($request->input('date_of_expiry_' . $i)),
+                    'sla' => $request->input('sla_' . $i),
+
+                    // New fields
+                    'status_of_link' => $request->input('status_of_link_' . $i, 'Active'),
+                    'mode_of_delivery' => $request->input('mode_of_delivery_' . $i),
+                    'client_circuit_id' => $request->input('client_circuit_id_' .  $i),
+                    'client_feasibility' => $request->input('client_feasibility_' . $i),
+                    'vendor_code' => $request->input('vendor_code_' . $i),
+                    'mtu' => $request->input('mtu_' . $i),
+                    'wifi_username' => $request->input('wifi_username_' . $i),
+                    'wifi_password' => $request->input('wifi_password_' . $i),
+                    'router_username' => $request->input('router_username_' . $i),  
+                    'router_password' => $request->input('router_password_' . $i),
+                    'pppoe_username' => $request->input('pppoe_username_' . $i),
+                    'pppoe_password' => $request->input('pppoe_password_' . $i),
+                    'pppoe_vlan' => $request->input('pppoe_vlan_' . $i),
+                    'dhcp_ip_address' => $request->input('dhcp_ip_address_' . $i),
+                    'dhcp_vlan' => $request->input('dhcp_vlan_' . $i),
+                    'static_ip_address' => $request->input('static_ip_address_' . $i),
+                    'static_vlan_tag' => $request->input('static_vlan_tag_' . $i),
+                    'network_ip' => $request->input('network_ip_' . $i),
+                    'static_subnet_mask' => $request->input('static_subnet_mask_' . $i),
+                    'static_gateway' => $request->input('static_gateway_' . $i),
+                    'usable_ips' => $request->input('usable_ips_' . $i),
+                    'remarks' => $request->input('remarks_' . $i),
+                ];
+                DeliverablePlan::create($planData);
+            }
+
+        /* ---- CLIENT LINK ---- */
+
+        if ($data['status'] === 'Delivery') {
+            ClientLink::updateOrCreate(
+                [
+                    'deliverable_id' => $deliverable->id,
+                ],
+                [
+                    'deliverable_id' => $deliverable->id,
+                    'service_id'     => $deliverable->circuit_id,
+                    'client_id'      => $deliverable->feasibility->client->id,
+                    'link_type'      => $deliverable->link_type,
+                    'bandwidth'      => $deliverable->speed_in_mbps_plan,
+                    'interface_name' => $request->input('mode_of_delivery_1'),
+                    'router_id'      => $deliverable->router_id,
+                    'status'         => 'active',
+                ]
+            );
+
+
+        }
+
+        $route = $data['status'] === 'Delivery'
+    ? 'operations.deliverables.delivery'
+    : 'operations.deliverables.inprogress';
+
+return redirect()->route($route)
+    ->with('success', 'Deliverable saved successfully');
+
+    }
+
+    // Helper to generate circuit_id
+    public function generateCircuitId($companyName, $clientShortName, $state, $year, $serial )
     {
-        return in_array($mode, ['Static IP', 'Static'], true);
+        // State abbreviation mapping (reuse from CircuitIdHelper or define here)
+        $stateAbbr = [
+            'Andhra Pradesh' => 'AP', 'Arunachal Pradesh' => 'AR', 'Assam' => 'AS', 'Bihar' => 'BR',
+            'Chhattisgarh' => 'CG', 'Goa' => 'GA', 'Gujarat' => 'GJ', 'Haryana' => 'HR', 'Himachal Pradesh' => 'HP',
+            'Jammu and Kashmir' => 'JK', 'Jharkhand' => 'JH', 'Karnataka' => 'KA', 'Kerala' => 'KL', 'Madhya Pradesh' => 'MP',
+            'Maharashtra' => 'MH', 'Manipur' => 'MN', 'Meghalaya' => 'ML', 'Mizoram' => 'MZ', 'Nagaland' => 'NL',
+            'Orissa' => 'OR', 'Punjab' => 'PB', 'Rajasthan' => 'RJ', 'Sikkim' => 'SK', 'Tamil Nadu' => 'TN', 'Tripura' => 'TR',
+            'Uttarakhand' => 'UK', 'Uttar Pradesh' => 'UP', 'West Bengal' => 'WB', 'Telangana' => 'TS',
+            'Andaman and Nicobar Islands' => 'AN', 'Chandigarh' => 'CH', 'Dadra and Nagar Haveli' => 'DH', 'Daman and Diu' => 'DD',
+            'Delhi' => 'DL', 'Lakshadweep' => 'LD', 'Pondicherry' => 'PY',
+        ];
+        $yy = substr($year, -2);
+        $company = strtoupper(substr($companyName, 0, 3));
+        $client = strtoupper(substr($clientShortName, 0, 3));
+        $stateCode = isset($stateAbbr[$state]) ? $stateAbbr[$state] : strtoupper(substr($state, 0, 2));
+        $serial  = str_pad($serial , 4, '0', STR_PAD_LEFT);
+        return "$yy$company$client$stateCode$serial";
+    }
+
+    // Example usage in deliverable creation
+    public function createFromFeasibility($feasibilityId)
+    {
+        $feasibility = \App\Models\Feasibility::with('client', 'company')->findOrFail($feasibilityId);
+        $companyName = $feasibility->company->company_name ?? '';
+        $clientShortName = $feasibility->client->short_name ?? $feasibility->client->client_name ?? '';
+        $state = $feasibility->state ?? '';
+        $year = date('Y');
+        $serial  = Deliverables::whereYear('created_at', $year)
+            ->whereHas('feasibility.company', function($q) use ($companyName) {
+                $q->where('company_name', $companyName);
+            })
+            ->whereHas('feasibility.client', function($q) use ($clientShortName) {
+                $q->where('short_name', $clientShortName);
+            })
+            ->where('state', $state)
+            ->count() + 1;
+        $circuit_id = $this->generateCircuitId($companyName, $clientShortName, $state, $year, $serial );
+        // ...create deliverable using $circuit_id...
+        // Example:
+        // Deliverables::create([
+        //     'feasibility_id' => $feasibility->id,
+        //     'circuit_id' => $circuit_id,
+        //     ...other fields...
+        // ]);
+        // ...existing code...
+    }
+   
+    /* ===================== HELPERS ===================== */
+
+    private function date($v) {
+        return $v ? Carbon::parse(str_replace('/','-',$v))->format('Y-m-d') : null;
+    }
+
+    private function isStatic($mode) {
+        return in_array($mode,['Static','Static IP'],true);
     }
 
 }
