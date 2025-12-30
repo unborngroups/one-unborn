@@ -90,3 +90,20 @@ ALTER TABLE `deliverable_plans`
 
  ALTER TABLE deliverable_plans
 ADD UNIQUE KEY unique_circuit_id (circuit_id);
+
+
+ALTER TABLE vendors
+ADD COLUMN procured_from VARCHAR(255) NULL AFTER business_display_name;
+
+ALTER TABLE vendors
+DROP COLUMN procured_from;
+
+ALTER TABLE `assets` 
+MODIFY COLUMN `mrp` BIGINT NULL;
+
+ALTER TABLE `renewals`
+ADD status ENUM('Active', 'Inactive') DEFAULT 'Active';
+
+
+-- 
+ALTER TABLE feasibilities CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

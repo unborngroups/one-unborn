@@ -26,19 +26,19 @@
             box-shadow: none;
             margin: 0 auto;
         }
-        .company-badge {
-            font-size: 12px;
-            letter-spacing: 0.12em;
+        .company {
+            font-size: 10px;
             text-transform: uppercase;
-            color: #1f2937;
-            margin-bottom: 4px;
+            color: #0f172a;
+            margin-bottom: 5px;
             font-weight: 600;
         }
         .label-title {
             font-size: 10                                                                                          px;
-            font-weight: 700;
+            font-weight: 600;
             color: #0f172a;
-            margin: 4px 0 12px;
+            /* margin: 6px 0 12px; */
+            margin-left: 40px;
         }
         .meta-row {
             padding: 6px 0;
@@ -52,15 +52,13 @@
             border-bottom: none;
         }
         .barcode-box {
-            margin-top: 14px;
-            padding: 6px;
+            margin-top: 10px;
+            padding: 5px;
             background: #fff;
             text-align: left;
-}
-
-     
+        }
         .footer-note {
-            margin-top: 12px;
+            margin-top: 10px;
             font-size: 11px;
             color: #94a3b8;
         }
@@ -78,12 +76,13 @@
 </head>
 <body onload="window.print()">
     <div class="print-wrapper">
-        <div class="label-title"><?php echo e($asset->asset_id); ?></div>
         <div class="label">
     <!-- <strong><?php echo e($asset->asset_id); ?></strong><br> -->
     <?php echo e($asset->model_no); ?><br>
+    <div class="company">  <?php echo e($asset->company->company_name ?? ''); ?> </div>
   
  <img src="/barcode.php?code=<?php echo e($asset->asset_id); ?>" alt="Barcode" style="height:40px; width:200px">
+        <div class="label-title"><?php echo e($asset->asset_id); ?></div>
 
         
      

@@ -430,35 +430,25 @@
 <div id="hardware_container">
     <div class="row hardware_row" style="display:none;">
         <div class="col-md-3">
-             <label>Make</label>
-        <select name="make_type_id" class="form-control" required>
-            <option value="">Select Make</option>
-            <?php $__currentLoopData = $makes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $m): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                <option value="<?php echo e($m->id); ?>" <?php echo e(isset($asset) && $asset->make_type_id == $m->id ? 'selected' : ''); ?>>
-                    <?php echo e($m->make_name); ?>
-
-                </option>
-            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-        </select>
-            <!-- <label class="form-label fw-semibold">Hardware Make</label>
-            <input type="text" name="hardware_make[]" class="form-control" placeholder="Enter Make"> -->
+            <label>Make</label>
+            <select name="make_type_id[]" class="form-control" required>
+                <option value="">Select Make</option>
+                <?php $__currentLoopData = $makes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $m): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <option value="<?php echo e($m->id); ?>"><?php echo e($m->make_name); ?></option>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </select>
         </div>
-
-        <div class="col-md-3">
-            <label>Model</label>
-        <select name="model_id" class="form-control" required>
-            <option value="">Select Model</option>
-            <?php $__currentLoopData = $models; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $m): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                <option value="<?php echo e($m->id); ?>" <?php echo e(isset($asset) && $asset->model_id == $m->id ? 'selected' : ''); ?>>
-                    <?php echo e($m->model_name); ?>
-
-                </option>
-            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-        
-             
-        </select>
-            <!-- <label class="form-label fw-semibold">Hardware Model Name</label>
-            <input type="text" name="hardware_model_name[]" class="form-control"> -->
+        <div class="col-md-3 d-flex align-items-end">
+            <div class="flex-grow-1">
+                <label>Model</label>
+                <select name="model_id[]" class="form-control" required>
+                    <option value="">Select Model</option>
+                    <?php $__currentLoopData = $models; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $m): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($m->id); ?>"><?php echo e($m->model_name); ?></option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                </select>
+            </div>
+            <button type="button" class="btn btn-danger btn-sm ms-2 mb-1 remove-hardware" style="height:38px;">X</button>
         </div>
     </div>
 </div>
@@ -466,35 +456,7 @@
 <div class="col-md-3 mt-3" id="add_btn_div" style="display:none;">
     <button type="button" id="add_hardware_btn" class="btn btn-primary btn-sm">Add</button>
 </div>
-                <!-- <div class="col-md-3" id="hardware_make_div" style="display:none;">
-                        <label class="form-label fw-semibold">Hardware Make</label>
-                        <input type="text" name="hardware_make" class="form-control" placeholder="Enter Make">
-                </div>
-
-                <div class="col-md-3" id="hardware_name_div" style="display:none;">
-
-                    <label class="form-label fw-semibold">Hardware Model Name</label>
-
-                    <input type="text" name="hardware_model_name" class="form-control" value="<?php echo e(old('hardware_model_name', $importRow['hardware_model_name'] ?? '')); ?>">
- <button >Add</button>
-                </div> -->
                
-                <!-- <div class="col-md-3">
-    <label class="fw-semibold">Hardware Make</label>
-    <select name="hardware_make" class="form-control">
-        <option value="">Select</option>
-        <option>Cisco</option>
-        <option>Fortinet</option>
-        <option>Aruba</option>
-        <option>MikroTik</option>
-    </select>
-</div> -->
-<!-- 
-<div class="col-md-3 fw-semibold">
-    <label>Hardware Model</label>
-    <input type="text" name="hardware_model" class="form-control" placeholder="Enter Model Number">
-</div> -->
-
 
                     
 
@@ -556,27 +518,47 @@ hardwareRequiredSelect.addEventListener('change', function () {
     setHardwareRowState(hardwareRow, isRequired);
     addHardwareBtnDiv.style.display = isRequired ? 'block' : 'none';
 });
-document.getElementById('add_hardware_btn').addEventListener('click', function () {
 
-    // Clone the row
+document.getElementById('add_hardware_btn').addEventListener('click', function () {
     let originalRow = document.querySelector('.hardware_row');
     let newRow = originalRow.cloneNode(true);
-
-    // Reset values in the new row
     newRow.querySelectorAll('input').forEach(function (input) {
         input.value = "";
     });
-
     newRow.style.display = 'flex';
-
     newRow.querySelectorAll('select').forEach(select => {
         select.disabled = false;
         select.value = '';
     });
-
-    // Append to container
+    // Attach remove button event
+    let removeBtn = newRow.querySelector('.remove-hardware');
+    if (removeBtn) {
+        removeBtn.addEventListener('click', function () {
+            let allRows = document.querySelectorAll('.hardware_row');
+            if (allRows.length > 1) {
+                newRow.remove();
+            } else {
+                // Only one row: clear values
+                newRow.querySelectorAll('input, select').forEach(el => el.value = '');
+            }
+        });
+    }
     document.getElementById('hardware_container').appendChild(newRow);
 });
+
+// Attach remove event to initial row
+let initialRemoveBtn = document.querySelector('.hardware_row .remove-hardware');
+if (initialRemoveBtn) {
+    initialRemoveBtn.addEventListener('click', function () {
+        let allRows = document.querySelectorAll('.hardware_row');
+        let row = this.closest('.hardware_row');
+        if (allRows.length > 1) {
+            row.remove();
+        } else {
+            row.querySelectorAll('input, select').forEach(el => el.value = '');
+        }
+    });
+}
 
 
 
@@ -936,5 +918,4 @@ function excelImport() {
 
 </script>
 <?php $__env->stopSection(); ?>
-
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\feasibility\create.blade.php ENDPATH**/ ?>

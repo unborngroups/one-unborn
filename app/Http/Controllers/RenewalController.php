@@ -131,4 +131,18 @@ class RenewalController extends Controller
             ->route('operations.renewals.index')
             ->with('success', 'Renewal deleted successfully');
     }
+
+    // Active or Inactive button
+
+ public function toggleStatus($id)
+{
+    $renewal = Renewal::findOrFail($id);
+
+    // Toggle Active/Inactive
+    $renewal->status = $renewal->status === 'Active' ? 'Inactive' : 'Active';
+    $renewal->save();
+    return redirect()->route('operations.renewals.index')
+                     ->with('success', 'Renewal status updated successfully.');
+}
+
 }

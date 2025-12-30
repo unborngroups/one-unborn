@@ -57,6 +57,12 @@
                                 <td>{{ $index + 1 }}</td>
 
                                 <td>
+                                    @if($permissions->can_edit)
+                                    <a href="{{ route('operations.deliverables.edit', $record->id) }}" 
+                                       class="btn btn-sm btn-warning me-1">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </a>
+                                    @endif
                                     @if($permissions->can_view)
                                     <a href="{{ route('operations.deliverables.view', $record->id) }}" 
                                        class="btn btn-sm btn-info">

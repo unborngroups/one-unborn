@@ -57,20 +57,6 @@
 
     <div class="card shadow border-0">
 
-
-
-             <!-- {{--- Delete --}}
-         @if($permissions->can_delete)
-         <form id="bulkDeleteForm" action="{{ route('clients.bulk-delete') }}" method="POST" class="d-inline">
-             @csrf
-             <div id="bulkDeleteInputs"></div>
-         </form>
-         <button id="deleteSelectedBtn" class="btn btn-danger d-none">
-            <i class="bi bi-trash"></i>
-         </button>
-         @endif
-        </div> -->
-
         <div class="card-body table-responsive">
 
             <!-- <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search..."> -->

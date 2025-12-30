@@ -51,28 +51,23 @@
             
             <div class="card mb-4 border-warning">
                 <div class="card-header bg-warning">
-                    <h6 class="mb-0">Purchase Order Details</h6>
+                    <h6 class="mb-0">Asset Details</h6>
                 </div>
 
                 <div class="card-body">
                     <div class="row g-3">
+                        
                         <div class="col-md-3">
-                            <strong>PO Number</strong><br>
-                            <span class="badge bg-dark"><?php echo e($record->po_number); ?></span>
+                            <strong>Asset ID</strong><br>
+                            <span><?php echo e($record->asset_id); ?></span>
                         </div>
                         <div class="col-md-3">
-                            <strong>PO Date</strong><br>
-                            <?php echo e($record->po_date ? \Carbon\Carbon::parse($record->po_date)->format('d-m-Y') : '-'); ?>
-
+                            <strong>Serial No</strong><br>
+                            <span><?php echo e($record->asset_serial_no); ?></span>
                         </div>
                         <div class="col-md-3">
-                            <strong>Status</strong><br>
-                            <span class="badge bg-success"><?php echo e($record->status); ?></span>
-                        </div>
-                        <div class="col-md-3">
-                            <strong>Circuit ID</strong><br>
-                            <?php echo e($record->circuit_id ?? 'Auto Generated'); ?>
-
+                            <strong>Mac No</strong><br>
+                            <span><?php echo e($record->assets->mac_no ?? '-'); ?></span>
                         </div>
                     </div>
                 </div>
@@ -102,10 +97,9 @@
                     <?php $__currentLoopData = $record->deliverablePlans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $plan): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <div class="row border rounded mb-3 p-2">
                         <div class="col-12 mb-2">
-                            <strong>Plan Information for Link <?php echo e($plan->link_number); ?></strong>
+                            <strong class="text-primary">Plan Information for Link <?php echo e($plan->link_number); ?></strong>
                         </div>
                         <div class="col-md-3"><strong>Circuit ID</strong><br><?php echo e($plan->circuit_id ?? '-'); ?></div>
-
                         <div class="col-md-3"><strong>Plan Name</strong><br><?php echo e($plan->plans_name ?? '-'); ?></div>
                         <div class="col-md-3"><strong>Speed (Plan)</strong><br><?php echo e($plan->speed_in_mbps_plan ?? '-'); ?></div>
                         <div class="col-md-3"><strong>Renewal Months</strong><br><?php echo e($plan->no_of_months_renewal ?? '-'); ?></div>
@@ -122,7 +116,37 @@
                         <div class="col-md-3"><strong>Client Circuit ID</strong><br><?php echo e($plan->client_circuit_id ?? '-'); ?></div>
                         <div class="col-md-3"><strong>Client Feasibility</strong><br><?php echo e($plan->client_feasibility ?? '-'); ?></div>
                         <div class="col-md-3"><strong>Vendor Code</strong><br><?php echo e($plan->vendor_code ?? '-'); ?></div>
-                        <!-- Add more per-link fields as needed -->
+                        <!-- PPPoE Configuration -->
+                        <?php if($plan->mode_of_delivery === 'PPPoE'): ?>
+                        <div class="col-12 mt-2 text-danger"><strong>PPPoE Configuration</strong></div>
+                        <div class="col-md-4"><strong>PPPoE Username:</strong><br><?php echo e($plan->pppoe_username ?? 'N/A'); ?></div>
+                        <div class="col-md-4"><strong>PPPoE Password:</strong><br><?php echo e($plan->pppoe_password ?? 'N/A'); ?></div>
+                        <div class="col-md-4"><strong>PPPoE VLAN:</strong><br><?php echo e($plan->pppoe_vlan ?? 'N/A'); ?></div>
+                        <?php endif; ?>
+                        <!-- DHCP Configuration -->
+                        <?php if($plan->mode_of_delivery === 'DHCP'): ?>
+                        <div class="col-12 mt-2 text-danger"><strong>DHCP Configuration</strong></div>
+                        <div class="col-md-6 mb-3"><strong>DHCP IP Address:</strong><br><?php echo e($plan->dhcp_ip_address ?? 'N/A'); ?></div>
+                        <div class="col-md-6 mb-3"><strong>DHCP VLAN:</strong><br><?php echo e($plan->dhcp_vlan ?? 'N/A'); ?></div>
+                        <?php endif; ?>
+                        <!-- Static IP Configuration -->
+                        <?php if(in_array($plan->mode_of_delivery, ['Static', 'Static IP'])): ?>
+                        <div class="col-12 mt-2 text-danger"><strong>Static IP Configuration</strong></div>
+                        <div class="col-md-3 mb-3"><strong>Static IP Address:</strong><br><?php echo e($plan->static_ip_address ?? 'N/A'); ?></div>
+                        <div class="col-md-3 mb-3"><strong>Subnet:</strong><br><?php echo e($plan->static_subnet_mask ?? 'N/A'); ?></div>
+                        <div class="col-md-3 mb-3"><strong>VLAN Tag:</strong><br><?php echo e($plan->static_vlan ?? 'N/A'); ?></div>
+                        <div class="col-md-3 mb-3"><strong>Network IP:</strong><br><?php echo e($plan->network_ip ?? 'N/A'); ?></div>
+                        <div class="col-md-3 mb-3"><strong>Gateway:</strong><br><?php echo e($plan->static_gateway ?? 'N/A'); ?></div>
+                        <div class="col-md-3 mb-3"><strong>Usable IPs:</strong><br><?php echo e($plan->usable_ips ?? 'N/A'); ?></div>
+                        <?php endif; ?>
+                        <!-- Payment Information -->
+                        <?php if($plan->mode_of_delivery === 'PAYMENTS'): ?>
+                        <div class="col-12 mt-2"><strong>Payment Information</strong></div>
+                        <div class="col-md-3 mb-2"><strong>Login URL:</strong><br><?php echo e($plan->payment_login_url ?? 'N/A'); ?></div>
+                        <div class="col-md-3 mb-2"><strong>Quick URL:</strong><br><?php echo e($plan->payment_quick_url ?? 'N/A'); ?></div>
+                        <div class="col-md-3 mb-2"><strong>Account Number / Username:</strong><br><?php echo e($plan->payment_account_or_username ?? 'N/A'); ?></div>
+                        <div class="col-md-3 mb-2"><strong>Password:</strong><br><?php echo e($plan->payment_password ?? 'N/A'); ?></div>
+                        <?php endif; ?>
                     </div>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
@@ -130,67 +154,6 @@
 
 
             
-            <?php $linkCount = $record->feasibility->no_of_links ?? 1; ?>
-            <?php if($record->mode_of_delivery === 'PPPoE'): ?>
-            <div class="card mb-4">
-                <div class="card-header bg-success text-white">
-                    <h6 class="mb-0">PPPoE Configuration</h6>
-                </div>
-                <div class="card-body">
-                    <?php for($i = 1; $i <= $linkCount; $i++): ?>
-                        <div class="row mb-2">
-                            <div class="col-md-4"><strong>PPPoE Username <?php echo e($i); ?>:</strong><br><?php echo e($plan->{'pppoe_username_'.$i} ?? 'N/A'); ?></div>
-                            <div class="col-md-4"><strong>PPPoE Password <?php echo e($i); ?>:</strong><br><?php echo e($plan->{'pppoe_password_'.$i} ?? 'N/A'); ?></div>
-                            <div class="col-md-4"><strong>PPPoE VLAN <?php echo e($i); ?>:</strong><br><?php echo e($plan->{'pppoe_vlan_'.$i} ?? 'N/A'); ?></div>
-                        </div>
-                    <?php endfor; ?>
-                </div>
-            </div>
-            <?php elseif($record->mode_of_delivery === 'DHCP'): ?>
-            <div class="card mb-4">
-                <div class="card-header bg-warning text-dark">
-                    <h6 class="mb-0">DHCP Configuration</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3"><strong>DHCP IP Address:</strong><br><?php echo e($record->dhcp_ip_address ?? 'N/A'); ?></div>
-                        <div class="col-md-6 mb-3"><strong>DHCP VLAN:</strong><br><?php echo e($record->dhcp_vlan ?? 'N/A'); ?></div>
-                    </div>
-                </div>
-            </div>
-            <?php elseif(in_array($record->mode_of_delivery, ['Static', 'Static IP'])): ?>
-            <div class="card mb-4">
-                <div class="card-header bg-info text-white">
-                    <h6 class="mb-0">Static IP Configuration</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 mb-3"><strong>Static IP Address:</strong><br><?php echo e($record->static_ip_address ?? 'N/A'); ?></div>
-                        <div class="col-md-3 mb-3"><strong>Subnet:</strong><br><?php echo e($record->static_subnet_mask ?? 'N/A'); ?></div>
-                        <div class="col-md-3 mb-3"><strong>VLAN Tag:</strong><br><?php echo e($record->static_vlan_tag ?? 'N/A'); ?></div>
-                        <div class="col-md-3 mb-3"><strong>Network IP:</strong><br><?php echo e($record->network_ip ?? 'N/A'); ?></div>
-                        <div class="col-md-3 mb-3"><strong>Gateway:</strong><br><?php echo e($record->gateway ?? 'N/A'); ?></div>
-                        <div class="col-md-3 mb-3"><strong>IP Address:</strong><br><?php echo e($record->static_ip_address ?? 'N/A'); ?></div>
-                        <div class="col-md-3 mb-3"><strong>Subnet Mask:</strong><br><?php echo e($record->subnet_mask ?? 'N/A'); ?></div>
-                        <div class="col-md-3 mb-3"><strong>Usable IPs:</strong><br><?php echo e($record->usable_ips ?? 'N/A'); ?></div>
-                    </div>
-                </div>
-            </div>
-            <?php elseif($record->mode_of_delivery === 'PAYMENTS'): ?>
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-dark">
-                    <h6 class="mb-0">Payment Information</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 mb-2"><strong>Login URL:</strong><br><?php echo e($record->payment_login_url ?? 'N/A'); ?></div>
-                        <div class="col-md-3 mb-2"><strong>Quick URL:</strong><br><?php echo e($record->payment_quick_url ?? 'N/A'); ?></div>
-                        <div class="col-md-3 mb-2"><strong>Account Number / Username:</strong><br><?php echo e($record->payment_account_or_username ?? 'N/A'); ?></div>
-                        <div class="col-md-3 mb-2"><strong>Password:</strong><br><?php echo e($record->payment_password ?? 'N/A'); ?></div>
-                    </div>
-                </div>
-            </div>
-            <?php endif; ?>
 
             
             <div class="card mb-4">

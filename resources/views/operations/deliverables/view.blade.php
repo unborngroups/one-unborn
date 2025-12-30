@@ -48,29 +48,26 @@
                 </div>
             </div>
 
-            {{-- ================= PO Details ================= --}}
+            {{-- ================= Asset Details ================= --}}
             <div class="card mb-4 border-warning">
                 <div class="card-header bg-warning">
-                    <h6 class="mb-0">Purchase Order Details</h6>
+                    <h6 class="mb-0">Asset Details</h6>
                 </div>
 
                 <div class="card-body">
                     <div class="row g-3">
+                        
                         <div class="col-md-3">
-                            <strong>PO Number</strong><br>
-                            <span class="badge bg-dark">{{ $record->po_number }}</span>
+                            <strong>Asset ID</strong><br>
+                            <span>{{ $record->asset_id }}</span>
                         </div>
                         <div class="col-md-3">
-                            <strong>PO Date</strong><br>
-                            {{ $record->po_date ? \Carbon\Carbon::parse($record->po_date)->format('d-m-Y') : '-' }}
+                            <strong>Serial No</strong><br>
+                            <span>{{ $record->asset_serial_no }}</span>
                         </div>
                         <div class="col-md-3">
-                            <strong>Status</strong><br>
-                            <span class="badge bg-success">{{ $record->status }}</span>
-                        </div>
-                        <div class="col-md-3">
-                            <strong>Circuit ID</strong><br>
-                            {{ $record->circuit_id ?? 'Auto Generated' }}
+                            <strong>Mac No</strong><br>
+                            <span>{{ $record->assets->mac_no ?? '-' }}</span>
                         </div>
                     </div>
                 </div>
@@ -100,10 +97,9 @@
                     @foreach($record->deliverablePlans as $plan)
                     <div class="row border rounded mb-3 p-2">
                         <div class="col-12 mb-2">
-                            <strong>Plan Information for Link {{ $plan->link_number }}</strong>
+                            <strong class="text-primary">Plan Information for Link {{ $plan->link_number }}</strong>
                         </div>
                         <div class="col-md-3"><strong>Circuit ID</strong><br>{{ $plan->circuit_id ?? '-' }}</div>
-
                         <div class="col-md-3"><strong>Plan Name</strong><br>{{ $plan->plans_name ?? '-' }}</div>
                         <div class="col-md-3"><strong>Speed (Plan)</strong><br>{{ $plan->speed_in_mbps_plan ?? '-' }}</div>
                         <div class="col-md-3"><strong>Renewal Months</strong><br>{{ $plan->no_of_months_renewal ?? '-' }}</div>
@@ -120,7 +116,37 @@
                         <div class="col-md-3"><strong>Client Circuit ID</strong><br>{{ $plan->client_circuit_id ?? '-' }}</div>
                         <div class="col-md-3"><strong>Client Feasibility</strong><br>{{ $plan->client_feasibility ?? '-' }}</div>
                         <div class="col-md-3"><strong>Vendor Code</strong><br>{{ $plan->vendor_code ?? '-' }}</div>
-                        <!-- Add more per-link fields as needed -->
+                        <!-- PPPoE Configuration -->
+                        @if($plan->mode_of_delivery === 'PPPoE')
+                        <div class="col-12 mt-2 text-danger"><strong>PPPoE Configuration</strong></div>
+                        <div class="col-md-4"><strong>PPPoE Username:</strong><br>{{ $plan->pppoe_username ?? 'N/A' }}</div>
+                        <div class="col-md-4"><strong>PPPoE Password:</strong><br>{{ $plan->pppoe_password ?? 'N/A' }}</div>
+                        <div class="col-md-4"><strong>PPPoE VLAN:</strong><br>{{ $plan->pppoe_vlan ?? 'N/A' }}</div>
+                        @endif
+                        <!-- DHCP Configuration -->
+                        @if($plan->mode_of_delivery === 'DHCP')
+                        <div class="col-12 mt-2 text-danger"><strong>DHCP Configuration</strong></div>
+                        <div class="col-md-6 mb-3"><strong>DHCP IP Address:</strong><br>{{ $plan->dhcp_ip_address ?? 'N/A' }}</div>
+                        <div class="col-md-6 mb-3"><strong>DHCP VLAN:</strong><br>{{ $plan->dhcp_vlan ?? 'N/A' }}</div>
+                        @endif
+                        <!-- Static IP Configuration -->
+                        @if(in_array($plan->mode_of_delivery, ['Static', 'Static IP']))
+                        <div class="col-12 mt-2 text-danger"><strong>Static IP Configuration</strong></div>
+                        <div class="col-md-3 mb-3"><strong>Static IP Address:</strong><br>{{ $plan->static_ip_address ?? 'N/A' }}</div>
+                        <div class="col-md-3 mb-3"><strong>Subnet:</strong><br>{{ $plan->static_subnet_mask ?? 'N/A' }}</div>
+                        <div class="col-md-3 mb-3"><strong>VLAN Tag:</strong><br>{{ $plan->static_vlan ?? 'N/A' }}</div>
+                        <div class="col-md-3 mb-3"><strong>Network IP:</strong><br>{{ $plan->network_ip ?? 'N/A' }}</div>
+                        <div class="col-md-3 mb-3"><strong>Gateway:</strong><br>{{ $plan->static_gateway ?? 'N/A' }}</div>
+                        <div class="col-md-3 mb-3"><strong>Usable IPs:</strong><br>{{ $plan->usable_ips ?? 'N/A' }}</div>
+                        @endif
+                        <!-- Payment Information -->
+                        @if($plan->mode_of_delivery === 'PAYMENTS')
+                        <div class="col-12 mt-2"><strong>Payment Information</strong></div>
+                        <div class="col-md-3 mb-2"><strong>Login URL:</strong><br>{{ $plan->payment_login_url ?? 'N/A' }}</div>
+                        <div class="col-md-3 mb-2"><strong>Quick URL:</strong><br>{{ $plan->payment_quick_url ?? 'N/A' }}</div>
+                        <div class="col-md-3 mb-2"><strong>Account Number / Username:</strong><br>{{ $plan->payment_account_or_username ?? 'N/A' }}</div>
+                        <div class="col-md-3 mb-2"><strong>Password:</strong><br>{{ $plan->payment_password ?? 'N/A' }}</div>
+                        @endif
                     </div>
                     @endforeach
                 </div>
@@ -128,67 +154,6 @@
 
 
             {{-- Mode of Delivery Details --}}
-            @php $linkCount = $record->feasibility->no_of_links ?? 1; @endphp
-            @if($record->mode_of_delivery === 'PPPoE')
-            <div class="card mb-4">
-                <div class="card-header bg-success text-white">
-                    <h6 class="mb-0">PPPoE Configuration</h6>
-                </div>
-                <div class="card-body">
-                    @for($i = 1; $i <= $linkCount; $i++)
-                        <div class="row mb-2">
-                            <div class="col-md-4"><strong>PPPoE Username {{ $i }}:</strong><br>{{ $plan->{'pppoe_username_'.$i} ?? 'N/A' }}</div>
-                            <div class="col-md-4"><strong>PPPoE Password {{ $i }}:</strong><br>{{ $plan->{'pppoe_password_'.$i} ?? 'N/A' }}</div>
-                            <div class="col-md-4"><strong>PPPoE VLAN {{ $i }}:</strong><br>{{ $plan->{'pppoe_vlan_'.$i} ?? 'N/A' }}</div>
-                        </div>
-                    @endfor
-                </div>
-            </div>
-            @elseif($record->mode_of_delivery === 'DHCP')
-            <div class="card mb-4">
-                <div class="card-header bg-warning text-dark">
-                    <h6 class="mb-0">DHCP Configuration</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3"><strong>DHCP IP Address:</strong><br>{{ $record->dhcp_ip_address ?? 'N/A' }}</div>
-                        <div class="col-md-6 mb-3"><strong>DHCP VLAN:</strong><br>{{ $record->dhcp_vlan ?? 'N/A' }}</div>
-                    </div>
-                </div>
-            </div>
-            @elseif(in_array($record->mode_of_delivery, ['Static', 'Static IP']))
-            <div class="card mb-4">
-                <div class="card-header bg-info text-white">
-                    <h6 class="mb-0">Static IP Configuration</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 mb-3"><strong>Static IP Address:</strong><br>{{ $record->static_ip_address ?? 'N/A' }}</div>
-                        <div class="col-md-3 mb-3"><strong>Subnet:</strong><br>{{ $record->static_subnet_mask ?? 'N/A' }}</div>
-                        <div class="col-md-3 mb-3"><strong>VLAN Tag:</strong><br>{{ $record->static_vlan_tag ?? 'N/A' }}</div>
-                        <div class="col-md-3 mb-3"><strong>Network IP:</strong><br>{{ $record->network_ip ?? 'N/A' }}</div>
-                        <div class="col-md-3 mb-3"><strong>Gateway:</strong><br>{{ $record->gateway ?? 'N/A' }}</div>
-                        <div class="col-md-3 mb-3"><strong>IP Address:</strong><br>{{ $record->static_ip_address ?? 'N/A' }}</div>
-                        <div class="col-md-3 mb-3"><strong>Subnet Mask:</strong><br>{{ $record->subnet_mask ?? 'N/A' }}</div>
-                        <div class="col-md-3 mb-3"><strong>Usable IPs:</strong><br>{{ $record->usable_ips ?? 'N/A' }}</div>
-                    </div>
-                </div>
-            </div>
-            @elseif($record->mode_of_delivery === 'PAYMENTS')
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-dark">
-                    <h6 class="mb-0">Payment Information</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 mb-2"><strong>Login URL:</strong><br>{{ $record->payment_login_url ?? 'N/A' }}</div>
-                        <div class="col-md-3 mb-2"><strong>Quick URL:</strong><br>{{ $record->payment_quick_url ?? 'N/A' }}</div>
-                        <div class="col-md-3 mb-2"><strong>Account Number / Username:</strong><br>{{ $record->payment_account_or_username ?? 'N/A' }}</div>
-                        <div class="col-md-3 mb-2"><strong>Password:</strong><br>{{ $record->payment_password ?? 'N/A' }}</div>
-                    </div>
-                </div>
-            </div>
-            @endif
 
             {{-- ================= Network Details ================= --}}
             <div class="card mb-4">

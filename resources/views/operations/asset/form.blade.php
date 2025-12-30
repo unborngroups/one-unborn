@@ -61,10 +61,26 @@
         <label>MAC No</label>
         <input type="text" value="{{ $asset->mac_no ?? '' }}" name="mac_no" class="form-control">
     </div>
+   
+    <!--  -->
+
     <div class="col-md-4 mt-3">
-        <label>Procured From</label>
-        <input type="text" value="{{ $asset->procured_from ?? '' }}" name="procured_from" class="form-control">
-    </div>
+
+        <label class="form-label">Procured From</label>
+
+            <select name="vendor_id" id="vendor_id" class="form-select warranty-box" style="height:48px;">
+
+                <option value="">Select Vendor</option>
+
+                        @foreach($vendors as $vendor)
+                            <option value="{{ $vendor->id }}" {{ (string) old('vendor_id', $importRow['vendor_id'] ?? '') === (string) $vendor->id ? 'selected' : '' }}>{{ $vendor->vendor_name }}</option>
+
+                        @endforeach
+
+                    </select>
+
+                </div>
+    <!--  -->
     <div class="col-md-4 mt-3">
         <label>Purchase Date</label>
         <input type="date" value="{{ $asset->purchase_date ?? '' }}" name="purchase_date" class="form-control">
@@ -130,5 +146,6 @@ document.addEventListener('DOMContentLoaded', function() {
     height: 48px; /* bigger height */
     font-size: 16px;
 }
+
 
 </style>

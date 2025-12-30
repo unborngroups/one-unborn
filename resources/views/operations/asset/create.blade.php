@@ -28,7 +28,7 @@
     <!-- <h5 class="mb-3 ">Import Assets</h5> -->
         <div class="row g-3 mb-3">
             <div class="col-md-12">
-                <button class="btn btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#importCard" aria-expanded="false" aria-controls="importCard">
+                <button class="btn btn-info" type="button" id="importExcelBtn" aria-controls="importCard">
                     Import Assets via Excel
                 </button>
                 <div class="collapse mt-3" id="importCard">
@@ -93,10 +93,13 @@
 
 @section('scripts')
 <script>
-    // Toggle the import box
-    document.getElementById('toggleImportBox')?.addEventListener('click', function () {
-        const box = document.getElementById('importBox');
-        box.style.display = (box.style.display === 'none') ? 'block' : 'none';
+    // Open the import box only on first click, do not toggle closed
+    document.getElementById('importExcelBtn')?.addEventListener('click', function () {
+        var importCard = document.getElementById('importCard');
+        if (importCard && !importCard.classList.contains('show')) {
+            var collapse = bootstrap.Collapse.getOrCreateInstance(importCard);
+            collapse.show();
+        }
     });
 </script>
 @endsection

@@ -7,6 +7,7 @@ use App\Models\Asset;
 use App\Models\Company;
 use App\Models\AssetType;
 use App\Models\MakeType;
+use App\Models\Vendor;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -49,6 +50,7 @@ class AssetController extends Controller
         $companies = Company::all();
         $assetTypes = AssetType::all();
         $makes = MakeType::all();
+        $vendors = Vendor::whereNotNull('vendor_name')->where('vendor_name', '!=', '')->get();
         $permissions = TemplateHelper::getUserMenuPermissions('Asset') ?? (object)[
             'can_menu' => true,
             'can_add' => true,
@@ -57,7 +59,7 @@ class AssetController extends Controller
             'can_view' => true,
         ];
 
-        return view('operations.asset.create', compact('companies', 'assetTypes', 'makes', 'permissions'));
+        return view('operations.asset.create', compact('companies', 'assetTypes', 'makes', 'vendors', 'permissions'));
     }
 
     public function store(Request $request)
@@ -212,6 +214,10 @@ class AssetController extends Controller
         $header = array_map('trim', $sheet[0]);
 
         for ($i = 1; $i < count($sheet); $i++) {
+            if (count($header) !== count($sheet[$i])) {
+                // Optionally log or collect error for this row
+                continue; // Skip this row
+            }
             $rows[] = array_combine($header, $sheet[$i]);
         }
     }

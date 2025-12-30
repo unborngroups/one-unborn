@@ -133,9 +133,9 @@ class DeliverablesController extends Controller
     {
         $record = Deliverables::with('feasibility.client')->findOrFail($id);
 
-        if ($record->status === 'Delivery') {
-            return back()->with('error', 'Delivered records cannot be edited');
-        }
+        // if ($record->status === 'Delivery') {
+        //     return back()->with('error', 'Delivered records cannot be edited');
+        // }
 
         return view('operations.deliverables.edit', [
             'record' => $record,

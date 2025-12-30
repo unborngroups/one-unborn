@@ -12,10 +12,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Models\MakeType;
+use App\Models\ModelType;
 use App\Models\Asset;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\FeasibilityImport;
 use App\Helpers\EmailHelper;
+use Illuminate\Database\Eloquent\Model;
 
 class FeasibilityController extends Controller
 {
@@ -79,7 +81,7 @@ class FeasibilityController extends Controller
                  ->get();
 
         $makes     = MakeType::all();
-        $models = Asset::select('id', 'model as model_name')->get();
+        $models    =ModelType::all();
 
         return view('feasibility.create', compact('clients', 'companies', 'makes', 'models'));
     }
@@ -332,7 +334,9 @@ $status->save();
     {
          $companies = Company::all();
     $clients = Client::all();
-        return view('feasibility.edit', compact('feasibility', 'companies', 'clients'));
+    $modelTypes = ModelType::all();
+
+        return view('feasibility.edit', compact('feasibility', 'companies', 'clients', 'modelTypes'));
     }
 
 //     public function show(Feasibility $feasibility)

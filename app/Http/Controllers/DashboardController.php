@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Feasibility;
 use App\Models\Renewal;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -46,13 +47,44 @@ class DashboardController extends Controller
         'locations' => Feasibility::where('type_of_service', 'NNI')->distinct('area')->count('area'),
     ]
 ];
-$todayCount =   Renewal::whereDate('alert_date', Carbon::today())->count();
-$tomorrowCount = Renewal::whereDate('alert_date', Carbon::tomorrow())->count();
-$weekCount = Renewal::whereBetween(
-    'alert_date',
-    [Carbon::today(), Carbon::today()->addDays(7)]
-)->count();
+// 
 
+ // ---------------- Upcoming Renewals Logic (FIX) ----------------
+        $today    = Carbon::today();
+        $tomorrow = Carbon::tomorrow();
+        $weekEnd  = Carbon::today()->addDays(7);
+
+        $renewals = Deliverables::leftJoin('renewals', function ($join) {
+                $join->on('deliverables.id', '=', 'renewals.deliverable_id')
+                     ->whereRaw('renewals.id = (
+                         select max(r2.id)
+                         from renewals r2
+                         where r2.deliverable_id = deliverables.id
+                     )');
+            })
+            ->select(
+                'deliverables.id',
+                DB::raw('COALESCE(renewals.new_expiry_date, deliverables.date_of_expiry) as effective_expiry')
+            );
+
+$todayCount = (clone $renewals)
+    ->whereRaw(
+        'DATE(COALESCE(renewals.new_expiry_date, deliverables.date_of_expiry)) = ?',
+        [$today]
+    )
+    ->count();
+$tomorrowCount = (clone $renewals)
+    ->whereRaw(
+        'DATE(COALESCE(renewals.new_expiry_date, deliverables.date_of_expiry)) = ?',
+        [$tomorrow]
+    )
+    ->count();
+$weekCount = (clone $renewals)
+    ->whereRaw(
+        'DATE(COALESCE(renewals.new_expiry_date, deliverables.date_of_expiry)) BETWEEN ? AND ?',
+        [$today, $weekEnd]
+    )
+    ->count();
 
 
           // Only menus that the logged-in user's type can view
@@ -60,6 +92,6 @@ $weekCount = Renewal::whereBetween(
                           ->where('can_view', 1)
                           ->get();
 
-          return view('welcome', compact('menus', 'feasibilityCounts', 'deliverableCounts', 'serviceCounts'));
+          return view('welcome', compact('menus', 'feasibilityCounts', 'deliverableCounts', 'serviceCounts', 'todayCount', 'tomorrowCount', 'weekCount'));
      }
 }

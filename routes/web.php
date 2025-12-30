@@ -25,6 +25,7 @@ use App\Http\Controllers\FeasibilityController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\FeasibilityExcelController;
 use App\Http\Controllers\ClientPortalController;
+use App\Http\Controllers\ModelTypeController;
 use App\Http\Controllers\SlaReportController;
 use App\Http\Controllers\MikrotikController;
 use App\Http\Controllers\NotificationController;
@@ -128,9 +129,11 @@ Route::patch('/users/{id}/toggle-status', [UserController::class, 'toggleStatus'
     Route::post('/usertypetable/bulk-delete', [UserTypeController::class, 'bulkDestroy'])->name('usertypetable.bulk-delete');
     Route::post('/companies/bulk-delete', [CompanyController::class, 'bulkDestroy'])->name('companies.bulk-delete');
     Route::post('/sm/purchaseorder/bulk-delete', [PurchaseOrderController::class, 'bulkDestroy'])->name('sm.purchaseorder.bulk-delete');
-    
     Route::post('/operations/asset/bulk-delete', [AssetController::class, 'bulkDestroy'])->name('operations.asset.bulk-delete');
     Route::post('/operations/asset/bulk-print', [AssetController::class, 'bulkPrint'])->name('operations.asset.bulk-print');
+    Route::post('/assetmaster/asset_type/bulk-delete', [Asset_typeController::class, 'bulkDestroy'])->name('assetmaster.asset_type.bulk-delete');
+    Route::post('/assetmaster/make_type/bulk-delete', [Make_typeController::class, 'bulkDestroy'])->name('assetmaster.make_type.bulk-delete');
+    Route::post('/assetmaster/model_type/bulk-delete', [ModelTypeController::class, 'bulkDestroy'])->name('assetmaster.model_type.bulk-delete');
     
 
     //view path
@@ -258,7 +261,8 @@ Route::get('/test-email', function () {
     Route::put('/operations/renewals/{id}', [RenewalController::class, 'update'])->name('operations.renewals.update');
     Route::delete('/operations/renewals/{id}', [RenewalController::class, 'destroy'])->name('operations.renewals.destroy');
     Route::get('/operations/renewals/{id}/view', [RenewalController::class, 'view'])->name('operations.renewals.view');
-
+    Route::patch('/operations/renewals/{id}/toggle-status', [RenewalController::class, 'toggleStatus'])->name('operations.renewals.toggle-status');
+    
 Route::get('/operations/assets/next-asset-id', [AssetController::class, 'nextAssetID']);
 Route::post('/operations/asset/import', [AssetController::class, 'import'])->name('operations.asset.import');
 Route::get('/operations/assets/export', [AssetController::class, 'exportAssets'])->name('operations.asset.export');
@@ -363,6 +367,14 @@ Route::prefix('assetmaster/make_type')->name('assetmaster.make_type.')->group(fu
     Route::put('/{makeType}', [Make_typeController::class, 'update'])->name('update');
     Route::delete('/{makeType}', [Make_typeController::class, 'destroy'])->name('destroy');
     Route::get('/generate-id/{company}/{brand}', [AssetController::class, 'generateAssetId']);
+});
+Route::prefix('assetmaster/model_type')->name('assetmaster.model_type.')->group(function () {
+    Route::get('/', [ModelTypeController::class, 'index'])->name('index');
+    Route::get('/create', [ModelTypeController::class, 'create'])->name('create');
+    Route::post('/', [ModelTypeController::class, 'store'])->name('store');
+    Route::get('/{modelType}/edit', [ModelTypeController::class, 'edit'])->name('edit');
+    Route::put('/{modelType}', [ModelTypeController::class, 'update'])->name('update');
+    Route::delete('/{modelType}', [ModelTypeController::class, 'destroy'])->name('destroy');
 });
 
 // Finance Module Routes

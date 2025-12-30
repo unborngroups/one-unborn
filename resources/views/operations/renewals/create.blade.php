@@ -53,16 +53,14 @@
 </div>
 
 {{-- ================= JS ================= --}}
-@push('scripts')
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-
     const renewalInput = document.getElementById('renewalDate');
     const monthsInput  = document.getElementById('months');
     const expiryInput  = document.getElementById('expiry');
 
     function calcExpiry() {
-
         if (!renewalInput.value || !monthsInput.value) {
             expiryInput.value = '';
             return;
@@ -72,16 +70,16 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!months || months <= 0) return;
 
         const baseDate = new Date(renewalInput.value + 'T00:00:00');
-
         if (isNaN(baseDate.getTime())) {
             expiryInput.value = '';
             return;
         }
 
-        const totalDays = (months * 30) - 1;
-        baseDate.setDate(baseDate.getDate() + totalDays);
+        const expiryDate = new Date(baseDate);
+        expiryDate.setMonth(expiryDate.getMonth() + months);
+        expiryDate.setDate(expiryDate.getDate() - 1);
 
-        expiryInput.value = baseDate.toISOString().split('T')[0];
+        expiryInput.value = expiryDate.toISOString().split('T')[0];
     }
 
     renewalInput.addEventListener('change', calcExpiry);
@@ -91,6 +89,5 @@ document.addEventListener('DOMContentLoaded', function () {
     calcExpiry();
 });
 </script>
-@endpush
 
 @endsection

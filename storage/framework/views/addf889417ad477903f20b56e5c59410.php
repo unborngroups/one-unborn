@@ -296,58 +296,68 @@
                             <!-- Client Circuit ID -->
                             <div class="col-md-3 mb-3">
                                 <label class="form-label">Client Circuit ID</label>
-                                <input type="text" class="form-control" name="client_circuit_id_<?php echo e($i); ?>" value="<?php echo e(old('client_circuit_id_'.$i, $record->{'client_circuit_id_'.$i} ?? '')); ?>">
+                                <!-- Removed duplicate: use only $plan->client_circuit_id version below -->
+                                                    <input type="text" class="form-control" name="client_circuit_id_<?php echo e($i); ?>" value="<?php echo e(old('client_circuit_id_'.$i, $plan->client_circuit_id ?? '')); ?>">
                             </div>
 
                             <!-- Client Feasibility -->
                             <div class="col-md-3 mb-3">
                                 <label class="form-label">Client Feasibility</label>
-                                <input type="text" class="form-control" name="client_feasibility_<?php echo e($i); ?>" value="<?php echo e(old('client_feasibility_'.$i, $record->{'client_feasibility_'.$i} ?? '')); ?>">
+                            
+                                                    <input type="text" class="form-control" name="client_feasibility_<?php echo e($i); ?>" value="<?php echo e(old('client_feasibility_'.$i, $plan->client_feasibility ?? '')); ?>">
                             </div>
 
                             <!-- Vendor Code -->
                             <div class="col-md-3 mb-3">
                                 <label class="form-label">Vendor Code</label>
-                                <input type="text" class="form-control" name="vendor_code_<?php echo e($i); ?>" value="<?php echo e(old('vendor_code_'.$i, $record->{'vendor_code_'.$i} ?? '')); ?>">
+                                <!-- Removed duplicate: use only $plan->vendor_code version below -->
+                                                    <input type="text" class="form-control" name="vendor_code_<?php echo e($i); ?>" value="<?php echo e(old('vendor_code_'.$i, $plan->vendor_code ?? '')); ?>">
                             </div>
                             <!-- MTU -->
                             <div class="col-md-3 mb-3">
                             <label class="form-label">MTU <span class="text-danger">*</span></label>
-                            <input type="text" name="mtu_<?php echo e($i); ?>" class="form-control" placeholder="Enter MTU" value="<?php echo e(old('mtu_'.$i, $record->{'mtu_'.$i} ?? '')); ?>" required>
+                            <!-- Removed duplicate: use only $plan->mtu version below -->
+                                                <input type="text" name="mtu_<?php echo e($i); ?>" class="form-control" placeholder="Enter MTU" value="<?php echo e(old('mtu_'.$i, $plan->mtu ?? '')); ?>" required>
                         </div>
                         <!-- Wifi Username -->
                          <div class="col-md-3 mb-3">
                             <label class="form-label">Wifi Username</label>
-                            <input type="text" name="wifi_username_<?php echo e($i); ?>" class="form-control" placeholder="Enter Wifi Username" value="<?php echo e(old('wifi_username_'.$i, $record->{'wifi_username_'.$i} ?? '')); ?>">
+                            <!-- Removed duplicate: use only $plan->wifi_username version below -->
+                                                <input type="text" name="wifi_username_<?php echo e($i); ?>" class="form-control" placeholder="Enter Wifi Username" value="<?php echo e(old('wifi_username_'.$i, $plan->wifi_username ?? '')); ?>">
                         </div>
                         <!-- Wifi Password -->
                         <div class="col-md-3 mb-3">
                             <label class="form-label">Wifi Password</label>
-                            <input type="text" name="wifi_password_<?php echo e($i); ?>" class="form-control" placeholder="Enter Wifi Password" value="<?php echo e(old('wifi_password_'.$i, $record->{'wifi_password_'.$i} ?? '')); ?>">
+                            <!-- Removed duplicate: use only $plan->wifi_password version below -->
+                                                <input type="text" name="wifi_password_<?php echo e($i); ?>" class="form-control" placeholder="Enter Wifi Password" value="<?php echo e(old('wifi_password_'.$i, $plan->wifi_password ?? '')); ?>">
                         </div>
                         <!-- Router Username -->
                         <div class="col-md-3 mb-3">
                             <label class="form-label">Router Username</label>
-                            <input type="text" name="router_username_<?php echo e($i); ?>" class="form-control" placeholder="Enter Router Username" value="<?php echo e(old('router_username_'.$i, $record->{'router_username_'.$i} ?? '')); ?>">
+                            <!-- Removed duplicate: use only $plan->router_username version below -->
+                                                <input type="text" name="router_username_<?php echo e($i); ?>" class="form-control" placeholder="Enter Router Username" value="<?php echo e(old('router_username_'.$i, $plan->router_username ?? '')); ?>">
                         </div>
                         <!-- Router Password -->
                         <div class="col-md-3 mb-3">
                             <label class="form-label">Router Password</label>
-                            <input type="text" name="router_password_<?php echo e($i); ?>" class="form-control" placeholder="Enter Router Password" value="<?php echo e(old('router_password_'.$i, $record->{'router_password_'.$i} ?? '')); ?>">
+                            <!-- Removed duplicate: use only $plan->router_password version below -->
+                                                <input type="text" name="router_password_<?php echo e($i); ?>" class="form-control" placeholder="Enter Router Password" value="<?php echo e(old('router_password_'.$i, $plan->router_password ?? '')); ?>">
                         </div>
 
                         </div>
                     <?php endfor; ?>
                               
-                            
-
                     </div>
                 </div>
                 <?php
     $linkCount = $record->feasibility->no_of_links ?? 1;  // align fields with feasibility\'s link count
 ?>
 <!--  -->
+
 <?php for($i = 1; $i <= $linkCount; $i++): ?>
+    <?php
+        $plan = $record->deliverablePlans->where('link_number', $i)->first();
+    ?>
 
                 
                 <div class="card mb-3" id="pppoe_section_<?php echo e($i); ?>" style="display: none;">
@@ -358,21 +368,20 @@
                         
         <div class="row mb-2">
             <div class="col-md-4">
-                <label>Username</label>
-                <input type="text" name="pppoe_username_<?php echo e($i); ?>" class="form-control"
-                       value="<?php echo e(old('pppoe_username_'.$i, $record->{'pppoe_username_'.$i} ?? '')); ?>">
+                <label class="form-label">Username</label>
+                <input type="text" name="pppoe_username_<?php echo e($i); ?>" class="form-control" placeholder="Enter pppoe_username_" value="<?php echo e(old('pppoe_username_'.$i, $plan->pppoe_username ?? '')); ?>">
             </div>
 
             <div class="col-md-4">
-                <label>Password</label>
-                <input type="text" name="pppoe_password_<?php echo e($i); ?>" class="form-control"
-                       value="<?php echo e(old('pppoe_password_'.$i, $record->{'pppoe_password_'.$i} ?? '')); ?>">
+                <label class="form-label">Password</label>
+                <input type="text" name="pppoe_password_<?php echo e($i); ?>" class="form-control" placeholder="Enter password"
+                       value="<?php echo e(old('pppoe_password_'.$i, $plan->pppoe_password ?? '')); ?>">
             </div>
 
             <div class="col-md-4">
-                <label>VLAN</label>
-                <input type="text" name="pppoe_vlan_<?php echo e($i); ?>" class="form-control"
-                       value="<?php echo e(old('pppoe_vlan_'.$i, $record->{'pppoe_vlan_'.$i} ?? '')); ?>">
+                <label class="form-label">VLAN</label>
+                <input type="text" name="pppoe_vlan_<?php echo e($i); ?>" class="form-control" placeholder="Enter VLAN"
+                       value="<?php echo e(old('pppoe_vlan_'.$i, $plan->pppoe_vlan ?? '')); ?>">
             </div>
         </div>
     
@@ -389,13 +398,13 @@
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">IP Address</label>
                                 <input type="text" class="form-control" name="dhcp_ip_address_<?php echo e($i); ?>" 
-                                       value="<?php echo e(old('dhcp_ip_address_'.$i, $record->{'dhcp_ip_address_'.$i} ?? '')); ?>">
+                                       value="<?php echo e(old('dhcp_ip_address_'.$i, $plan->dhcp_ip_address ?? '')); ?>">
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">VLAN</label>
                                 <input type="text" class="form-control" name="dhcp_vlan_<?php echo e($i); ?>" 
-                                       value="<?php echo e(old('dhcp_vlan_'.$i, $record->{'dhcp_vlan_'.$i} ?? '')); ?>">
+                                       value="<?php echo e(old('dhcp_vlan_'.$i, $plan->dhcp_vlan ?? '')); ?>">
                             </div>
                         </div>
                     </div>
@@ -411,7 +420,7 @@
                             <div class="col-md-3 mb-3">
                                 <label class="form-label">IP Address <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="static_ip_address_<?php echo e($i); ?>" name="static_ip_address_<?php echo e($i); ?>"
-                                       value="<?php echo e(old('static_ip_address_'.$i, $record->{'static_ip_address_'.$i} ?? '')); ?>">
+                                       value="<?php echo e(old('static_ip_address_'.$i, $plan->static_ip_address ?? '')); ?>">
                             </div>
 
                             <div class="col-md-3 mb-3">
@@ -419,15 +428,15 @@
                                 <select class="form-select" id="static_ip_subnet_<?php echo e($i); ?>" name="static_subnet_mask_<?php echo e($i); ?>">
                                     <option value="">Select Subnet</option>
                                     <?php $__currentLoopData = ['/32','/31','/30','/29','/28','/27','/26','/25','/24']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $subnet): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <option value="<?php echo e($subnet); ?>" <?php echo e(old('static_subnet_mask_'.$i, $record->{'static_subnet_mask_'.$i} ?? '') == $subnet ? 'selected' : ''); ?>><?php echo e($subnet); ?></option>
+                                        <option value="<?php echo e($subnet); ?>" <?php echo e(old('static_subnet_mask_'.$i, $plan->static_subnet_mask ?? '') == $subnet ? 'selected' : ''); ?>><?php echo e($subnet); ?></option>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                             </div>
 
                             <div class="col-md-3 mb-3">
-                                <label class="form-label">VLAN</label>
-                                <input type="text" class="form-control" name="static_vlan_tag_<?php echo e($i); ?>"
-                                       value="<?php echo e(old('static_vlan_tag_'.$i, $record->{'static_vlan_tag_'.$i} ?? '')); ?>">
+                                    <label class="form-label">VLAN <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="static_vlan_tag_<?php echo e($i); ?>" name="static_vlan_tag_<?php echo e($i); ?>"
+                                        value="<?php echo e(old('static_vlan_tag_'.$i, $plan->static_vlan ?? '')); ?>">
                             </div>
                         </div>
 
@@ -442,19 +451,23 @@
                         <div class="row" id="static_info_pane_<?php echo e($i); ?>">
     <div class="col-md-3 mb-3">
         <label class="form-label">Network IP</label>
-        <input type="text" class="form-control" id="network_ip_<?php echo e($i); ?>" name="network_ip_<?php echo e($i); ?>" value="<?php echo e(old('network_ip_'.$i, $record->{'network_ip_'.$i} ?? '')); ?>" readonly>
+        <!-- Removed duplicate: use only $plan->network_ip version below -->
+        <input type="text" class="form-control" id="network_ip_<?php echo e($i); ?>" name="network_ip_<?php echo e($i); ?>" value="<?php echo e(old('network_ip_'.$i, $plan->network_ip ?? '')); ?>">
     </div>
     <div class="col-md-3 mb-3">
         <label class="form-label">Gateway</label>
-        <input type="text" class="form-control" id="gateway_<?php echo e($i); ?>" name="gateway_<?php echo e($i); ?>" value="<?php echo e(old('gateway_'.$i, $record->{'gateway_'.$i} ?? '')); ?>" readonly>
+        <!-- Removed duplicate: use only $plan->static_gateway version below -->
+        <input type="text" class="form-control" id="gateway_<?php echo e($i); ?>" name="gateway_<?php echo e($i); ?>" value="<?php echo e(old('gateway_'.$i, $plan->static_gateway ?? '')); ?>">
     </div>
     <div class="col-md-3 mb-3">
         <label class="form-label">Subnet Mask</label>
-        <input type="text" class="form-control" id="subnet_mask_<?php echo e($i); ?>" name="subnet_mask_<?php echo e($i); ?>" value="<?php echo e(old('subnet_mask_'.$i, $record->{'subnet_mask_'.$i} ?? '')); ?>" readonly>
+        <!-- Removed duplicate: use only $plan->static_subnet_mask version below -->
+        <input type="text" class="form-control" id="subnet_mask_<?php echo e($i); ?>" name="subnet_mask_<?php echo e($i); ?>" value="<?php echo e(old('subnet_mask_'.$i, $plan->static_subnet_mask ?? '')); ?>">
     </div>
     <div class="col-md-3 mb-3">
         <label class="form-label">Usable IPs</label>
-        <input type="text" class="form-control" id="usable_ips_<?php echo e($i); ?>" name="usable_ips_<?php echo e($i); ?>" value="<?php echo e(old('usable_ips_'.$i, $record->{'usable_ips_'.$i} ?? '')); ?>" readonly>
+        <!-- Removed duplicate: use only $plan->usable_ips version below -->
+        <input type="text" class="form-control" id="usable_ips_<?php echo e($i); ?>" name="usable_ips_<?php echo e($i); ?>" value="<?php echo e(old('usable_ips_'.$i, $plan->usable_ips ?? '')); ?>">
     </div>
                         </div>
                     </div>
@@ -471,24 +484,25 @@
     <div class="col-md-3 mb-2">
         <label>Login URL</label>
         <input type="text" name="payment_login_url_<?php echo e($i); ?>" class="form-control"
-               value="<?php echo e($record->payment_login_url); ?>">
+               value="<?php echo e(old('payment_login_url_'.$i, $plan->payment_login_url ?? '')); ?>">
     </div>
 
     <div class="col-md-3 mb-2">
         <label>Quick URL</label>
         <input type="text" name="payment_quick_url_<?php echo e($i); ?>" class="form-control"
-               value="<?php echo e($record->payment_quick_url); ?>">
+               value="<?php echo e(old('payment_quick_url_'.$i, $plan->payment_quick_url ?? '')); ?>">
     </div>
 
     <div class="col-md-3 mb-2">
         <label>Account Number / Username</label>
         <input type="text" name="payment_account_or_username_<?php echo e($i); ?>" class="form-control"
-               value="<?php echo e($record->payment_account_or_username); ?>">
+               value="<?php echo e(old('payment_account_or_username_'.$i, $plan->payment_account_or_username ?? '')); ?>">
     </div>
 
     <div class="col-md-3 mb-2">
         <label>Password</label>
-        <input type="text" name="payment_password_<?php echo e($i); ?>" class="form-control" placeholder="Enter new password">
+        <input type="text" name="payment_password_<?php echo e($i); ?>" class="form-control" placeholder="Enter new password"
+                   value="<?php echo e(old('payment_password_'.$i, $plan->payment_password ?? '')); ?>" placeholder="Enter new password">
     </div>
 </div>
 
@@ -503,51 +517,46 @@
                 <div class="card-body">
                     <div class="row">
                         
-                        <div class="col-md-3 mb-3">
-                            <label>LAN IP 1 <span style="color:red">*</span></label>
-                            <input type="text" name="lan_ip_1" class="form-control" required>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label>LAN IP 2</label>
-                            <input type="text" name="lan_ip_2" class="form-control">
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label>LAN IP 3</label>
-                            <input type="text" name="lan_ip_3" class="form-control">
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label>LAN IP 4</label>
-                            <input type="text" name="lan_ip_4" class="form-control">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label>LAN IP 1 <span style="color:red">*</span></label>
+                                <input type="text" name="lan_ip_1" class="form-control" required value="<?php echo e(old('lan_ip_1', $record->lan_ip_1 ?? '')); ?>">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label>LAN IP 2</label>
+                                <input type="text" name="lan_ip_2" class="form-control" value="<?php echo e(old('lan_ip_2', $record->lan_ip_2 ?? '')); ?>">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label>LAN IP 3</label>
+                                <input type="text" name="lan_ip_3" class="form-control" value="<?php echo e(old('lan_ip_3', $record->lan_ip_3 ?? '')); ?>">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label>LAN IP 4</label>
+                                <input type="text" name="lan_ip_4" class="form-control" value="<?php echo e(old('lan_ip_4', $record->lan_ip_4 ?? '')); ?>">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label>IPSEC</label>
+                                <select name="ipsec" id="ipsec" class="form-control">
+                                    <option value="">-- Select --</option>
+                                    <option value="Yes" <?php echo e(old('ipsec', $record->ipsec ?? '') == 'Yes' ? 'selected' : ''); ?>>Yes</option>
+                                    <option value="No" <?php echo e(old('ipsec', $record->ipsec ?? '') == 'No' ? 'selected' : ''); ?>>No</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3 ipsec-fields d-none">
+                                <label>Phase 1</label>
+                                <input type="text" name="phase_1" class="form-control" value="<?php echo e(old('phase_1', $record->phase_1 ?? '')); ?>">
+                            </div>
+                            <div class="col-md-3 mb-3 ipsec-fields d-none">
+                                <label>Phase 2</label>
+                                <input type="text" name="phase_2" class="form-control" value="<?php echo e(old('phase_2', $record->phase_2 ?? '')); ?>">
+                            </div>
+                            <div class="col-md-3 mb-3 ipsec-fields d-none">
+                                <label>IPSEC Interface</label>
+                                <input type="text" name="ipsec_interface" class="form-control" value="<?php echo e(old('ipsec_interface', $record->ipsec_interface ?? '')); ?>">
+                            </div>
                         </div>
                     </div>
-                   
-                    
-                        <div class="col-md-3 mb-3">
-                            <label>IPSEC</label>
-                            <select name="ipsec" id="ipsec" class="form-control">
-                                <option value="">-- Select --</option>
-                                <option value="Yes">Yes</option>
-                                <option value="No">No</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 ipsec-fields d-none">
-                            <label>Phase 1</label>
-                            <input type="text" name="phase_1" class="form-control">
-                        </div>
-                        <div class="col-md-3 ipsec-fields d-none">
-                            <label>Phase 2</label>
-                            <input type="text" name="phase_2" class="form-control">
-                        </div>
-                        <div class="col-md-3 ipsec-fields d-none">
-                            <label>IPSEC Interface</label>
-                            <input type="text" name="ipsec_interface" class="form-control">
-                        </div>
                 </div>
-                    
-                    
-
-                </div>
-                 </div>
 
 
 
@@ -613,8 +622,13 @@
                                 <i class="bi bi-check2-all"></i> Submit (Move to Delivery)
                             </button>
                         <?php else: ?>
+                       
+                        
                             <button type="submit" name="action" value="save" class="btn btn-primary">
                                 <i class="bi bi-floppy"></i> Save Changes
+                            </button>
+                            <button type="submit" name="action" value="submit" class="btn btn-success">
+                                <i class="bi bi-check2-all"></i> Submit (Move to Delivery)
                             </button>
                         <?php endif; ?>
                     </div>

@@ -276,58 +276,68 @@
                             <!-- Client Circuit ID -->
                             <div class="col-md-3 mb-3">
                                 <label class="form-label">Client Circuit ID</label>
-                                <input type="text" class="form-control" name="client_circuit_id_{{ $i }}" value="{{ old('client_circuit_id_'.$i, $record->{'client_circuit_id_'.$i} ?? '') }}">
+                                <!-- Removed duplicate: use only $plan->client_circuit_id version below -->
+                                                    <input type="text" class="form-control" name="client_circuit_id_{{ $i }}" value="{{ old('client_circuit_id_'.$i, $plan->client_circuit_id ?? '') }}">
                             </div>
 
                             <!-- Client Feasibility -->
                             <div class="col-md-3 mb-3">
                                 <label class="form-label">Client Feasibility</label>
-                                <input type="text" class="form-control" name="client_feasibility_{{ $i }}" value="{{ old('client_feasibility_'.$i, $record->{'client_feasibility_'.$i} ?? '') }}">
+                            
+                                                    <input type="text" class="form-control" name="client_feasibility_{{ $i }}" value="{{ old('client_feasibility_'.$i, $plan->client_feasibility ?? '') }}">
                             </div>
 
                             <!-- Vendor Code -->
                             <div class="col-md-3 mb-3">
                                 <label class="form-label">Vendor Code</label>
-                                <input type="text" class="form-control" name="vendor_code_{{ $i }}" value="{{ old('vendor_code_'.$i, $record->{'vendor_code_'.$i} ?? '') }}">
+                                <!-- Removed duplicate: use only $plan->vendor_code version below -->
+                                                    <input type="text" class="form-control" name="vendor_code_{{ $i }}" value="{{ old('vendor_code_'.$i, $plan->vendor_code ?? '') }}">
                             </div>
                             <!-- MTU -->
                             <div class="col-md-3 mb-3">
                             <label class="form-label">MTU <span class="text-danger">*</span></label>
-                            <input type="text" name="mtu_{{ $i }}" class="form-control" placeholder="Enter MTU" value="{{ old('mtu_'.$i, $record->{'mtu_'.$i} ?? '') }}" required>
+                            <!-- Removed duplicate: use only $plan->mtu version below -->
+                                                <input type="text" name="mtu_{{ $i }}" class="form-control" placeholder="Enter MTU" value="{{ old('mtu_'.$i, $plan->mtu ?? '') }}" required>
                         </div>
                         <!-- Wifi Username -->
                          <div class="col-md-3 mb-3">
                             <label class="form-label">Wifi Username</label>
-                            <input type="text" name="wifi_username_{{ $i }}" class="form-control" placeholder="Enter Wifi Username" value="{{ old('wifi_username_'.$i, $record->{'wifi_username_'.$i} ?? '') }}">
+                            <!-- Removed duplicate: use only $plan->wifi_username version below -->
+                                                <input type="text" name="wifi_username_{{ $i }}" class="form-control" placeholder="Enter Wifi Username" value="{{ old('wifi_username_'.$i, $plan->wifi_username ?? '') }}">
                         </div>
                         <!-- Wifi Password -->
                         <div class="col-md-3 mb-3">
                             <label class="form-label">Wifi Password</label>
-                            <input type="text" name="wifi_password_{{ $i }}" class="form-control" placeholder="Enter Wifi Password" value="{{ old('wifi_password_'.$i, $record->{'wifi_password_'.$i} ?? '') }}">
+                            <!-- Removed duplicate: use only $plan->wifi_password version below -->
+                                                <input type="text" name="wifi_password_{{ $i }}" class="form-control" placeholder="Enter Wifi Password" value="{{ old('wifi_password_'.$i, $plan->wifi_password ?? '') }}">
                         </div>
                         <!-- Router Username -->
                         <div class="col-md-3 mb-3">
                             <label class="form-label">Router Username</label>
-                            <input type="text" name="router_username_{{ $i }}" class="form-control" placeholder="Enter Router Username" value="{{ old('router_username_'.$i, $record->{'router_username_'.$i} ?? '') }}">
+                            <!-- Removed duplicate: use only $plan->router_username version below -->
+                                                <input type="text" name="router_username_{{ $i }}" class="form-control" placeholder="Enter Router Username" value="{{ old('router_username_'.$i, $plan->router_username ?? '') }}">
                         </div>
                         <!-- Router Password -->
                         <div class="col-md-3 mb-3">
                             <label class="form-label">Router Password</label>
-                            <input type="text" name="router_password_{{ $i }}" class="form-control" placeholder="Enter Router Password" value="{{ old('router_password_'.$i, $record->{'router_password_'.$i} ?? '') }}">
+                            <!-- Removed duplicate: use only $plan->router_password version below -->
+                                                <input type="text" name="router_password_{{ $i }}" class="form-control" placeholder="Enter Router Password" value="{{ old('router_password_'.$i, $plan->router_password ?? '') }}">
                         </div>
 
                         </div>
                     @endfor
                               
-                            
-
                     </div>
                 </div>
                 @php
     $linkCount = $record->feasibility->no_of_links ?? 1;  // align fields with feasibility\'s link count
 @endphp
 <!--  -->
+
 @for($i = 1; $i <= $linkCount; $i++)
+    @php
+        $plan = $record->deliverablePlans->where('link_number', $i)->first();
+    @endphp
 
                 {{-- PPPoE Configuration --}}
                 <div class="card mb-3" id="pppoe_section_{{ $i }}" style="display: none;">
@@ -338,21 +348,20 @@
                         
         <div class="row mb-2">
             <div class="col-md-4">
-                <label>Username</label>
-                <input type="text" name="pppoe_username_{{ $i }}" class="form-control"
-                       value="{{ old('pppoe_username_'.$i, $record->{'pppoe_username_'.$i} ?? '') }}">
+                <label class="form-label">Username</label>
+                <input type="text" name="pppoe_username_{{ $i }}" class="form-control" placeholder="Enter pppoe_username_" value="{{ old('pppoe_username_'.$i, $plan->pppoe_username ?? '') }}">
             </div>
 
             <div class="col-md-4">
-                <label>Password</label>
-                <input type="text" name="pppoe_password_{{ $i }}" class="form-control"
-                       value="{{ old('pppoe_password_'.$i, $record->{'pppoe_password_'.$i} ?? '') }}">
+                <label class="form-label">Password</label>
+                <input type="text" name="pppoe_password_{{ $i }}" class="form-control" placeholder="Enter password"
+                       value="{{ old('pppoe_password_'.$i, $plan->pppoe_password ?? '') }}">
             </div>
 
             <div class="col-md-4">
-                <label>VLAN</label>
-                <input type="text" name="pppoe_vlan_{{ $i }}" class="form-control"
-                       value="{{ old('pppoe_vlan_'.$i, $record->{'pppoe_vlan_'.$i} ?? '') }}">
+                <label class="form-label">VLAN</label>
+                <input type="text" name="pppoe_vlan_{{ $i }}" class="form-control" placeholder="Enter VLAN"
+                       value="{{ old('pppoe_vlan_'.$i, $plan->pppoe_vlan ?? '') }}">
             </div>
         </div>
     
@@ -369,13 +378,13 @@
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">IP Address</label>
                                 <input type="text" class="form-control" name="dhcp_ip_address_{{ $i }}" 
-                                       value="{{ old('dhcp_ip_address_'.$i, $record->{'dhcp_ip_address_'.$i} ?? '') }}">
+                                       value="{{ old('dhcp_ip_address_'.$i, $plan->dhcp_ip_address ?? '') }}">
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">VLAN</label>
                                 <input type="text" class="form-control" name="dhcp_vlan_{{ $i }}" 
-                                       value="{{ old('dhcp_vlan_'.$i, $record->{'dhcp_vlan_'.$i} ?? '') }}">
+                                       value="{{ old('dhcp_vlan_'.$i, $plan->dhcp_vlan ?? '') }}">
                             </div>
                         </div>
                     </div>
@@ -391,7 +400,7 @@
                             <div class="col-md-3 mb-3">
                                 <label class="form-label">IP Address <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="static_ip_address_{{ $i }}" name="static_ip_address_{{ $i }}"
-                                       value="{{ old('static_ip_address_'.$i, $record->{'static_ip_address_'.$i} ?? '') }}">
+                                       value="{{ old('static_ip_address_'.$i, $plan->static_ip_address ?? '') }}">
                             </div>
 
                             <div class="col-md-3 mb-3">
@@ -399,15 +408,15 @@
                                 <select class="form-select" id="static_ip_subnet_{{ $i }}" name="static_subnet_mask_{{ $i }}">
                                     <option value="">Select Subnet</option>
                                     @foreach(['/32','/31','/30','/29','/28','/27','/26','/25','/24'] as $subnet)
-                                        <option value="{{ $subnet }}" {{ old('static_subnet_mask_'.$i, $record->{'static_subnet_mask_'.$i} ?? '') == $subnet ? 'selected' : '' }}>{{ $subnet }}</option>
+                                        <option value="{{ $subnet }}" {{ old('static_subnet_mask_'.$i, $plan->static_subnet_mask ?? '') == $subnet ? 'selected' : '' }}>{{ $subnet }}</option>
                                     @endforeach
                                 </select>
                             </div>
 
                             <div class="col-md-3 mb-3">
-                                <label class="form-label">VLAN</label>
-                                <input type="text" class="form-control" name="static_vlan_tag_{{ $i }}"
-                                       value="{{ old('static_vlan_tag_'.$i, $record->{'static_vlan_tag_'.$i} ?? '') }}">
+                                    <label class="form-label">VLAN <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="static_vlan_tag_{{ $i }}" name="static_vlan_tag_{{ $i }}"
+                                        value="{{ old('static_vlan_tag_'.$i, $plan->static_vlan ?? '') }}">
                             </div>
                         </div>
 
@@ -422,19 +431,23 @@
                         <div class="row" id="static_info_pane_{{ $i }}">
     <div class="col-md-3 mb-3">
         <label class="form-label">Network IP</label>
-        <input type="text" class="form-control" id="network_ip_{{ $i }}" name="network_ip_{{ $i }}" value="{{ old('network_ip_'.$i, $record->{'network_ip_'.$i} ?? '') }}" readonly>
+        <!-- Removed duplicate: use only $plan->network_ip version below -->
+        <input type="text" class="form-control" id="network_ip_{{ $i }}" name="network_ip_{{ $i }}" value="{{ old('network_ip_'.$i, $plan->network_ip ?? '') }}">
     </div>
     <div class="col-md-3 mb-3">
         <label class="form-label">Gateway</label>
-        <input type="text" class="form-control" id="gateway_{{ $i }}" name="gateway_{{ $i }}" value="{{ old('gateway_'.$i, $record->{'gateway_'.$i} ?? '') }}" readonly>
+        <!-- Removed duplicate: use only $plan->static_gateway version below -->
+        <input type="text" class="form-control" id="gateway_{{ $i }}" name="gateway_{{ $i }}" value="{{ old('gateway_'.$i, $plan->static_gateway ?? '') }}">
     </div>
     <div class="col-md-3 mb-3">
         <label class="form-label">Subnet Mask</label>
-        <input type="text" class="form-control" id="subnet_mask_{{ $i }}" name="subnet_mask_{{ $i }}" value="{{ old('subnet_mask_'.$i, $record->{'subnet_mask_'.$i} ?? '') }}" readonly>
+        <!-- Removed duplicate: use only $plan->static_subnet_mask version below -->
+        <input type="text" class="form-control" id="subnet_mask_{{ $i }}" name="subnet_mask_{{ $i }}" value="{{ old('subnet_mask_'.$i, $plan->static_subnet_mask ?? '') }}">
     </div>
     <div class="col-md-3 mb-3">
         <label class="form-label">Usable IPs</label>
-        <input type="text" class="form-control" id="usable_ips_{{ $i }}" name="usable_ips_{{ $i }}" value="{{ old('usable_ips_'.$i, $record->{'usable_ips_'.$i} ?? '') }}" readonly>
+        <!-- Removed duplicate: use only $plan->usable_ips version below -->
+        <input type="text" class="form-control" id="usable_ips_{{ $i }}" name="usable_ips_{{ $i }}" value="{{ old('usable_ips_'.$i, $plan->usable_ips ?? '') }}">
     </div>
                         </div>
                     </div>
@@ -451,24 +464,25 @@
     <div class="col-md-3 mb-2">
         <label>Login URL</label>
         <input type="text" name="payment_login_url_{{ $i }}" class="form-control"
-               value="{{ $record->payment_login_url }}">
+               value="{{ old('payment_login_url_'.$i, $plan->payment_login_url ?? '') }}">
     </div>
 
     <div class="col-md-3 mb-2">
         <label>Quick URL</label>
         <input type="text" name="payment_quick_url_{{ $i }}" class="form-control"
-               value="{{ $record->payment_quick_url }}">
+               value="{{ old('payment_quick_url_'.$i, $plan->payment_quick_url ?? '') }}">
     </div>
 
     <div class="col-md-3 mb-2">
         <label>Account Number / Username</label>
         <input type="text" name="payment_account_or_username_{{ $i }}" class="form-control"
-               value="{{ $record->payment_account_or_username }}">
+               value="{{ old('payment_account_or_username_'.$i, $plan->payment_account_or_username ?? '') }}">
     </div>
 
     <div class="col-md-3 mb-2">
         <label>Password</label>
-        <input type="text" name="payment_password_{{ $i }}" class="form-control" placeholder="Enter new password">
+        <input type="text" name="payment_password_{{ $i }}" class="form-control" placeholder="Enter new password"
+                   value="{{ old('payment_password_'.$i, $plan->payment_password ?? '') }}" placeholder="Enter new password">
     </div>
 </div>
 
@@ -483,51 +497,46 @@
                 <div class="card-body">
                     <div class="row">
                         
-                        <div class="col-md-3 mb-3">
-                            <label>LAN IP 1 <span style="color:red">*</span></label>
-                            <input type="text" name="lan_ip_1" class="form-control" required>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label>LAN IP 2</label>
-                            <input type="text" name="lan_ip_2" class="form-control">
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label>LAN IP 3</label>
-                            <input type="text" name="lan_ip_3" class="form-control">
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label>LAN IP 4</label>
-                            <input type="text" name="lan_ip_4" class="form-control">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label>LAN IP 1 <span style="color:red">*</span></label>
+                                <input type="text" name="lan_ip_1" class="form-control" required value="{{ old('lan_ip_1', $record->lan_ip_1 ?? '') }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label>LAN IP 2</label>
+                                <input type="text" name="lan_ip_2" class="form-control" value="{{ old('lan_ip_2', $record->lan_ip_2 ?? '') }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label>LAN IP 3</label>
+                                <input type="text" name="lan_ip_3" class="form-control" value="{{ old('lan_ip_3', $record->lan_ip_3 ?? '') }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label>LAN IP 4</label>
+                                <input type="text" name="lan_ip_4" class="form-control" value="{{ old('lan_ip_4', $record->lan_ip_4 ?? '') }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label>IPSEC</label>
+                                <select name="ipsec" id="ipsec" class="form-control">
+                                    <option value="">-- Select --</option>
+                                    <option value="Yes" {{ old('ipsec', $record->ipsec ?? '') == 'Yes' ? 'selected' : '' }}>Yes</option>
+                                    <option value="No" {{ old('ipsec', $record->ipsec ?? '') == 'No' ? 'selected' : '' }}>No</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3 ipsec-fields d-none">
+                                <label>Phase 1</label>
+                                <input type="text" name="phase_1" class="form-control" value="{{ old('phase_1', $record->phase_1 ?? '') }}">
+                            </div>
+                            <div class="col-md-3 mb-3 ipsec-fields d-none">
+                                <label>Phase 2</label>
+                                <input type="text" name="phase_2" class="form-control" value="{{ old('phase_2', $record->phase_2 ?? '') }}">
+                            </div>
+                            <div class="col-md-3 mb-3 ipsec-fields d-none">
+                                <label>IPSEC Interface</label>
+                                <input type="text" name="ipsec_interface" class="form-control" value="{{ old('ipsec_interface', $record->ipsec_interface ?? '') }}">
+                            </div>
                         </div>
                     </div>
-                   
-                    
-                        <div class="col-md-3 mb-3">
-                            <label>IPSEC</label>
-                            <select name="ipsec" id="ipsec" class="form-control">
-                                <option value="">-- Select --</option>
-                                <option value="Yes">Yes</option>
-                                <option value="No">No</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 ipsec-fields d-none">
-                            <label>Phase 1</label>
-                            <input type="text" name="phase_1" class="form-control">
-                        </div>
-                        <div class="col-md-3 ipsec-fields d-none">
-                            <label>Phase 2</label>
-                            <input type="text" name="phase_2" class="form-control">
-                        </div>
-                        <div class="col-md-3 ipsec-fields d-none">
-                            <label>IPSEC Interface</label>
-                            <input type="text" name="ipsec_interface" class="form-control">
-                        </div>
                 </div>
-                    
-                    
-
-                </div>
-                 </div>
 
 
 
@@ -593,8 +602,13 @@
                                 <i class="bi bi-check2-all"></i> Submit (Move to Delivery)
                             </button>
                         @else
+                       
+                        
                             <button type="submit" name="action" value="save" class="btn btn-primary">
                                 <i class="bi bi-floppy"></i> Save Changes
+                            </button>
+                            <button type="submit" name="action" value="submit" class="btn btn-success">
+                                <i class="bi bi-check2-all"></i> Submit (Move to Delivery)
                             </button>
                         @endif
                     </div>

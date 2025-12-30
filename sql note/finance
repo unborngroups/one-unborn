@@ -1,0 +1,8 @@
+ALTER TABLE account_groups
+ADD parent_id BIGINT UNSIGNED NULL AFTER id,
+ADD status ENUM('draft','pending_checker','approved','rejected','locked')
+    DEFAULT 'draft' AFTER type,
+ADD is_locked TINYINT(1) DEFAULT 0 AFTER status,
+ADD maker_id BIGINT UNSIGNED NULL,
+ADD checker_id BIGINT UNSIGNED NULL,
+ADD approved_at TIMESTAMP NULL;

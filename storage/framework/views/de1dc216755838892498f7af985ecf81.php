@@ -726,17 +726,11 @@ $(document).on('click', '#sidebar .nav-link', function() {
 
     
     flatpickr("input[type=date]", {
-
-    dateFormat: "d-m-Y", // change format to DD-MM-YYYY
-
+    dateFormat: "Y-m-d", // HTML date input expects YYYY-MM-DD
     altInput: true,      // shows friendly format
-
     altFormat: "F j, Y", // shows “October 6, 2025”
-
     allowInput: true,
-
     // theme: "dark"      // uncomment for dark mode
-
 });
 $(document).ready(function () {
 

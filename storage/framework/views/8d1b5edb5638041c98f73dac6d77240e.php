@@ -64,10 +64,26 @@
         <label>MAC No</label>
         <input type="text" value="<?php echo e($asset->mac_no ?? ''); ?>" name="mac_no" class="form-control">
     </div>
+   
+    <!--  -->
+
     <div class="col-md-4 mt-3">
-        <label>Procured From</label>
-        <input type="text" value="<?php echo e($asset->procured_from ?? ''); ?>" name="procured_from" class="form-control">
-    </div>
+
+        <label class="form-label">Procured From</label>
+
+            <select name="vendor_id" id="vendor_id" class="form-select warranty-box" style="height:48px;">
+
+                <option value="">Select Vendor</option>
+
+                        <?php $__currentLoopData = $vendors; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $vendor): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($vendor->id); ?>" <?php echo e((string) old('vendor_id', $importRow['vendor_id'] ?? '') === (string) $vendor->id ? 'selected' : ''); ?>><?php echo e($vendor->vendor_name); ?></option>
+
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
+                    </select>
+
+                </div>
+    <!--  -->
     <div class="col-md-4 mt-3">
         <label>Purchase Date</label>
         <input type="date" value="<?php echo e($asset->purchase_date ?? ''); ?>" name="purchase_date" class="form-control">
@@ -133,6 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
     height: 48px; /* bigger height */
     font-size: 16px;
 }
+
 
 </style>
 <?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\operations\asset\form.blade.php ENDPATH**/ ?>

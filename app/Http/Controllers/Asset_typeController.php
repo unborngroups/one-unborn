@@ -36,8 +36,7 @@ class Asset_typeController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            // 'company_id' => 'required|exists:companies,id',
-            'type_name' => 'required|string|max:255',
+            'type_name' => 'required|string|max:255|unique:asset_types,type_name',
         ]);
 
         AssetType::create($data);
@@ -55,8 +54,7 @@ class Asset_typeController extends Controller
     public function update(Request $request, AssetType $assetType)
     {
         $data = $request->validate([
-            // 'company_id' => 'required|exists:companies,id',
-            'type_name' => 'required|string|max:255',
+            'type_name' => 'required|string|max:255|unique:asset_types,type_name,' . $assetType->id,
         ]);
 
         $assetType->update($data);
@@ -72,4 +70,21 @@ class Asset_typeController extends Controller
         return redirect()->route('assetmaster.asset_type.index')
             ->with('success', 'Asset Type deleted.');
     }
+
+    /**
+     * Bulk delete clients selected from the index table.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'required|integer|exists:asset_types,id',
+        ]);
+
+        AssetType::whereIn('id', $request->input('ids'))->delete();
+
+        return redirect()->route('assetmaster.asset_type.index')
+            ->with('success', count($request->input('ids')) . ' asset type(s) deleted successfully.');
+    }
+
 }

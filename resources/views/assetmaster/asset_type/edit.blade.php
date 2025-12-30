@@ -4,6 +4,26 @@
 <div class="container py-4">
     <h3 class="mb-3 text-primary">Edit Asset Type</h3>
     <div class="card p-4 shadow">
+        
+
+        @if ($errors->any())
+
+            <div class="alert alert-danger">
+
+                <ul class="mb-0">
+
+                    @foreach ($errors->all() as $error)
+
+                        <li>{{ $error }}</li>
+
+                    @endforeach
+
+                </ul>
+
+            </div>
+
+        @endif
+
         <form action="{{ route('assetmaster.asset_type.update', $assetType->id) }}" method="POST">
             @csrf
             @method('PUT')
@@ -28,6 +48,7 @@
 
                 <div class="mt-3">
             <button class="btn btn-primary float-start">Update Asset Type</button>
+
             </div>
             <a href="{{ route('assetmaster.asset_type.index') }}" class="btn btn-light ms-2 float-end">Cancel</a>
         </form>

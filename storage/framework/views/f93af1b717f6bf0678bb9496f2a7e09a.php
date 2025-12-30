@@ -57,6 +57,12 @@
                                 <td><?php echo e($index + 1); ?></td>
 
                                 <td>
+                                    <?php if($permissions->can_edit): ?>
+                                    <a href="<?php echo e(route('operations.deliverables.edit', $record->id)); ?>" 
+                                       class="btn btn-sm btn-warning me-1">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </a>
+                                    <?php endif; ?>
                                     <?php if($permissions->can_view): ?>
                                     <a href="<?php echo e(route('operations.deliverables.view', $record->id)); ?>" 
                                        class="btn btn-sm btn-info">

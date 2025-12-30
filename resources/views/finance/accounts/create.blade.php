@@ -27,9 +27,12 @@
 <form method="POST" action="{{ route('finance.accounts.store') }}">
 @csrf
 
-<select name="account_group_id" class="form-control mb-2">
+
+<select name="account_group_id" class="form-control mb-2" required>
+    <option value="">Select Account Group</option>
     @foreach($groups as $g)
         <option value="{{ $g->id }}">{{ $g->name }}</option>
+        <option value="">Asset</option>
     @endforeach
 </select>
 

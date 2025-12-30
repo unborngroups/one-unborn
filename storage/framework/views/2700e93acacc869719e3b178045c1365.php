@@ -27,9 +27,12 @@
 <form method="POST" action="<?php echo e(route('finance.accounts.store')); ?>">
 <?php echo csrf_field(); ?>
 
-<select name="account_group_id" class="form-control mb-2">
+
+<select name="account_group_id" class="form-control mb-2" required>
+    <option value="">Select Account Group</option>
     <?php $__currentLoopData = $groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $g): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
         <option value="<?php echo e($g->id); ?>"><?php echo e($g->name); ?></option>
+        <option value="">Asset</option>
     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 </select>
 

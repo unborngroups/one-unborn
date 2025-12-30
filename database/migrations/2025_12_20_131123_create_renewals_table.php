@@ -17,10 +17,12 @@ return new class extends Migration
           ->constrained()
           ->cascadeOnDelete();
 
-    $table->date('date_of_renewal');          // user selected
+        $table->date('date_of_renewal');          // user selected
     $table->integer('renewal_months');        // 1,3,6,12
     $table->date('new_expiry_date');          // auto calculated
-    $table->date('alert_date');               // expiry - 1 day
+    $table->date('alert_date');   
+    $table->enum('status', ['Active', 'Inactive'])->default('Active');
+      // expiry - 1 day
 
             $table->timestamps();
         });

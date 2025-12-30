@@ -48,6 +48,7 @@
                 $Asset = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset Master');
                 $assetType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset Type');
                 $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
+                $modelType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Model Type');
 
             @endphp
 
@@ -107,7 +108,7 @@
 
                             <!--  -->
                         @php
-                            $assetMasterRoutesAvailable = Route::has('assetmaster.asset_type.index') || Route::has('assetmaster.make_type.index');
+                            $assetMasterRoutesAvailable = Route::has('assetmaster.asset_type.index') || Route::has('assetmaster.make_type.index') || Route::has('assetmaster.model_type.index');
                         @endphp
                         @if($Asset && $Asset->can_menu && $assetMasterRoutesAvailable)
 <li>
@@ -136,6 +137,15 @@
                     <a href="{{ route('assetmaster.make_type.index') }}"
                        class="nav-link text-white menu-item {{ request()->is('assetmaster/make_type*') ? 'active' : '' }}">
                         <i class="bi bi-tools"></i> Make Type
+                    </a>
+                </li>
+            @endif
+
+            @if($modelType && $modelType->can_menu && Route::has('assetmaster.model_type.index'))
+                <li>
+                    <a href="{{ route('assetmaster.model_type.index') }}"
+                       class="nav-link text-white menu-item {{ request()->is('assetmaster/model_type*') ? 'active' : '' }}">
+                        <i class="bi bi-tools"></i> Model Type
                     </a>
                 </li>
             @endif

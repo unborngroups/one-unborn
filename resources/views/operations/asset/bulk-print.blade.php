@@ -1,66 +1,69 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Bulk Asset Print</title>
-    <link rel="icon" type="image/png" width="20" height="20" href="{{ asset('images/logo.jpg') }}">
-
     <style>
+        @page {
+            margin: 0;
+        }
         body {
-            font-family: 'Segoe UI', sans-serif;
-            padding: 5px;
+            margin: 0;
+            padding: 4mm;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
             background: #fff;
         }
-        /* .asset-card {
-            border: 1px dashed #007bff;
-            padding: 10px;
-            margin-bottom: 18px;
+        /* .company-badge {
+            text-align: center;
+            font-size: 5px;
+            letter-spacing: 0.10em;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+            font-weight: 500;
         } */
-        /* .asset-card h4 {
-            margin: 0 0 12px;
-        } */
-        /* .asset-properties {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            font-size: 14px;
-        }
-        .asset-properties span {
-            flex: 1 1 180px;
-        } */
-        .asset-row {
-            margin-bottom: 24px;
-            
-            
-        }
-        .asset-row img {
-            height: 50px;
-            width: 50%;
-            max-width: 320px;
-            object-fit: contain;
-            display: block;
-            /* margin: 0 auto 8px; */
-        }
-        .asset-row p {
-            margin: 0;
+            .company {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #0f172a;
+            margin-bottom: 5px;
             font-weight: 600;
-            letter-spacing: 0.04em;
-            margin-left: 70px;
         }
-        /* @media print {
-            body { padding: 0; }
-            .asset-card { page-break-inside: avoid; }
+        .label-title {
+            font-size: 15px;
+            font-weight: 600;
+            /* color:black; */
+            margin-left: 60px;
+        }
+        /* .barcode-box {
+            margin-top: 14px;
+            padding: 6px;
+            background: #fff;
+            text-align: left;
         } */
+        .company {
+            font-size: 12px;
+        }
+        @media print {
+            body {
+                background: #fff;
+            }
+            .print-wrapper {
+                box-shadow: none;
+                border: none;
+                width: auto;
+            }
+        }
+
     </style>
 </head>
 <body>
     <h2>Print Preview</h2>
     @foreach($assets as $asset)
-    <div class="asset-row">
-        <img src="/barcode.php?code={{ $asset->asset_id }}" alt="Barcode">
-                <p class="">{{ $asset->asset_id }}</p>
+    <div class="print-wrapper">
+        <div class="label">
+            <p class="company">{{$asset->company->company_name ?? ''}}</p>
+            <div class="barcode-box">
+                <img src="/barcode.php?code={{ $asset->asset_id }}" alt="Barcode" style="height:40px; width:200px">
+            </div>
+            <div class="label-title">{{ $asset->asset_id }}</div>
+        </div>
     </div>
-        
     @endforeach
     <script>
         window.addEventListener('DOMContentLoaded', () => {

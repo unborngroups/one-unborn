@@ -28,6 +28,7 @@ class MenuSeeder extends Seeder
 /* 🔽 Sub menus */
 ['module_name' => 'Asset Master', 'user_type' => 'superadmin', 'name' => 'Asset Type', 'route' => 'assetmaster.asset_type.index', 'icon' => 'bi bi-tag', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
 ['module_name' => 'Asset Master', 'user_type' => 'superadmin', 'name' => 'Make Type', 'route' => 'assetmaster.make_type.index', 'icon' => 'bi bi-tools', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
+['module_name' => 'Asset Master', 'user_type' => 'superadmin', 'name' => 'Model Type', 'route' => 'assetmaster.model_type.index', 'icon' => 'bi bi-tools', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
 
             // 🛠️ Sales & Marketing - Feasibility Master
             ['module_name' => 'Sales & Marketing', 'user_type' => 'superadmin', 'name' => 'Feasibility Master', 'route' => 'feasibility.index', 'icon' => 'bi bi-diagram-3', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],

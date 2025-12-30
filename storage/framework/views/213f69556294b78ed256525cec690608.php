@@ -58,20 +58,6 @@
 
     <div class="card shadow border-0">
 
-
-
-             <!-- 
-         <?php if($permissions->can_delete): ?>
-         <form id="bulkDeleteForm" action="<?php echo e(route('clients.bulk-delete')); ?>" method="POST" class="d-inline">
-             <?php echo csrf_field(); ?>
-             <div id="bulkDeleteInputs"></div>
-         </form>
-         <button id="deleteSelectedBtn" class="btn btn-danger d-none">
-            <i class="bi bi-trash"></i>
-         </button>
-         <?php endif; ?>
-        </div> -->
-
         <div class="card-body table-responsive">
 
             <!-- <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search..."> -->
