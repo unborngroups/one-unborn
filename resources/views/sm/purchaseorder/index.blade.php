@@ -214,7 +214,7 @@
 
                                         </td>
 
-                                        <td>{{ $po->po_date->format('d-m-Y') }}</td>
+                                        <td>{{ $po->po_date->format('Y-m-d') }}</td>
 
                                         <td>{{ $po->feasibility->client->client_name ?? 'N/A' }}</td>
 

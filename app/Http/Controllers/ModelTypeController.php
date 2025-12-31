@@ -8,12 +8,12 @@ use App\Helpers\TemplateHelper;
 
 class ModelTypeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // $makeTypes = MakeType::with('company')
         //     ->orderBy('created_at', 'desc')
         //     ->get();
-        $modelTypes = ModelType::orderBy('id', 'asc')->paginate(20);
+        $modelTypes = ModelType::orderBy('id', 'desc')->paginate(20);
 
             $permissions = TemplateHelper::getUserMenuPermissions('Model Type') ?? (object)[
             'can_menu' => true,
@@ -23,6 +23,9 @@ class ModelTypeController extends Controller
             'can_view' => true,
         ];
 
+$perPage = (int) $request->get('per_page', 10);
+$perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+$modelTypes = ModelType::orderBy('id', 'desc')->paginate($perPage);
         return view('assetmaster.model_type.index', compact('modelTypes', 'permissions'));
     }
 

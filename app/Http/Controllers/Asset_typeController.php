@@ -9,12 +9,12 @@ use App\Helpers\TemplateHelper;
 
 class Asset_typeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // $assetTypes = AssetType::with('company')
         //     ->orderBy('created_at', 'desc')
         //     ->paginate(20);
-        $assetTypes = AssetType::orderBy('id', 'asc')->paginate(20);
+        // $assetTypes = AssetType::orderBy('id', 'desc')->paginate(20);
 
             $permissions = TemplateHelper::getUserMenuPermissions('Asset Type') ?? (object)[
             'can_menu' => true,
@@ -23,6 +23,10 @@ class Asset_typeController extends Controller
             'can_delete' => true,
             'can_view' => true,
         ];
+     
+        $perPage = (int) $request->get('per_page', 10);
+        $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+        $assetTypes = AssetType::orderBy('id', 'desc')->paginate($perPage);
 
         return view('assetmaster.asset_type.index', compact('assetTypes', 'permissions'));
     }

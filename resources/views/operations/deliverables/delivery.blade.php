@@ -83,7 +83,7 @@
 <!-- 
                                 <td>
                                     {{ $record->delivered_at 
-                                        ? \Carbon\Carbon::parse($record->delivered_at)->format('d-m-Y') 
+                                        ? \Carbon\Carbon::parse($record->delivered_at)->format('Y-m-d') 
                                         : 'N/A' }}
                                 </td> -->
 

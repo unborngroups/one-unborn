@@ -43,7 +43,7 @@
                         <div class="col-md-3"><strong>Hardware Required:</strong><br><?php echo e($record->feasibility->hardware_required ?? 'N/A'); ?></div>
                         <div class="col-md-3"><strong>Hardware Model Name:</strong><br><?php echo e($record->feasibility->hardware_model_name ?? 'N/A'); ?></div>
                         <div class="col-md-3"><strong>PO Number:</strong><br><span class="badge bg-primary"><?php echo e($record->po_number ?? 'N/A'); ?></span></div>
-                        <div class="col-md-3"><strong>PO Date:</strong><br><?php echo e($record->po_date ? \Carbon\Carbon::parse($record->po_date)->format('d-m-Y') : 'N/A'); ?></div>
+                        <div class="col-md-3"><strong>PO Date:</strong><br><?php echo e($record->po_date ? \Carbon\Carbon::parse($record->po_date)->format('Y-m-d') : 'N/A'); ?></div>
                     </div>
                 </div>
             </div>
@@ -103,8 +103,8 @@
                         <div class="col-md-3"><strong>Plan Name</strong><br><?php echo e($plan->plans_name ?? '-'); ?></div>
                         <div class="col-md-3"><strong>Speed (Plan)</strong><br><?php echo e($plan->speed_in_mbps_plan ?? '-'); ?></div>
                         <div class="col-md-3"><strong>Renewal Months</strong><br><?php echo e($plan->no_of_months_renewal ?? '-'); ?></div>
-                        <div class="col-md-3"><strong>Date of Activation</strong><br><?php echo e($plan->date_of_activation ? \Carbon\Carbon::parse($plan->date_of_activation)->format('d-m-Y') : '-'); ?></div>
-                        <div class="col-md-3"><strong>Date of Expiry</strong><br><?php echo e($plan->date_of_expiry ? \Carbon\Carbon::parse($plan->date_of_expiry)->format('d-m-Y') : '-'); ?></div>
+                        <div class="col-md-3"><strong>Date of Activation</strong><br><?php echo e($plan->date_of_activation ? \Carbon\Carbon::parse($plan->date_of_activation)->format('Y-m-d') : '-'); ?></div>
+                        <div class="col-md-3"><strong>Date of Expiry</strong><br><?php echo e($plan->date_of_expiry ? \Carbon\Carbon::parse($plan->date_of_expiry)->format('Y-m-d') : '-'); ?></div>
                         <div class="col-md-3"><strong>SLA</strong><br><?php echo e($plan->sla ?? '-'); ?></div>
                         <div class="col-md-3"><strong>Status of Link</strong><br><?php echo e($plan->status_of_link ?? '-'); ?></div>
                         <div class="col-md-3"><strong>Mode of Delivery</strong><br><?php echo e($plan->mode_of_delivery ?? '-'); ?></div>

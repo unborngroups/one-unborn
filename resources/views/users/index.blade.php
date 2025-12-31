@@ -124,7 +124,7 @@
                                 <div class="d-flex justify-content-center gap-1">
                                 {{-- Edit --}}
 
-                                @if(isset($permissions->can_edit) && $permissions->can_edit)
+                                @if($permissions->can_edit)
 
                             <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-primary">
 
@@ -137,7 +137,7 @@
 
                             {{-- Delete --}}
 
-                                 @if(isset($permissions->can_delete) && $permissions->can_delete)
+                                 @if($permissions->can_delete)
 
                             <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline">
 

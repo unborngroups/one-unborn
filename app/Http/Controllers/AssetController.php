@@ -7,6 +7,7 @@ use App\Models\Asset;
 use App\Models\Company;
 use App\Models\AssetType;
 use App\Models\MakeType;
+use App\Models\ModelType;
 use App\Models\Vendor;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -24,7 +25,7 @@ class AssetController extends Controller
 
     public function index(Request $request)
     {
-        // $assets = Asset::orderBy('id', 'asc')->paginate(20);
+        // $assets = Asset::orderBy('id', 'desc')->paginate(20);
         $permissions = TemplateHelper::getUserMenuPermissions('Asset') ?? (object)[
             'can_menu' => true,
             'can_add' => true,
@@ -35,14 +36,15 @@ class AssetController extends Controller
         $companies = Company::all();
         $assetTypes = AssetType::all();
         $makes = MakeType::all();
+        $models = ModelType::all();
 
         $perPage = (int) $request->get('per_page', 10);
     $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
 
     // Paginated vendors
-    $assets = Asset::orderBy('id', 'asc')->paginate($perPage);
+    $assets = Asset::orderBy('id', 'desc')->paginate($perPage);
 
-        return view('operations.asset.index', compact('assets', 'companies', 'assetTypes', 'makes', 'permissions'));
+        return view('operations.asset.index', compact('assets', 'companies', 'assetTypes', 'makes', 'permissions', 'models'));
     }
 
     public function create()
@@ -50,6 +52,7 @@ class AssetController extends Controller
         $companies = Company::all();
         $assetTypes = AssetType::all();
         $makes = MakeType::all();
+        $models = ModelType::all();
         $vendors = Vendor::whereNotNull('vendor_name')->where('vendor_name', '!=', '')->get();
         $permissions = TemplateHelper::getUserMenuPermissions('Asset') ?? (object)[
             'can_menu' => true,
@@ -59,7 +62,7 @@ class AssetController extends Controller
             'can_view' => true,
         ];
 
-        return view('operations.asset.create', compact('companies', 'assetTypes', 'makes', 'vendors', 'permissions'));
+        return view('operations.asset.create', compact('companies', 'assetTypes', 'makes', 'vendors', 'permissions', 'models'));
     }
 
     public function store(Request $request)
@@ -68,7 +71,7 @@ class AssetController extends Controller
             'company_id' => 'required|exists:companies,id',
             'asset_type_id' => 'required|exists:asset_types,id',
             'make_type_id' => 'required|exists:make_types,id',
-            'model' => 'required|string|max:255',
+            'model' => 'nullable|string|max:255',
             'brand' => 'nullable|string|max:255',
             'serial_no' => 'required|string|max:255',
             'mac_no' => 'nullable|string|max:255',
@@ -82,12 +85,12 @@ class AssetController extends Controller
 
         $company = Company::findOrFail($validated['company_id']);
         $brandValue = $validated['brand'] ?? '';
-        $modelValue = $validated['model'] ?? '';    
+        $modelValue = $validated['model'] ?? '';
         $prefix = $this->makeAssetPrefix($company->company_name, $brandValue, $modelValue);
 
         if (!empty($validated['purchase_date'])) {
             try {
-                $validated['purchase_date'] = Carbon::createFromFormat('d-m-Y', $validated['purchase_date'])->format('Y-m-d');
+                $validated['purchase_date'] = Carbon::createFromFormat('Y-m-d', $validated['purchase_date'])->format('Y-m-d');
             } catch (\Exception $e) {
                 $validated['purchase_date'] = Carbon::parse($validated['purchase_date'])->format('Y-m-d');
             }
@@ -96,7 +99,10 @@ class AssetController extends Controller
         $asset = new Asset($validated);
         $asset->asset_id = $prefix . $this->generateNextSerial();
         $asset->save();
-
+        // // page data fetch without reload
+        // if ($request->ajax()) {
+        //     return response()->json(['success' => true, 'asset' => $asset]);
+        // }
         return redirect()->route('operations.asset.index')->with('success', 'Asset created successfully.');
     }
 
@@ -106,6 +112,7 @@ class AssetController extends Controller
         $companies = Company::all();
         $assetTypes = AssetType::all();
         $makes = MakeType::all();
+        $models = ModelType::all();
         $permissions = TemplateHelper::getUserMenuPermissions('Asset') ?? (object)[
             'can_menu' => true,
             'can_add' => true,
@@ -114,7 +121,7 @@ class AssetController extends Controller
             'can_view' => true,
         ];
 
-        return view('operations.asset.edit', compact('asset', 'companies', 'assetTypes', 'makes', 'permissions'));
+        return view('operations.asset.edit', compact('asset', 'companies', 'assetTypes', 'makes', 'permissions', 'models'));
     }
 
     public function update(Request $request, $id)
@@ -125,7 +132,7 @@ class AssetController extends Controller
             'company_id' => 'required|exists:companies,id',
             'asset_type_id' => 'required|exists:asset_types,id',
             'make_type_id' => 'required|exists:make_types,id',
-            'model' => 'required|string|max:255',
+            'model' => 'nullable|string|max:255',
             'brand' => 'nullable|string|max:255',
             'serial_no' => 'required|string|max:255',
             'mac_no' => 'nullable|string|max:255',
@@ -138,7 +145,9 @@ class AssetController extends Controller
         ]);
 
         $asset->update($validated);
-
+        // if ($request->ajax()) {
+        //     return response()->json(['success' => true, 'asset' => $asset]);
+        // }
         return redirect()->route('operations.asset.index')->with('success', 'Asset updated successfully.');
     }
 
@@ -159,6 +168,9 @@ class AssetController extends Controller
     public function destroy(Asset $asset)
     {
         $asset->delete();
+        // if (request()->ajax()) {
+        //     return response()->json(['success' => true]);
+        // }
         return redirect()->route('operations.asset.index')->with('success', 'Asset deleted successfully.');
     }
 
@@ -240,6 +252,7 @@ class AssetController extends Controller
         $company = $this->resolveCompany($data, $rowNumber, $errors);
         $assetType = $this->resolveAssetType($data, $rowNumber, $errors);
         $makeType = $this->resolveMakeType($data, $rowNumber, $errors);
+        $modelType = $this->resolveModelType($data, $rowNumber, $errors);
 
         if (!$company || !$assetType || !$makeType) {
             continue;
@@ -250,7 +263,8 @@ class AssetController extends Controller
             'company_id' => $company->id,
             'asset_type_id' => $assetType->id,
             'make_type_id' => $makeType->id,
-            'model' => $data['model'] ?? null,
+            'model_type_id' => $modelType->id,
+            // 'model' => $data['model'] ?? null,
             'brand' => $data['brand'] ?? $makeType->make_name,
             'serial_no' => $data['serial_no'] ?? null,
             'mac_no' => $data['mac_no'] ?? null,
@@ -302,7 +316,7 @@ private function normalizePurchaseDate(mixed $value): ?string
     }
 
     $value = trim((string) $value);
-    $formats = ['d-m-Y', 'd/m/Y', 'd.m.Y', 'Y-m-d', 'Y/m/d'];
+    $formats = ['Y-m-d', 'd/m/Y', 'd.m.Y', 'Y-m-d', 'Y/m/d'];
     foreach ($formats as $format) {
         try {
             return Carbon::createFromFormat($format, $value)->format('Y-m-d');
@@ -372,6 +386,9 @@ private function normalizePurchaseDate(mixed $value): ?string
             return MakeType::where('make_name', $data['make'])->first();
         }
 
+        if (!empty($data['model_type_id'])) {
+            return ModelType::find($data['model_type_id'])?->makeType;
+        }
         $errors[] = "Row $rowNumber: make_type_id/make_name is required";
         return null;
     }

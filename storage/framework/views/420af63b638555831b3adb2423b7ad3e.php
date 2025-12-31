@@ -63,7 +63,7 @@
                     <td><input type="checkbox" class="rowCheckbox" value="<?php echo e($at->id); ?>"></td>
                     <td><?php echo e($key + 1); ?></td>
                     <td><?php echo e($at->type_name); ?></td>
-                    <td><?php echo e($at->created_at->format('d-m-Y')); ?></td>
+                    <td><?php echo e($at->created_at->format('Y-m-d')); ?></td>
                     <td>
                         <a href="<?php echo e(route('assetmaster.asset_type.edit', $at->id)); ?>" class="btn btn-primary btn-sm">Edit</a>
                         <form action="<?php echo e(route('assetmaster.asset_type.destroy', $at->id)); ?>" method="POST" style="display:inline-block;">

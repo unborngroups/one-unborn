@@ -68,7 +68,7 @@
                                 <td>{{ $record->po_number ?? 'N/A' }}</td>
 
                                 <td>
-                                    {{ $record->po_date ? \Carbon\Carbon::parse($record->po_date)->format('d-m-Y') : 'N/A' }}
+                                    {{ $record->po_date ? \Carbon\Carbon::parse($record->po_date)->format('Y-m-d') : 'N/A' }}
                                 </td>
 
                                 <td>{{ $record->feasibility->client->client_name ?? 'N/A' }}</td>

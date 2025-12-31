@@ -261,33 +261,29 @@
 
 <!-- container for all hardware rows -->
 <div id="hardware_container">
-    @if(!empty($hardwareDetails))
-        @foreach($hardwareDetails as $item)
-        <div class="row hardware_row" style="display:flex; margin-bottom:10px;">
-            <div class="col-md-3">
-                <label class="form-label fw-semibold">Hardware Make</label>
-                <input type="text" name="hardware_make[]" value="{{ $item['make'] ?? '' }}" class="form-control" placeholder="Enter Make">
-            </div>
-
-            <div class="col-md-3">
-                <label class="form-label fw-semibold">Hardware Model Name</label>
-                <input type="text" name="hardware_model_name[]" value="{{ $item['model'] ?? '' }}" class="form-control" placeholder="Enter Model">
-            </div>
+    <div class="row hardware_row" style="display:none;">
+        <div class="col-md-3">
+            <label>Make</label>
+            <select name="make_type_id[]" class="form-control" required>
+                <option value="">Select Make</option>
+                @foreach($makes as $m)
+                    <option value="{{ $m->id }}">{{ $m->make_name }}</option>
+                @endforeach
+            </select>
         </div>
-        @endforeach
-    @else
-        <div class="row hardware_row" style="display:none;">
-            <div class="col-md-3">
-                <label class="form-label fw-semibold">Hardware Make</label>
-                <input type="text" name="hardware_make[]" value="" class="form-control" placeholder="Enter Make">
+        <div class="col-md-3 d-flex align-items-end">
+            <div class="flex-grow-1">
+                <label>Model</label>
+                <select name="model_id[]" class="form-control" required>
+                    <option value="">Select Model</option>
+                    @foreach($models as $m)
+                        <option value="{{ $m->id }}">{{ $m->model_name }}</option>
+                    @endforeach
+                </select>
             </div>
-
-            <div class="col-md-3">
-                <label class="form-label fw-semibold">Hardware Model Name</label>
-                <input type="text" name="hardware_model_name[]" class="form-control" placeholder="Enter Model">
-            </div>
+            <button type="button" class="btn btn-danger btn-sm ms-2 mb-1 remove-hardware" style="height:38px;">X</button>
         </div>
-    @endif
+    </div>
 </div>
 
 <div class="col-md-3 mt-3" id="add_btn_div" >
@@ -352,8 +348,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
 });
+// 
+// Remove hardware row
+document.getElementById('hardware_container').addEventListener('click', function(e) {
+    if (e.target && e.target.classList.contains('remove-hardware')) {
+        const row = e.target.closest('.hardware_row');
+        if (row) {
+            row.remove();
+        }
+    }
+});
 
-
+// 
 function setSelectValue(selectElement, value) {
     if (!value || value === '') {
         selectElement.value = '';

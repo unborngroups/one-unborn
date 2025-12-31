@@ -171,7 +171,7 @@ public function sendWelcomeMail($userId)
             $user->email ?? '-',
             // $user->joining_date ?? '-'
             $user->Date_of_Joining
-                ? \Carbon\Carbon::parse($user->Date_of_Joining)->format('d-m-Y')
+                ? \Carbon\Carbon::parse($user->Date_of_Joining)->format('Y-m-d')
                 : '-',
         ],
         $template->body
@@ -186,7 +186,7 @@ public function sendWelcomeMail($userId)
         'name'          => $user->name,
         'email'         => $user->email,
         'joining_date'  => $user->Date_of_Joining
-                            ? \Carbon\Carbon::parse($user->Date_of_Joining)->format('d-m-Y')
+                            ? \Carbon\Carbon::parse($user->Date_of_Joining)->format('Y-m-d')
                             : '-',
         // 'joining_date'  => $user->joining_date,
         'company_name'  => $company->company_name,

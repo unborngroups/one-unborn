@@ -60,7 +60,7 @@
                 </tr>
                 <tr>
                     <td class="label">Closed On</td>
-                    <td><?php echo e(now()->format('d-m-Y H:i A')); ?></td>
+                    <td><?php echo e(now()->format('Y-m-d H:i A')); ?></td>
                 </tr>
             </table>
 

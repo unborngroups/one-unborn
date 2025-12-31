@@ -217,7 +217,7 @@
 
                                         </td>
 
-                                        <td><?php echo e($po->po_date->format('d-m-Y')); ?></td>
+                                        <td><?php echo e($po->po_date->format('Y-m-d')); ?></td>
 
                                         <td><?php echo e($po->feasibility->client->client_name ?? 'N/A'); ?></td>
 

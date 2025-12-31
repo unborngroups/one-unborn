@@ -6,6 +6,7 @@ use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
+
 class DatabaseSeeder extends Seeder
 {
     /**
@@ -20,6 +21,7 @@ class DatabaseSeeder extends Seeder
             SuperAdminSeeder::class,  // Then create admin and assign privileges
             EmailTemplateSeeder::class, // Finally add default email templates
             PrefixSystemSeeder::class, // Add prefix system data
+            UserMenuPrivilegeSeeder::class, // Add user-level menu privileges for testing
         ]);
     }
 }

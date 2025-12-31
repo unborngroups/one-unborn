@@ -124,7 +124,7 @@
                         </div>
                         <div class="col-md-3">
                             <strong>PO Date:</strong><br>
-                            {{ $record->po_date ? \Carbon\Carbon::parse($record->po_date)->format('d-m-Y') : 'N/A' }}
+                            {{ $record->po_date ? \Carbon\Carbon::parse($record->po_date)->format('Y-m-d') : 'N/A' }}
                         </div>
 
                     </div>

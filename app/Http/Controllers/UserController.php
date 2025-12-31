@@ -30,11 +30,11 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-     $users = User::orderBy('id', 'asc')->get();
+     $users = User::orderBy('id', 'desc')->get();
 
-        $users = User::with(['userType', 'companies'])->orderBy('id', 'asc')->get();
-        $companies = Company::orderBy('id', 'asc')->get();
-        $usertypes = UserType::orderBy('id', 'asc')->get();
+        $users = User::with(['userType', 'companies'])->orderBy('id', 'desc')->get();
+        $companies = Company::orderBy('id', 'desc')->get();
+        $usertypes = UserType::orderBy('id', 'desc')->get();
 
         // ✅ Use the helper to get actual permissions from database
         $permissions = TemplateHelper::getUserMenuPermissions('Manage User')?? (object)[
@@ -48,7 +48,7 @@ class UserController extends Controller
         $perPage = $request->input('per_page', 10); // default 10
         $perPage = in_array($perPage, [10,25,50,100]) ? $perPage : 10;
         // Ensure $users is a query builder before paginate
-        $usersQuery = User::orderBy('id', 'asc');
+        $usersQuery = User::orderBy('id', 'desc');
         // Apply any filters here if needed
         $users = $usersQuery->paginate($perPage);
         return view('users.index', compact('users', 'companies', 'usertypes', 'permissions'));
@@ -295,13 +295,14 @@ try {
             'companies.*' => 'exists:companies,id',
             'status'           => 'required|in:Active,Inactive',
         ]);
-         $dob = $request->Date_of_Birth 
-        ? Carbon::createFromFormat('d-m-Y', $request->Date_of_Birth)->format('Y-m-d') 
-        : null;
 
-    $doj = $request->Date_of_Joining 
-        ? Carbon::createFromFormat('d-m-Y', $request->Date_of_Joining)->format('Y-m-d') 
-        : null;
+        $dob = $request->Date_of_Birth 
+            ? Carbon::createFromFormat('Y-m-d', $request->Date_of_Birth)->format('Y-m-d') 
+            : null;
+
+        $doj = $request->Date_of_Joining 
+            ? Carbon::createFromFormat('Y-m-d', $request->Date_of_Joining)->format('Y-m-d') 
+            : null;
 
         // ✅ Check if any field that requires email has changed
 $shouldSendEmail = false;

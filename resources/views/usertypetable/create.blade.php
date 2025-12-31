@@ -16,6 +16,25 @@
 
     <h3 class="mb-3">Add User</h3> 
 
+    {{-- ✅ Show Validation Errors --}}
+
+        @if ($errors->any())
+
+            <div class="alert alert-danger">
+
+                <ul class="mb-0">
+
+                    @foreach ($errors->all() as $error)
+
+                        <li>{{ $error }}</li>
+
+                    @endforeach
+
+                </ul>
+
+            </div>
+
+        @endif
     {{-- ✅ Page heading --}}
 
 
@@ -33,8 +52,6 @@
             @csrf 
 
             {{-- ✅ Protects against CSRF attacks (required for POST forms in Laravel) --}}
-
-
 
             <div class="mb-3">
 
@@ -55,21 +72,15 @@
                 {{-- ✅ Input field for user's email (required) --}}
             </div>
 
-
-
-
-
             <div class="mb-3">
 
                 <label for="">Description</label>
 
-                <input type="text" name="Description" class="form-control">
+                <input type="text" name="Description" class="form-control" required>
 
                 {{-- ✅ Input for user description (optional) --}}
 
             </div>
-
-           
 
             <!-- <div class="mb-3">
 

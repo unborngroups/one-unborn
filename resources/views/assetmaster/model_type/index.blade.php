@@ -62,7 +62,7 @@
 
                     <td>{{ $key + 1 }}</td>
                     <td>{{ $at->model_name }}</td>
-                    <td>{{ $at->created_at->format('d-m-Y') }}</td>
+                    <td>{{ $at->created_at->format('Y-m-d') }}</td>
                     <td>
                         <a href="{{ route('assetmaster.model_type.edit', $at->id) }}" class="btn btn-primary btn-sm">Edit</a>
                         <form action="{{ route('assetmaster.model_type.destroy', $at->id) }}" method="POST" style="display:inline-block;">
@@ -77,8 +77,6 @@
             @endforelse
         </tbody>
     </table>
-
-</div>
 <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap">
     
     {{-- Left text --}}
@@ -150,6 +148,8 @@
 
 </div>
 
+
+</div>
 <script>
     document.getElementById('tableSearch').addEventListener('keyup', function() {
 

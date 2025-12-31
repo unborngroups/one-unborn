@@ -44,7 +44,7 @@
 
                                     <th>PO Date:</th>
 
-                                    <td>{{ $purchaseOrder->po_date->format('d-m-Y') }}</td>
+                                    <td>{{ $purchaseOrder->po_date->format('Y-m-d') }}</td>
 
                                 </tr>
 

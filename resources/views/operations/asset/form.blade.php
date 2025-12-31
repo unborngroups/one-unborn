@@ -42,12 +42,19 @@
             @endforeach
         </select>
     </div>
- 
 
 <!-- <div class="row mt-3"> -->
     <div class="col-md-4 mt-3">
         <label>Model</label>
-        <input type="text" value="{{ $asset->model ?? '' }}" name="model" class="form-control" required>
+        <select name="model" id="model" class="form-control" required>
+        <option value="">Select Model</option>
+        @foreach($models as $model)
+            <option value="{{ $model->model_name }}" {{ old('model', $asset->model ?? '') == $model->model_name ? 'selected' : '' }}>
+                {{ $model->model_name }}
+            </option>
+        @endforeach
+    </select>
+        <!-- <input type="text" value="{{ $asset->model ?? '' }}" name="model" class="form-control" required> -->
     </div>
     <div class="col-md-4 mt-3">
         <label>Brand</label>

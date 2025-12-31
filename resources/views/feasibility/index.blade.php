@@ -11,9 +11,11 @@
         <h3 class="fw-bold text-primary">Manage feasibility</h3>
 
        {{-- Add --}}
+       @if($permissions && $permissions->can_add)
+           <a href="{{ route('feasibility.create') }}" class="btn btn-success">Add Feasibility</a>
+       @endif
 
     </div>
-
 
     @if(session('success'))
 
@@ -28,6 +30,16 @@
         <div class="card-header bg-light d-flex justify-content-between">
 
             <!-- <h5 class="mb-0 text-danger">MANAGE USER</h5> -->
+              <form id="filterForm" method="GET" class="d-flex align-items-center gap-2 w-100">
+                <label for="entriesSelect" class="mb-0">Show</label>
+                <select id="entriesSelect" name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                    <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
+                    <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                </select>
+                <!-- <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search..."> -->
+            </form>
 
             <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search...">
 
@@ -37,7 +49,7 @@
 
             <!-- <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search..."> -->
 
-            <table class="table table-bordered table-hover align-middle" id="userTable">
+            <table class="table table-bordered table-hover align-middle" id="feasibility">
 
                 <thead class="table-dark-primary text-center">
 
@@ -79,19 +91,23 @@
 
                                 {{-- Edit --}}
 
-                                <a href="{{ route('feasibility.edit', $feasibility) }}" class="btn btn-sm btn-primary" title="Edit">
+                                    @if($permissions && $permissions->can_edit)
+                                        <a href="{{ route('feasibility.edit', $feasibility) }}" class="btn btn-sm btn-primary" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    @endif
 
-                                    <i class="bi bi-pencil"></i>
-
-                                </a>
 
                                  {{-- View --}}
 
-                                   <a href="{{ route('feasibility.show', $feasibility->id) }}" class="btn btn-sm btn-info" title="View">
+                                   @if($permissions && $permissions->can_view)
+                                       <a href="{{ route('feasibility.show', $feasibility->id) }}" class="btn btn-sm btn-info" title="View">
+                                           <i class="bi bi-eye"></i>
+                                       </a>
+                                   @endif
 
-                                    <i class="bi bi-eye"></i>
 
-                                    </a>
+                                
 
 
                                 </div>
@@ -130,7 +146,72 @@
 
         </div>
 
-    </div>  
+        
+        <div class="d-flex justify-content-between align-items-center mt-2 flex-wrap">
+            <div class="text-muted small">
+                Showing
+                {{ $feasibilities->firstItem() ?? 0 }}
+                to
+                {{ $feasibilities->lastItem() ?? 0 }}
+                of
+                {{ number_format($feasibilities->total()) }} entries
+            </div>
+            <div class="ms-auto">
+                <nav>
+                    <ul class="pagination mb-0">
+                        {{-- Previous Page Link --}}
+                        @if ($feasibilities->onFirstPage())
+                            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                        @else
+                            <li class="page-item"><a class="page-link" href="{{ $feasibilities->previousPageUrl() }}" rel="prev">Previous</a></li>
+                        @endif
+
+                        {{-- Pagination Elements --}}
+                        @php
+                            $total = $feasibilities->lastPage();
+                            $current = $feasibilities->currentPage();
+                            $max = 5; // Number of page links to show
+                            $start = max(1, $current - floor($max / 2));
+                            $end = min($total, $start + $max - 1);
+                            if ($end - $start < $max - 1) {
+                                $start = max(1, $end - $max + 1);
+                            }
+                        @endphp
+
+                        @if ($start > 1)
+                            <li class="page-item"><a class="page-link" href="{{ $feasibilities->url(1) }}">1</a></li>
+                            @if ($start > 2)
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            @endif
+                        @endif
+
+                        @for ($i = $start; $i <= $end; $i++)
+                            @if ($i == $current)
+                                <li class="page-item active"><span class="page-link">{{ $i }}</span></li>
+                            @else
+                                <li class="page-item"><a class="page-link" href="{{ $feasibilities->url($i) }}">{{ $i }}</a></li>
+                            @endif
+                        @endfor
+
+                        @if ($end < $total)
+                            @if ($end < $total - 1)
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            @endif
+                            <li class="page-item"><a class="page-link" href="{{ $feasibilities->url($total) }}">{{ $total }}</a></li>
+                        @endif
+
+                        {{-- Next Page Link --}}
+                        @if ($feasibilities->hasMorePages())
+                            <li class="page-item"><a class="page-link" href="{{ $feasibilities->nextPageUrl() }}" rel="next">Next</a></li>
+                        @else
+                            <li class="page-item disabled"><span class="page-link">Next</span></li>
+                        @endif
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
+    </div>
 
 </div>
 
@@ -140,7 +221,7 @@ document.getElementById('tableSearch').addEventListener('keyup', function() {
 
     let value = this.value.toLowerCase();
 
-    document.querySelectorAll('#userTable tbody tr').forEach(row => {
+    document.querySelectorAll('#feasibility tbody tr').forEach(row => {
 
         row.style.display = row.textContent.toLowerCase().includes(value) ? '' : 'none';
 

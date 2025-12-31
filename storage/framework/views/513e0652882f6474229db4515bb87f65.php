@@ -62,7 +62,7 @@
 
                     <td><?php echo e($key + 1); ?></td>
                     <td><?php echo e($at->model_name); ?></td>
-                    <td><?php echo e($at->created_at->format('d-m-Y')); ?></td>
+                    <td><?php echo e($at->created_at->format('Y-m-d')); ?></td>
                     <td>
                         <a href="<?php echo e(route('assetmaster.model_type.edit', $at->id)); ?>" class="btn btn-primary btn-sm">Edit</a>
                         <form action="<?php echo e(route('assetmaster.model_type.destroy', $at->id)); ?>" method="POST" style="display:inline-block;">
@@ -77,8 +77,6 @@
             <?php endif; ?>
         </tbody>
     </table>
-
-</div>
 <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap">
     
     
@@ -150,6 +148,8 @@
 
 </div>
 
+
+</div>
 <script>
     document.getElementById('tableSearch').addEventListener('keyup', function() {
 

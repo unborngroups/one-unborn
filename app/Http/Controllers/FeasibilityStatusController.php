@@ -16,7 +16,7 @@ class FeasibilityStatusController extends Controller
 {
     public function index(Request $request, $status = 'Open')
     {
-    //  $feasibilityStatuses = FeasibilityStatus::orderBy('id', 'asc')->get();
+    //  $feasibilityStatuses = FeasibilityStatus::orderBy('id', 'desc')->get();
 
         $statuses = ['Open', 'InProgress', 'Closed'];
         $records = FeasibilityStatus::with('feasibility')
@@ -36,7 +36,7 @@ class FeasibilityStatusController extends Controller
     $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
 
     // Paginated vendors
-            $feasibilityStatuses = FeasibilityStatus::orderBy('id', 'asc')->paginate($perPage);
+            $feasibilityStatuses = FeasibilityStatus::orderBy('id', 'desc')->paginate($perPage);
 
 
         return view('feasibility.feasibility_status.index', compact('records', 'status', 'statuses', 'permissions', 'feasibilityStatuses'));
@@ -147,7 +147,7 @@ public function editSave(Request $request, $id)
 
         $records = FeasibilityStatus::with(['feasibility', 'feasibility.client'])
             ->where('status', 'Open')
-            ->orderBy('id', 'asc')
+            ->orderBy('id', 'desc')
             ->paginate($perPage);
             
         return view('sm.feasibility.open', compact('records'));
@@ -160,7 +160,7 @@ public function editSave(Request $request, $id)
 
         $records = FeasibilityStatus::with(['feasibility', 'feasibility.client'])
             ->where('status', 'InProgress')
-            ->orderBy('id', 'asc')
+            ->orderBy('id', 'desc')
             ->paginate($perPage);
 
         return view('sm.feasibility.inprogress', compact('records'));
@@ -173,7 +173,7 @@ public function editSave(Request $request, $id)
 
         $records = FeasibilityStatus::with(['feasibility', 'feasibility.client'])
             ->where('status', 'Closed')
-            ->orderBy('id', 'asc')
+            ->orderBy('id', 'desc')
             ->paginate($perPage);
 
         return view('sm.feasibility.closed', compact('records'));
@@ -264,7 +264,7 @@ public function editSave(Request $request, $id)
 
         $records = FeasibilityStatus::with(['feasibility', 'feasibility.client'])
             ->where('status', 'Open')
-            ->orderBy('id', 'asc')
+            ->orderBy('id', 'desc')
             ->paginate($perPage);
 
         $permissions = $this->getOperationsFeasibilityPermissions();
@@ -278,7 +278,7 @@ public function editSave(Request $request, $id)
 
         $records = FeasibilityStatus::with(['feasibility', 'feasibility.client'])
             ->where('status', 'InProgress')
-            ->orderBy('id', 'asc')
+            ->orderBy('id', 'desc')
             ->paginate($perPage);
            
         $permissions = $this->getOperationsFeasibilityPermissions();
@@ -292,7 +292,7 @@ public function editSave(Request $request, $id)
 
         $records = FeasibilityStatus::with(['feasibility', 'feasibility.client'])
             ->where('status', 'Closed')
-            ->orderBy('id', 'asc')
+            ->orderBy('id', 'desc')
             ->paginate($perPage);
 
         $permissions = $this->getOperationsFeasibilityPermissions();
@@ -551,7 +551,7 @@ public function editSave(Request $request, $id)
     // Open → Send to Operations Team
     if ($newStatus == 'Open') {
         return \App\Models\User::whereHas('userType', function ($q) {
-            $q->where('name', 'Team OPSS');
+            $q->where('name', 'Team OPS');
         })
         ->whereNotNull('official_email')
         ->pluck('official_email')

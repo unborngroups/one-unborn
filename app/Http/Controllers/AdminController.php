@@ -10,7 +10,7 @@ class AdminController extends Controller
 {
    public function index()
 {
-    $logs = LoginLog::with('user')->orderBy('login_time', 'asc')->get();
+    $logs = LoginLog::with('user')->orderBy('login_time', 'desc')->get();
 
     foreach ($logs as $log) {
 

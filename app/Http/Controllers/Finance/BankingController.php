@@ -46,7 +46,7 @@ class BankingController extends Controller
         ]);
 
         try {
-            $validated['transaction_date'] = Carbon::createFromFormat('d-m-Y', $validated['transaction_date'])->format('Y-m-d');
+            $validated['transaction_date'] = Carbon::createFromFormat('Y-m-d', $validated['transaction_date'])->format('Y-m-d');
         } catch (\Exception $e) {
             $validated['transaction_date'] = Carbon::parse($validated['transaction_date'])->format('Y-m-d');
         }

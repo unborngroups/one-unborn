@@ -17,7 +17,7 @@ class PurchaseOrderController extends Controller
     
     public function index(Request $request)
     {
-        // $purchaseOrders = PurchaseOrder::orderBy('id', 'asc')->get();
+        // $purchaseOrders = PurchaseOrder::orderBy('id', 'desc')->get();
 
         $purchaseOrders = PurchaseOrder::with('feasibility.client')->orderBy('created_at', 'desc')->get();
         $permissions = TemplateHelper::getUserMenuPermissions('User Type') ?? (object)[
@@ -31,7 +31,7 @@ class PurchaseOrderController extends Controller
     $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
 
     // Paginated vendors
-    $purchaseOrders = PurchaseOrder::orderBy('id', 'asc')->paginate($perPage);
+    $purchaseOrders = PurchaseOrder::orderBy('id', 'desc')->paginate($perPage);
         return view('sm.purchaseorder.index', compact('purchaseOrders', 'permissions'));
     }
 
@@ -75,7 +75,7 @@ class PurchaseOrderController extends Controller
 
         $allowReuse = $validated['allow_reuse'] === '1';
         $existingPurchaseOrder = PurchaseOrder::where('po_number', $validated['po_number'])
-            ->orderBy('id', 'asc')
+            ->orderBy('id', 'desc')
             ->first();
 
         if (!$allowReuse && $existingPurchaseOrder) {
@@ -175,7 +175,7 @@ class PurchaseOrderController extends Controller
         
         // Normalize PO date input before storage (accept dd-mm-yyyy or yyyy-mm-dd)
         try {
-            $normalizedPoDate = Carbon::createFromFormat('d-m-Y', $validated['po_date'])->format('Y-m-d');
+            $normalizedPoDate = Carbon::createFromFormat('Y-m-d', $validated['po_date'])->format('Y-m-d');
         } catch (\Exception $e) {
             $normalizedPoDate = Carbon::parse($validated['po_date'])->format('Y-m-d');
         }

@@ -264,33 +264,29 @@
 
 <!-- container for all hardware rows -->
 <div id="hardware_container">
-    <?php if(!empty($hardwareDetails)): ?>
-        <?php $__currentLoopData = $hardwareDetails; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-        <div class="row hardware_row" style="display:flex; margin-bottom:10px;">
-            <div class="col-md-3">
-                <label class="form-label fw-semibold">Hardware Make</label>
-                <input type="text" name="hardware_make[]" value="<?php echo e($item['make'] ?? ''); ?>" class="form-control" placeholder="Enter Make">
-            </div>
-
-            <div class="col-md-3">
-                <label class="form-label fw-semibold">Hardware Model Name</label>
-                <input type="text" name="hardware_model_name[]" value="<?php echo e($item['model'] ?? ''); ?>" class="form-control" placeholder="Enter Model">
-            </div>
+    <div class="row hardware_row" style="display:none;">
+        <div class="col-md-3">
+            <label>Make</label>
+            <select name="make_type_id[]" class="form-control" required>
+                <option value="">Select Make</option>
+                <?php $__currentLoopData = $makes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $m): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <option value="<?php echo e($m->id); ?>"><?php echo e($m->make_name); ?></option>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </select>
         </div>
-        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-    <?php else: ?>
-        <div class="row hardware_row" style="display:none;">
-            <div class="col-md-3">
-                <label class="form-label fw-semibold">Hardware Make</label>
-                <input type="text" name="hardware_make[]" value="" class="form-control" placeholder="Enter Make">
+        <div class="col-md-3 d-flex align-items-end">
+            <div class="flex-grow-1">
+                <label>Model</label>
+                <select name="model_id[]" class="form-control" required>
+                    <option value="">Select Model</option>
+                    <?php $__currentLoopData = $models; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $m): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($m->id); ?>"><?php echo e($m->model_name); ?></option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                </select>
             </div>
-
-            <div class="col-md-3">
-                <label class="form-label fw-semibold">Hardware Model Name</label>
-                <input type="text" name="hardware_model_name[]" class="form-control" placeholder="Enter Model">
-            </div>
+            <button type="button" class="btn btn-danger btn-sm ms-2 mb-1 remove-hardware" style="height:38px;">X</button>
         </div>
-    <?php endif; ?>
+    </div>
 </div>
 
 <div class="col-md-3 mt-3" id="add_btn_div" >
@@ -355,8 +351,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
 });
+// 
+// Remove hardware row
+document.getElementById('hardware_container').addEventListener('click', function(e) {
+    if (e.target && e.target.classList.contains('remove-hardware')) {
+        const row = e.target.closest('.hardware_row');
+        if (row) {
+            row.remove();
+        }
+    }
+});
 
-
+// 
 function setSelectValue(selectElement, value) {
     if (!value || value === '') {
         selectElement.value = '';

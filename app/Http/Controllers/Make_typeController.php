@@ -14,7 +14,7 @@ class Make_typeController extends Controller
         // $makeTypes = MakeType::with('company')
         //     ->orderBy('created_at', 'desc')
         //     ->get();
-        // $makeTypes = MakeType::orderBy('id', 'asc')->paginate(20);
+        // $makeTypes = MakeType::orderBy('id', 'desc')->paginate(20);
 
             $permissions = TemplateHelper::getUserMenuPermissions('Make Type') ?? (object)[
             'can_menu' => true,
@@ -28,7 +28,7 @@ class Make_typeController extends Controller
     $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
 
     // Paginated vendors
-    $makeTypes = MakeType::orderBy('id', 'asc')->paginate($perPage);
+    $makeTypes = MakeType::orderBy('id', 'desc')->paginate($perPage);
 
         return view('assetmaster.make_type.index', compact('makeTypes', 'permissions', 'perPage'));
     }

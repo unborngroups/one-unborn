@@ -77,7 +77,7 @@ class AppServiceProvider extends ServiceProvider
                 $clockDisplay = sprintf(
                     '%s | Cloud Server Time (GMT+5:30) : %s',
                     $localClock->format('l, F j, Y h:i:s A'),
-                    $cloudClock->format('D, d-M-Y h:i:s A')
+                    $cloudClock->format('D, Y-m-d h:i:s A')
                 );
 
                 if ($log) {

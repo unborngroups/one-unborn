@@ -28,7 +28,7 @@
                 <td><?php echo e($note->debit_note_no); ?></td>
                 <td><?php echo e(optional($note->vendorInvoice->vendor)->vendor_name ?? '-'); ?></td>
                 <td><?php echo e(optional($note->vendorInvoice)->invoice_no ?? '-'); ?></td>
-                <td><?php echo e($note->date ? \Carbon\Carbon::parse($note->date)->format('d-m-Y') : '-'); ?></td>
+                <td><?php echo e($note->date ? \Carbon\Carbon::parse($note->date)->format('Y-m-d') : '-'); ?></td>
                 <td>₹ <?php echo e(number_format($note->amount, 2)); ?></td>
                 <td><?php echo e($note->reason ?: '-'); ?></td>
             </tr>

@@ -63,7 +63,7 @@
                     <td><input type="checkbox" class="rowCheckbox" value="{{ $at->id }}"></td>
                     <td>{{ $key + 1 }}</td>
                     <td>{{ $at->type_name }}</td>
-                    <td>{{ $at->created_at->format('d-m-Y') }}</td>
+                    <td>{{ $at->created_at->format('Y-m-d') }}</td>
                     <td>
                         <a href="{{ route('assetmaster.asset_type.edit', $at->id) }}" class="btn btn-primary btn-sm">Edit</a>
                         <form action="{{ route('assetmaster.asset_type.destroy', $at->id) }}" method="POST" style="display:inline-block;">

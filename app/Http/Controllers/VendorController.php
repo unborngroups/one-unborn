@@ -41,7 +41,7 @@ class VendorController extends Controller
     $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
 
     // Paginated vendors
-    $vendors = Vendor::orderBy('id', 'asc')->paginate($perPage);
+    $vendors = Vendor::orderBy('id', 'desc')->paginate($perPage);
 
     return view('vendors.index', compact('vendors', 'permissions'));
 }

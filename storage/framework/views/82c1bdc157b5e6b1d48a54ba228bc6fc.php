@@ -69,7 +69,7 @@
                                 <td><?php echo e($record->po_number ?? 'N/A'); ?></td>
 
                                 <td>
-                                    <?php echo e($record->po_date ? \Carbon\Carbon::parse($record->po_date)->format('d-m-Y') : 'N/A'); ?>
+                                    <?php echo e($record->po_date ? \Carbon\Carbon::parse($record->po_date)->format('Y-m-d') : 'N/A'); ?>
 
                                 </td>
 

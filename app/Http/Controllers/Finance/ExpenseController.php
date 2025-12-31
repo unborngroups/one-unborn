@@ -32,11 +32,11 @@ class ExpenseController extends Controller
     {
         $data = $request->validate([
             'expense_type' => 'required',
-            'expense_date' => ['required', 'date_format:d-m-Y'],
+            'expense_date' => ['required', 'date_format:Y-m-d'],
             'amount'       => 'required|numeric',
         ]);
 
-        $data['expense_date'] = Carbon::createFromFormat('d-m-Y', $data['expense_date'])->format('Y-m-d');
+        $data['expense_date'] = Carbon::createFromFormat('Y-m-d', $data['expense_date'])->format('Y-m-d');
 
         Expense::create($data);
 

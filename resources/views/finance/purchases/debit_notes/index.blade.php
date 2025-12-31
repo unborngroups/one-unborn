@@ -28,7 +28,7 @@
                 <td>{{ $note->debit_note_no }}</td>
                 <td>{{ optional($note->vendorInvoice->vendor)->vendor_name ?? '-' }}</td>
                 <td>{{ optional($note->vendorInvoice)->invoice_no ?? '-' }}</td>
-                <td>{{ $note->date ? \Carbon\Carbon::parse($note->date)->format('d-m-Y') : '-' }}</td>
+                <td>{{ $note->date ? \Carbon\Carbon::parse($note->date)->format('Y-m-d') : '-' }}</td>
                 <td>₹ {{ number_format($note->amount, 2) }}</td>
                 <td>{{ $note->reason ?: '-' }}</td>
             </tr>

@@ -54,7 +54,7 @@ class ProfileController extends Controller
             try {
                 $validated['Date_of_Birth'] = Carbon::createFromFormat('Y-m-d', $request->Date_of_Birth)->format('Y-m-d');
             } catch (\Exception $e) {
-                $validated['Date_of_Birth'] = Carbon::createFromFormat('d-m-Y', $request->Date_of_Birth)->format('Y-m-d');
+                $validated['Date_of_Birth'] = Carbon::createFromFormat('Y-m-d', $request->Date_of_Birth)->format('Y-m-d');
             }
         }
         // ✅ Handle file uploads and save to public/images/...
@@ -187,7 +187,7 @@ public function update(Request $request)
     // ✅ Convert Date_of_Birth before updating
 if (!empty($validated['Date_of_Birth'])) {
     try {
-        $validated['Date_of_Birth'] = \Carbon\Carbon::createFromFormat('d-m-Y', $validated['Date_of_Birth'])->format('Y-m-d');
+        $validated['Date_of_Birth'] = \Carbon\Carbon::createFromFormat('Y-m-d', $validated['Date_of_Birth'])->format('Y-m-d');
     } catch (\Exception $e) {
         // If already in correct format, ignore
     }

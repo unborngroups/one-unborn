@@ -43,7 +43,7 @@ class DebitNoteController extends Controller
 
         $date = $validated['date'];
         if (preg_match('/^\d{2}-\d{2}-\d{4}$/', $date)) {
-            $carbonDate = Carbon::createFromFormat('d-m-Y', $date);
+            $carbonDate = Carbon::createFromFormat('Y-m-d', $date);
         } else {
             $carbonDate = Carbon::parse($date);
         }

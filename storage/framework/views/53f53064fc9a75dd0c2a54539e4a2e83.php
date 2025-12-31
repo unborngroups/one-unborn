@@ -45,7 +45,7 @@
 
                                     <th>PO Date:</th>
 
-                                    <td><?php echo e($purchaseOrder->po_date->format('d-m-Y')); ?></td>
+                                    <td><?php echo e($purchaseOrder->po_date->format('Y-m-d')); ?></td>
 
                                 </tr>
 

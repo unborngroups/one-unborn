@@ -86,7 +86,7 @@
 
                                 <p><strong>Designation:</strong> {{ $profile->designation }}</p>
 
-                                <p><strong>Date of Birth:</strong> {{ \Carbon\Carbon::parse($profile->Date_of_Birth)->format('d-m-Y') }}</p>
+                                <p><strong>Date of Birth:</strong> {{ \Carbon\Carbon::parse($profile->Date_of_Birth)->format('Y-m-d') }}</p>
 
                             </div>
 

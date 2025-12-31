@@ -39,7 +39,7 @@ class FeasibilityController extends Controller
     $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
 
     // Paginated vendors
-            $feasibilities = Feasibility::orderBy('id', 'asc')->paginate($perPage);
+            $feasibilities = Feasibility::orderBy('id', 'desc')->paginate($perPage);
 
 
             $feasibilities = Feasibility::with(['company', 'client'])->whereIn('company_id', $companyIds)->latest()->paginate(10);
@@ -190,7 +190,7 @@ $status->save();
 private function sendCreatedEmail($feasibility)
 {
     try {
-        $teamType = \App\Models\UserType::where('name', 'Team OPSS')->first();
+        $teamType = \App\Models\UserType::where('name', 'Team OPS')->first();
 
         if ($teamType && $teamType->email) {
             Mail::to($teamType->email)->send(
@@ -332,11 +332,12 @@ $status->save();
 
     public function edit(Feasibility $feasibility)
     {
-         $companies = Company::all();
-    $clients = Client::all();
-    $modelTypes = ModelType::all();
+        $companies = Company::all();
+        $clients = Client::all();
+        $makes = MakeType::all();
+        $models = ModelType::all();
 
-        return view('feasibility.edit', compact('feasibility', 'companies', 'clients', 'modelTypes'));
+        return view('feasibility.edit', compact('feasibility', 'companies', 'clients', 'makes', 'models'));
     }
 
 //     public function show(Feasibility $feasibility)

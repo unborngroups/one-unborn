@@ -69,7 +69,7 @@
                         </form>
                     </td>
                     <td>{{ $mk->make_name }}</td>
-                    <td>{{ $mk->created_at->format('d-m-Y') }}</td>
+                    <td>{{ $mk->created_at->format('Y-m-d') }}</td>
                     
                 </tr>
             @empty

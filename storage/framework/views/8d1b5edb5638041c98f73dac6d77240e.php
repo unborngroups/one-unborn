@@ -45,12 +45,20 @@
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </select>
     </div>
- 
 
 <!-- <div class="row mt-3"> -->
     <div class="col-md-4 mt-3">
         <label>Model</label>
-        <input type="text" value="<?php echo e($asset->model ?? ''); ?>" name="model" class="form-control" required>
+        <select name="model" id="model" class="form-control" required>
+        <option value="">Select Model</option>
+        <?php $__currentLoopData = $models; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $model): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <option value="<?php echo e($model->model_name); ?>" <?php echo e(old('model', $asset->model ?? '') == $model->model_name ? 'selected' : ''); ?>>
+                <?php echo e($model->model_name); ?>
+
+            </option>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+    </select>
+        <!-- <input type="text" value="<?php echo e($asset->model ?? ''); ?>" name="model" class="form-control" required> -->
     </div>
     <div class="col-md-4 mt-3">
         <label>Brand</label>

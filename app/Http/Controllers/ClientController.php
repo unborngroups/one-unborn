@@ -31,34 +31,34 @@ class ClientController extends Controller
             'can_view' => true,
         ];
 
-        $query = Client::orderBy('id', 'asc');
-        $canViewAllClients = in_array($user->user_type_id, [1, 2]) || $permissions->can_view;
+        // $query = Client::orderBy('id', 'desc');
+        // $canViewAllClients = $permissions->can_view;
 
-        if (!$canViewAllClients) {
-            $companyIds = $user->companies()->pluck('companies.id')->toArray();
-            if (!empty($companyIds)) {
-                $query->whereIn('company_id', $companyIds);
-            }
-        }
+        // if (!$canViewAllClients) {
+        //     $companyIds = $user->companies()->pluck('companies.id')->toArray();
+        //     if (!empty($companyIds)) {
+        //         $query->whereIn('company_id', $companyIds);
+        //     }
+        // }
 
         // Search filter
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('client_code', 'like', "%$search%")
-                  ->orWhere('client_name', 'like', "%$search%")
-                  ->orWhere('business_display_name', 'like', "%$search%")
-                  ->orWhere('support_spoc_name', 'like', "%$search%")
-                  ->orWhere('support_spoc_email', 'like', "%$search%")
-                  ->orWhere('support_spoc_mobile', 'like', "%$search%")
-                  ->orWhere('status', 'like', "%$search%")
-                ;
-            });
-        }
+        // if ($request->filled('search')) {
+        //     $search = $request->search;
+        //     $query->where(function($q) use ($search) {
+        //         $q->where('client_code', 'like', "%$search%")
+        //           ->orWhere('client_name', 'like', "%$search%")
+        //           ->orWhere('business_display_name', 'like', "%$search%")
+        //           ->orWhere('support_spoc_name', 'like', "%$search%")
+        //           ->orWhere('support_spoc_email', 'like', "%$search%")
+        //           ->orWhere('support_spoc_mobile', 'like', "%$search%")
+        //           ->orWhere('status', 'like', "%$search%")
+        //         ;
+        //     });
+        // }
 
         $perPage = $request->input('per_page', 10); // default 10
         $perPage = in_array($perPage, [10,25,50,100]) ? $perPage : 10;
-        $clients = $query->paginate($perPage);
+        $clients = Client::orderBy('id', 'desc')->paginate($perPage);
         return view('clients.index', compact('clients', 'permissions'));
     }
 
@@ -166,9 +166,11 @@ if ($request->office_type === 'head') {
 $validated['user_name'] = $request->user_name;
 $validated['portal_password'] = bcrypt($request->portal_password);
 $validated['portal_active'] = 1;
-Client::create($validated);
-
-        return redirect()->route('clients.index')->with('success', 'Client created successfully.');
+    $client = Client::create($validated);
+    // if ($request->ajax()) {
+    //     return response()->json(['success' => true, 'client' => $client]);
+    // }
+    return redirect()->route('clients.index')->with('success', 'Client created successfully.');
     }
 
     /**
@@ -279,7 +281,9 @@ if ($request->office_type === 'head') {
     }
 
     $client->save();
-
+        // if ($request->ajax()) {
+        //     return response()->json(['success' => true, 'client' => $client]);
+        // }
         return redirect()->route('clients.index')->with('success', 'Client updated successfully.');
     }
 
@@ -288,7 +292,10 @@ if ($request->office_type === 'head') {
      */
     public function destroy(Client $client)
     {
-       $client->delete();
+        $client->delete();
+        // if (request()->ajax()) {
+        //     return response()->json(['success' => true]);
+        // }
         return redirect()->route('clients.index')->with('success', 'Client deleted successfully.');
     }
 

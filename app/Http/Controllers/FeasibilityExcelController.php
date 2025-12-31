@@ -110,6 +110,12 @@ class FeasibilityExcelController extends Controller
                 }
             } catch (\Throwable $e) {}
         }
+        /** Clean Address (IMPORTANT) **/
+$address = $rowData['address'] ?? null;
+if ($address !== null) {
+    $address = mb_convert_encoding($address, 'UTF-8', 'UTF-8');
+    $address = preg_replace('/[^\PC\s]/u', '', $address);
+}
 
         /** Prepare Insert **/
         $prepared = [
@@ -121,7 +127,8 @@ class FeasibilityExcelController extends Controller
             'state' => $state,
             'district' => $district,
             'area' => $area,
-            'address' => $rowData['address'],
+            'address' => $address,
+            // 'address' => $rowData['address'],
             'spoc_name' => $rowData['spoc_name'],
             'spoc_contact1' => $rowData['spoc_contact1'],
             'spoc_contact2' => $rowData['spoc_contact2'],

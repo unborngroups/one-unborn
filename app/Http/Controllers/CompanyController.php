@@ -18,31 +18,24 @@ class CompanyController extends Controller
      */
 public function index(Request $request)
 {
-     $companies = Company::orderBy('id', 'asc')->get();
     /** @var \App\Models\User $user */
     $user = Auth::user();
     $role = strtolower($user->userType->name ?? '');
 
-    // 🔹 Superadmin/Admin — show all companies
-    if (in_array($role, ['superadmin', 'admin'])) {
-    $companies = Company::orderBy('id', 'asc')->paginate(10);
-} else {
-    $companies = $user->companies()->orderBy('id', 'asc')->paginate(10);
-}
-
-
     // ✅ Get permissions safely
     $permissions = TemplateHelper::getUserMenuPermissions('Company Details') ?? (object)[
-       
         'can_add' => true,
         'can_edit' => true,
         'can_delete' => true,
         'can_view' => true,
     ];
 
-    
-$perPage = $request->input('per_page', 10);
-$companies = Company::orderBy('id', 'asc')->paginate($perPage);
+    $perPage = $request->input('per_page', 10);
+    if (in_array($role, ['superadmin', 'admin'])) {
+        $companies = Company::orderBy('id', 'desc')->paginate($perPage);
+    } else {
+        $companies = $user->companies()->orderBy('id', 'desc')->paginate($perPage);
+    }
     return view('companies.index', compact('companies', 'permissions'));
 }
 

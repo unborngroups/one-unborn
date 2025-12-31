@@ -15,4 +15,5 @@ class Asset extends Model
     public function company() { return $this->belongsTo(Company::class); }
     public function assetType() { return $this->belongsTo(AssetType::class); }
     public function makeType() { return $this->belongsTo(MakeType::class); }
+    public function modelType() { return $this->belongsTo(ModelType::class); }
 }

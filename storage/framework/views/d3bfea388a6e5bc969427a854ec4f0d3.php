@@ -69,7 +69,7 @@
                         </form>
                     </td>
                     <td><?php echo e($mk->make_name); ?></td>
-                    <td><?php echo e($mk->created_at->format('d-m-Y')); ?></td>
+                    <td><?php echo e($mk->created_at->format('Y-m-d')); ?></td>
                     
                 </tr>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
