@@ -58,9 +58,20 @@ class DeliverablesController extends Controller
         // Gateway: usually first usable IP (network + 1)
         $gateway_ip = long2ip($network_long + 1);
 
-        // Usable IP range (network+1 to broadcast-1)
-        $first_usable = $network_long + 1;
-        $last_usable = $broadcast_long - 1;
+        // Usable IP range
+        // - For /32: only the single IP is considered usable
+        // - For /31: both addresses are typically usable in point-to-point links
+        // - For all others: hosts from network+1 to broadcast-1
+        if ($prefix === 32) {
+            $first_usable = $network_long;
+            $last_usable = $network_long;
+        } elseif ($prefix === 31) {
+            $first_usable = $network_long;
+            $last_usable = $broadcast_long;
+        } else {
+            $first_usable = $network_long + 1;
+            $last_usable = $broadcast_long - 1;
+        }
         $usable_ips = [];
         if ($last_usable >= $first_usable) {
             for ($i = $first_usable; $i <= $last_usable; $i++) {
@@ -141,7 +152,7 @@ class DeliverablesController extends Controller
             'record' => $record,
             'assetOptions' => Asset::whereNotNull('asset_id')
                 ->whereNotNull('serial_no')
-                ->select('asset_id', 'serial_no', DB::raw("COALESCE(procured_from,'Inventory') vendor_name"))
+                ->select('asset_id', 'serial_no', 'mac_no', DB::raw("COALESCE(procured_from,'Inventory') vendor_name"))
                 ->orderBy('asset_id')->get(),
             'hardwareDetails' => json_decode($record->feasibility->hardware_details ?? '[]', true)
         ]);
@@ -173,19 +184,15 @@ class DeliverablesController extends Controller
                 'mtu','wifi_username','wifi_password',
                 'router_username','router_password',
                 'lan_ip_1','lan_ip_2','lan_ip_3','lan_ip_4',
-                'asset_id','asset_serial_no','otc_extra_charges','payment_login_url',
+                'asset_id','asset_serial_no','asset_mac_no','otc_extra_charges','payment_login_url',
                 'payment_quick_url','payment_account_or_username','payment_password','ipsec',
+                'phase_1','phase_2','ipsec_interface','export_file'
             ]);
             // Ensure ipsec is never null
             $data['ipsec'] = $request->input('ipsec', 'No');
 
-            // For backward compatibility, set main fields from first link
-            $data['plans_name'] = $request->input('plans_name_1', $request->input('plans_name'));
-            $data['speed_in_mbps_plan'] = $request->input('speed_in_mbps_plan_1', $request->input('speed_in_mbps_plan'));
-            $data['no_of_months_renewal'] = $request->input('no_of_months_renewal_1', $request->input('no_of_months_renewal'));
-            $data['date_of_activation'] = $this->date($request->input('date_of_activation_1', $request->input('date_of_activation')));
-            $data['date_of_expiry'] = $this->date($request->input('date_of_expiry_1', $request->input('date_of_expiry')));
-            $data['sla'] = $request->input('sla_1', $request->input('sla'));
+            // Main summary plan columns were removed from deliverables table,
+            // so we now store per-link details only in deliverable_plans.
 
         /* ---- MODE HANDLING ---- */
 
@@ -204,21 +211,21 @@ class DeliverablesController extends Controller
         $data["dhcp_vlan_$i"]       = $request->input("dhcp_vlan_$i");
     }
 
-    if (in_array($mode, ['Static IP', 'Static'])) {
-        $data["static_ip_address_$i"]   = $request->input("static_ip_address_$i");
-        $data["static_subnet_mask_$i"]  = $request->input("static_subnet_mask_$i");
-        $data["static_vlan_tag_$i"]     = $request->input("static_vlan_tag_$i");
-        $data["network_ip_$i"]          = $request->input("network_ip_$i");
-        $data["gateway_$i"]             = $request->input("gateway_$i");
-        $data["usable_ips_$i"]          = $request->input("usable_ips_$i");
-    }
+    // if (in_array($mode, ['Static IP', 'Static'])) {
+    //     $data["static_ip_address_$i"]   = $request->input("static_ip_address_$i");
+    //     $data["static_subnet_mask_$i"]  = $request->input("static_subnet_mask_$i");
+    //     $data["static_vlan_tag_$i"]     = $request->input("static_vlan_tag_$i");
+    //     $data["network_ip_$i"]          = $request->input("network_ip_$i");
+    //     $data["gateway_$i"]             = $request->input("gateway_$i");
+    //     $data["usable_ips_$i"]          = $request->input("usable_ips_$i");
+    // }
 
-    if ($mode === 'PAYMENTS') {
-        $data["payment_login_url_$i"] = $request->input("payment_login_url_$i");
-        $data["payment_quick_url_$i"] = $request->input("payment_quick_url_$i");
-        $data["payment_account_or_username_$i"] = $request->input("payment_account_or_username_$i");
-        $data["payment_password_$i"] = $request->input("payment_password_$i");
-    }
+    // if ($mode === 'PAYMENTS') {
+    //     $data["payment_login_url_$i"] = $request->input("payment_login_url_$i");
+    //     $data["payment_quick_url_$i"] = $request->input("payment_quick_url_$i");
+    //     $data["payment_account_or_username_$i"] = $request->input("payment_account_or_username_$i");
+    //     $data["payment_password_$i"] = $request->input("payment_password_$i");
+    // }
 }
 
         if ($request->ipsec === 'Yes') {
@@ -306,6 +313,10 @@ class DeliverablesController extends Controller
                     'wifi_password' => $request->input('wifi_password_' . $i),
                     'router_username' => $request->input('router_username_' . $i),  
                     'router_password' => $request->input('router_password_' . $i),
+                    'payment_login_url' => $request->input('payment_login_url_' . $i),
+                    'payment_quick_url' => $request->input('payment_quick_url_' . $i),
+                    'payment_account_or_username' => $request->input('payment_account_or_username_' . $i),
+                    'payment_password' => $request->input('payment_password_' . $i),
                     'pppoe_username' => $request->input('pppoe_username_' . $i),
                     'pppoe_password' => $request->input('pppoe_password_' . $i),
                     'pppoe_vlan' => $request->input('pppoe_vlan_' . $i),
@@ -325,6 +336,10 @@ class DeliverablesController extends Controller
         /* ---- CLIENT LINK ---- */
 
         if ($data['status'] === 'Delivery') {
+            // Use first plan's speed as bandwidth summary for ClientLink
+            $firstPlan = $deliverable->deliverablePlans()->orderBy('link_number')->first();
+            $bandwidth = $firstPlan->speed_in_mbps_plan ?? null;
+
             ClientLink::updateOrCreate(
                 [
                     'deliverable_id' => $deliverable->id,
@@ -334,7 +349,7 @@ class DeliverablesController extends Controller
                     'service_id'     => $deliverable->circuit_id,
                     'client_id'      => $deliverable->feasibility->client->id,
                     'link_type'      => $deliverable->link_type,
-                    'bandwidth'      => $deliverable->speed_in_mbps_plan,
+                    'bandwidth'      => $bandwidth,
                     'interface_name' => $request->input('mode_of_delivery_1'),
                     'router_id'      => $deliverable->router_id,
                     'status'         => 'active',
@@ -344,13 +359,75 @@ class DeliverablesController extends Controller
 
         }
 
+        // Redirect logic:
+        //  - If submitted (status = Delivery) AND feasibility service type is ILL,
+        //    go to the Acceptance page for this deliverable.
+        //  - Otherwise keep existing behaviour: Delivery list or InProgress list.
+
+        $serviceType = $feasibility->type_of_service ?? null;
+
+        if ($data['status'] === 'Delivery' && $serviceType === 'ILL') {
+            return redirect()
+                ->route('operations.deliverables.acceptance.show', $deliverable->id)
+                ->with('success', 'Deliverable saved successfully');
+        }
+
         $route = $data['status'] === 'Delivery'
-    ? 'operations.deliverables.delivery'
-    : 'operations.deliverables.inprogress';
+            ? 'operations.deliverables.delivery'
+            : 'operations.deliverables.inprogress';
 
-return redirect()->route($route)
-    ->with('success', 'Deliverable saved successfully');
+        return redirect()->route($route)
+            ->with('success', 'Deliverable saved successfully');
 
+    }
+
+    // Acceptance list page (show all ILL deliverables that reached Delivery)
+    public function operationsAcceptance()
+    {
+        $perPage = request()->input('per_page', 10);
+        $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+
+        $records = Deliverables::with([
+                'feasibility.client',
+                'feasibility.company',
+                'feasibility.feasibilityStatus',
+            ])
+            ->where('status', 'Delivery')
+            ->whereHas('feasibility', function ($q) {
+                $q->where('type_of_service', 'ILL');
+            })
+            ->orderBy('id')
+            ->paginate($perPage);
+
+        return view('operations.deliverables.acceptance', [
+            'records' => $records,
+            'permissions' => TemplateHelper::getUserMenuPermissions('operations Deliverables'),
+        ]);
+    }
+
+    // Acceptance page for a specific deliverable
+    public function operationsAcceptanceShow($id)
+    {
+        $perPage = request()->input('per_page', 10);
+        $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+
+        $records = Deliverables::with([
+                'feasibility.client',
+                'feasibility.company',
+                'feasibility.feasibilityStatus',
+            ])
+            ->where('status', 'Delivery')
+            ->whereHas('feasibility', function ($q) {
+                $q->where('type_of_service', 'ILL');
+            })
+            ->where('id', $id)
+            ->orderBy('id')
+            ->paginate($perPage);
+
+        return view('operations.deliverables.acceptance', [
+            'records' => $records,
+            'permissions' => TemplateHelper::getUserMenuPermissions('operations Deliverables'),
+        ]);
     }
 
     // Helper to generate circuit_id

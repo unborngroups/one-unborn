@@ -104,6 +104,25 @@ MODIFY COLUMN `mrp` BIGINT NULL;
 ALTER TABLE `renewals`
 ADD status ENUM('Active', 'Inactive') DEFAULT 'Active';
 
-
 -- 
 ALTER TABLE feasibilities CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- 1/1-2026
+ALTER TABLE company_settings
+ADD COLUMN feasibility_notifications LONGTEXT NULL
+AFTER company_email;
+
+
+ALTER TABLE menus
+ADD COLUMN sub_section VARCHAR(255) NULL AFTER name;
+asset_mac_no
+
+ALTER TABLE deliverables
+ADD COLUMN asset_mac_no VARCHAR(255) NULL AFTER asset_serial_no;
+
+
+ALTER TABLE deliverable_plans
+ADD COLUMN payment_login_url VARCHAR(255) NULL AFTER router_password,
+ADD COLUMN payment_quick_url VARCHAR(255) NULL AFTER payment_login_url,
+ADD COLUMN payment_account_or_username VARCHAR(255) NULL AFTER payment_quick_url,
+ADD COLUMN payment_password VARCHAR(255) NULL AFTER payment_account_or_username;

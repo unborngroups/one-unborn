@@ -7,7 +7,7 @@
           <img src="{{ asset('images/logo1.png') }}" alt="One-Unborn" style="height:48px;">
           <h2 style="margin:16px 0 8px; font-size:28px; letter-spacing:-0.4px;">Reset Password</h2>
           <p style="margin:0; color:#5c5b5b;">A secure token was generated for your account.</p>
-     </div>
+     </div>    
      <div style="background:#ffffff; border-radius:20px; padding:28px; border:1px solid #e3e3e3;">
           <p style="margin-top:0; margin-bottom:18px; font-size:16px;">Hello <strong>{{ $user->name }}</strong>,</p>
           <p style="margin-bottom:24px; color:#4f5257;">We received a request to reset your password. Tap the button below to create a new one. The link expires in 60 minutes.</p>

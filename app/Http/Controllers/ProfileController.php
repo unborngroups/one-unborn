@@ -136,7 +136,7 @@ public function update(Request $request)
         'fname' => 'required|string|max:100',
         'lname' => 'required|string|max:100',
         'designation' => 'required|string|max:100',
-        'Date_of_Birth' => 'required|date',
+        'Date_of_Birth' => 'required', // Remove 'date' rule to allow custom formats
         'official_email' => 'required|email',
         'personal_email' => 'required|email',
         'phone1' => 'required|string|max:20',
@@ -146,6 +146,21 @@ public function update(Request $request)
         'pan' => 'required|string|max:20',
         'pan_upload' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
     ]);
+
+    // Convert Date_of_Birth from DD-MM-YYYY to Y-m-d if needed
+    if (!empty($validated['Date_of_Birth'])) {
+        try {
+            // Try DD-MM-YYYY first
+            $validated['Date_of_Birth'] = \Carbon\Carbon::createFromFormat('d-m-Y', $validated['Date_of_Birth'])->format('Y-m-d');
+        } catch (\Exception $e) {
+            try {
+                // Try Y-m-d (already correct)
+                $validated['Date_of_Birth'] = \Carbon\Carbon::createFromFormat('Y-m-d', $validated['Date_of_Birth'])->format('Y-m-d');
+            } catch (\Exception $e2) {
+                // Leave as is if both fail
+            }
+        }
+    }
 
     // Handle file uploads
     if ($request->hasFile('aadhaar_upload')) {

@@ -80,6 +80,25 @@
 
                                 <input type="hidden" name="feasibility_id" value="{{ $purchaseOrder->feasibility_id }}">
 
+                                {{-- Feasibility Address Preview (read-only) --}}
+                                @php
+                                    $feas = $purchaseOrder->feasibility;
+                                    $addrParts = collect([
+                                        $feas->address ?? null,
+                                        $feas->area ?? null,
+                                        $feas->district ?? null,
+                                        $feas->state ?? null,
+                                        $feas->pincode ?? null,
+                                    ])->filter();
+                                    $feasAddressText = $addrParts->isNotEmpty() ? $addrParts->implode(', ') : '';
+                                @endphp
+                                @if($feasAddressText)
+                                    <div class="mt-2">
+                                        <label class="form-label mb-1"><strong>Feasibility Address</strong></label>
+                                        <textarea class="form-control bg-light" rows="2" readonly>{{ $feasAddressText }}</textarea>
+                                    </div>
+                                @endif
+
                             </div>
 
 

@@ -20,11 +20,14 @@
 
                     </h4>
 
+                     @if($permissions->can_add)
                     <a href="{{ route('sm.purchaseorder.create') }}" class="btn btn-success">
 
                             <i class="bi bi-plus-circle"></i> Create New Purchase Order
 
                         </a>
+
+         @endif
 
                 </div>
 

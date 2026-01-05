@@ -296,13 +296,31 @@ try {
             'status'           => 'required|in:Active,Inactive',
         ]);
 
-        $dob = $request->Date_of_Birth 
-            ? Carbon::createFromFormat('Y-m-d', $request->Date_of_Birth)->format('Y-m-d') 
-            : null;
+        $dob = null;
+        if ($request->Date_of_Birth) {
+            try {
+                $dob = Carbon::createFromFormat('d-m-Y', $request->Date_of_Birth)->format('Y-m-d');
+            } catch (\Exception $e) {
+                try {
+                    $dob = Carbon::createFromFormat('Y-m-d', $request->Date_of_Birth)->format('Y-m-d');
+                } catch (\Exception $e2) {
+                    $dob = null;
+                }
+            }
+        }
 
-        $doj = $request->Date_of_Joining 
-            ? Carbon::createFromFormat('Y-m-d', $request->Date_of_Joining)->format('Y-m-d') 
-            : null;
+        $doj = null;
+        if ($request->Date_of_Joining) {
+            try {
+                $doj = Carbon::createFromFormat('d-m-Y', $request->Date_of_Joining)->format('Y-m-d');
+            } catch (\Exception $e) {
+                try {
+                    $doj = Carbon::createFromFormat('Y-m-d', $request->Date_of_Joining)->format('Y-m-d');
+                } catch (\Exception $e2) {
+                    $doj = null;
+                }
+            }
+        }
 
         // ✅ Check if any field that requires email has changed
 $shouldSendEmail = false;
@@ -322,22 +340,37 @@ if (!empty(array_diff($validated['companies'], $user->companies->pluck('id')->to
     $shouldSendEmail = true;
 }
 
-        $password = Str::random(10);
-        // when usertype changes, we need to resync privileges
         $previousUserTypeId = $user->user_type_id;
 
-        $user->update([
-            'name'             => $validated['name'],
-            'user_type_id'     => $validated['user_type_id'],
-            'official_email'   => $validated['official_email'],
-            'personal_email'   => $validated['personal_email'] ?? null,
-            'mobile'           => $validated['mobile'] ?? null,
-            'Date_of_Birth'    => $dob,
-            'Date_of_Joining'  => $doj,
-            'status'           => $validated['status'],
-            'email'            => $validated['official_email'],// keep email in sync
-            'password'        => Hash::make($password),
-        ]);
+        // Only update password if sending email (i.e., new password generated), else keep old password
+        if ($request->has('send_email')) {
+            $password = Str::random(10);
+            $user->update([
+                'name'             => $validated['name'],
+                'user_type_id'     => $validated['user_type_id'],
+                'official_email'   => $validated['official_email'],
+                'personal_email'   => $validated['personal_email'] ?? null,
+                'mobile'           => $validated['mobile'] ?? null,
+                'Date_of_Birth'    => $dob,
+                'Date_of_Joining'  => $doj,
+                'status'           => $validated['status'],
+                'email'            => $validated['official_email'],
+                'password'         => Hash::make($password),
+            ]);
+        } else {
+            $user->update([
+                'name'             => $validated['name'],
+                'user_type_id'     => $validated['user_type_id'],
+                'official_email'   => $validated['official_email'],
+                'personal_email'   => $validated['personal_email'] ?? null,
+                'mobile'           => $validated['mobile'] ?? null,
+                'Date_of_Birth'    => $dob,
+                'Date_of_Joining'  => $doj,
+                'status'           => $validated['status'],
+                'email'            => $validated['official_email'],
+                // Do not update password
+            ]);
+        }
 
         // Sync company assignments
          $user->companies()->sync($validated['companies']);

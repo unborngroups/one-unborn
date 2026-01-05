@@ -124,7 +124,7 @@
                                 <div class="d-flex justify-content-center gap-1">
                                 
 
-                                <?php if(isset($permissions->can_edit) && $permissions->can_edit): ?>
+                                <?php if($permissions->can_edit): ?>
 
                             <a href="<?php echo e(route('users.edit', $user)); ?>" class="btn btn-sm btn-primary">
 
@@ -137,7 +137,7 @@
 
                             
 
-                                 <?php if(isset($permissions->can_delete) && $permissions->can_delete): ?>
+                                 <?php if($permissions->can_delete): ?>
 
                             <form action="<?php echo e(route('users.destroy', $user)); ?>" method="POST" class="d-inline">
 

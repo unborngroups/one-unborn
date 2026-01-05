@@ -40,7 +40,7 @@
             
             <div class="mb-3">
                 <label for="expiry" class="form-label">New Expiry Date</label>
-                <input type="text" id="expiry" name="new_expiry_date" class="form-control" readonly placeholder="Auto-calculated" >
+                <input type="text" id="expiry" name="new_expiry_date" class="form-control" readonly placeholder="Auto-calculated">
             </div>
 
             

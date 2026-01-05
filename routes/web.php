@@ -246,6 +246,10 @@ Route::get('/test-email', function () {
     Route::get('/operations/deliverables/open', [DeliverablesController::class, 'operationsOpen'])->name('operations.deliverables.open');
     Route::get('/operations/deliverables/inprogress', [DeliverablesController::class, 'operationsInProgress'])->name('operations.deliverables.inprogress');
     Route::get('/operations/deliverables/delivery', [DeliverablesController::class, 'operationsDelivery'])->name('operations.deliverables.delivery');
+    // Acceptance list page (no specific deliverable)
+    Route::get('/operations/deliverables/acceptance', [DeliverablesController::class, 'operationsAcceptance'])->name('operations.deliverables.acceptance');
+    // Acceptance page for a specific deliverable
+    Route::get('/operations/deliverables/{id}/acceptance', [DeliverablesController::class, 'operationsAcceptanceShow'])->name('operations.deliverables.acceptance.show');
     Route::get('/operations/deliverables/{id}/view', [DeliverablesController::class, 'operationsView'])->name('operations.deliverables.view');
     Route::get('/operations/deliverables/{id}/edit', [DeliverablesController::class, 'operationsEdit'])->name('operations.deliverables.edit');
     Route::post('/operations/deliverables/{id}/save', [DeliverablesController::class, 'operationsSave'])->name('operations.deliverables.save');
@@ -281,6 +285,7 @@ Route::get('/operations/asset/{id}/print', [AssetController::class, 'print'])->n
     Route::get('/sm/deliverables/open', [DeliverablesController::class, 'smOpen'])->name('sm.deliverables.open');
     Route::get('/sm/deliverables/inprogress', [DeliverablesController::class, 'smInProgress'])->name('sm.deliverables.inprogress');
     Route::get('/sm/deliverables/delivery', [DeliverablesController::class, 'smDelivery'])->name('sm.deliverables.delivery');
+    Route::get('/sm/deliverables/acceptance', [DeliverablesController::class, 'operationsAcceptance'])->name('sm.deliverables.acceptance');
 
 
     // ✅ Legacy operations Feasibility Status Routes (Keep for backward compatibility)
@@ -339,8 +344,13 @@ Route::post('/import-feasibility', [FeasibilityExcelController::class, 'import']
 });
     
 
+// HR module - list users with profiles and view/edit via profile controller
 
-Route::get('/hr', [hrController::class, 'index'])->name('hr.index');
+    Route::get('/hr', [hrController::class, 'index'])->name('hr.index');
+    Route::get('/hr/{id}/view', [hrController::class, 'show'])->name('hr.view');
+    Route::get('/hr/{id}/edit', [hrController::class, 'edit'])->name('hr.edit');
+    
+
 Route::get('/compliance', [ComplianceController::class, 'index'])->name('compliance.index');
 Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
 Route::get('/training', [TrainingController::class, 'index'])->name('training.index');

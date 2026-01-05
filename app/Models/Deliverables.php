@@ -30,12 +30,6 @@ class Deliverables extends Model
         'client_circuit_id',
         'client_feasibility',
         'vendor_code',
-        'plans_name',
-        'speed_in_mbps_plan',
-        'no_of_months_renewal',
-        'date_of_activation',
-        'date_of_expiry',
-        'sla',
         
         'mode_of_delivery',
         'pppoe_username', 
@@ -85,6 +79,7 @@ class Deliverables extends Model
         'export_file',
         'asset_id',
         'asset_serial_no',
+        'asset_mac_no',
         'po_number',
         'po_date'
     ];

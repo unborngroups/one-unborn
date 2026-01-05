@@ -47,6 +47,7 @@
                                 <thead class="table-dark-primary">
 
                                     <tr>
+                                        <th width="50" class="text-center"><input type="checkbox" id="select_all" style="width: 18px; height: 18px; cursor: pointer;"></th>
 
                                         <th>S.No</th>
 
@@ -78,6 +79,9 @@
 
                                             <!-- Display serial number -->
 
+                                            <td class="text-center">
+                                    <input type="checkbox" class="row-checkbox" value="<?php echo e($record->id); ?>" style="width: 18px; height: 18px; cursor: pointer;">
+                                </td>
                                             <td><?php echo e($index + 1); ?></td>
 
                                             <!-- Display feasibility request ID -->

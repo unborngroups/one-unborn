@@ -23,6 +23,7 @@ unset($__errorArgs, $__bag); ?>
             </div>
 
             <button class="btn btn-primary">Save Make Type</button>
+            <a href="<?php echo e(route('assetmaster.make_type.index')); ?>" class="btn btn-secondary mt-3 float-end">Cancel</a>
         </form>
     </div>
 </div>

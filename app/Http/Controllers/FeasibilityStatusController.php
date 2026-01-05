@@ -142,6 +142,15 @@ public function editSave(Request $request, $id)
 
     public function smOpen(Request $request)
     {
+        $permissions = TemplateHelper::getUserMenuPermissions('Feasibility Master', 'SM Feasibility Open') ?? (object)[
+            'can_menu' => true,
+            'can_add' => true,
+            'can_edit' => true,
+            'can_delete' => true,
+            'can_view' => true,
+        ];
+
+
          $perPage = (int) $request->get('per_page', 10);
          $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
 
@@ -150,11 +159,19 @@ public function editSave(Request $request, $id)
             ->orderBy('id', 'desc')
             ->paginate($perPage);
             
-        return view('sm.feasibility.open', compact('records'));
+        return view('sm.feasibility.open', compact('records', 'permissions'));
     }
 
     public function smInProgress(Request $request)
     {
+        $permissions = TemplateHelper::getUserMenuPermissions('Feasibility Master', 'SM Feasibility In Progress') ?? (object)[
+            'can_menu' => true,
+            'can_add' => true,
+            'can_edit' => true,
+            'can_delete' => true,
+            'can_view' => true,
+        ];
+
          $perPage = (int) $request->get('per_page', 10);
          $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
 
@@ -163,11 +180,19 @@ public function editSave(Request $request, $id)
             ->orderBy('id', 'desc')
             ->paginate($perPage);
 
-        return view('sm.feasibility.inprogress', compact('records'));
+        return view('sm.feasibility.inprogress', compact('records', 'permissions'));
     }
 
     public function smClosed(Request $request)
     {
+        $permissions = TemplateHelper::getUserMenuPermissions('Feasibility Master', 'SM Feasibility Closed') ?? (object)[
+            'can_menu' => true,
+            'can_add' => true,
+            'can_edit' => true,
+            'can_delete' => true,
+            'can_view' => true,
+        ];
+
          $perPage = (int) $request->get('per_page', 10);
          $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
 
@@ -176,7 +201,7 @@ public function editSave(Request $request, $id)
             ->orderBy('id', 'desc')
             ->paginate($perPage);
 
-        return view('sm.feasibility.closed', compact('records'));
+        return view('sm.feasibility.closed', compact('records', 'permissions'));
     }
 
     public function smView($id)
@@ -259,6 +284,14 @@ public function editSave(Request $request, $id)
 
     public function operationsOpen(Request $request)
     {
+        $permissions = TemplateHelper::getUserMenuPermissions('operations Feasibility', 'Operations Feasibility Open') ?? (object)[
+            'can_menu' => true,
+            'can_add' => true,
+            'can_edit' => true,
+            'can_delete' => true,
+            'can_view' => true,
+        ];
+
         $perPage = (int) $request->get('per_page', 10);
         $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
 
@@ -267,12 +300,20 @@ public function editSave(Request $request, $id)
             ->orderBy('id', 'desc')
             ->paginate($perPage);
 
-        $permissions = $this->getOperationsFeasibilityPermissions();
+        // $permissions = $this->getOperationsFeasibilityPermissions();
         return view('operations.feasibility.open', compact('records', 'permissions'));
     }
 
     public function operationsInProgress(Request $request)
     {
+        $permissions = TemplateHelper::getUserMenuPermissions('operations Feasibility', 'Operations Feasibility In Progress') ?? (object)[
+            'can_menu' => true,
+            'can_add' => true,
+            'can_edit' => true,
+            'can_delete' => true,
+            'can_view' => true,
+        ];
+
          $perPage = (int) $request->get('per_page', 10);
          $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
 
@@ -287,6 +328,15 @@ public function editSave(Request $request, $id)
 
     public function operationsClosed(Request $request)
     {
+        $permissions = TemplateHelper::getUserMenuPermissions('operations Feasibility', 'Operations Feasibility Closed') ?? (object)[
+            'can_menu' => true,
+            'can_add' => true,
+            'can_edit' => true,
+            'can_delete' => true,
+            'can_view' => true,
+        ];
+
+
         $perPage = (int) $request->get('per_page', 10);
         $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
 
@@ -295,7 +345,6 @@ public function editSave(Request $request, $id)
             ->orderBy('id', 'desc')
             ->paginate($perPage);
 
-        $permissions = $this->getOperationsFeasibilityPermissions();
         return view('operations.feasibility.closed', compact('records', 'permissions'));
     }
 

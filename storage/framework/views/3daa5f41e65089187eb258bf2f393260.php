@@ -14,7 +14,6 @@
                 <input type="checkbox" class="form-check-input" id="grantAllGlobal">
                 <label class="form-check-label fw-semibold" for="grantAllGlobal">Grant All Permissions for User Type</label>
             </div>
-
             
             <div class="table-responsive privilege-table">
                 <table class="table table-bordered align-middle text-center shadow-sm mb-0">
@@ -23,6 +22,8 @@
                             <th class="select-col">Select</th>
                             <th class="module-col">Module</th>
                             <th class="section-col">Section</th>
+                            <th class="sub-section-col">Sub-Section</th>
+
                             <th class="menu-col">Menu</th>
                             <th>View</th>
                             <th>Add</th>
@@ -63,6 +64,14 @@
                                     <?php echo e($menu->name); ?>
 
                                 </td>
+
+                                    <td>
+                                        <small>
+                                        <?php echo e(ucfirst($menu->sub_section)); ?>
+
+                                        </small>
+                                    </td>
+
 
                                 <td>
                                     <input type="checkbox" name="privileges[<?php echo e($menu->id); ?>][can_menu]" value="1"

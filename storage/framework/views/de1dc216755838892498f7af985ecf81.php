@@ -62,93 +62,45 @@
                 width: 100vw !important;
                 padding: 0 !important;
             }
-            .navbar {
-                top: 0 !important;
-                left: 0 !important;
-                width: 100vw !important;
-                z-index: 1200 !important;
-            }
-            /* Status/time bar fixed below navbar */
-            .status-bar, .cloud-server-time, .top-status-bar {
-                position: fixed !important;
-                top: 55px !important;
-                left: 0 !important;
-                width: 100vw !important;
-                z-index: 1100 !important;
-                margin-top: 0 !important;
-                font-size: 0.95rem !important;
-                background: #0a2a6b !important;
-                color: #fff !important;
-                border-radius: 0 !important;
-                padding: 4px 0 !important;
-                text-align: left;
-            }
-            main.p-4 {
-                padding: 1rem !important;
-                margin-top: 95px !important; /* 55px navbar + 40px status bar */
-            }
-            .add-btn, .btn-add, .add-button, .top-add-btn {
-                margin-top: 1.2rem !important;
-                display: inline-block;
-            }
         }
-        /* Responsive main content and form for mobile */
-        @media (max-width: 767px) {
-            .content-wrapper {
-                margin-left: 0 !important;
-                width: 100% !important;
-                padding: 0 !important;
-            }
-            main.p-4 {
-                padding: 1rem !important;
-            }
-            .form-container, .card, form {
-                max-width: 98vw !important;
-                min-width: unset !important;
-                margin: 0 auto !important;
-                box-sizing: border-box;
-            }
-            .card {
-                padding: 1rem !important;
-            }
-            h1, h2, h3, h4, h5, h6 {
-                font-size: 1.2rem !important;
-                word-break: break-word;
-            }
-            .form-control {
-                font-size: 1rem !important;
-                padding: 8px !important;
-            }
-            label, .form-label {
-                font-size: 0.98rem !important;
-            }
-            /* Fix heading overflow */
-            .page-title, .main-title, .add-client-title {
-                font-size: 1.3rem !important;
-                text-align: center !important;
-                word-break: break-word;
-                margin-top: 1.2rem !important;
-            }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-size: 1.2rem !important;
+            word-break: break-word;
         }
-    /* Sidebar default for large screens */
+        .form-control {
+            font-size: 1rem !important;
+            padding: 8px !important;
+        }
+        label, .form-label {
+            font-size: 0.98rem !important;
+        }
+        /* Fix heading overflow */
+        .page-title, .main-title, .add-client-title {
+            font-size: 1.3rem !important;
+            text-align: center !important;
+            word-break: break-word;
+            margin-top: 1.2rem !important;
+        }
+        /* Sidebar default for large screens */
 
-  /* #sidebar {
+    /* #sidebar {
 
-    width: 250px;
+        width: 250px;
 
-    min-height: 100vh;
+        min-height: 100vh;
 
-    transition: all 0.3s;
+        transition: all 0.3s;
 
-    position: fixed;
+        position: fixed;
 
-    top: 0;
+        top: 0;
 
-    left: 0;
+        left: 0;
 
-    background-color: #061c5cff;
+        background-color: #061c5cff;
 
-    z-index: 100;
+        z-index: 100;
 
 } */
 
@@ -244,14 +196,23 @@
 
 }
 
-    /* Content shift */
+    /* Content shift (desktop, sidebar visible) */
 
     .content-wrapper {
+        margin-left: 260px;
+        width: calc(100% - 260px);
+        transition: all 0.3s ease;
+    }
 
-    margin-left: 260px;
-    width: calc(100% - 260px);
-    transition: all 0.3s ease;
-}
+    /* Collapsed sidebar on desktop */
+    body.sidebar-collapsed #sidebar {
+        left: -260px;
+    }
+
+    body.sidebar-collapsed .content-wrapper {
+        margin-left: 0;
+        width: 100%;
+    }
 
     /* Mobile hamburger button */
 
@@ -628,54 +589,44 @@ $(document).ready(function() {
 
 
 
-    // ✅ Sidebar toggle
-
-   // $('#sidebarToggle').on('click', function() {
-
-     //   $('#sidebar').toggleClass('active');
-
-   // });
-
-    // ✅ Sidebar toggle for mobile - Real website behavior
-
-$('#sidebarToggle').on('click', function(e) {
-
+    // ✅ Unified sidebar toggle (desktop + mobile)
+    $('#sidebarToggle').on('click', function(e) {
         e.preventDefault();
 
-        console.log('📱 Mobile menu toggle clicked');
-
-        
-
+        const isMobile = $(window).width() <= 768;
         const sidebar = $('#sidebar');
-
         const overlay = $('#sidebarOverlay');
+        const body = $('body');
+        const icon = $('#sidebarToggleIcon');
 
-        
+        if (isMobile) {
+            console.log('📱 Mobile menu toggle clicked');
 
-        if (sidebar.hasClass('active')) {
-
-            // Close menu
-
-            sidebar.removeClass('active');
-
-            overlay.removeClass('show');
-
-            setTimeout(() => overlay.hide(), 300); // Hide after animation
-
-            console.log('📱 Menu closed');
-
+            if (sidebar.hasClass('active')) {
+                // Close mobile menu
+                sidebar.removeClass('active');
+                overlay.removeClass('show');
+                setTimeout(() => overlay.hide(), 300); // Hide after animation
+                console.log('📱 Menu closed');
+            } else {
+                // Open mobile menu
+                sidebar.addClass('active');
+                overlay.show().addClass('show');
+                console.log('📱 Menu opened');
+            }
         } else {
+            console.log('💻 Desktop sidebar toggle clicked');
+            body.toggleClass('sidebar-collapsed');
 
-            // Open menu
-
-            sidebar.addClass('active');
-
-            overlay.show().addClass('show');
-
-            console.log('📱 Menu opened');
-
+            const collapsed = body.hasClass('sidebar-collapsed');
+            if (icon && icon.length) {
+                if (collapsed) {
+                    icon.removeClass('bi-chevron-left').addClass('bi-chevron-right');
+                } else {
+                    icon.removeClass('bi-chevron-right').addClass('bi-chevron-left');
+                }
+            }
         }
-
     });
 
 // ✅ Close sidebar when overlay is clicked

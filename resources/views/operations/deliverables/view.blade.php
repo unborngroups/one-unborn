@@ -206,8 +206,23 @@
             </div>
 
             {{-- ================= Back Button ================= --}}
+            @php
+                // Default back route based on status
+                $backRoute = 'operations.deliverables.open';
+                if ($record->status === 'InProgress') {
+                    $backRoute = 'operations.deliverables.inprogress';
+                } elseif ($record->status === 'Delivery') {
+                    $backRoute = 'operations.deliverables.delivery';
+                }
+
+                // If this is an ILL deliverable, treat it as Accepted
+                if (optional($record->feasibility)->type_of_service === 'ILL') {
+                    $backRoute = 'operations.deliverables.acceptance';
+                }
+            @endphp
+
             <div class="text-end">
-                <a href="{{ route('operations.deliverables.open') }}" class="btn btn-secondary">
+                <a href="{{ route($backRoute) }}" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Back
                 </a>
             </div>

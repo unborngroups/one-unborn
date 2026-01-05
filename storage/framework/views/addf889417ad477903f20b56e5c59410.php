@@ -119,12 +119,12 @@
                         </div>
                         <div class="col-md-3">
                             <strong>Expected Delivery:</strong><br>
-                            <?php echo e($record->feasibility->expected_delivery ?? 'N/A'); ?>
+                            <?php echo e($record->feasibility->expected_delivery ? \Carbon\Carbon::parse($record->feasibility->expected_delivery)->format('Y-m-d') : 'N/A'); ?>
 
                         </div>
                         <div class="col-md-3">
                             <strong>Expected Activation:</strong><br>
-                            <?php echo e($record->feasibility->expected_activation ?? 'N/A'); ?>
+                            <?php echo e($record->feasibility->expected_activation ? \Carbon\Carbon::parse($record->feasibility->expected_activation)->format('Y-m-d') : 'N/A'); ?>
 
                         </div>
                         <div class="col-md-3">
@@ -155,6 +155,7 @@
             <?php
                 $selectedAssetId = old('asset_id', $record->asset_id ?? '');
                 $selectedAssetSerial = old('asset_serial_no', $record->asset_serial_no ?? '');
+                $selectedAssetMac = old('asset_mac_no', $record->asset_mac_no ?? '');
             ?>
 
             <div class="card mb-3">
@@ -181,27 +182,32 @@
                     </div>
 
                     <div class="row mt-3">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="form-label">Asset ID</label>
                             <select name="asset_id" id="asset_selector" class="form-select">
                                 <option value="">-- Select Asset --</option>
                                 <?php $__currentLoopData = $assetOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $asset): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($asset->asset_id); ?>"
                                             data-serial="<?php echo e($asset->serial_no); ?>"
+                                            data-mac="<?php echo e($asset->mac_no); ?>"
                                             <?php echo e($selectedAssetId && $selectedAssetId === $asset->asset_id ? 'selected' : ''); ?>>
                                         <?php echo e($asset->asset_id); ?><?php if(!empty($asset->serial_no)): ?> - <?php echo e($asset->serial_no); ?><?php endif; ?>
                                     </option>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 <?php if($selectedAssetId && !$assetOptions->contains('asset_id', $selectedAssetId)): ?>
-                                    <option value="<?php echo e($selectedAssetId); ?>" data-serial="<?php echo e($selectedAssetSerial); ?>" selected>
+                                    <option value="<?php echo e($selectedAssetId); ?>" data-serial="<?php echo e($selectedAssetSerial); ?>" data-mac="<?php echo e($selectedAssetMac); ?>" selected>
                                         <?php echo e($selectedAssetId); ?><?php if(!empty($selectedAssetSerial)): ?> - <?php echo e($selectedAssetSerial); ?><?php endif; ?>
                                     </option>
                                 <?php endif; ?>
                             </select>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="form-label">Serial Number</label>
                             <input type="text" id="asset_serial_no" name="asset_serial_no" class="form-control" readonly value="<?php echo e($selectedAssetSerial); ?>">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">MAC Number</label>
+                            <input type="text" id="asset_mac_no" name="asset_mac_no" class="form-control" readonly value="<?php echo e($selectedAssetMac ?? ''); ?>">
                         </div>
                     </div>
                 </div>
@@ -226,6 +232,24 @@
                                 $defaultPlanName = isset($plan) ? $plan->plans_name : ($i == 1 ? '' : null);
                                 $defaultSpeed = isset($plan) ? $plan->speed_in_mbps_plan : ($i == 1 ? '' : null);
                                 $defaultRenewal = isset($plan) ? $plan->no_of_months_renewal : ($i == 1 ? '' : null);
+
+                                $today = \Carbon\Carbon::now()->format('Y-m-d');
+
+                                if (isset($plan) && !empty($plan->date_of_activation)) {
+                                    $defaultActivationDate = $plan->date_of_activation->format('Y-m-d');
+                                } elseif ($i == 1 && isset($record->date_of_activation)) {
+                                    $defaultActivationDate = \Carbon\Carbon::parse($record->date_of_activation)->format('Y-m-d');
+                                } else {
+                                    $defaultActivationDate = $today;
+                                }
+
+                                if (isset($plan) && !empty($plan->date_of_expiry)) {
+                                    $defaultExpiryDate = $plan->date_of_expiry->format('Y-m-d');
+                                } elseif ($i == 1 && isset($record->date_of_expiry)) {
+                                    $defaultExpiryDate = \Carbon\Carbon::parse($record->date_of_expiry)->format('Y-m-d');
+                                } else {
+                                    $defaultExpiryDate = $today;
+                                }
                             ?>
                             <div class="row border rounded mb-3 p-2">
                                 <div class="col-12 mb-2">
@@ -253,14 +277,14 @@
                                            value="<?php echo e(old('no_of_months_renewal_'.$i, $defaultRenewal ?? ''  )); ?>" required>
                                 </div>
                                 <div class="col-md-3 mb-3">
-                                <label class="form-label">Date of Activation <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control" name="date_of_activation_<?php echo e($i); ?>"
-                                       value="<?php echo e(old('date_of_activation_'.$i, isset($plan->date_of_activation) ? $plan->date_of_activation->format('Y-m-d') : ($i == 1 && isset($record->date_of_activation) ? \Carbon\Carbon::parse($record->date_of_activation)->format('Y-m-d') : ''))); ?>" required>
+                                    <label class="form-label">Date of Activation <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" name="date_of_activation_<?php echo e($i); ?>"
+                                        value="<?php echo e(old('date_of_activation_'.$i, $defaultActivationDate)); ?>" required>
                             </div>
                             <div class="col-md-3 mb-3">
                                 <label class="form-label">Date of Expiry  <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control" name="date_of_expiry_<?php echo e($i); ?>"
-                                       value="<?php echo e(old('date_of_expiry_'.$i, isset($plan->date_of_expiry) ? $plan->date_of_expiry->format('Y-m-d') : ($i == 1 && isset($record->date_of_expiry) ? \Carbon\Carbon::parse($record->date_of_expiry)->format('Y-m-d') : ''))); ?>" required>
+                                        value="<?php echo e(old('date_of_expiry_'.$i, $defaultExpiryDate)); ?>" required>
                             </div>
                             <div class="col-md-3 mb-3">
                                 <label class="form-label">SLA <span class="text-danger">*</span></label>
@@ -287,8 +311,8 @@
                                     <option value="">Select Mode</option>
                                     <option value="PPPoE" <?php echo e($selectedMode === 'PPPoE' ? 'selected' : ''); ?>>PPPoE</option>
                                     <option value="DHCP" <?php echo e($selectedMode === 'DHCP' ? 'selected' : ''); ?>>DHCP</option>
-                                    <option value="Static IP" <?php echo e(in_array($selectedMode, ['Static IP', 'Static']) ? 'selected' : ''); ?>>Static IP</option>
-                                    <option value="PAYMENTS" <?php echo e($selectedMode === 'PAYMENTS' ? 'selected' : ''); ?>>PAYMENTS</option>
+                                    <!-- <option value="Static IP" <?php echo e(in_array($selectedMode, ['Static IP', 'Static']) ? 'selected' : ''); ?>>Static IP</option> -->
+                                    <!-- <option value="PAYMENTS" <?php echo e($selectedMode === 'PAYMENTS' ? 'selected' : ''); ?>>PAYMENTS</option> -->
 
                                 </select>
                             </div>
@@ -343,6 +367,109 @@
                             <!-- Removed duplicate: use only $plan->router_password version below -->
                                                 <input type="text" name="router_password_<?php echo e($i); ?>" class="form-control" placeholder="Enter Router Password" value="<?php echo e(old('router_password_'.$i, $plan->router_password ?? '')); ?>">
                         </div>
+
+                        <!-- payment details -->
+                         
+                <div class="card mb-1">
+                    <div class="card-header bg-secondary text-white">
+                        <h6 class="mb-0">PAYMENTS Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-2">
+        <label>Login URL</label>
+        <input type="text" name="payment_login_url_<?php echo e($i); ?>" class="form-control"
+               value="<?php echo e(old('payment_login_url_'.$i, $plan->payment_login_url ?? '')); ?>">
+    </div>
+
+    <div class="col-md-3 mb-2">
+        <label>Quick URL</label>
+        <input type="text" name="payment_quick_url_<?php echo e($i); ?>" class="form-control"
+               value="<?php echo e(old('payment_quick_url_'.$i, $plan->payment_quick_url ?? '')); ?>">
+    </div>
+
+    <div class="col-md-3 mb-2">
+        <label>Account Number / Username</label>
+        <input type="text" name="payment_account_or_username_<?php echo e($i); ?>" class="form-control"
+               value="<?php echo e(old('payment_account_or_username_'.$i, $plan->payment_account_or_username ?? '')); ?>">
+    </div>
+    <div class="col-md-3 mb-2">
+        <label>Password</label>
+        <input type="text" name="payment_password_<?php echo e($i); ?>" class="form-control" placeholder="Enter new password"
+                   value="<?php echo e(old('payment_password_'.$i, $plan->payment_password ?? '')); ?>" placeholder="Enter new password">
+    </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- static_ip -->
+
+<?php if(($record->feasibility->static_ip ?? 'No') === 'Yes'): ?>
+                <div class="card mb-3">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">Static IP Configuration</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">IP Address <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="static_ip_address_<?php echo e($i); ?>" name="static_ip_address_<?php echo e($i); ?>"
+                                       value="<?php echo e(old('static_ip_address_'.$i, $plan->static_ip_address ?? '')); ?>">
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">Subnet <span class="text-danger">*</span></label>
+                                <select class="form-select" id="static_ip_subnet_<?php echo e($i); ?>" name="static_subnet_mask_<?php echo e($i); ?>">
+                                    <option value="">Select Subnet</option>
+                                    <?php $__currentLoopData = ['/32','/31','/30','/29','/28','/27','/26','/25','/24']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $subnet): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($subnet); ?>" <?php echo e(old('static_subnet_mask_'.$i, $plan->static_subnet_mask ?? '') == $subnet ? 'selected' : ''); ?>><?php echo e($subnet); ?></option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                    <label class="form-label">VLAN <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="static_vlan_tag_<?php echo e($i); ?>" name="static_vlan_tag_<?php echo e($i); ?>"
+                                        value="<?php echo e(old('static_vlan_tag_'.$i, $plan->static_vlan ?? '')); ?>">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div id="static_info_message_<?php echo e($i); ?>" class="alert alert-secondary small mb-3">
+                                    Select static IP and subnet to preview network details (Network IP, Gateway, Subnet Mask, and Usable IP range).
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row static-ip-summary" id="static_info_pane_<?php echo e($i); ?>">
+    <div class="col-md-3 mb-3 static-ip-col">
+        <label class="form-label">Network IP</label>
+        <!-- Removed duplicate: use only $plan->network_ip version below -->
+        <input type="text" class="form-control" id="network_ip_<?php echo e($i); ?>" name="network_ip_<?php echo e($i); ?>" value="<?php echo e(old('network_ip_'.$i, $plan->network_ip ?? '')); ?>">
+    </div>
+    <div class="col-md-3 mb-3 static-ip-col">
+        <label class="form-label">Gateway</label>
+        <!-- Removed duplicate: use only $plan->static_gateway version below -->
+        <input type="text" class="form-control" id="gateway_<?php echo e($i); ?>" name="gateway_<?php echo e($i); ?>" value="<?php echo e(old('gateway_'.$i, $plan->static_gateway ?? '')); ?>">
+    </div>
+    <div class="col-md-3 mb-3 static-ip-col">
+        <label class="form-label">Subnet Mask</label>
+        <!-- Removed duplicate: use only $plan->static_subnet_mask version below -->
+        <input type="text" class="form-control" id="subnet_mask_<?php echo e($i); ?>" name="subnet_mask_<?php echo e($i); ?>" value="<?php echo e(old('subnet_mask_'.$i, $plan->static_subnet_mask ?? '')); ?>">
+    </div>
+    <div class="col-md-3 mb-3 static-ip-col">
+        <label class="form-label">Usable IPs</label>
+        <!-- Removed duplicate: use only $plan->usable_ips version below -->
+        <input type="text" class="form-control" id="usable_ips_<?php echo e($i); ?>" name="usable_ips_<?php echo e($i); ?>" value="<?php echo e(old('usable_ips_'.$i, $plan->usable_ips ?? '')); ?>">
+    </div>
+                        </div>
+                    </div>
+                </div>
+<?php endif; ?>
+
+                <!-- end Static_ip -->
 
                         </div>
                     <?php endfor; ?>
@@ -410,104 +537,6 @@
                     </div>
                 </div>
 
-                
-                <div class="card mb-3" id="static_section_<?php echo e($i); ?>" style="display: none;">
-                    <div class="card-header bg-info text-white">
-                        <h6 class="mb-0">Static IP Configuration</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label">IP Address <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="static_ip_address_<?php echo e($i); ?>" name="static_ip_address_<?php echo e($i); ?>"
-                                       value="<?php echo e(old('static_ip_address_'.$i, $plan->static_ip_address ?? '')); ?>">
-                            </div>
-
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label">Subnet <span class="text-danger">*</span></label>
-                                <select class="form-select" id="static_ip_subnet_<?php echo e($i); ?>" name="static_subnet_mask_<?php echo e($i); ?>">
-                                    <option value="">Select Subnet</option>
-                                    <?php $__currentLoopData = ['/32','/31','/30','/29','/28','/27','/26','/25','/24']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $subnet): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <option value="<?php echo e($subnet); ?>" <?php echo e(old('static_subnet_mask_'.$i, $plan->static_subnet_mask ?? '') == $subnet ? 'selected' : ''); ?>><?php echo e($subnet); ?></option>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                </select>
-                            </div>
-
-                            <div class="col-md-3 mb-3">
-                                    <label class="form-label">VLAN <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="static_vlan_tag_<?php echo e($i); ?>" name="static_vlan_tag_<?php echo e($i); ?>"
-                                        value="<?php echo e(old('static_vlan_tag_'.$i, $plan->static_vlan ?? '')); ?>">
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-12">
-                                <div id="static_info_message_<?php echo e($i); ?>" class="alert alert-secondary small mb-3">
-                                    Select static IP and subnet to preview network details (Network IP, Gateway, Subnet Mask, and Usable IP range).
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row" id="static_info_pane_<?php echo e($i); ?>">
-    <div class="col-md-3 mb-3">
-        <label class="form-label">Network IP</label>
-        <!-- Removed duplicate: use only $plan->network_ip version below -->
-        <input type="text" class="form-control" id="network_ip_<?php echo e($i); ?>" name="network_ip_<?php echo e($i); ?>" value="<?php echo e(old('network_ip_'.$i, $plan->network_ip ?? '')); ?>">
-    </div>
-    <div class="col-md-3 mb-3">
-        <label class="form-label">Gateway</label>
-        <!-- Removed duplicate: use only $plan->static_gateway version below -->
-        <input type="text" class="form-control" id="gateway_<?php echo e($i); ?>" name="gateway_<?php echo e($i); ?>" value="<?php echo e(old('gateway_'.$i, $plan->static_gateway ?? '')); ?>">
-    </div>
-    <div class="col-md-3 mb-3">
-        <label class="form-label">Subnet Mask</label>
-        <!-- Removed duplicate: use only $plan->static_subnet_mask version below -->
-        <input type="text" class="form-control" id="subnet_mask_<?php echo e($i); ?>" name="subnet_mask_<?php echo e($i); ?>" value="<?php echo e(old('subnet_mask_'.$i, $plan->static_subnet_mask ?? '')); ?>">
-    </div>
-    <div class="col-md-3 mb-3">
-        <label class="form-label">Usable IPs</label>
-        <!-- Removed duplicate: use only $plan->usable_ips version below -->
-        <input type="text" class="form-control" id="usable_ips_<?php echo e($i); ?>" name="usable_ips_<?php echo e($i); ?>" value="<?php echo e(old('usable_ips_'.$i, $plan->usable_ips ?? '')); ?>">
-    </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!--  -->
-                <div class="card mb-3"  id="payments_section_<?php echo e($i); ?>" style="display: none;">
-
-                <div class="card-header bg-primary text-dark">
-                <h6 class="mb-0">Payment Information</h6>
-               </div>
-<div class="card-body">
-<div class="row">
-    <div class="col-md-3 mb-2">
-        <label>Login URL</label>
-        <input type="text" name="payment_login_url_<?php echo e($i); ?>" class="form-control"
-               value="<?php echo e(old('payment_login_url_'.$i, $plan->payment_login_url ?? '')); ?>">
-    </div>
-
-    <div class="col-md-3 mb-2">
-        <label>Quick URL</label>
-        <input type="text" name="payment_quick_url_<?php echo e($i); ?>" class="form-control"
-               value="<?php echo e(old('payment_quick_url_'.$i, $plan->payment_quick_url ?? '')); ?>">
-    </div>
-
-    <div class="col-md-3 mb-2">
-        <label>Account Number / Username</label>
-        <input type="text" name="payment_account_or_username_<?php echo e($i); ?>" class="form-control"
-               value="<?php echo e(old('payment_account_or_username_'.$i, $plan->payment_account_or_username ?? '')); ?>">
-    </div>
-
-    <div class="col-md-3 mb-2">
-        <label>Password</label>
-        <input type="text" name="payment_password_<?php echo e($i); ?>" class="form-control" placeholder="Enter new password"
-                   value="<?php echo e(old('payment_password_'.$i, $plan->payment_password ?? '')); ?>" placeholder="Enter new password">
-    </div>
-</div>
-
-</div>
-                </div>
                 <?php endfor; ?>
                 <!--  -->
                  <div class="card mb-3 ">
@@ -598,8 +627,23 @@
 
 
                 
+                <?php
+                    // Default back route based on status
+                    $backRoute = 'operations.deliverables.open';
+                    if ($record->status === 'InProgress') {
+                        $backRoute = 'operations.deliverables.inprogress';
+                    } elseif ($record->status === 'Delivery') {
+                        $backRoute = 'operations.deliverables.delivery';
+                    }
+
+                    // If this is an ILL deliverable (shown under Accepted), go back to acceptance list
+                    if (optional($record->feasibility)->type_of_service === 'ILL') {
+                        $backRoute = 'operations.deliverables.acceptance';
+                    }
+                ?>
+
                 <div class="d-flex justify-content-between mt-4">
-                    <a href="<?php echo e(route('operations.deliverables.open')); ?>" class="btn btn-secondary">
+                    <a href="<?php echo e(route($backRoute)); ?>" class="btn btn-secondary">
                         <i class="bi bi-x-circle"></i> Cancel
                     </a>
                     <!-- upload conf -->
@@ -657,6 +701,24 @@
         .row > [class^='col-'],
         .row > [class*=' col-'] {
             flex: 1 1 100%;
+        }
+    }
+
+    /* Ensure Static IP summary fields show 4-in-a-row on desktop */
+    .static-ip-summary {
+        display: grid !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        column-gap: 1rem;
+    }
+
+    .static-ip-summary .static-ip-col {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    @media (max-width: 991px) {
+        .static-ip-summary {
+            grid-template-columns: 1fr;
         }
     }
 </style>
@@ -761,15 +823,15 @@ document.addEventListener('DOMContentLoaded', function () {
     function toggleSectionsByLink(linkNo, selectedMode) {
     const pppoe = document.getElementById(`pppoe_section_${linkNo}`);
     const dhcp = document.getElementById(`dhcp_section_${linkNo}`);
-    const stat = document.getElementById(`static_section_${linkNo}`);
-    const pay  = document.getElementById(`payments_section_${linkNo}`);
+    // const stat = document.getElementById(`static_section_${linkNo}`);
+    // const pay  = document.getElementById(`payments_section_${linkNo}`);
 
     [pppoe, dhcp, stat, pay].forEach(sec => sec && (sec.style.display = 'none')) ;
 
     if (selectedMode === 'PPPoE') pppoe.style.display = 'block';
     if (selectedMode === 'DHCP') dhcp.style.display = 'block';
-    if (selectedMode === 'Static IP' || selectedMode === 'Static') stat.style.display = 'block';
-    if (selectedMode === 'PAYMENTS') pay.style.display = 'block';
+    // if (selectedMode === 'Static IP' || selectedMode === 'Static') stat.style.display = 'block';
+    // if (selectedMode === 'PAYMENTS') pay.style.display = 'block';
 }
 
 function toggleIpsecFields() {
@@ -805,4 +867,36 @@ document.addEventListener('DOMContentLoaded', function () {
 
 </script>
 <?php $__env->stopSection(); ?>
+
+<?php $__env->startPush('scripts'); ?>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        function syncAssetFields() {
+            const select = document.getElementById('asset_selector');
+            if (!select) return;
+
+            const selected = select.options[select.selectedIndex];
+            if (!selected) return;  
+
+            const serial = selected.getAttribute('data-serial') || '';
+            const mac = selected.getAttribute('data-mac') || '';
+
+            const serialInput = document.getElementById('asset_serial_no');
+            const macInput = document.getElementById('asset_mac_no');
+
+            if (serialInput) serialInput.value = serial;
+            if (macInput) macInput.value = mac;
+        }
+
+        // Initial sync on page load (for already-selected asset)
+        syncAssetFields();
+
+        // Update fields whenever asset selection changes
+        const selectEl = document.getElementById('asset_selector');
+        if (selectEl) {
+            selectEl.addEventListener('change', syncAssetFields);
+        }
+    });
+</script>
+<?php $__env->stopPush(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\operations\deliverables\edit.blade.php ENDPATH**/ ?>

@@ -190,7 +190,11 @@ $status->save();
 private function sendCreatedEmail($feasibility)
 {
     try {
-        $teamType = \App\Models\UserType::where('name', 'Team OPS')->first();
+        $settings = \App\Models\CompanySetting::first();
+        $notifyConfig = $settings->feasibility_notifications ?? [];
+        $userTypeName = $notifyConfig['Open'] ?? 'Team OPS';
+
+        $teamType = \App\Models\UserType::where('name', $userTypeName)->first();
 
         if ($teamType && $teamType->email) {
             Mail::to($teamType->email)->send(
@@ -211,6 +215,29 @@ private function sendCreatedEmail($feasibility)
     }
 }
 
+private function getEmailRecipients($feasibility, $newStatus, $previousStatus = null)
+{
+    $settings = \App\Models\CompanySetting::first();
+    $notifyConfig = $settings->feasibility_notifications ?? [];
+
+    // Open → Send to configured user type
+    if ($newStatus == 'Open' && !empty($notifyConfig['Open'])) {
+        return \App\Models\User::whereHas('userType', function ($q) use ($notifyConfig) {
+            $q->where('name', $notifyConfig['Open']);
+        })
+        ->whereNotNull('official_email')
+        ->pluck('official_email')
+        ->toArray();
+    }
+
+    // Closed → Send ONLY to Creator (S&M)
+    if ($newStatus == 'Closed' && $feasibility->createdByUser) {
+        $creatorEmail = $feasibility->createdByUser->official_email ?? $feasibility->createdByUser->email;
+        return $creatorEmail ? [$creatorEmail] : [];
+    }
+
+    return [];
+}
 
 private function sendUpdatedEmail($feasibility)
 {

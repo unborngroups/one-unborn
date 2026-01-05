@@ -150,7 +150,7 @@ unset($__errorArgs, $__bag); ?>
 
                             <label class="form-label">Personal Email <span class="text-danger">*</span></label>
 
-                            <input type="email" name="personal_email" class="form-control" value="<?php echo e(old('personal_email')); ?>" required>
+                            <input type="email" name="personal_email" class="form-control" value="<?php echo e(old('personal_email', $profile->personal_email)); ?>" required>
 
                         </div>
 

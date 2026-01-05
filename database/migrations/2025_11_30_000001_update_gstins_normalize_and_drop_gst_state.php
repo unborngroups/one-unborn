@@ -65,12 +65,8 @@ return new class extends Migration
         }
 
         Schema::table('gstins', function (Blueprint $table) {
-            // Drop unique index if exists
-            $sm = Schema::getConnection()->getDoctrineSchemaManager();
-            $indexes = $sm->listTableIndexes('gstins');
-            if (array_key_exists('gstins_entity_gstin_unique', $indexes)) {
-                $table->dropUnique('gstins_entity_gstin_unique');
-            }
+            // Drop unique index (Laravel will ignore if not exists)
+            $table->dropUnique('gstins_entity_gstin_unique');
 
             foreach (['building_name','building_number','floor_number','street','location','district','city'] as $col) {
                 if (Schema::hasColumn('gstins', $col)) {

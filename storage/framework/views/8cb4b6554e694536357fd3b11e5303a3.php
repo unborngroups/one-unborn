@@ -1,24 +1,19 @@
 
+<?php
+    $dashboard = \App\Helpers\TemplateHelper::getUserMenuPermissions('Dashboard');
 
-<!-- <div class="sidebar bg-dark-info text-white vh-100 overflow-auto"> -->
+    // Masters dropdown permissions
+    $company = \App\Helpers\TemplateHelper::getUserMenuPermissions('Company Details');
+    $users = \App\Helpers\TemplateHelper::getUserMenuPermissions('Manage User');
+    $userType = \App\Helpers\TemplateHelper::getUserMenuPermissions('User Type');
+    $client = \App\Helpers\TemplateHelper::getUserMenuPermissions('Client Master');
+    $vendor = \App\Helpers\TemplateHelper::getUserMenuPermissions('Vendor Master');
+    $Asset = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset Master');
+    $assetType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset Master', 'Asset Type');
+    $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset Master', 'Make Type');
+    $modelType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset Master', 'Model Type');
 
-    <div class="p-3">
-
-        <!-- <h5 class="text-center mb-4"><i class="bi bi-grid-3x3-gap"></i> ERP Menu</h5> -->
-
-
-
-        <ul class="nav flex-column">
-
-
-
-            
-
-            <?php
-
-                $dashboard = \App\Helpers\TemplateHelper::getUserMenuPermissions('Dashboard');
-
-            ?>
+?>
 
             <?php if($dashboard && $dashboard->can_menu): ?>
 
@@ -35,22 +30,6 @@
             <?php endif; ?>
 
             
-            <?php
-                $company = \App\Helpers\TemplateHelper::getUserMenuPermissions('Company Details');
-
-                $users = \App\Helpers\TemplateHelper::getUserMenuPermissions('Manage User');
-
-                $userType = \App\Helpers\TemplateHelper::getUserMenuPermissions('User Type');
-
-                $client = \App\Helpers\TemplateHelper::getUserMenuPermissions('Client Master');
-
-                $vendor = \App\Helpers\TemplateHelper::getUserMenuPermissions('Vendor Master');
-                $Asset = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset Master');
-                $assetType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset Type');
-                $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Make Type');
-                $modelType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Model Type');
-
-            ?>
 
             <?php if(($company && $company->can_menu) || ($users && $users->can_menu) || ($userType && $userType->can_menu) || ($client && $client->can_menu) || ($vendor && $vendor->can_menu)): ?>
 
@@ -171,16 +150,26 @@
 <?php
 
     $feasibilityMaster = \App\Helpers\TemplateHelper::getUserMenuPermissions('Feasibility Master');
+    // sub-section privileges for Sales & Marketing Feasibility
+    $feasibilityMasterOpen = \App\Helpers\TemplateHelper::getUserMenuPermissions('Feasibility Master', 'SM Feasibility Open');
+    $feasibilityMasterInProgress = \App\Helpers\TemplateHelper::getUserMenuPermissions('Feasibility Master', 'SM Feasibility In Progress');
+    $feasibilityMasterClosed = \App\Helpers\TemplateHelper::getUserMenuPermissions('Feasibility Master', 'SM Feasibility Closed');
+
 
     $purchaseOrder = \App\Helpers\TemplateHelper::getUserMenuPermissions('Purchase Order');
     $proposal = \App\Helpers\TemplateHelper::getUserMenuPermissions('Proposal');
     $smDeliverables = \App\Helpers\TemplateHelper::getUserMenuPermissions('sm Deliverables');
 
-
+    // sub-section privileges for Sales & Marketing Deliverables
+    $smDeliverablesOpen = \App\Helpers\TemplateHelper::getUserMenuPermissions('sm Deliverables', 'SM Deliverables Open');
+    $smDeliverablesInProgress = \App\Helpers\TemplateHelper::getUserMenuPermissions('sm Deliverables', 'SM Deliverables In Progress');
+    $smDeliverablesDelivery = \App\Helpers\TemplateHelper::getUserMenuPermissions('sm Deliverables', 'SM Deliverables Delivery');
+    $smDeliverablesAcceptance = \App\Helpers\TemplateHelper::getUserMenuPermissions('sm Deliverables', 'SM Deliverables Acceptance');
 ?>
 
-<?php if(($feasibilityMaster && $feasibilityMaster->can_menu) || ($purchaseOrder && $purchaseOrder->can_menu) || ($proposal && $proposal->can_menu) || ($smDeliverables && $smDeliverables->can_menu)): ?>
-
+<?php if(($feasibilityMaster && $feasibilityMaster->can_menu) || ($feasibilityMasterOpen && $feasibilityMasterOpen->can_menu) || ($feasibilityMasterInProgress && $feasibilityMasterInProgress->can_menu) || ($feasibilityMasterClosed && $feasibilityMasterClosed->can_menu) 
+|| ($purchaseOrder && $purchaseOrder->can_menu) || ($proposal && $proposal->can_menu) || ($smDeliverables && $smDeliverables->can_menu || ($smDeliverablesOpen && $smDeliverablesOpen->can_menu) || ($smDeliverablesInProgress && $smDeliverablesInProgress->can_menu) 
+|| ($smDeliverablesDelivery && $smDeliverablesDelivery->can_menu) || ($smDeliverablesAcceptance && $smDeliverablesAcceptance->can_menu))): ?>
 <li class="nav-item">
 
     <a class="nav-link text-white d-flex justify-content-between align-items-center"
@@ -230,7 +219,7 @@
                     <ul class="nav flex-column ms-3">
 
                         
-
+                        <?php if($feasibilityMaster && $feasibilityMaster->can_menu): ?>
                         <li>
 
                             <a class="nav-link text-white menu-item <?php echo e(request()->is('feasibility/create*') ? 'active bg-primary fw-bold' : ''); ?>"
@@ -249,6 +238,10 @@
                             </a>
 
                         </li>
+                        <?php endif; ?>
+                        
+
+                           
 
                         </li>
 
@@ -335,6 +328,7 @@
                         
 
                         
+                        <?php if($feasibilityMasterOpen && $feasibilityMasterOpen->can_menu): ?>
 
                         <li>
 
@@ -347,8 +341,10 @@
                             </a>
 
                         </li>
+                        <?php endif; ?>
 
                         
+                        <?php if($feasibilityMasterInProgress && $feasibilityMasterInProgress->can_menu): ?>
 
                         <li>
 
@@ -361,8 +357,10 @@
                             </a>
 
                         </li>
+                        <?php endif; ?>
 
                         
+                        <?php if($feasibilityMasterClosed && $feasibilityMasterClosed->can_menu): ?>
 
                         <li>
 
@@ -375,6 +373,7 @@
                             </a>
 
                         </li>
+                        <?php endif; ?>
 
                     </ul>
 
@@ -420,6 +419,7 @@
                 $isSmDeliverablesOpenActive = false;
                 $isSmDeliverablesInProgressActive = false;
                 $isSmDeliverablesDeliveryActive = false;
+                $isSmDeliverablesAcceptanceActive = false;
 
                 if (request()->is('sm/deliverables/open')) {
                     $isSmDeliverablesOpenActive = true;
@@ -427,6 +427,8 @@
                     $isSmDeliverablesInProgressActive = true;
                 } elseif (request()->is('sm/deliverables/delivery')) {
                     $isSmDeliverablesDeliveryActive = true;
+                } elseif (request()->is('sm/deliverables/acceptance') || request()->is('sm/deliverables/*/acceptance')) {
+                    $isSmDeliverablesAcceptanceActive = true;
                 }
 
                 if (request()->is('sm/deliverables/*/view') || request()->is('sm/deliverables/*/edit')) {
@@ -455,6 +457,7 @@
                 $smDeliverablesOpenRoute = url('/sm/deliverables/open');
                 $smDeliverablesInProgressRoute = url('/sm/deliverables/inprogress');
                 $smDeliverablesDeliveryRoute = url('/sm/deliverables/delivery');
+                $smDeliverablesAcceptanceRoute = url('/sm/deliverables/acceptance');
             ?>
 
             
@@ -474,6 +477,7 @@
                     <ul class="nav flex-column ms-3 mt-1">
 
                         
+                        <?php if($smDeliverablesOpen && $smDeliverablesOpen->can_menu): ?>
 
                         <li>
 
@@ -484,9 +488,11 @@
                             </a>
 
                         </li>
+                        <?php endif; ?>
 
                         
-
+                        <?php if($smDeliverablesInProgress && $smDeliverablesInProgress->can_menu): ?>
+                            
                         <li>
 
                             <a class="nav-link text-white menu-item <?php echo e($isSmDeliverablesInProgressActive ? 'active' : ''); ?>" href="<?php echo e($smDeliverablesInProgressRoute); ?>">
@@ -496,8 +502,10 @@
                             </a>
 
                         </li>
+                        <?php endif; ?>
 
                         
+                        <?php if($smDeliverablesDelivery && $smDeliverablesDelivery->can_menu): ?>
 
                         <li>
 
@@ -508,6 +516,20 @@
                             </a>
 
                         </li>
+                        <?php endif; ?>
+
+                        
+                        <?php if($smDeliverablesAcceptance && $smDeliverablesAcceptance->can_menu): ?>
+
+                        <li>
+
+                            <a class="nav-link text-white menu-item <?php echo e($isSmDeliverablesAcceptanceActive ? 'active' : ''); ?>" href="<?php echo e($smDeliverablesAcceptanceRoute); ?>">
+                               <i class="bi bi-truck-flatbed me-2"></i> Accepted
+
+                            </a>
+
+                        </li>
+                        <?php endif; ?>
 
                     </ul>
 
@@ -522,12 +544,23 @@
 </li>
 
 <?php endif; ?>
-            <!--  -->
+            
 
 <?php
 
     $operationsFeasibility = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Feasibility');
+    //sub-section privilege  
+    $operationsFeasibilityOpen = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Feasibility', 'Operations Feasibility Open');
+    $operationsFeasibilityInProgress = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Feasibility', 'Operations Feasibility In Progress');
+    $operationsFeasibilityClosed = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Feasibility', 'Operations Feasibility Closed');
+    
     $operationsDeliverables = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Deliverables');
+    // sub-section privilege  
+    $operationsDeliverablesOpen = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Deliverables', 'Operations Deliverables Open');
+    $operationsDeliverablesInProgress = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Deliverables', 'Operations Deliverables In Progress');
+    $operationsDeliverablesDelivery = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Deliverables', 'Operations Deliverables Delivery');
+    $operationsDeliverablesAcceptance = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Deliverables', 'Operations Deliverables Acceptance');
+
     $operationsAsset = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset');
     $operationsRenewals = \App\Helpers\TemplateHelper::getUserMenuPermissions('Renewals');
 
@@ -565,6 +598,8 @@
 
     $isDeliverablesDeliveryActive = false;
 
+    $isDeliverablesAcceptanceActive = false;
+
 
     // Check for direct deliverables page routes
 
@@ -579,6 +614,10 @@
     } elseif (request()->is('operations/deliverables/delivery')) {
 
         $isDeliverablesDeliveryActive = true;
+
+    } elseif (request()->is('operations/deliverables/acceptance') || request()->is('operations/deliverables/*/acceptance')) {
+
+        $isDeliverablesAcceptanceActive = true;
 
     }
 
@@ -631,7 +670,7 @@
         }
 
     }
-    // For deliverables view/edit pages, check the record status
+    // For deliverables view/edit pages, check the record status / type
 
     if (request()->is('operations/deliverables/*/view') || request()->is('operations/deliverables/*/edit')) {
 
@@ -641,9 +680,7 @@
 
             try {
 
-                // Assuming you have a Deliverables model with status
-
-                $record = \App\Models\Deliverables::find($recordId);
+                $record = \App\Models\Deliverables::with('feasibility')->find($recordId);
 
                 if ($record && $record->status) {
 
@@ -663,7 +700,12 @@
 
                         case 'Delivery':
 
-                            $isDeliverablesDeliveryActive = true;
+                            // For ILL service, treat as Accepted in menu
+                            if (optional($record->feasibility)->type_of_service === 'ILL') {
+                                $isDeliverablesAcceptanceActive = true;
+                            } else {
+                                $isDeliverablesDeliveryActive = true;
+                            }
 
                             break;
 
@@ -683,7 +725,8 @@
 
 ?>
 
-<?php if(($operationsAsset && $operationsAsset->can_menu) || ($operationsRenewals && $operationsRenewals->can_menu) || ($operationsFeasibility && $operationsFeasibility->can_menu) || ($operationsDeliverables && $operationsDeliverables->can_menu)): ?>
+<?php if(($operationsAsset && $operationsAsset->can_menu) || ($operationsRenewals && $operationsRenewals->can_menu) || ($operationsFeasibility && $operationsFeasibility->can_menu) 
+|| ($operationsFeasibilityOpen && $operationsFeasibilityOpen->can_menu) || ($operationsDeliverables && $operationsDeliverables->can_menu)): ?>
 
 <li class="nav-item">
 
@@ -706,6 +749,7 @@
 
         <ul class="nav flex-column ms-3 mt-1">
             <!-- Asset in operations -->
+            <?php if($operationsAsset && $operationsAsset->can_menu): ?>
 
         <li class="nav-item">
 
@@ -715,17 +759,19 @@
                     </a>
 
                 </li>
+            <?php endif; ?>
 
                 <!-- Renewals in operations -->
+                <?php if($operationsRenewals && $operationsRenewals->can_menu): ?>
                       <li>
                         <a class="nav-link text-white menu-item <?php echo e(request()->is('operations/renewals*') ? 'active' : ''); ?>"
                                    href="<?php echo e(route('operations.renewals.index')); ?>">
                             <i class="bi bi-receipt me-2"></i> Renewals
                         </a>
                         </li>
-                          
-
+                <?php endif; ?>
             <!-- Feasibility Main Menu --> 
+            <?php if($operationsFeasibility && $operationsFeasibility->can_menu): ?>
 
             <li>
 
@@ -745,8 +791,7 @@
         <ul class="nav flex-column ms-3 mt-1">
 
                <!-- operations feasibility open menu -->
-
-
+                <?php if($operationsFeasibilityOpen && $operationsFeasibilityOpen->can_menu): ?>
             <li>
 
                 <a class="nav-link text-white menu-item <?php echo e($isFeasibilityOpenActive ? 'active' : ''); ?>"
@@ -758,9 +803,9 @@
                 </a>
 
             </li>
+            <?php endif; ?>
                <!-- operations feasibility In progress menu -->
-
-
+                <?php if($operationsFeasibilityInProgress && $operationsFeasibilityInProgress->can_menu): ?>
             <li>
 
                 <a class="nav-link text-white menu-item <?php echo e($isFeasibilityInProgressActive ? 'active' : ''); ?>"
@@ -772,9 +817,9 @@
                 </a>
 
             </li>
+            <?php endif; ?>
                 <!-- operations feasibility closed menu -->
-
-
+            <?php if($operationsFeasibilityClosed && $operationsFeasibilityClosed->can_menu): ?>
             <li>
 
                 <a class="nav-link text-white menu-item <?php echo e($isFeasibilityClosedActive ? 'active' : ''); ?>" href="<?php echo e(route('operations.feasibility.closed')); ?>">
@@ -784,11 +829,13 @@
                 </a>
 
             </li>
+            <?php endif; ?>  
 
         </ul>
 
     </div>
             </li>
+            <?php endif; ?>
 
             <!-- Operations Deliverables Main Menu -->
             <?php if($operationsDeliverables && $operationsDeliverables->can_menu): ?>
@@ -809,8 +856,7 @@
         <ul class="nav flex-column ms-3 mt-1">
 
                        <!-- Operations Deliverables open Menu -->
-
-
+                        <?php if($operationsDeliverablesOpen && $operationsDeliverablesOpen->can_menu): ?>
             <li>
 
                 <a class="nav-link text-white menu-item <?php echo e($isDeliverablesOpenActive ? 'active' : ''); ?>" href="<?php echo e(route('operations.deliverables.open')); ?>">
@@ -820,8 +866,10 @@
                 </a>
 
             </li>
+            <?php endif; ?>
 
             <!-- Operations Deliverables In Progress Menu -->
+            <?php if($operationsDeliverablesInProgress && $operationsDeliverablesInProgress->can_menu): ?>
 
             <li>
 
@@ -832,9 +880,10 @@
                 </a>
 
             </li>
+            <?php endif; ?>
 
             <!-- Operations Deliverables Delivered Menu -->
-
+            <?php if($operationsDeliverablesDelivery && $operationsDeliverablesDelivery->can_menu): ?>
             <li>
 
                 <a class="nav-link text-white menu-item <?php echo e($isDeliverablesDeliveryActive ? 'active' : ''); ?>"
@@ -844,6 +893,19 @@
                    <i class="bi bi-truck-flatbed me-2"></i> Delivered
                 </a>
             </li>
+            <?php endif; ?>
+
+             <!-- Operations Deliverables Acceptance Menu -->
+            <?php if($operationsDeliverablesAcceptance && $operationsDeliverablesAcceptance->can_menu): ?>
+            <li>
+
+                <a class="nav-link text-white menu-item <?php echo e($isDeliverablesAcceptanceActive ? 'active' : ''); ?>"
+                   href="<?php echo e(route('operations.deliverables.acceptance')); ?>">
+
+                   <i class="bi bi-truck-flatbed me-2"></i> Accepted
+                </a>
+            </li>
+            <?php endif; ?>
         </ul>
     </div>
             </li>
@@ -1191,25 +1253,73 @@
 
 
 <style>
+    /* Base link styling */
+    .nav-link {
+        font-size: 0.925rem;
+        padding: 0.55rem 0.9rem;
+        border-radius: 4px;
+        color: #e5ecff;
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        transition: background-color 0.18s ease, color 0.18s ease, padding-left 0.18s ease;
+    }
 
+    /* Top-level sections a bit bolder */
+    .nav > .nav-item > .nav-link {
+        font-weight: 500;
+    }
+
+    /* Nested menu indentation */
+    .nav .nav .nav-link {
+        font-weight: 400;
+        padding-left: 1.6rem;
+        font-size: 0.9rem;
+    }
+
+    /* Active state for menu items */
     .menu-item.active {
-
         background-color: #0d6efd;
-
-        border-radius: 5px;
-
+        border-radius: 4px;
         color: #fff !important;
+        box-shadow: 0 0 0 1px rgba(13, 110, 253, 0.4);
+    }
 
+    /* Hover state */
+    .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.06);
+        color: #ffffff !important;
+        text-decoration: none;
     }
 
     .menu-item:hover {
-
         background-color: #0b5ed7;
-
         color: #fff !important;
-
     }
 
+    /* Icons */
+    .nav-link i {
+        font-size: 1rem;
+    }
+
+    /* Arrow icon rotation for open groups */
+    .arrow-icon {
+        transition: transform 0.18s ease;
+        font-size: 0.8rem;
+    }
+
+    .nav-link[aria-expanded="true"] .arrow-icon {
+        transform: rotate(180deg);
+    }
+
+    /* Spacing between groups */
+    .nav > .nav-item + .nav-item {
+        margin-top: 0.15rem;
+    }
+
+    .nav .collapse .nav-item + .nav-item {
+        margin-top: 0.05rem;
+    }
 </style>
 
 <?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\layouts\partials\fullmenu.blade.php ENDPATH**/ ?>

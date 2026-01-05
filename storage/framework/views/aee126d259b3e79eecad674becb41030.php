@@ -81,6 +81,25 @@
 
                                 <input type="hidden" name="feasibility_id" value="<?php echo e($purchaseOrder->feasibility_id); ?>">
 
+                                
+                                <?php
+                                    $feas = $purchaseOrder->feasibility;
+                                    $addrParts = collect([
+                                        $feas->address ?? null,
+                                        $feas->area ?? null,
+                                        $feas->district ?? null,
+                                        $feas->state ?? null,
+                                        $feas->pincode ?? null,
+                                    ])->filter();
+                                    $feasAddressText = $addrParts->isNotEmpty() ? $addrParts->implode(', ') : '';
+                                ?>
+                                <?php if($feasAddressText): ?>
+                                    <div class="mt-2">
+                                        <label class="form-label mb-1"><strong>Feasibility Address</strong></label>
+                                        <textarea class="form-control bg-light" rows="2" readonly><?php echo e($feasAddressText); ?></textarea>
+                                    </div>
+                                <?php endif; ?>
+
                             </div>
 
 

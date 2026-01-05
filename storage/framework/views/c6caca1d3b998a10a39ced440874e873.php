@@ -283,8 +283,8 @@
                 $model = \App\Models\Asset::select('model')->find($item['model_id']);
             ?>
             <p class="mb-1">
-                Make: <?php echo e($make->make_name ?? 'N/A'); ?> <br>
-                Model: <?php echo e($model->model ?? 'N/A'); ?>
+                Make: <?php echo e(optional($make)->make_name ?? 'N/A'); ?> <br>
+                Model: <?php echo e(optional($model)->model ?? 'N/A'); ?>
 
             </p>
         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>

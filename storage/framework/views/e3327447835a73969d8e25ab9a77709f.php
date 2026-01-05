@@ -39,13 +39,13 @@
                             <th class="select-col">Select</th>
                             <th class="module-col">Module</th>
                             <th class="section-col">Section</th>
+                            <th class="sub-section-col">Sub-Section</th>
                             <!-- <th class="menu-col">Menu</th> -->
                             <th>Menu</th>
                             <th>View</th>
                             <th>Add</th>
                             <th>Edit</th>
                             <th>Delete</th>
-                            <th>All</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -66,8 +66,11 @@
 
                                         <?php endif; ?>
                                     </td>
+                                    <!--  -->
                                     <!-- <td class="text-start section-cell"></td> -->
                                     <td class="text-start menu-cell ps-3"><?php echo e(ucfirst($menu->name)); ?></td>
+                                    <!--  -->
+                                    <td><?php echo e(ucfirst($menu->sub_section)); ?></td>
                                     <td>
                                         <input type="checkbox" name="privileges[<?php echo e($menu->id); ?>][can_menu]" value="1"
                                                class="perm-checkbox"
@@ -93,10 +96,10 @@
                                                class="perm-checkbox"
                                                <?php echo e($priv && $priv->can_delete ? 'checked' : ''); ?>>
                                     </td>
-                                    <td>
+                                    <!-- <td>
                                         <input type="checkbox" class="grant-row-all form-check-input"
                                                title="Grant all permissions for this menu">
-                                    </td>
+                                    </td> -->
                                 </tr>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>

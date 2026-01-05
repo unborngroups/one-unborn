@@ -47,6 +47,9 @@
             </tr>
 
             <tr>
+                <th>Delivery Company Name</th>
+                <td>{{ $feasibility->delivery_company_name ?? '-' }}</td>
+            </tr>
 
                 <th>Pincode</th>
 

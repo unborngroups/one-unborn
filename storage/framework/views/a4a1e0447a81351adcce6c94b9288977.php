@@ -145,13 +145,19 @@
         <select name="city" id="city" class="form-select select2-tags">
 
             <option value="">Select or Type City</option>
+             
+    <?php if(!empty($vendor->city)): ?>
+        <option value="<?php echo e($vendor->city); ?>" selected>
+            <?php echo e($vendor->city); ?>
 
-            <option value="Bangalore">Bangalore</option>
+        </option>
+    <?php endif; ?>
 
-            <option value="Chennai">Chennai</option>
+            <option value="Bangalore" <?php echo e(old('city', $vendor->city) == 'Bangalore' ? 'selected' : ''); ?>>Bangalore</option>
 
-            <option value="Hyderabad">Hyderabad</option>
+            <option value="Chennai" <?php echo e(old('city', $vendor->city) == 'Chennai' ? 'selected' : ''); ?>>Chennai</option>
 
+            <option value="Hyderabad" <?php echo e(old('city', $vendor->city) == 'Hyderabad' ? 'selected' : ''); ?>>Hyderabad</option>
         </select>
 
     </div>
@@ -165,13 +171,19 @@
         <select name="state" id="state" class="form-select select2-tags">
 
             <option value="">Select or Type State</option>
+             
+    <?php if(!empty($vendor->state)): ?>
+        <option value="<?php echo e($vendor->state); ?>" selected>
+            <?php echo e($vendor->state); ?>
 
-            <option value="Karnataka">Karnataka</option>
+        </option>
+    <?php endif; ?>
 
-            <option value="Tamil Nadu">Tamil Nadu</option>
+            <option value="Karnataka" <?php echo e(old('state', $vendor->state) == 'Karnataka' ? 'selected' : ''); ?>>Karnataka</option>
 
-            <option value="Telangana">Telangana</option>
+            <option value="Tamil Nadu" <?php echo e(old('state', $vendor->state) == 'Tamil Nadu' ? 'selected' : ''); ?>>Tamil Nadu</option>
 
+            <option value="Telangana" <?php echo e(old('state', $vendor->state) == 'Telangana' ? 'selected' : ''); ?>>Telangana</option>
         </select>
 
     </div>
@@ -185,12 +197,19 @@
         <select name="country" id="country" class="form-select select2-tags">
 
             <option value="">Select or Type Country</option>
+             
+    <?php if(!empty($vendor->country)): ?>
+        <option value="<?php echo e($vendor->country); ?>" selected>
+            <?php echo e($vendor->country); ?>
 
-            <option value="India">India</option>
+        </option>
+    <?php endif; ?>
 
-            <option value="USA">USA</option>
+            <option value="India" <?php echo e(old('country', $vendor->country) == 'India' ? 'selected' : ''); ?>>India</option>
 
-            <option value="UK">UK</option>
+            <option value="USA" <?php echo e(old('country', $vendor->country) == 'USA' ? 'selected' : ''); ?>>USA</option>
+
+            <option value="UK" <?php echo e(old('country', $vendor->country) == 'UK' ? 'selected' : ''); ?>>UK</option>
 
         </select>
 

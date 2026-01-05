@@ -20,7 +20,8 @@ class PurchaseOrderController extends Controller
         // $purchaseOrders = PurchaseOrder::orderBy('id', 'desc')->get();
 
         $purchaseOrders = PurchaseOrder::with('feasibility.client')->orderBy('created_at', 'desc')->get();
-        $permissions = TemplateHelper::getUserMenuPermissions('User Type') ?? (object)[
+        $permissions = TemplateHelper::getUserMenuPermissions('Purchase Order') ?? (object)[
+            'can_menu' => true,
     'can_add' => true,
     'can_edit' => true,
     'can_delete' => true,

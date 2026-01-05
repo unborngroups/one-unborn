@@ -17,6 +17,8 @@
             </div>
 
             <button class="btn btn-primary">Save Make Type</button>
+            <a href="{{ route('assetmaster.make_type.index') }}" class="btn btn-secondary mt-3 float-end">Cancel</a>
+
         </form>
     </div>
 </div>

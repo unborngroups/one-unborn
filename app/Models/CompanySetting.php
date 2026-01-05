@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CompanySetting extends Model
 {
-     protected $fillable = [
+    protected $fillable = [
         'company_id',
         'company_name',
         'company_email',
@@ -20,6 +20,7 @@ class CompanySetting extends Model
         'instagram_url',
         'whatsapp_number',
         'is_default',
+        'feasibility_notifications',
         // Email Settings
         // 'mail_mailer',
         'mail_host',
@@ -37,6 +38,7 @@ class CompanySetting extends Model
 
    protected $casts = [
         'is_default' => 'boolean',
+        'feasibility_notifications' => 'array',
     ];
 
     public function templates()

@@ -40,7 +40,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="feasibility_id" class="form-label"><strong>Feasibility Request ID <span class="text-danger">*</span></strong></label>
-                                <select class="form-select" id="feasibility_id" name="feasibility_id" required onchange="loadFeasibilityDetails()">
+                                <select class="form-select select2-tags" id="feasibility_id" name="feasibility_id" required onchange="loadFeasibilityDetails()">
                                     <option value="">Select Available Feasibility</option>
                                     @foreach($closedFeasibilities as $feas)
                                         <option value="{{ $feas->feasibility->id }}"
@@ -49,7 +49,11 @@
                                         </option>
                                     @endforeach
                                 </select>
-                               
+                                <!-- Feasibility Address Preview -->
+                                <div id="feasibility_address_box" class="mt-2 d-none">
+                                    <label class="form-label mb-1"><strong>Feasibility Address</strong></label>
+                                    <textarea id="feasibility_address" class="form-control bg-light" rows="2" readonly></textarea>
+                                </div>
                             </div>
 
                             <div class="col-md-6 mb-3">
@@ -437,6 +441,12 @@ function loadFeasibilityDetails() {
         feasibilityAmounts = {};
         staticIpRequiredForFeasibility = false;
         document.getElementById('dynamicPricingContainer').style.display = 'none';
+        const addrBox = document.getElementById('feasibility_address_box');
+        const addrField = document.getElementById('feasibility_address');
+        if (addrBox && addrField) {
+            addrField.value = '';
+            addrBox.classList.add('d-none');
+        }
         return;
     }
 
@@ -454,6 +464,27 @@ function loadFeasibilityDetails() {
             staticIpRequiredForFeasibility =
                 ['yes', 'true', '1'].includes(staticIpFlag) ||
                 (parseFloat(d.static_ip_cost_per_link) || 0) > 0;
+
+            // Populate feasibility address preview
+            const addrBox = document.getElementById('feasibility_address_box');
+            const addrField = document.getElementById('feasibility_address');
+            if (addrBox && addrField) {
+                const f = d.feasibility || {};
+                const parts = [];
+                if (f.address) parts.push(f.address);
+                if (f.area) parts.push(f.area);
+                if (f.district) parts.push(f.district);
+                if (f.state) parts.push(f.state);
+                if (f.pincode) parts.push(f.pincode);
+                const text = parts.filter(Boolean).join(', ');
+                if (text) {
+                    addrField.value = text;
+                    addrBox.classList.remove('d-none');
+                } else {
+                    addrField.value = '';
+                    addrBox.classList.add('d-none');
+                }
+            }
 
             const links = document.getElementById('no_of_links_dropdown').value;
 

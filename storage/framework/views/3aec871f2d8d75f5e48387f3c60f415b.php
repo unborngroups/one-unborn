@@ -20,11 +20,14 @@
 
                     </h4>
 
+                     <?php if($permissions->can_add): ?>
                     <a href="<?php echo e(route('sm.purchaseorder.create')); ?>" class="btn btn-success">
 
                             <i class="bi bi-plus-circle"></i> Create New Purchase Order
 
                         </a>
+
+         <?php endif; ?>
 
                 </div>
 

@@ -55,16 +55,22 @@ class MenuController extends Controller
         $user = User::findOrFail($userId);
 
         // Show only menus relevant to user type
+
+        // Show only main menu entries (sub_section == null)
         $menus = Menu::where('user_type', $user->user_type)
-                    ->orderBy('id')
-                    ->get();
+                ->orderBy('module_name')
+                ->orderBy('id')
+                ->get();
+
+        // Group menus by module_name for UI
+        $groupedMenus = $menus->groupBy('module_name');
 
         // 🟢 Load existing privileges for this user
         $userPrivileges = UserMenuPrivilege::where('user_id', $userId)
-                            ->get()
-                            ->keyBy('menu_id');
+                    ->get()
+                    ->keyBy('menu_id');
 
-        return view('menus.editprivileges', compact('user', 'menus', 'userPrivileges'));
+        return view('menus.editprivileges', compact('user', 'groupedMenus', 'menus', 'userPrivileges'));
     }
 
     // ✅ Save privileges
@@ -104,10 +110,12 @@ class MenuController extends Controller
 
     // FIXED: whereIn instead of where
     $menus = Menu::whereIn('user_type', ['superadmin', 'All', 'all'])
+            
                 ->orderBy('module_name')
                 ->orderBy('id')
                 ->get();
 
+    // Show all menu entries including sub-sections
     $groupedMenus = $menus->groupBy('module_name');
 
     // Load privileges
@@ -120,7 +128,7 @@ class MenuController extends Controller
         'userType',
         'menus',
         'userTypePrivileges'
-    ));
+    )); 
 }
 
     /**

@@ -268,8 +268,8 @@
                 $model = \App\Models\Asset::select('model')->find($item['model_id']);
             @endphp
             <p class="mb-1">
-                Make: {{ $make->make_name ?? 'N/A' }} <br>
-                Model: {{ $model->model ?? 'N/A' }}
+                Make: {{ optional($make)->make_name ?? 'N/A' }} <br>
+                Model: {{ optional($model)->model ?? 'N/A' }}
             </p>
         @endforeach
     </div>

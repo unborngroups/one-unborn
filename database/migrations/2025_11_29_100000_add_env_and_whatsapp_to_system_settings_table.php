@@ -12,8 +12,21 @@ return new class extends Migration{
             $table->boolean('whatsapp_enabled')->default(false)->after('whatsapp_default_number');
           });
            }
-              public function down(): void {
-                Schema::table('system_settings', function (Blueprint $table) {
-                    $table->dropColumn(['surepass_api_environment','whatsapp_default_number','whatsapp_enabled']);
-             });
-                }};
+          public function down(): void {
+            Schema::table('system_settings', function (Blueprint $table) {
+              $columnsToDrop = [];
+              if (Schema::hasColumn('system_settings', 'surepass_api_environment')) {
+                $columnsToDrop[] = 'surepass_api_environment';
+              }
+              if (Schema::hasColumn('system_settings', 'whatsapp_default_number')) {
+                $columnsToDrop[] = 'whatsapp_default_number';
+              }
+              if (Schema::hasColumn('system_settings', 'whatsapp_enabled')) {
+                $columnsToDrop[] = 'whatsapp_enabled';
+              }
+              if (!empty($columnsToDrop)) {
+                $table->dropColumn($columnsToDrop);
+              }
+            });
+          }
+        };

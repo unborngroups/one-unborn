@@ -17,7 +17,7 @@
             </div>
 
             <button class="btn btn-primary float-start">Save Model Type</button>
-            <a href="{{ route('assetmaster.model_type.index') }}" class="btn btn-gray ms-2 float-end">Cancel</a>
+            <a href="{{ route('assetmaster.model_type.index') }}" class="btn btn-secondary ms-2 float-end">Cancel</a>
         </form>
     </div>
 </div>

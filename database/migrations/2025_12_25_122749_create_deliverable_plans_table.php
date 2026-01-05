@@ -35,6 +35,12 @@ return new class extends Migration
             $table->text('wifi_password')->nullable();
             $table->string('router_username')->nullable();  
             $table->text('router_password')->nullable();
+
+            $table->string('payment_login_url')->nullable();
+            $table->string('payment_quick_url')->nullable();
+            $table->string('payment_account_or_username')->nullable();
+            $table->string('payment_password')->nullable();
+
             $table->string('pppoe_username')->nullable();
             $table->text('pppoe_password')->nullable();
             $table->string('pppoe_vlan')->nullable();

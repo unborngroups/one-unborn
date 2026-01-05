@@ -4,9 +4,6 @@
 
 <?php $__env->startSection('content'); ?>
 
-<?php
-    $permissions = TemplateHelper::getUserMenuPermissions('Feasibility');
-?>
 <div class="container-fluid py-4">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -52,7 +49,7 @@
 
             <!-- <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search..."> -->
 
-            <table class="table table-bordered table-hover align-middle" id="userTable">
+            <table class="table table-bordered table-hover align-middle" id="feasibility">
 
                 <thead class="table-dark-primary text-center">
 
@@ -94,29 +91,23 @@
 
                                 
 
-                                <a href="<?php echo e(route('feasibility.edit', $feasibility)); ?>" class="btn btn-sm btn-primary" title="Edit">
                                     <?php if($permissions && $permissions->can_edit): ?>
                                         <a href="<?php echo e(route('feasibility.edit', $feasibility)); ?>" class="btn btn-sm btn-primary" title="Edit">
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                     <?php endif; ?>
 
-                                    <i class="bi bi-pencil"></i>
-
-                                </a>
 
                                  
 
-                                   <a href="<?php echo e(route('feasibility.show', $feasibility->id)); ?>" class="btn btn-sm btn-info" title="View">
                                    <?php if($permissions && $permissions->can_view): ?>
                                        <a href="<?php echo e(route('feasibility.show', $feasibility->id)); ?>" class="btn btn-sm btn-info" title="View">
                                            <i class="bi bi-eye"></i>
                                        </a>
                                    <?php endif; ?>
 
-                                    <i class="bi bi-eye"></i>
 
-                                    </a>
+                                
 
 
                                 </div>
@@ -232,7 +223,7 @@ document.getElementById('tableSearch').addEventListener('keyup', function() {
 
     let value = this.value.toLowerCase();
 
-    document.querySelectorAll('#userTable tbody tr').forEach(row => {
+    document.querySelectorAll('#feasibility tbody tr').forEach(row => {
 
         row.style.display = row.textContent.toLowerCase().includes(value) ? '' : 'none';
 

@@ -8,11 +8,11 @@
 
         <div class="d-flex align-items-center">
 
-            <!-- Hamburger button for mobile -->
+            <!-- Sidebar toggle button (desktop + mobile) -->
 
-            <button class="btn btn-dark d-md-none me-2" id="sidebarToggle" style="border: none; font-size: 1.5rem; padding: 8px 12px; min-width: 45px; min-height: 45px;">
+            <button class="btn btn-dark me-2" id="sidebarToggle" style="border: none; font-size: 1.4rem; padding: 6px 10px; min-width: 40px; min-height: 40px;">
 
-                <i class="bi bi-list" style="color: white;"></i>
+                <i id="sidebarToggleIcon" class="bi bi-chevron-left" style="color: white;"></i>
 
             </button>
 

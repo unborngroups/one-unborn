@@ -149,13 +149,18 @@
         <select name="city" id="city" class="form-select select2-tags">
 
             <option value="">Select or Type City</option>
+             {{-- ✅ Inject saved value (even if not in master list) --}}
+    @if(!empty($vendor->city))
+        <option value="{{ $vendor->city }}" selected>
+            {{ $vendor->city }}
+        </option>
+    @endif
 
-            <option value="Bangalore">Bangalore</option>
+            <option value="Bangalore" {{ old('city', $vendor->city) == 'Bangalore' ? 'selected' : '' }}>Bangalore</option>
 
-            <option value="Chennai">Chennai</option>
+            <option value="Chennai" {{ old('city', $vendor->city) == 'Chennai' ? 'selected' : '' }}>Chennai</option>
 
-            <option value="Hyderabad">Hyderabad</option>
-
+            <option value="Hyderabad" {{ old('city', $vendor->city) == 'Hyderabad' ? 'selected' : '' }}>Hyderabad</option>
         </select>
 
     </div>
@@ -169,13 +174,18 @@
         <select name="state" id="state" class="form-select select2-tags">
 
             <option value="">Select or Type State</option>
+             {{-- ✅ Inject saved value (even if not in master list) --}}
+    @if(!empty($vendor->state))
+        <option value="{{ $vendor->state }}" selected>
+            {{ $vendor->state }}
+        </option>
+    @endif
 
-            <option value="Karnataka">Karnataka</option>
+            <option value="Karnataka" {{ old('state', $vendor->state) == 'Karnataka' ? 'selected' : '' }}>Karnataka</option>
 
-            <option value="Tamil Nadu">Tamil Nadu</option>
+            <option value="Tamil Nadu" {{ old('state', $vendor->state) == 'Tamil Nadu' ? 'selected' : '' }}>Tamil Nadu</option>
 
-            <option value="Telangana">Telangana</option>
-
+            <option value="Telangana" {{ old('state', $vendor->state) == 'Telangana' ? 'selected' : '' }}>Telangana</option>
         </select>
 
     </div>
@@ -189,12 +199,18 @@
         <select name="country" id="country" class="form-select select2-tags">
 
             <option value="">Select or Type Country</option>
+             {{-- ✅ Inject saved value (even if not in master list) --}}
+    @if(!empty($vendor->country))
+        <option value="{{ $vendor->country }}" selected>
+            {{ $vendor->country }}
+        </option>
+    @endif
 
-            <option value="India">India</option>
+            <option value="India" {{ old('country', $vendor->country) == 'India' ? 'selected' : '' }}>India</option>
 
-            <option value="USA">USA</option>
+            <option value="USA" {{ old('country', $vendor->country) == 'USA' ? 'selected' : '' }}>USA</option>
 
-            <option value="UK">UK</option>
+            <option value="UK" {{ old('country', $vendor->country) == 'UK' ? 'selected' : '' }}>UK</option>
 
         </select>
 
