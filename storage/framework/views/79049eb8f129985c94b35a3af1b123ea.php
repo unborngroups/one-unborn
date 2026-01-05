@@ -171,10 +171,11 @@ t@extends('layouts.app')
                         </label>
 
                         
+                        <!-- class="form-select vendor-dropdown" (add only"vendor-dropdown" for duplicate validation) -->
 
                         <select name="vendor<?php echo e($i); ?>_name" 
 
-                                class="form-select vendor-dropdown" 
+                            class="form-select vendor-dropdown" 
 
                                 data-vendor-number="<?php echo e($i); ?>"
 
@@ -279,6 +280,12 @@ t@extends('layouts.app')
 
                         </button>
 
+                        <button type="button" class="btn btn-primary me-2" onclick="sendExpressionEmail()">
+
+                            <i class="bi bi-send"></i> Send Expression
+
+                        </button>
+
                         <button type="button" class="btn btn-success me-2" onclick="submitToClosed()">
 
                             <i class="bi bi-check-circle"></i> Submit (Move to Closed)
@@ -361,15 +368,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             
 
-            // Check for duplicates only if name is not empty
+            // Duplicate vendor names are now allowed; only track non-empty names
 
-            if (name && names.includes(name)) {
-
-                dropdown.classList.add('is-invalid');
-
-                isValid = false;
-
-            } else if (name) {
+            if (name) {
 
                 names.push(name);
 
@@ -386,88 +387,50 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // ✅ Vendor Dropdown Logic - Hide selected vendors from other dropdowns
-
+    // NOTE: Disabled for now as per requirement; keeping code for future use.
+    /*
     function updateVendorDropdowns() {
-
         const dropdowns = document.querySelectorAll('.vendor-dropdown');
-
         const selectedValues = [];
 
-        
-
         // Collect all selected values
-
         dropdowns.forEach(dropdown => {
-
             if (dropdown.value) {
-
                 selectedValues.push(dropdown.value);
-
             }
-
         });
-
-        
 
         // Update each dropdown
-
         dropdowns.forEach(currentDropdown => {
-
             const currentValue = currentDropdown.value;
-
             const options = currentDropdown.querySelectorAll('option');
 
-            
-
             options.forEach(option => {
-
                 if (option.value === '') {
-
                     // Keep empty option always visible
-
                     option.style.display = '';
-
                 } else if (selectedValues.includes(option.value) && option.value !== currentValue) {
-
                     // Hide if selected in another dropdown
-
                     option.style.display = 'none';
-
                 } else {
-
                     // Show if not selected elsewhere
-
                     option.style.display = '';
-
                 }
-
             });
-
         });
-
     }
 
-
-
-    // Add event listeners to vendor dropdowns
-
+    // Add event listeners to vendor dropdowns for hide-logic
     document.querySelectorAll('.vendor-dropdown').forEach(function(dropdown) {
-
         dropdown.addEventListener('change', function() {
-
             updateVendorDropdowns();
-
             validateVendorNames();
-
         });
-
     });
 
-
-
-    // Initialize vendor dropdown logic
-
+    // Initialize vendor dropdown hide-logic
     updateVendorDropdowns();
+    */
 
 
 
@@ -519,6 +482,45 @@ document.addEventListener('DOMContentLoaded', function() {
 
         }
 
+    };
+
+
+    // Send Expression Email function
+    window.sendExpressionEmail = function() {
+        if (!validateVendorNames()) {
+            alert('Please fill all required vendor names before sending expression.');
+            return false;
+        }
+
+        // At least one vendor must be selected; all selected names must be same
+        const vendorDropdowns = document.querySelectorAll('.vendor-dropdown');
+        const selectedNames = [];
+
+        vendorDropdowns.forEach(function(dropdown) {
+            const val = dropdown.value.trim();
+            if (val !== '') {
+                selectedNames.push(val.toLowerCase());
+            }
+        });
+
+        if (selectedNames.length === 0) {
+            alert('Please select at least one vendor before sending expression email.');
+            return false;
+        }
+
+        const first = selectedNames[0];
+        const allSame = selectedNames.every(n => n === first);
+
+        if (!allSame) {
+            alert('For expression, all selected vendor names must be same.');
+            return false;
+        }
+
+        if (confirm('Send expression email for the selected vendor?')) {
+            const form = document.getElementById('feasibilityForm');
+            form.action = "<?php echo e(route('sm.feasibility.expression', $record->id)); ?>";
+            form.submit();
+        }
     };
 
 

@@ -126,3 +126,8 @@ ADD COLUMN payment_login_url VARCHAR(255) NULL AFTER router_password,
 ADD COLUMN payment_quick_url VARCHAR(255) NULL AFTER payment_login_url,
 ADD COLUMN payment_account_or_username VARCHAR(255) NULL AFTER payment_quick_url,
 ADD COLUMN payment_password VARCHAR(255) NULL AFTER payment_account_or_username;
+
+
+-- 5-1
+ALTER TABLE company_settings
+ADD COLUMN expression_permission_email VARCHAR(255) NULL AFTER company_email;

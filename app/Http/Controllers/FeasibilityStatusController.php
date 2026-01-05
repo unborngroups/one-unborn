@@ -236,6 +236,85 @@ public function editSave(Request $request, $id)
         return $this->commonSmSave($request, true);
     }
 
+    /**
+     * Send expression email for a selected vendor from SM screen.
+     */
+    public function smSendExpression(Request $request, $id)
+    {
+        $record = FeasibilityStatus::with(['feasibility', 'feasibility.client'])->findOrFail($id);
+
+        // Basic validation for vendor fields (no strict required rules here; JS enforces selection)
+        $rules = [];
+        for ($i = 1; $i <= 4; $i++) {
+            $rules["vendor{$i}_name"] = 'nullable|string';
+            $rules["vendor{$i}_arc"] = 'nullable|string';
+            $rules["vendor{$i}_otc"] = 'nullable|string';
+            $rules["vendor{$i}_static_ip_cost"] = 'nullable|string';
+            $rules["vendor{$i}_delivery_timeline"] = 'nullable|string';
+        }
+
+        $data = $request->validate($rules);
+
+        // Update vendor fields so latest edits are stored
+        $record->update($data);
+
+        // Determine selected vendors (one or more, but must be same name)
+        $selectedVendors = [];
+        for ($i = 1; $i <= 4; $i++) {
+            $nameKey = "vendor{$i}_name";
+            if (!empty($data[$nameKey])) {
+                $selectedVendors[$i] = $data[$nameKey];
+            }
+        }
+
+        if (empty($selectedVendors)) {
+            return back()->with('error', 'Please select at least one vendor before sending expression email.');
+        }
+
+        // Ensure all selected vendor names are same (defensive check; frontend already enforces)
+        $lowerNames = array_map(function ($n) { return strtolower(trim($n)); }, array_values($selectedVendors));
+        if (count(array_unique($lowerNames)) > 1) {
+            return back()->with('error', 'For expression, all selected vendor names must be same.');
+        }
+
+        $index = array_key_first($selectedVendors);
+        $vendorName = $selectedVendors[$index];
+
+        $vendorDetails = [
+            'arc' => $data["vendor{$index}_arc"] ?? null,
+            'otc' => $data["vendor{$index}_otc"] ?? null,
+            'static_ip_cost' => $data["vendor{$index}_static_ip_cost"] ?? null,
+            'delivery_timeline' => $data["vendor{$index}_delivery_timeline"] ?? null,
+        ];
+
+        $settings = \App\Models\CompanySetting::first();
+        $expressionEmail = $settings->expression_permission_email ?? null;
+
+        if (!$expressionEmail) {
+            return back()->with('error', 'Expression permission email is not configured in Company Settings.');
+        }
+
+        try {
+            Mail::to($expressionEmail)->send(
+                new \App\Mail\FeasibilityExpressionMail(
+                    $record,
+                    $vendorName,
+                    $vendorDetails,
+                    Auth::user()
+                )
+            );
+
+            return back()->with('success', 'Expression email sent successfully.');
+        } catch (\Exception $e) {
+            Log::error('Failed to send feasibility expression email', [
+                'error' => $e->getMessage(),
+                'feasibility_status_id' => $record->id,
+            ]);
+
+            return back()->with('error', 'Failed to send expression email. Please try again later.');
+        }
+    }
+
     // ============================
     // COMMON FOR smSave & smSubmit
     // ============================
@@ -476,6 +555,91 @@ public function editSave(Request $request, $id)
 
         return redirect()->route('operations.feasibility.closed')
             ->with('success', 'Feasibility closed and deliverable created successfully!');
+    }
+
+    /**
+     * Send expression email for a selected vendor from Operations screen.
+     */
+    public function operationsSendExpression(Request $request, $id)
+    {
+        $record = FeasibilityStatus::with(['feasibility', 'feasibility.client'])->findOrFail($id);
+
+        // Basic validation for vendor fields (no strict required rules here; JS enforces selection)
+        $rules = [];
+        for ($i = 1; $i <= 4; $i++) {
+            $rules["vendor{$i}_name"] = 'nullable|string';
+            $rules["vendor{$i}_arc"] = 'nullable|string';
+            $rules["vendor{$i}_otc"] = 'nullable|string';
+            $rules["vendor{$i}_static_ip_cost"] = 'nullable|string';
+            $rules["vendor{$i}_delivery_timeline"] = 'nullable|string';
+        }
+
+        $data = $request->validate($rules);
+
+        // Update vendor fields so latest edits are stored
+        $record->update($data);
+
+        // Determine selected vendors (one or more, but must be same name)
+        $selectedVendors = [];
+        for ($i = 1; $i <= 4; $i++) {
+            $nameKey = "vendor{$i}_name";
+            if (!empty($data[$nameKey])) {
+                $selectedVendors[$i] = $data[$nameKey];
+            }
+        }
+
+        if (empty($selectedVendors)) {
+            return back()->with('error', 'Please select at least one vendor before sending expression email.');
+        }
+
+        // Ensure all selected vendor names are same (defensive check; frontend already enforces)
+        $lowerNames = array_map(function ($n) { return strtolower(trim($n)); }, array_values($selectedVendors));
+        if (count(array_unique($lowerNames)) > 1) {
+            return back()->with('error', 'For expression, all selected vendor names must be same.');
+        }
+
+        $index = array_key_first($selectedVendors);
+        $vendorName = $selectedVendors[$index];
+
+        $vendorDetails = [
+            'arc' => $data["vendor{$index}_arc"] ?? null,
+            'otc' => $data["vendor{$index}_otc"] ?? null,
+            'static_ip_cost' => $data["vendor{$index}_static_ip_cost"] ?? null,
+            'delivery_timeline' => $data["vendor{$index}_delivery_timeline"] ?? null,
+        ];
+
+        $settings = \App\Models\CompanySetting::first();
+        $expressionEmail = $settings->expression_permission_email ?? null;
+
+        if (!$expressionEmail) {
+            return back()->with('error', 'Expression permission email is not configured in Company Settings.');
+        }
+
+        try {
+            // Move record to InProgress when expression is sent from Operations
+            $record->status = 'InProgress';
+            $record->save();
+
+            Mail::to($expressionEmail)->send(
+                new \App\Mail\FeasibilityExpressionMail(
+                    $record,
+                    $vendorName,
+                    $vendorDetails,
+                    Auth::user()
+                )
+            );
+
+            return redirect()
+                ->route('operations.feasibility.inprogress')
+                ->with('success', 'Expression email sent and feasibility moved to In Progress successfully.');
+        } catch (\Exception $e) {
+            Log::error('Failed to send feasibility expression email from operations', [
+                'error' => $e->getMessage(),
+                'feasibility_status_id' => $record->id,
+            ]);
+
+            return back()->with('error', 'Failed to send expression email. Please try again later.');
+        }
     }
 
     private function getOperationsFeasibilityPermissions()

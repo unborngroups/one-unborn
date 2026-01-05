@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('company_id')->nullable(); 
             $table->string('company_name')->nullable();
         $table->string('company_email')->nullable();
+        $table->string('expression_permission_email')->nullable();
         $table->json('feasibility_notifications')->nullable();
 
         $table->string('contact_no')->nullable();

@@ -267,6 +267,8 @@ private function sendUpdatedEmail($feasibility)
 
      public function update(Request $request, $id)
     {
+        Log::info('Feasibility update called', ['id' => $id, 'payload' => $request->all()]);
+
         $validated = $request->validate([
             'type_of_service' => 'required',
             'company_id' => 'required|exists:companies,id',
@@ -292,7 +294,8 @@ private function sendUpdatedEmail($feasibility)
             // 'hardware_model_name' => 'nullable',
             'hardware_make' => 'array|nullable',
             'hardware_model' => 'array|nullable',
-            'status' => 'required|in:Active,Inactive',
+            // Status is stored but not edited here; allow any existing value
+            'status' => 'nullable|string',
         ]);
 
          // 🧠 Convert DD-MM-YYYY to YYYY-MM-DD before saving
@@ -320,11 +323,14 @@ private function sendUpdatedEmail($feasibility)
 
     // Add JSON to validated array
     $validated['hardware_details'] = json_encode($hardwareData);
-   // find old record
+
+    // find old record
     $feasibility = Feasibility::findOrFail($id);
 
     // update
     $feasibility->update($validated);
+
+    Log::info('Feasibility updated successfully', ['id' => $feasibility->id]);
     // load status
 $status = FeasibilityStatus::where('feasibility_id', $feasibility->id)->first();
 

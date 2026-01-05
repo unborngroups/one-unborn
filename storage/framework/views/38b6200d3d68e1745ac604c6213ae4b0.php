@@ -279,11 +279,26 @@
 
             
 
+            <?php
+                $settings = \App\Models\CompanySetting::first();
+                $expressionEmail = $settings->expression_permission_email ?? null;
+                $user = Auth::user();
+                $userEmail = $user ? ($user->official_email ?: $user->email) : null;
+                $isExpressionUser = $expressionEmail && $userEmail && strcasecmp($expressionEmail, $userEmail) === 0;
+
+                $vendorNamesForPermission = [];
+                for ($i = 1; $i <= 4; $i++) {
+                    $name = trim($record->{'vendor'.$i.'_name'} ?? '');
+                    if ($name !== '') {
+                        $vendorNamesForPermission[] = strtolower($name);
+                    }
+                }
+                $allSameVendorsForPermission = count($vendorNamesForPermission) > 0 && count(array_unique($vendorNamesForPermission)) === 1;
+            ?>
+
             <div class="mt-4">
 
                 <div class="row">
-
-                   
 
                     <div class="col-md-8">
 
@@ -299,11 +314,26 @@
 
                         
 
-                        <button type="button" class="btn btn-success me-2" onclick="submitToClosed()">
+                        <button type="button" class="btn btn-primary me-2" onclick="sendExpressionEmail()">
 
-                            <i class="bi bi-check-circle"></i> Submit (Move to Closed)
+                            <i class="bi bi-send"></i> Send Expression
 
                         </button>
+
+
+
+                        
+
+                        <?php if($record->status === 'InProgress' && $allSameVendorsForPermission && ! $isExpressionUser): ?>
+                            <button type="button" class="btn btn-success me-2" disabled
+                                title="Only the Expression Permission Email user can close this feasibility.">
+                                <i class="bi bi-check-circle"></i> Submit (Move to Closed)
+                            </button>
+                        <?php else: ?>
+                            <button type="button" class="btn btn-success me-2" onclick="submitToClosed()">
+                                <i class="bi bi-check-circle"></i> Submit (Move to Closed)
+                            </button>
+                        <?php endif; ?>
 
 
 
@@ -346,6 +376,9 @@
 <script>
 
 document.addEventListener('DOMContentLoaded', function () {
+
+    // Current feasibility status (Open / InProgress / Closed)
+    const currentStatus = "<?php echo e($record->status); ?>";
 
     // -----------------------------
     // Vendor Type Logic
@@ -412,14 +445,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function validateVendorNames() {
         const dropdowns = document.querySelectorAll('.vendor-dropdown');
-        const names = [];
         let isValid = true;
 
         const noOfLinks = parseInt('<?php echo e($noOfLinks); ?>');
 
         dropdowns.forEach((dd, index) => {
 
-            // IGNORE validation for SELF mode (duplicates allowed)
+            // IGNORE validation for SELF mode
             if (ownCompanies.includes(vendorType)) {
                 dd.classList.remove('is-invalid');
                 return;
@@ -429,19 +461,11 @@ document.addEventListener('DOMContentLoaded', function () {
             const vendorNumber = index + 1;
             const name = dd.value.trim().toLowerCase();
 
-            // Required vendor
+            // Required vendor (only check empty)
             if (vendorNumber <= noOfLinks && !name) {
                 dd.classList.add('is-invalid');
                 isValid = false;
                 return;
-            }
-
-            // Duplicate check
-            if (name && names.includes(name)) {
-                dd.classList.add('is-invalid');
-                isValid = false;
-            } else if (name) {
-                names.push(name);
             }
         });
 
@@ -452,6 +476,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // ----------------------------------------------------
     // Hide Used Vendors From Other Dropdowns (Normal Only)
     // ----------------------------------------------------
+    // NOTE: Disabled as per latest requirement; keeping logic commented
+    // for potential future reuse.
+    /*
     function updateVendorDropdowns() {
 
         if (ownCompanies.includes(vendorType)) return; // no need in SELF mode
@@ -493,6 +520,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     updateVendorDropdowns();
+    */
 
 
     // -----------------------------
@@ -500,8 +528,31 @@ document.addEventListener('DOMContentLoaded', function () {
     // -----------------------------
     window.saveToInProgress = function () {
         if (!validateVendorNames()) {
-            alert('Please fill all required vendor names and ensure they are different.');
+            alert('Please fill all required vendor names.');
             return false;
+        }
+
+        // When record is still Open and all vendors are same, force Expression
+        if (currentStatus === 'Open') {
+            const dropdowns = document.querySelectorAll('.vendor-dropdown');
+            const selectedNames = [];
+
+            dropdowns.forEach(function (dd) {
+                const val = dd.value.trim();
+                if (val !== '') {
+                    selectedNames.push(val.toLowerCase());
+                }
+            });
+
+            if (selectedNames.length > 0) {
+                const first = selectedNames[0];
+                const allSame = selectedNames.every(n => n === first);
+
+                if (allSame) {
+                    alert('Same vendor name selected for all links. Please use the "Send Expression" button to move this feasibility to In Progress.');
+                    return false;
+                }
+            }
         }
 
         if (confirm('Are you sure you want to save this feasibility? This will move it to Inprogress status.')) {
@@ -516,9 +567,33 @@ document.addEventListener('DOMContentLoaded', function () {
     // -----------------------------
     window.submitToClosed = function () {
         if (!validateVendorNames()) {
-            alert('Please fill all required vendor names and ensure they are different.');
+            alert('Please fill all required vendor names.');
             return false;
         }
+
+        // When record is still Open and all vendors are same, force Expression instead of direct submit
+        if (currentStatus === 'Open') {
+            const dropdowns = document.querySelectorAll('.vendor-dropdown');
+            const selectedNamesForSubmit = [];
+
+            dropdowns.forEach(function (dd) {
+                const val = dd.value.trim();
+                if (val !== '') {
+                    selectedNamesForSubmit.push(val.toLowerCase());
+                }
+            });
+
+            if (selectedNamesForSubmit.length > 0) {
+                const firstSubmit = selectedNamesForSubmit[0];
+                const allSameSubmit = selectedNamesForSubmit.every(n => n === firstSubmit);
+
+                if (allSameSubmit) {
+                    alert('Same vendor name selected for all links. Please use the "Send Expression" button first before submitting this feasibility to Closed.');
+                    return false;
+                }
+            }
+        }
+
         if (confirm('Are you sure you want to submit this feasibility? This will move it to Closed status.')) {
             const form = document.getElementById('feasibilityForm');
             form.action = "<?php echo e(route('operations.feasibility.submit', $record->id)); ?>";
@@ -566,6 +641,47 @@ document.addEventListener('DOMContentLoaded', function () {
 
     applyStaticIPRule();
     updateStaticIpCostVisibility();
+
+
+    // -----------------------------
+    // Send Expression Email (Operations)
+    // -----------------------------
+    window.sendExpressionEmail = function () {
+        if (!validateVendorNames()) {
+            alert('Please fill all required vendor names before sending expression.');
+            return false;
+        }
+
+        // At least one vendor must be selected; all selected names must be same
+        const dropdowns = document.querySelectorAll('.vendor-dropdown');
+        const selectedNames = [];
+
+        dropdowns.forEach(function (dd) {
+            const val = dd.value.trim();
+            if (val !== '') {
+                selectedNames.push(val.toLowerCase());
+            }
+        });
+
+        if (selectedNames.length === 0) {
+            alert('Please select at least one vendor before sending expression email.');
+            return false;
+        }
+
+        const first = selectedNames[0];
+        const allSame = selectedNames.every(n => n === first);
+
+        if (!allSame) {
+            alert('For expression, all selected vendor names must be same.');
+            return false;
+        }
+
+        if (confirm('Send expression email for the selected vendor?')) {
+            const form = document.getElementById('feasibilityForm');
+            form.action = "<?php echo e(route('operations.feasibility.expression', $record->id)); ?>";
+            form.submit();
+        }
+    };
 });
 
 

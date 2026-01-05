@@ -172,6 +172,39 @@
     </div>
 
     <div class="mt-0">
+        <h3>Purchase Orders</h3>
+        <div class="row g-4 mt-2">
+            <div class="col-md-4">
+                <a href="<?php echo e(route('sm.purchaseorder.create')); ?>" class="text-decoration-none">
+                    <div class="dashboard-card" style="background:#9b59b6;">
+                        <h3 class="fw-bold m-0"><?php echo e($purchaseOrderCounts['open'] ?? 0); ?></h3>
+                        <h3>Open</h3>
+                        <i class="bi bi-receipt-cutoff dashboard-icon-bg"></i>
+                        <div class="dashboard-bottom">
+                            List <i class="bi bi-arrow-right-circle"></i>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            
+
+            <div class="col-md-4">
+                <a href="<?php echo e(route('sm.purchaseorder.index')); ?>" class="text-decoration-none">
+                    <div class="dashboard-card" style="background:#16a085;">
+                        <h3 class="fw-bold m-0"><?php echo e($purchaseOrderCounts['closed'] ?? 0); ?></h3>
+                        <h3>Closed</h3>
+                        <i class="bi bi-check2-circle dashboard-icon-bg"></i>
+                        <div class="dashboard-bottom">
+                            List <i class="bi bi-arrow-right-circle"></i>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-0">
         <h3>Deliverables</h3>
         <div class="row g-4 mt-2">
             <div class="col-md-4 col-sm-6">

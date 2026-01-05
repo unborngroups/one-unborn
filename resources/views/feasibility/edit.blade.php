@@ -264,7 +264,7 @@
     <div class="row hardware_row" style="display:none;">
         <div class="col-md-3">
             <label>Make</label>
-            <select name="make_type_id[]" class="form-control" required>
+            <select name="make_type_id[]" class="form-control">
                 <option value="">Select Make</option>
                 @foreach($makes as $m)
                     <option value="{{ $m->id }}">{{ $m->make_name }}</option>
@@ -274,7 +274,7 @@
         <div class="col-md-3 d-flex align-items-end">
             <div class="flex-grow-1">
                 <label>Model</label>
-                <select name="model_id[]" class="form-control" required>
+                <select name="model_id[]" class="form-control">
                     <option value="">Select Model</option>
                     @foreach($models as $m)
                         <option value="{{ $m->id }}">{{ $m->model_name }}</option>
@@ -318,13 +318,25 @@ document.addEventListener('DOMContentLoaded', function() {
         if (hardwareRequiredSelect.value === '1') {
             // Show first row and Add button
             const firstRow = hardwareContainer.querySelector('.hardware_row');
-            if (firstRow) firstRow.style.display = 'flex';
+            if (firstRow) {
+                firstRow.style.display = 'flex';
+                firstRow.querySelectorAll('input, select, textarea').forEach(el => {
+                    el.disabled = false;
+                    if (el.name === 'make_type_id[]' || el.name === 'model_id[]') {
+                        el.required = true;
+                    }
+                });
+            }
             addBtnDiv.style.display = 'block';
         } else {
             // Hide all rows and Add button
             hardwareContainer.querySelectorAll('.hardware_row').forEach(row => {
                 row.style.display = 'none';
-                row.querySelectorAll('input').forEach(input => input.value = '');
+                row.querySelectorAll('input, select, textarea').forEach(el => {
+                    el.value = '';
+                    el.disabled = true;
+                    el.required = false;
+                });
             });
             addBtnDiv.style.display = 'none';
         }
@@ -342,7 +354,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!originalRow) return;
 
         const newRow = originalRow.cloneNode(true);
-        newRow.querySelectorAll('input').forEach(input => input.value = ''); // reset values
+        newRow.querySelectorAll('input, select, textarea').forEach(el => {
+            el.value = '';
+            el.disabled = false;
+            if (el.name === 'make_type_id[]' || el.name === 'model_id[]') {
+                el.required = true;
+            }
+        }); // reset values and enable
         newRow.style.display = 'flex';
         hardwareContainer.appendChild(newRow);
     });

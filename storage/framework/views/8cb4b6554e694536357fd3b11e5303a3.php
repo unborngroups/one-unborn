@@ -1065,21 +1065,39 @@
 
              
 
+            
+
             <?php
 
                 $hr = \App\Helpers\TemplateHelper::getUserMenuPermissions('HR');
+                $users = \App\Helpers\TemplateHelper::getUserMenuPermissions('Manage User');
 
             ?>
 
             <?php if($hr && $hr->can_menu): ?>
                 <li class="nav-item">
+                    <details class="sidebar-dropdown" <?php echo e(request()->is('hr*') || request()->is('users*') ? 'open' : ''); ?>>
+                        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-people-fill"></i> HR</span>
+                            <i class="bi bi-chevron-down arrow-icon"></i>
+                        </summary>
 
-                    <a class="nav-link text-white menu-item <?php echo e(request()->is('hr/*') ? 'active' : ''); ?>" href="<?php echo e(url('/hr')); ?>">
+                        <ul class="nav flex-column ms-3 mt-1">
+                            <li class="nav-item">
+                                <a class="nav-link text-white menu-item <?php echo e(request()->is('hr/employee*') ? 'active' : ''); ?>" href="<?php echo e(route('hr.employee.index')); ?>">
+                                    <i class="bi bi-person-badge"></i> Employee
+                                </a>
+                            </li>
 
-                        <i class="bi bi-people-fill"></i> HR
-
-                    </a>
-
+                            <?php if($users && $users->can_menu): ?>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white menu-item <?php echo e(request()->is('users*') ? 'active' : ''); ?>" href="<?php echo e(route('users.index')); ?>">
+                                        <i class="bi bi-people"></i> Manage User
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+                        </ul>
+                    </details>
                 </li>
 
             <?php endif; ?>
