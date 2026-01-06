@@ -138,3 +138,9 @@ ADD COLUMN vendor1_remarks VARCHAR(255) NULL AFTER vendor1_delivery_timeline,
 ADD COLUMN vendor2_remarks VARCHAR(255) NULL AFTER vendor2_delivery_timeline,
 ADD COLUMN vendor3_remarks VARCHAR(255) NULL AFTER vendor3_delivery_timeline,
 ADD COLUMN vendor4_remarks VARCHAR(255) NULL AFTER vendor4_delivery_timeline;
+
+-- update pannanu
+ALTER TABLE deliverable_plans
+ADD COLUMN vendor_name VARCHAR(255) NULL AFTER link_number,
+ADD COLUMN vendor_email VARCHAR(255) NULL AFTER vendor_name,
+ADD COLUMN vendor_contact VARCHAR(255) NULL AFTER vendor_email;

@@ -9,6 +9,9 @@ class DeliverablePlan extends Model
     protected $fillable = [
         'deliverable_id',
         'link_number',
+        'vendor_name',
+        'vendor_email',
+        'vendor_contact',
         'circuit_id',
         'plans_name',
         'speed_in_mbps_plan',

@@ -168,54 +168,54 @@
                     </div>
                     <div class="card-body">
                         <div class="row gy-2">
-                        <?php if(!empty($hardwareDetails)): ?>
-                            <?php $__currentLoopData = $hardwareDetails; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $detail): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <div class="col-md-6">
-                                    <div class="border rounded p-2">
-                                        <small class="text-muted">Hardware <?php echo e($index + 1); ?></small>
-                                        <p class="mb-1"><strong>Make:</strong> <?php echo e($detail['make'] ?? '-'); ?></p>
-                                        <p class="mb-0"><strong>Model:</strong> <?php echo e($detail['model'] ?? '-'); ?></p>
+                            <?php if(!empty($hardwareDetails)): ?>
+                                <?php $__currentLoopData = $hardwareDetails; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $detail): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-2">
+                                            <small class="text-muted">Hardware <?php echo e($index + 1); ?></small>
+                                            <p class="mb-1"><strong>Make:</strong> <?php echo e($detail['make'] ?? '-'); ?></p>
+                                            <p class="mb-0"><strong>Model:</strong> <?php echo e($detail['model'] ?? '-'); ?></p>
+                                        </div>
                                     </div>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            <?php else: ?>
+                                <div class="col-12">
+                                    <p class="mb-0 text-muted">No hardware information was carried over from the feasibility request.</p>
                                 </div>
-                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                        <?php else: ?>
-                            <div class="col-12">
-                                <p class="mb-0 text-muted">No hardware information was carried over from the feasibility request.</p>
-                            </div>
-                        <?php endif; ?>
-                    </div>
+                            <?php endif; ?>
+                        </div>
 
                         <div class="row mt-3">
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">Asset ID</label>
                                 <select name="asset_id" id="asset_selector" class="form-select">
-                                <option value="">-- Select Asset --</option>
-                                <?php $__currentLoopData = $assetOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $asset): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($asset->asset_id); ?>"
-                                            data-serial="<?php echo e($asset->serial_no); ?>"
-                                            data-mac="<?php echo e($asset->mac_no); ?>"
-                                            <?php echo e($selectedAssetId && $selectedAssetId === $asset->asset_id ? 'selected' : ''); ?>>
-                                        <?php echo e($asset->asset_id); ?><?php if(!empty($asset->serial_no)): ?> - <?php echo e($asset->serial_no); ?><?php endif; ?>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label class="form-label">Serial Number</label>
-                                        <input type="text" id="asset_serial_no" name="asset_serial_no" class="form-control" readonly value="<?php echo e($selectedAssetSerial); ?>">
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label class="form-label">MAC Number</label>
-                                        <input type="text" id="asset_mac_no" name="asset_mac_no" class="form-control" readonly value="<?php echo e($selectedAssetMac ?? ''); ?>">
-                                    </div>
-                                </div>
+                                    <option value="">-- Select Asset --</option>
+                                    <?php $__currentLoopData = $assetOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $asset): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($asset->asset_id); ?>"
+                                                data-serial="<?php echo e($asset->serial_no); ?>"
+                                                data-mac="<?php echo e($asset->mac_no); ?>"
+                                                <?php echo e($selectedAssetId && $selectedAssetId === $asset->asset_id ? 'selected' : ''); ?>>
+                                            <?php echo e($asset->asset_id); ?><?php if(!empty($asset->serial_no)): ?> - <?php echo e($asset->serial_no); ?><?php endif; ?>
+                                        </option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    <?php if($selectedAssetId && !$assetOptions->contains('asset_id', $selectedAssetId)): ?>
+                                        <option value="<?php echo e($selectedAssetId); ?>" data-serial="<?php echo e($selectedAssetSerial); ?>" data-mac="<?php echo e($selectedAssetMac); ?>" selected>
+                                            <?php echo e($selectedAssetId); ?><?php if(!empty($selectedAssetSerial)): ?> - <?php echo e($selectedAssetSerial); ?><?php endif; ?>
+                                        </option>
+                                    <?php endif; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Serial Number</label>
+                                <input type="text" id="asset_serial_no" name="asset_serial_no" class="form-control" readonly value="<?php echo e($selectedAssetSerial); ?>">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">MAC Number</label>
+                                <input type="text" id="asset_mac_no" name="asset_mac_no" class="form-control" readonly value="<?php echo e($selectedAssetMac ?? ''); ?>">
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            
-            <form action="<?php echo e(route('operations.deliverables.save', $record->id)); ?>" method="POST" enctype="multipart/form-data">
-                <?php echo csrf_field(); ?>
                 
             <?php
                 $linkCount = $record->feasibility->no_of_links ?? 1;
@@ -909,4 +909,4 @@ document.addEventListener('DOMContentLoaded', function () {
 
 </script>
 <?php $__env->stopSection(); ?>
-<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\operations\deliverables\edit.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views/operations/deliverables/edit.blade.php ENDPATH**/ ?>

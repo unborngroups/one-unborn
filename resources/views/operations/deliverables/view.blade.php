@@ -67,7 +67,7 @@
                         </div>
                         <div class="col-md-3">
                             <strong>Mac No</strong><br>
-                            <span>{{ $record->assets->mac_no ?? '-' }}</span>
+                            <span>{{ $record->asset_mac_no ?? '-' }}</span>
                         </div>
                     </div>
                 </div>
@@ -94,11 +94,19 @@
                 </div>
 
                 <div class="card-body">
+                    @php
+                        $isSelfVendorType = in_array($record->feasibility->vendor_type ?? '', ['UBN', 'UBS', 'UBL', 'INF']);
+                    @endphp
                     @foreach($record->deliverablePlans as $plan)
                     <div class="row border rounded mb-3 p-2">
                         <div class="col-12 mb-2">
                             <strong class="text-primary">Plan Information for Link {{ $plan->link_number }}</strong>
                         </div>
+                        @if(!$isSelfVendorType && ($plan->vendor_name || $plan->vendor_email || $plan->vendor_contact))
+                            <div class="col-md-3"><strong>Vendor Name</strong><br>{{ $plan->vendor_name ?? '-' }}</div>
+                            <div class="col-md-3"><strong>Vendor Email</strong><br>{{ $plan->vendor_email ?? '-' }}</div>
+                            <div class="col-md-3"><strong>Vendor Contact</strong><br>{{ $plan->vendor_contact ?? '-' }}</div>
+                        @endif
                         <div class="col-md-3"><strong>Circuit ID</strong><br>{{ $plan->circuit_id ?? '-' }}</div>
                         <div class="col-md-3"><strong>Plan Name</strong><br>{{ $plan->plans_name ?? '-' }}</div>
                         <div class="col-md-3"><strong>Speed (Plan)</strong><br>{{ $plan->speed_in_mbps_plan ?? '-' }}</div>
@@ -130,7 +138,14 @@
                         <div class="col-md-6 mb-3"><strong>DHCP VLAN:</strong><br>{{ $plan->dhcp_vlan ?? 'N/A' }}</div>
                         @endif
                         <!-- Static IP Configuration -->
-                        @if(in_array($plan->mode_of_delivery, ['Static', 'Static IP']))
+                        @if(($record->feasibility->static_ip ?? 'No') === 'Yes' && (
+                            $plan->static_ip_address ||
+                            $plan->static_subnet_mask ||
+                            $plan->static_vlan ||
+                            $plan->network_ip ||
+                            $plan->static_gateway ||
+                            $plan->usable_ips
+                        ))
                         <div class="col-12 mt-2 text-danger"><strong>Static IP Configuration</strong></div>
                         <div class="col-md-3 mb-3"><strong>Static IP Address:</strong><br>{{ $plan->static_ip_address ?? 'N/A' }}</div>
                         <div class="col-md-3 mb-3"><strong>Subnet:</strong><br>{{ $plan->static_subnet_mask ?? 'N/A' }}</div>
@@ -140,8 +155,8 @@
                         <div class="col-md-3 mb-3"><strong>Usable IPs:</strong><br>{{ $plan->usable_ips ?? 'N/A' }}</div>
                         @endif
                         <!-- Payment Information -->
-                        @if($plan->mode_of_delivery === 'PAYMENTS')
-                        <div class="col-12 mt-2"><strong>Payment Information</strong></div>
+                        @if($plan->payment_login_url || $plan->payment_quick_url || $plan->payment_account_or_username || $plan->payment_password)
+                        <div class="col-12 mt-2 text-danger"><strong>Payment Information</strong></div>
                         <div class="col-md-3 mb-2"><strong>Login URL:</strong><br>{{ $plan->payment_login_url ?? 'N/A' }}</div>
                         <div class="col-md-3 mb-2"><strong>Quick URL:</strong><br>{{ $plan->payment_quick_url ?? 'N/A' }}</div>
                         <div class="col-md-3 mb-2"><strong>Account Number / Username:</strong><br>{{ $plan->payment_account_or_username ?? 'N/A' }}</div>

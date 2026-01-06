@@ -67,7 +67,7 @@
                         </div>
                         <div class="col-md-3">
                             <strong>Mac No</strong><br>
-                            <span><?php echo e($record->assets->mac_no ?? '-'); ?></span>
+                            <span><?php echo e($record->asset_mac_no ?? '-'); ?></span>
                         </div>
                     </div>
                 </div>
@@ -246,4 +246,4 @@
     </div>
 </div>
 <?php $__env->stopSection(); ?>
-<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\operations\deliverables\view.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views/operations/deliverables/view.blade.php ENDPATH**/ ?>

@@ -138,64 +138,64 @@
                 $selectedAssetMac = old('asset_mac_no', $record->asset_mac_no ?? '');
             @endphp
 
-            <div class="card mb-3">
-                <div class="card-header bg-secondary text-white">
-                    <h6 class="mb-0">Hardware & Asset Details</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row gy-2">
-                        @if(!empty($hardwareDetails))
-                            @foreach($hardwareDetails as $index => $detail)
-                                <div class="col-md-6">
-                                    <div class="border rounded p-2">
-                                        <small class="text-muted">Hardware {{ $index + 1 }}</small>
-                                        <p class="mb-1"><strong>Make:</strong> {{ $detail['make'] ?? '-' }}</p>
-                                        <p class="mb-0"><strong>Model:</strong> {{ $detail['model'] ?? '-' }}</p>
-                                    </div>
-                                </div>
-                            @endforeach
-                        @else
-                            <div class="col-12">
-                                <p class="mb-0 text-muted">No hardware information was carried over from the feasibility request.</p>
-                            </div>
-                        @endif
-                    </div>
-
-                    <div class="row mt-3">
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Asset ID</label>
-                            <select name="asset_id" id="asset_selector" class="form-select">
-                                <option value="">-- Select Asset --</option>
-                                @foreach($assetOptions as $asset)
-                                    <option value="{{ $asset->asset_id }}"
-                                            data-serial="{{ $asset->serial_no }}"
-                                            data-mac="{{ $asset->mac_no }}"
-                                            {{ $selectedAssetId && $selectedAssetId === $asset->asset_id ? 'selected' : '' }}>
-                                        {{ $asset->asset_id }}@if(!empty($asset->serial_no)) - {{ $asset->serial_no }}@endif ({{ $asset->vendor_name }})
-                                    </option>
-                                @endforeach
-                                @if($selectedAssetId && !$assetOptions->contains('asset_id', $selectedAssetId))
-                                    <option value="{{ $selectedAssetId }}" data-serial="{{ $selectedAssetSerial }}" data-mac="{{ $selectedAssetMac }}" selected>
-                                        {{ $selectedAssetId }}@if(!empty($selectedAssetSerial)) - {{ $selectedAssetSerial }}@endif (assigned)
-                                    </option>
-                                @endif
-                            </select>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Serial Number</label>
-                            <input type="text" id="asset_serial_no" name="asset_serial_no" class="form-control" readonly value="{{ $selectedAssetSerial }}">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">MAC Number</label>
-                            <input type="text" id="asset_mac_no" name="asset_mac_no" class="form-control" readonly value="{{ $selectedAssetMac ?? '' }}">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             {{-- Editable Form --}}
             <form action="{{ route('operations.deliverables.save', $record->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
+
+                <div class="card mb-3">
+                    <div class="card-header bg-secondary text-white">
+                        <h6 class="mb-0">Hardware & Asset Details</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row gy-2">
+                            @if(!empty($hardwareDetails))
+                                @foreach($hardwareDetails as $index => $detail)
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-2">
+                                            <small class="text-muted">Hardware {{ $index + 1 }}</small>
+                                            <p class="mb-1"><strong>Make:</strong> {{ $detail['make'] ?? '-' }}</p>
+                                            <p class="mb-0"><strong>Model:</strong> {{ $detail['model'] ?? '-' }}</p>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @else
+                                <div class="col-12">
+                                    <p class="mb-0 text-muted">No hardware information was carried over from the feasibility request.</p>
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Asset ID</label>
+                                <select name="asset_id" id="asset_selector" class="form-select">
+                                    <option value="">-- Select Asset --</option>
+                                    @foreach($assetOptions as $asset)
+                                        <option value="{{ $asset->asset_id }}"
+                                                data-serial="{{ $asset->serial_no }}"
+                                                data-mac="{{ $asset->mac_no }}"
+                                                {{ $selectedAssetId && $selectedAssetId === $asset->asset_id ? 'selected' : '' }}>
+                                            {{ $asset->asset_id }}@if(!empty($asset->serial_no)) - {{ $asset->serial_no }}@endif ({{ $asset->vendor_name }})
+                                        </option>
+                                    @endforeach
+                                    @if($selectedAssetId && !$assetOptions->contains('asset_id', $selectedAssetId))
+                                        <option value="{{ $selectedAssetId }}" data-serial="{{ $selectedAssetSerial }}" data-mac="{{ $selectedAssetMac }}" selected>
+                                            {{ $selectedAssetId }}@if(!empty($selectedAssetSerial)) - {{ $selectedAssetSerial }}@endif (assigned)
+                                        </option>
+                                    @endif
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Serial Number</label>
+                                <input type="text" id="asset_serial_no" name="asset_serial_no" class="form-control" readonly value="{{ $selectedAssetSerial }}">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">MAC Number</label>
+                                <input type="text" id="asset_mac_no" name="asset_mac_no" class="form-control" readonly value="{{ $selectedAssetMac ?? '' }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 {{-- Plan Information --}}
             @php
                 $linkCount = $record->feasibility->no_of_links ?? 1;
@@ -235,24 +235,31 @@
                                 <div class="col-12 mb-2">
                                     <strong>Plan Information for Link {{ $i }}</strong>
                                 </div>
-                                
-                                 <div class="col-md-3 mb-3">
-                                <label class="form-label">Circuit ID</label>
-                                <input type="text" class="form-control" value="Auto Generated" readonly>
-                               </div>
 
-                               <div class="col-md-3 mb-3">
-                                   <label class="form-label">Vendor Name</label>
-                                   <input type="text" class="form-control" value="{{ $vendor->vendor_name ?? '' }}" readonly>
-                               </div>
-                               <div class="col-md-3 mb-3">
-                                   <label class="form-label">Vendor Email</label>
-                                   <input type="text" class="form-control" value="{{ $vendor->contact_person_email ?? '' }}" readonly>
-                               </div>
-                               <div class="col-md-3 mb-3">
-                                   <label class="form-label">Vendor Contact</label>
-                                   <input type="text" class="form-control" value="{{ $vendor->contact_person_mobile ?? '' }}" readonly>
-                               </div>
+                                @php
+                                    $vendorForLink = $linkVendors[$i] ?? null;
+                                    $isSelfVendorType = in_array($record->feasibility->vendor_type ?? '', ['UBN', 'UBS', 'UBL', 'INF']);
+                                @endphp
+
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Circuit ID</label>
+                                    <input type="text" class="form-control" value="Auto Generated" readonly>
+                                </div>
+
+                                @if(!$isSelfVendorType && $vendorForLink)
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Vendor Name</label>
+                                        <input type="text" class="form-control" value="{{ $vendorForLink->vendor_name ?? '' }}" readonly>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Vendor Email</label>
+                                        <input type="text" class="form-control" value="{{ $vendorForLink->contact_person_email ?? '' }}" readonly>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label">Vendor Contact</label>
+                                        <input type="text" class="form-control" value="{{ $vendorForLink->contact_person_mobile ?? '' }}" readonly>
+                                    </div>
+                                @endif
 
                                 <div class="col-md-3 mb-3">
                                     <label class="form-label">Plans Name <span class="text-danger">*</span></label>
@@ -464,73 +471,60 @@
 
                 <!-- end Static_ip -->
 
+                        {{-- PPPoE Configuration --}}
+                        <div class="card mb-3" id="pppoe_section_{{ $i }}" style="display: none;">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0">PPPoE Configuration</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-2">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Username</label>
+                                        <input type="text" name="pppoe_username_{{ $i }}" class="form-control" placeholder="Enter PPPoE Username" value="{{ old('pppoe_username_'.$i, $plan->pppoe_username ?? '') }}">
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label">Password</label>
+                                        <input type="text" name="pppoe_password_{{ $i }}" class="form-control" placeholder="Enter password"
+                                               value="{{ old('pppoe_password_'.$i, $plan->pppoe_password ?? '') }}">
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label">VLAN</label>
+                                        <input type="text" name="pppoe_vlan_{{ $i }}" class="form-control" placeholder="Enter VLAN"
+                                               value="{{ old('pppoe_vlan_'.$i, $plan->pppoe_vlan ?? '') }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- DHCP Configuration --}}
+                        <div class="card mb-3" id="dhcp_section_{{ $i }}" style="display: none;">
+                            <div class="card-header bg-warning text-dark">
+                                <h6 class="mb-0">DHCP Configuration</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">IP Address</label>
+                                        <input type="text" class="form-control" name="dhcp_ip_address_{{ $i }}" 
+                                               value="{{ old('dhcp_ip_address_'.$i, $plan->dhcp_ip_address ?? '') }}">
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">VLAN</label>
+                                        <input type="text" class="form-control" name="dhcp_vlan_{{ $i }}" 
+                                               value="{{ old('dhcp_vlan_'.$i, $plan->dhcp_vlan ?? '') }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         </div>
                     @endfor
                               
                     </div>
                 </div>
-                @php
-    $linkCount = $record->feasibility->no_of_links ?? 1;  // align fields with feasibility\'s link count
-@endphp
-<!--  -->
-
-@for($i = 1; $i <= $linkCount; $i++)
-    @php
-        $plan = $record->deliverablePlans->where('link_number', $i)->first();
-    @endphp
-
-                {{-- PPPoE Configuration --}}
-                <div class="card mb-3" id="pppoe_section_{{ $i }}" style="display: none;">
-                    <div class="card-header bg-primary text-white">
-                        <h6 class="mb-0">PPPoE Configuration</h6>
-                    </div>
-                    <div class="card-body">
-                        
-        <div class="row mb-2">
-            <div class="col-md-4">
-                <label class="form-label">Username</label>
-                <input type="text" name="pppoe_username_{{ $i }}" class="form-control" placeholder="Enter pppoe_username_" value="{{ old('pppoe_username_'.$i, $plan->pppoe_username ?? '') }}">
-            </div>
-
-            <div class="col-md-4">
-                <label class="form-label">Password</label>
-                <input type="text" name="pppoe_password_{{ $i }}" class="form-control" placeholder="Enter password"
-                       value="{{ old('pppoe_password_'.$i, $plan->pppoe_password ?? '') }}">
-            </div>
-
-            <div class="col-md-4">
-                <label class="form-label">VLAN</label>
-                <input type="text" name="pppoe_vlan_{{ $i }}" class="form-control" placeholder="Enter VLAN"
-                       value="{{ old('pppoe_vlan_'.$i, $plan->pppoe_vlan ?? '') }}">
-            </div>
-        </div>
-    
-                    </div>
-                </div>
-
-                {{-- DHCP Configuration --}}
-                <div class="card mb-3" id="dhcp_section_{{ $i }}" style="display: none;">
-                    <div class="card-header bg-warning text-dark">
-                        <h6 class="mb-0">DHCP Configuration</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">IP Address</label>
-                                <input type="text" class="form-control" name="dhcp_ip_address_{{ $i }}" 
-                                       value="{{ old('dhcp_ip_address_'.$i, $plan->dhcp_ip_address ?? '') }}">
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">VLAN</label>
-                                <input type="text" class="form-control" name="dhcp_vlan_{{ $i }}" 
-                                       value="{{ old('dhcp_vlan_'.$i, $plan->dhcp_vlan ?? '') }}">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                @endfor
                 <!-- {{-- LAN --}} -->
                  <div class="card mb-3 ">
                 <div class="card-header bg-primary text-white">
@@ -814,17 +808,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
  // For multiple links
     function toggleSectionsByLink(linkNo, selectedMode) {
-    const pppoe = document.getElementById(`pppoe_section_${linkNo}`);
-    const dhcp = document.getElementById(`dhcp_section_${linkNo}`);
-    // const stat = document.getElementById(`static_section_${linkNo}`);
-    // const pay  = document.getElementById(`payments_section_${linkNo}`);
+        const pppoe = document.getElementById(`pppoe_section_${linkNo}`);
+        const dhcp = document.getElementById(`dhcp_section_${linkNo}`);
 
-    [pppoe, dhcp, stat, pay].forEach(sec => sec && (sec.style.display = 'none')) ;
+        [pppoe, dhcp].forEach(sec => {
+            if (sec) {
+                sec.style.display = 'none';
+            }
+        });
 
-    if (selectedMode === 'PPPoE') pppoe.style.display = 'block';
-    if (selectedMode === 'DHCP') dhcp.style.display = 'block';
-    // if (selectedMode === 'Static IP' || selectedMode === 'Static') stat.style.display = 'block';
-    // if (selectedMode === 'PAYMENTS') pay.style.display = 'block';
+        if (selectedMode === 'PPPoE' && pppoe) {
+            pppoe.style.display = 'block';
+        }
+        if (selectedMode === 'DHCP' && dhcp) {
+            dhcp.style.display = 'block';
+        }
+        // If Static IP or PAYMENTS modes are reintroduced with separate sections,
+        // extend this function similarly for those IDs.
 }
 
 function toggleIpsecFields() {
@@ -857,38 +857,35 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+// Sync asset serial and MAC when Asset ID changes
+document.addEventListener('DOMContentLoaded', function () {
+    function syncAssetFields() {
+        const select = document.getElementById('asset_selector');
+        if (!select) return;
+
+        const selected = select.options[select.selectedIndex];
+        if (!selected) return;
+
+        const serial = selected.getAttribute('data-serial') || '';
+        const mac = selected.getAttribute('data-mac') || '';
+
+        const serialInput = document.getElementById('asset_serial_no');
+        const macInput = document.getElementById('asset_mac_no');
+
+        if (serialInput) serialInput.value = serial;
+        if (macInput) macInput.value = mac;
+    }
+
+    // Initial sync on page load (for already-selected asset)
+    syncAssetFields();
+
+    // Update fields whenever asset selection changes
+    const selectEl = document.getElementById('asset_selector');
+    if (selectEl) {
+        selectEl.addEventListener('change', syncAssetFields);
+    }
+});
+
 
 </script>
 @endsection
-
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        function syncAssetFields() {
-            const select = document.getElementById('asset_selector');
-            if (!select) return;
-
-            const selected = select.options[select.selectedIndex];
-            if (!selected) return;  
-
-            const serial = selected.getAttribute('data-serial') || '';
-            const mac = selected.getAttribute('data-mac') || '';
-
-            const serialInput = document.getElementById('asset_serial_no');
-            const macInput = document.getElementById('asset_mac_no');
-
-            if (serialInput) serialInput.value = serial;
-            if (macInput) macInput.value = mac;
-        }
-
-        // Initial sync on page load (for already-selected asset)
-        syncAssetFields();
-
-        // Update fields whenever asset selection changes
-        const selectEl = document.getElementById('asset_selector');
-        if (selectEl) {
-            selectEl.addEventListener('change', syncAssetFields);
-        }
-    });
-</script>
-@endpush

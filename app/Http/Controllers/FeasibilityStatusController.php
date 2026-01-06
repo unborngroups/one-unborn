@@ -392,23 +392,56 @@ public function editSave(Request $request, $id)
 
     public function operationsInProgress(Request $request)
     {
-        $permissions = TemplateHelper::getUserMenuPermissions('operations Feasibility', 'Operations Feasibility In Progress') ?? (object)[
-            'can_menu' => true,
-            'can_add' => true,
-            'can_edit' => true,
-            'can_delete' => true,
-            'can_view' => true,
-        ];
+        $permissions = $this->getOperationsFeasibilityPermissions();
 
-         $perPage = (int) $request->get('per_page', 10);
-         $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+        $perPage = (int) $request->get('per_page', 10);
+        $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
 
-        $records = FeasibilityStatus::with(['feasibility', 'feasibility.client'])
-            ->where('status', 'InProgress')
+        $query = FeasibilityStatus::with(['feasibility', 'feasibility.client'])
+            ->where('status', 'InProgress');
+
+        // If called with ?exception=1, show only exception feasibilities
+        if ($request->boolean('exception')) {
+            $query->getQuery()->whereRaw(
+                "(
+                    (
+                        COALESCE(NULLIF(LOWER(TRIM(vendor1_name)), ''), NULL) IS NOT NULL
+                        AND COALESCE(NULLIF(LOWER(TRIM(vendor2_name)), ''), NULL) IS NOT NULL
+                        AND LOWER(TRIM(vendor1_name)) = LOWER(TRIM(vendor2_name))
+                    )
+                    OR (
+                        COALESCE(NULLIF(LOWER(TRIM(vendor1_name)), ''), NULL) IS NOT NULL
+                        AND COALESCE(NULLIF(LOWER(TRIM(vendor3_name)), ''), NULL) IS NOT NULL
+                        AND LOWER(TRIM(vendor1_name)) = LOWER(TRIM(vendor3_name))
+                    )
+                    OR (
+                        COALESCE(NULLIF(LOWER(TRIM(vendor1_name)), ''), NULL) IS NOT NULL
+                        AND COALESCE(NULLIF(LOWER(TRIM(vendor4_name)), ''), NULL) IS NOT NULL
+                        AND LOWER(TRIM(vendor1_name)) = LOWER(TRIM(vendor4_name))
+                    )
+                    OR (
+                        COALESCE(NULLIF(LOWER(TRIM(vendor2_name)), ''), NULL) IS NOT NULL
+                        AND COALESCE(NULLIF(LOWER(TRIM(vendor3_name)), ''), NULL) IS NOT NULL
+                        AND LOWER(TRIM(vendor2_name)) = LOWER(TRIM(vendor3_name))
+                    )
+                    OR (
+                        COALESCE(NULLIF(LOWER(TRIM(vendor2_name)), ''), NULL) IS NOT NULL
+                        AND COALESCE(NULLIF(LOWER(TRIM(vendor4_name)), ''), NULL) IS NOT NULL
+                        AND LOWER(TRIM(vendor2_name)) = LOWER(TRIM(vendor4_name))
+                    )
+                    OR (
+                        COALESCE(NULLIF(LOWER(TRIM(vendor3_name)), ''), NULL) IS NOT NULL
+                        AND COALESCE(NULLIF(LOWER(TRIM(vendor4_name)), ''), NULL) IS NOT NULL
+                        AND LOWER(TRIM(vendor3_name)) = LOWER(TRIM(vendor4_name))
+                    )
+                )"
+            );
+        }
+
+        $records = $query
             ->orderBy('id', 'desc')
             ->paginate($perPage);
-           
-        $permissions = $this->getOperationsFeasibilityPermissions();
+
         return view('operations.feasibility.inprogress', compact('records', 'permissions'));
     }
 

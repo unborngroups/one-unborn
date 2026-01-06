@@ -15,6 +15,9 @@ return new class extends Migration
             $table->id();
              $table->foreignId('deliverable_id')->constrained('deliverables')->onDelete('cascade');
             $table->unsignedTinyInteger('link_number');
+            $table->string('vendor_name')->nullable();
+            $table->string('vendor_email')->nullable();
+            $table->string('vendor_contact')->nullable();
             $table->string('circuit_id')->unique();
 
             $table->string('plans_name')->nullable();

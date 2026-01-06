@@ -13,7 +13,8 @@ use App\Models\{
     PurchaseOrder,
     FeasibilityStatus,
     ClientLink,
-    Asset
+    Asset,
+    Vendor
 };
 use App\Helpers\TemplateHelper;
 use Carbon\Carbon;
@@ -148,13 +149,37 @@ class DeliverablesController extends Controller
         //     return back()->with('error', 'Delivered records cannot be edited');
         // }
 
+        // Map per-link vendor details from the closed feasibility to deliverable plans
+        $linkVendors = [];
+        $feasibilityStatus = FeasibilityStatus::where('feasibility_id', $record->feasibility_id)
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($feasibilityStatus) {
+            $linkCount = $record->feasibility->no_of_links ?? 1;
+
+            for ($i = 1; $i <= $linkCount; $i++) {
+                $nameField = "vendor{$i}_name";
+                $vendorName = trim($feasibilityStatus->{$nameField} ?? '');
+
+                // Skip if no vendor or self-vendor placeholder
+                if ($vendorName === '' || strcasecmp($vendorName, 'self') === 0) {
+                    $linkVendors[$i] = null;
+                    continue;
+                }
+
+                $linkVendors[$i] = Vendor::where('vendor_name', $vendorName)->first();
+            }
+        }
+
         return view('operations.deliverables.edit', [
             'record' => $record,
             'assetOptions' => Asset::whereNotNull('asset_id')
                 ->whereNotNull('serial_no')
                 ->select('asset_id', 'serial_no', 'mac_no', DB::raw("COALESCE(procured_from,'Inventory') vendor_name"))
                 ->orderBy('asset_id')->get(),
-            'hardwareDetails' => json_decode($record->feasibility->hardware_details ?? '[]', true)
+            'hardwareDetails' => json_decode($record->feasibility->hardware_details ?? '[]', true),
+            'linkVendors' => $linkVendors,
         ]);
     }
 
@@ -289,11 +314,35 @@ class DeliverablesController extends Controller
 
     $serial = $maxSeq ? intval($maxSeq) : 0;
 
+            // Build a map of per-link vendor snapshots from feasibility status
+            $linkVendorsForSave = [];
+            $feasibilityStatusForSave = FeasibilityStatus::where('feasibility_id', $deliverable->feasibility_id)
+                ->orderBy('id', 'desc')
+                ->first();
+
+            if ($feasibilityStatusForSave) {
+                for ($i = 1; $i <= $linkCount; $i++) {
+                    $nameField = "vendor{$i}_name";
+                    $vendorName = trim($feasibilityStatusForSave->{$nameField} ?? '');
+
+                    if ($vendorName === '' || strcasecmp($vendorName, 'self') === 0) {
+                        $linkVendorsForSave[$i] = null;
+                        continue;
+                    }
+
+                    $linkVendorsForSave[$i] = Vendor::where('vendor_name', $vendorName)->first();
+                }
+            }
+
             for ($i = 1; $i <= $linkCount; $i++) {
                 $serial++;
+                $vendorSnapshot = $linkVendorsForSave[$i] ?? null;
                 $planData = [
                     'deliverable_id' => $deliverable->id,
                     'link_number' => $i,
+                    'vendor_name' => $vendorSnapshot->vendor_name ?? null,
+                    'vendor_email' => $vendorSnapshot->contact_person_email ?? null,
+                    'vendor_contact' => $vendorSnapshot->contact_person_mobile ?? null,
                     'circuit_id' => $this->generateCircuitId($companyName, $clientShortName, $state, $year, $serial),
                     'plans_name' => $request->input('plans_name_' . $i),
                     'speed_in_mbps_plan' => $request->input('speed_in_mbps_plan_' . $i),

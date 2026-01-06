@@ -201,6 +201,20 @@
                     </div>
                 </a>
             </div>
+            
+            <div class="col-md-4">
+                <a href="<?php echo e(route('operations.feasibility.inprogress', ['exception' => 1])); ?>" class="text-decoration-none">
+                    <div class="dashboard-card" style="background:#e67e22;">
+                        <h3 class="fw-bold m-0"><?php echo e($purchaseOrderCounts['exception'] ?? 0); ?></h3>
+                        <h3>Inprogress Feasibility Exception</h3>
+                        <i class="bi bi-exclamation-circle dashboard-icon-bg"></i>
+                        <div class="dashboard-bottom">
+                            List <i class="bi bi-arrow-right-circle"></i>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
         </div>
     </div>
 

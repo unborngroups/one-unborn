@@ -5,17 +5,7 @@
 @section('content')
 
 <div class="container-fluid py-4">
-    <form id="filterForm" method="GET" class="d-flex align-items-center gap-2 w-100">
-            <label for="entriesSelect" class="mb-0">Show</label>
-            <select id="entriesSelect" name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
-                <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
-                <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
-                <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
-                <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
-            </select>
-            <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search...">
-
-        </form>
+    
 
     <div class="row">
 
@@ -36,6 +26,19 @@
 
                 <div class="card-body">
 
+                <div class="my-1">
+                    <form id="filterForm" method="GET" class="d-flex align-items-center gap-2 w-100">
+            <label for="entriesSelect" class="mb-0">Show</label>
+            <select id="entriesSelect" name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
+                <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+            </select>
+            <!-- <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search..."> -->
+
+        </form>
+                </div>
                     <!-- Check if there are records to display -->
 
                     @if($records->count() > 0)

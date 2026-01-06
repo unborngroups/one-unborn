@@ -21,6 +21,23 @@ class DashboardController extends Controller
             'closed' => FeasibilityStatus::where('status', 'Closed')->count(),
         ];
 
+        // Count of InProgress feasibilities that are in "exception" state
+        // (same vendor selected for 2 or more links).
+        $exceptionInProgressCount = FeasibilityStatus::where('status', 'InProgress')
+            ->get()
+            ->filter(function ($record) {
+                $names = [];
+                for ($i = 1; $i <= 4; $i++) {
+                    $name = strtolower(trim($record->{"vendor{$i}_name"} ?? ''));
+                    if ($name !== '') {
+                        $names[] = $name;
+                    }
+                }
+
+                return count($names) > 1 && count(array_unique($names)) === 1;
+            })
+            ->count();
+
         // Purchase Order dashboard logic (based on closed feasibilities)
         // Open   => Closed feasibilities without any Purchase Order yet (PO pending)
         // Closed => Closed feasibilities that already have a Purchase Order
@@ -39,6 +56,8 @@ class DashboardController extends Controller
         $purchaseOrderCounts = [
             // Closed feasibilities that still do NOT have a PO
             'open' => $closedFeasibilityIds->diff($feasibilityIdsWithPO)->count(),
+            // Feasibilities in InProgress that are currently in exception state
+            'exception' => $exceptionInProgressCount,
             // Reserved for future (e.g., PO created but deliverables pending)
             'inprogress' => 0,
             // Closed feasibilities that already have a PO
