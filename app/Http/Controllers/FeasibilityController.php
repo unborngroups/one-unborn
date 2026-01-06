@@ -167,6 +167,7 @@ if (in_array($validated['vendor_type'], $selfVendors)) {
     $status->vendor1_otc = $request->vendor1_otc;
     $status->vendor1_static_ip_cost = $request->vendor1_static_ip_cost;
     $status->vendor1_delivery_timeline = $request->vendor1_delivery_timeline;
+    $status->vendor1_remarks = $request->vendor1_remarks;
 
     // clear others
     $status->vendor2_name = null;
@@ -344,6 +345,7 @@ if (in_array($validated['vendor_type'], $selfVendors)) {
     $status->vendor1_otc = $request->vendor1_otc;
     $status->vendor1_static_ip_cost = $request->vendor1_static_ip_cost;
     $status->vendor1_delivery_timeline = $request->vendor1_delivery_timeline;
+    $status->vendor1_remarks = $request->vendor1_remarks;
 
     $status->vendor2_name = null;
     $status->vendor3_name = null;

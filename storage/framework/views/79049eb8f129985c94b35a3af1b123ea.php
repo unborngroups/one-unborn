@@ -158,7 +158,7 @@ t@extends('layouts.app')
 
                     
 
-                    <div class="col-md-3">
+                    <div class="col-md-2">
 
                         <label class="form-label fw-semibold">Name 
 
@@ -240,11 +240,19 @@ t@extends('layouts.app')
 
                     
 
-                    <div class="col-md-3">
+                    <div class="col-md-2">
 
                         <label class="form-label fw-semibold">Delivery Timeline</label>
 
                         <input type="text" name="vendor<?php echo e($i); ?>_delivery_timeline" class="form-control" value="<?php echo e($record->{'vendor' . $i . '_delivery_timeline'}); ?>">
+
+                    </div>
+                    
+
+                    <div class="col-md-2">
+
+                        <label class="form-label fw-semibold">Remarks</label>
+                        <input type="text" name="vendor<?php echo e($i); ?>_remarks" class="form-control" value="<?php echo e($record->{'vendor' . $i . '_remarks'}); ?>">
 
                     </div>
 
@@ -280,9 +288,9 @@ t@extends('layouts.app')
 
                         </button>
 
-                        <button type="button" class="btn btn-primary me-2" onclick="sendExpressionEmail()">
+                        <button type="button" class="btn btn-primary me-2" onclick="sendExceptionEmail()">
 
-                            <i class="bi bi-send"></i> Send Expression
+                            <i class="bi bi-send"></i> Send Exception
 
                         </button>
 
@@ -485,10 +493,10 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
 
-    // Send Expression Email function
-    window.sendExpressionEmail = function() {
+    // Send Exception Email function
+    window.sendExceptionEmail = function() {
         if (!validateVendorNames()) {
-            alert('Please fill all required vendor names before sending expression.');
+            alert('Please fill all required vendor names before sending exception.');
             return false;
         }
 
@@ -504,7 +512,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         if (selectedNames.length === 0) {
-            alert('Please select at least one vendor before sending expression email.');
+            alert('Please select at least one vendor before sending exception email.');
             return false;
         }
 
@@ -512,13 +520,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const allSame = selectedNames.every(n => n === first);
 
         if (!allSame) {
-            alert('For expression, all selected vendor names must be same.');
+            alert('For exception, all selected vendor names must be same.');
             return false;
         }
 
-        if (confirm('Send expression email for the selected vendor?')) {
+        if (confirm('Send exception email for the selected vendor?')) {
             const form = document.getElementById('feasibilityForm');
-            form.action = "<?php echo e(route('sm.feasibility.expression', $record->id)); ?>";
+            form.action = "<?php echo e(route('sm.feasibility.exception', $record->id)); ?>";
             form.submit();
         }
     };

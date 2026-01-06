@@ -309,16 +309,16 @@
 
         
         <hr>
-        <h5>✉️ Expression Permission Email</h5>
+        <h5>✉️ Exception Permission Email</h5>
         <div class="col-md-6 mb-3">
 
-                <label>Expression Permission Email</label>
+                <label>Exception Permission Email</label>
 
-                <input type="email" name="expression_permission_email" class="form-control"
+                <input type="email" name="exception_permission_email" class="form-control"
 
-                       value="<?php echo e(old('expression_permission_email', $company->expression_permission_email ?? '')); ?>">
+                       value="<?php echo e(old('exception_permission_email', $company->exception_permission_email ?? '')); ?>">
 
-                <small class="text-muted">Expression emails from Feasibility (SM) will be sent to this address.</small>
+                <small class="text-muted">Exception emails from Feasibility (SM) will be sent to this address.</small>
 
             </div>
 

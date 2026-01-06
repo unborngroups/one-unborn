@@ -130,4 +130,11 @@ ADD COLUMN payment_password VARCHAR(255) NULL AFTER payment_account_or_username;
 
 -- 5-1
 ALTER TABLE company_settings
-ADD COLUMN expression_permission_email VARCHAR(255) NULL AFTER company_email;
+ADD COLUMN exception_permission_email VARCHAR(255) NULL AFTER company_email;
+
+-6-1-2026
+ALTER TABLE feasibility_statuses
+ADD COLUMN vendor1_remarks VARCHAR(255) NULL AFTER vendor1_delivery_timeline,
+ADD COLUMN vendor2_remarks VARCHAR(255) NULL AFTER vendor2_delivery_timeline,
+ADD COLUMN vendor3_remarks VARCHAR(255) NULL AFTER vendor3_delivery_timeline,
+ADD COLUMN vendor4_remarks VARCHAR(255) NULL AFTER vendor4_delivery_timeline;

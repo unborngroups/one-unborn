@@ -9,7 +9,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Feasibility Expression</title>
+    <title>Feasibility Exception</title>
     <style>
         body { font-family: Arial, sans-serif; font-size: 14px; color: #333; margin: 0; padding: 0; }
         .mail-wrapper { background: #f4f6f8; padding: 20px; }
@@ -31,8 +31,8 @@
 <div class="mail-wrapper">
     <div class="mail-card">
         <div class="mail-header">
-            <h1 class="mail-title">Feasibility Expression</h1>
-            <p class="mail-subtitle">An expression has been sent for the following feasibility.</p>
+            <h1 class="mail-title">Feasibility Exception</h1>
+            <p class="mail-subtitle">An exception has been sent for the following feasibility.</p>
         </div>
 
         <p>Dear Team,</p>
@@ -95,24 +95,25 @@
             </table>
         <?php endif; ?>
 
-        <?php if($sentBy): ?>
-            <p style="margin-top:14px;"><strong>Sent By:</strong> <?php echo e($sentBy->name ?? $sentBy->email); ?></p>
-        <?php endif; ?>
+        <h3 class="section-title">Raised By</h3>
+        <table class="details-table">
+            <tr>
+                <th>User</th>
+                <td><?php echo e($sentBy->name ?? 'N/A'); ?></td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td><?php echo e($sentBy->official_email ?? $sentBy->email ?? 'N/A'); ?></td>
+            </tr>
+        </table>
 
-        <?php if(!empty($editUrl)): ?>
-            <p style="margin-top:16px;">
-                <a href="<?php echo e($editUrl); ?>" class="btn-primary">Login &amp; View Feasibility</a>
-            </p>
-            <p style="font-size:12px; color:#6b7280; margin-top:8px;">Use the above link to log in, review this feasibility and close it when appropriate.</p>
-        <?php endif; ?>
+        <p style="margin-top: 16px;">You can review and take action on this feasibility using the button below:</p>
 
-        <div class="footer">
-            Regards,<br>
-            <?php echo e($appName); ?>
+        <a href="<?php echo e($editUrl); ?>" class="btn-primary" target="_blank">View Feasibility in <?php echo e($appName); ?></a>
 
-        </div>
+        <p class="footer">This is an automated email from <?php echo e($appName); ?>. Please do not reply directly to this message.</p>
     </div>
 </div>
 </body>
 </html>
-<?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\emails\feasibility\expression.blade.php ENDPATH**/ ?>
+<?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\emails\feasibility\exception.blade.php ENDPATH**/ ?>

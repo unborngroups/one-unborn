@@ -241,6 +241,19 @@
                                 <input type="text" class="form-control" value="Auto Generated" readonly>
                                </div>
 
+                               <div class="col-md-3 mb-3">
+                                   <label class="form-label">Vendor Name</label>
+                                   <input type="text" class="form-control" value="{{ $vendor->vendor_name ?? '' }}" readonly>
+                               </div>
+                               <div class="col-md-3 mb-3">
+                                   <label class="form-label">Vendor Email</label>
+                                   <input type="text" class="form-control" value="{{ $vendor->contact_person_email ?? '' }}" readonly>
+                               </div>
+                               <div class="col-md-3 mb-3">
+                                   <label class="form-label">Vendor Contact</label>
+                                   <input type="text" class="form-control" value="{{ $vendor->contact_person_mobile ?? '' }}" readonly>
+                               </div>
+
                                 <div class="col-md-3 mb-3">
                                     <label class="form-label">Plans Name <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" name="plans_name_{{ $i }}"

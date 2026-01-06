@@ -17,6 +17,7 @@ class FeasibilityStatus extends Model
         'vendor1_otc',
         'vendor1_static_ip_cost',
         'vendor1_delivery_timeline',
+        'vendor1_remarks',
 
         // ✅ Vendor 2
         'vendor2_name',
@@ -24,6 +25,7 @@ class FeasibilityStatus extends Model
         'vendor2_otc',
         'vendor2_static_ip_cost',
         'vendor2_delivery_timeline',
+        'vendor2_remarks',
 
         // ✅ Vendor 3
         'vendor3_name',
@@ -31,6 +33,7 @@ class FeasibilityStatus extends Model
         'vendor3_otc',
         'vendor3_static_ip_cost',
         'vendor3_delivery_timeline',
+        'vendor3_remarks',
 
         // ✅ Vendor 4
         'vendor4_name',
@@ -38,6 +41,7 @@ class FeasibilityStatus extends Model
         'vendor4_otc',
         'vendor4_static_ip_cost',
         'vendor4_delivery_timeline',
+        'vendor4_remarks',
 
         'status', // Open, InProgress, Closed
     ];

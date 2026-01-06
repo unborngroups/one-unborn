@@ -331,10 +331,11 @@
             $vOtc  = 'vendor'.$i.'_otc';
             $vIp   = 'vendor'.$i.'_static_ip_cost';
             $vTime = 'vendor'.$i.'_delivery_timeline';
+            $vremark = 'vendor'.$i.'_remarks';
         ?>
 
         
-    <?php if($record->$vName !== null || $record->$vArc !== null || $record->$vOtc !== null || $record->$vIp !== null || $record->$vTime !== null): ?>
+    <?php if($record->$vName !== null || $record->$vArc !== null || $record->$vOtc !== null || $record->$vIp !== null || $record->$vTime !== null || $record->$vremark !== null): ?>
 
 
         <div class="col-md-12">
@@ -345,7 +346,7 @@
 
                     <div class="row">
 
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label fw-semibold">Name</label>
                             <p class="form-control-plaintext">
                                 <?php echo e(($record->$vName == 'Self' || $record->$vName == 0) ? 'Self' : $record->$vName); ?>
@@ -368,9 +369,14 @@
                             <p class="form-control-plaintext"><?php echo e($record->$vIp ?? 'N/A'); ?></p>
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label fw-semibold">Delivery Timeline</label>
                             <p class="form-control-plaintext"><?php echo e($record->$vTime ?? 'N/A'); ?></p>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">Remarks</label>
+                            <p class="form-control-plaintext"><?php echo e($record->$vremark ?? 'N/A'); ?></p>
                         </div>
 
                     </div>

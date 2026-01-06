@@ -107,24 +107,28 @@ public function editSave(Request $request, $id)
         'vendor1_otc' => 'nullable|string',
         'vendor1_static_ip_cost' => 'nullable|string',
         'vendor1_delivery_timeline' => 'nullable|string',
+        'vendor1_remarks' => 'nullable|string',
 
         'vendor2_name' => 'nullable|string',
         'vendor2_arc' => 'nullable|string',
         'vendor2_otc' => 'nullable|string',
         'vendor2_static_ip_cost' => 'nullable|string',
         'vendor2_delivery_timeline' => 'nullable|string',
+        'vendor2_remarks' => 'nullable|string',
 
         'vendor3_name' => 'nullable|string',
         'vendor3_arc' => 'nullable|string',
         'vendor3_otc' => 'nullable|string',
         'vendor3_static_ip_cost' => 'nullable|string',
         'vendor3_delivery_timeline' => 'nullable|string',
+        'vendor3_remarks' => 'nullable|string',
 
         'vendor4_name' => 'nullable|string',
         'vendor4_arc' => 'nullable|string',
         'vendor4_otc' => 'nullable|string',
         'vendor4_static_ip_cost' => 'nullable|string',
         'vendor4_delivery_timeline' => 'nullable|string',
+        'vendor4_remarks' => 'nullable|string',
 
         'status' => 'required|in:Open,InProgress,Closed'
     ]);
@@ -237,9 +241,9 @@ public function editSave(Request $request, $id)
     }
 
     /**
-     * Send expression email for a selected vendor from SM screen.
+     * Send Exception email for a selected vendor from SM screen.
      */
-    public function smSendExpression(Request $request, $id)
+    public function smSendException(Request $request, $id)
     {
         $record = FeasibilityStatus::with(['feasibility', 'feasibility.client'])->findOrFail($id);
 
@@ -251,6 +255,7 @@ public function editSave(Request $request, $id)
             $rules["vendor{$i}_otc"] = 'nullable|string';
             $rules["vendor{$i}_static_ip_cost"] = 'nullable|string';
             $rules["vendor{$i}_delivery_timeline"] = 'nullable|string';
+            $rules["vendor{$i}_remarks"] = 'nullable|string';
         }
 
         $data = $request->validate($rules);
@@ -268,13 +273,13 @@ public function editSave(Request $request, $id)
         }
 
         if (empty($selectedVendors)) {
-            return back()->with('error', 'Please select at least one vendor before sending expression email.');
+            return back()->with('error', 'Please select at least one vendor before sending exception email.');
         }
 
         // Ensure all selected vendor names are same (defensive check; frontend already enforces)
         $lowerNames = array_map(function ($n) { return strtolower(trim($n)); }, array_values($selectedVendors));
         if (count(array_unique($lowerNames)) > 1) {
-            return back()->with('error', 'For expression, all selected vendor names must be same.');
+            return back()->with('error', 'For exception, all selected vendor names must be same.');
         }
 
         $index = array_key_first($selectedVendors);
@@ -285,18 +290,19 @@ public function editSave(Request $request, $id)
             'otc' => $data["vendor{$index}_otc"] ?? null,
             'static_ip_cost' => $data["vendor{$index}_static_ip_cost"] ?? null,
             'delivery_timeline' => $data["vendor{$index}_delivery_timeline"] ?? null,
+            'remarks' => $data["vendor{$index}_remarks"] ?? null,
         ];
 
         $settings = \App\Models\CompanySetting::first();
-        $expressionEmail = $settings->expression_permission_email ?? null;
+        $exceptionEmail = $settings->exception_permission_email ?? null;
 
-        if (!$expressionEmail) {
-            return back()->with('error', 'Expression permission email is not configured in Company Settings.');
+        if (!$exceptionEmail) {
+            return back()->with('error', 'Exception permission email is not configured in Company Settings.');
         }
 
         try {
-            Mail::to($expressionEmail)->send(
-                new \App\Mail\FeasibilityExpressionMail(
+            Mail::to($exceptionEmail)->send(
+                new \App\Mail\FeasibilityExceptionMail(
                     $record,
                     $vendorName,
                     $vendorDetails,
@@ -304,14 +310,14 @@ public function editSave(Request $request, $id)
                 )
             );
 
-            return back()->with('success', 'Expression email sent successfully.');
+            return back()->with('success', 'Exception email sent successfully.');
         } catch (\Exception $e) {
-            Log::error('Failed to send feasibility expression email', [
+            Log::error('Failed to send feasibility exception email', [
                 'error' => $e->getMessage(),
                 'feasibility_status_id' => $record->id,
             ]);
 
-            return back()->with('error', 'Failed to send expression email. Please try again later.');
+            return back()->with('error', 'Failed to send exception email. Please try again later.');
         }
     }
 
@@ -332,6 +338,7 @@ public function editSave(Request $request, $id)
                 $rules["vendor{$i}_arc"] = "required|string";
                 $rules["vendor{$i}_otc"] = "required|string";
                 $rules["vendor{$i}_delivery_timeline"] = "required|string";
+                $rules["vendor{$i}_remarks"] = "nullable|string";
 
                 if ($connectionType == "ILL") {
                     $rules["vendor{$i}_static_ip_cost"] = "nullable|string";
@@ -454,24 +461,28 @@ public function editSave(Request $request, $id)
             'vendor1_otc' => 'nullable|string',
             'vendor1_static_ip_cost' => 'nullable|string',
             'vendor1_delivery_timeline' => 'nullable|string',
+            'vendor1_remarks' => 'nullable|string',
 
             'vendor2_name' => 'nullable|string',
             'vendor2_arc' => 'nullable|string',
             'vendor2_otc' => 'nullable|string',
             'vendor2_static_ip_cost' => 'nullable|string',
             'vendor2_delivery_timeline' => 'nullable|string',
+            'vendor2_remarks' => 'nullable|string',
 
             'vendor3_name' => 'nullable|string',
             'vendor3_arc' => 'nullable|string',
             'vendor3_otc' => 'nullable|string',
             'vendor3_static_ip_cost' => 'nullable|string',
             'vendor3_delivery_timeline' => 'nullable|string',
+            'vendor3_remarks' => 'nullable|string',
 
             'vendor4_name' => 'nullable|string',
             'vendor4_arc' => 'nullable|string',
             'vendor4_otc' => 'nullable|string',
             'vendor4_static_ip_cost' => 'nullable|string',
             'vendor4_delivery_timeline' => 'nullable|string',
+            'vendor4_remarks' => 'nullable|string',
         ]);
 
         $record = FeasibilityStatus::findOrFail($id);
@@ -490,6 +501,7 @@ public function editSave(Request $request, $id)
             $rules["vendor{$i}_arc"] = "required|string";
             $rules["vendor{$i}_otc"] = "required|string";
             $rules["vendor{$i}_delivery_timeline"] = "required|string";
+            $rules["vendor{$i}_remarks"] = "nullable|string";
 
             $rules["vendor{$i}_static_ip_cost"] =
                 $connectionType === "ILL" ? "nullable|string" : "required|string";
@@ -521,24 +533,28 @@ public function editSave(Request $request, $id)
             'vendor1_otc' => 'nullable|string',
             'vendor1_static_ip_cost' => 'nullable|string',
             'vendor1_delivery_timeline' => 'nullable|string',
+            'vendor1_remarks' => 'nullable|string',
 
             'vendor2_name' => 'nullable|string',
             'vendor2_arc' => 'nullable|string',
             'vendor2_otc' => 'nullable|string',
             'vendor2_static_ip_cost' => 'nullable|string',
             'vendor2_delivery_timeline' => 'nullable|string',
+            'vendor2_remarks' => 'nullable|string',
 
             'vendor3_name' => 'nullable|string',
             'vendor3_arc' => 'nullable|string',
             'vendor3_otc' => 'nullable|string',
             'vendor3_static_ip_cost' => 'nullable|string',
             'vendor3_delivery_timeline' => 'nullable|string',
+            'vendor3_remarks' => 'nullable|string',
 
             'vendor4_name' => 'nullable|string',
             'vendor4_arc' => 'nullable|string',
             'vendor4_otc' => 'nullable|string',
             'vendor4_static_ip_cost' => 'nullable|string',
             'vendor4_delivery_timeline' => 'nullable|string',
+            'vendor4_remarks' => 'nullable|string',
         ]);
 
         $record = FeasibilityStatus::findOrFail($id);
@@ -558,9 +574,9 @@ public function editSave(Request $request, $id)
     }
 
     /**
-     * Send expression email for a selected vendor from Operations screen.
+     * Send exception email for a selected vendor from Operations screen.
      */
-    public function operationsSendExpression(Request $request, $id)
+    public function operationsSendException(Request $request, $id)
     {
         $record = FeasibilityStatus::with(['feasibility', 'feasibility.client'])->findOrFail($id);
 
@@ -572,6 +588,7 @@ public function editSave(Request $request, $id)
             $rules["vendor{$i}_otc"] = 'nullable|string';
             $rules["vendor{$i}_static_ip_cost"] = 'nullable|string';
             $rules["vendor{$i}_delivery_timeline"] = 'nullable|string';
+            $rules["vendor{$i}_remarks"] = 'nullable|string';
         }
 
         $data = $request->validate($rules);
@@ -589,13 +606,13 @@ public function editSave(Request $request, $id)
         }
 
         if (empty($selectedVendors)) {
-            return back()->with('error', 'Please select at least one vendor before sending expression email.');
+            return back()->with('error', 'Please select at least one vendor before sending exception email.');
         }
 
         // Ensure all selected vendor names are same (defensive check; frontend already enforces)
         $lowerNames = array_map(function ($n) { return strtolower(trim($n)); }, array_values($selectedVendors));
         if (count(array_unique($lowerNames)) > 1) {
-            return back()->with('error', 'For expression, all selected vendor names must be same.');
+            return back()->with('error', 'For exception, all selected vendor names must be same.');
         }
 
         $index = array_key_first($selectedVendors);
@@ -606,22 +623,23 @@ public function editSave(Request $request, $id)
             'otc' => $data["vendor{$index}_otc"] ?? null,
             'static_ip_cost' => $data["vendor{$index}_static_ip_cost"] ?? null,
             'delivery_timeline' => $data["vendor{$index}_delivery_timeline"] ?? null,
+            'remarks' => $data["vendor{$index}_remarks"] ?? null,
         ];
 
         $settings = \App\Models\CompanySetting::first();
-        $expressionEmail = $settings->expression_permission_email ?? null;
+        $exceptionEmail = $settings->exception_permission_email ?? null;
 
-        if (!$expressionEmail) {
-            return back()->with('error', 'Expression permission email is not configured in Company Settings.');
+        if (!$exceptionEmail) {
+            return back()->with('error', 'Exception permission email is not configured in Company Settings.');
         }
 
         try {
-            // Move record to InProgress when expression is sent from Operations
+            // Move record to InProgress when exception is sent from Operations
             $record->status = 'InProgress';
             $record->save();
 
-            Mail::to($expressionEmail)->send(
-                new \App\Mail\FeasibilityExpressionMail(
+            Mail::to($exceptionEmail)->send(
+                new \App\Mail\FeasibilityExceptionMail(
                     $record,
                     $vendorName,
                     $vendorDetails,
@@ -631,14 +649,14 @@ public function editSave(Request $request, $id)
 
             return redirect()
                 ->route('operations.feasibility.inprogress')
-                ->with('success', 'Expression email sent and feasibility moved to In Progress successfully.');
+                ->with('success', 'Exception email sent and feasibility moved to In Progress successfully.');
         } catch (\Exception $e) {
-            Log::error('Failed to send feasibility expression email from operations', [
+            Log::error('Failed to send feasibility exception email from operations', [
                 'error' => $e->getMessage(),
                 'feasibility_status_id' => $record->id,
             ]);
 
-            return back()->with('error', 'Failed to send expression email. Please try again later.');
+            return back()->with('error', 'Failed to send exception email. Please try again later.');
         }
     }
 

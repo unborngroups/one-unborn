@@ -398,7 +398,7 @@
 
                     <label class="form-label fw-semibold">Expected Delivery <span class="text-danger">*</span></label>
 
-                    <input type="date" name="expected_delivery" class="form-control" value="<?php echo e(old('expected_delivery', $importRow['expected_delivery'] ?? '')); ?>" required>
+                    <input type="date" name="expected_delivery" class="form-control" value="<?php echo e(old('expected_delivery', $importRow['expected_delivery'] ?? date('Y-m-d'))); ?>" required>
 
                 </div>
                 <!-- Expected Activation -->
@@ -406,7 +406,7 @@
 
                     <label class="form-label fw-semibold">Expected Activation <span class="text-danger">*</span></label>
 
-                    <input type="date" name="expected_activation" class="form-control" value="<?php echo e(old('expected_activation', $importRow['expected_activation'] ?? '')); ?>" required>
+                    <input type="date" name="expected_activation" class="form-control" value="<?php echo e(old('expected_activation', $importRow['expected_activation'] ?? date('Y-m-d'))); ?>" required>
 
                 </div>
                 <!-- Hardware Required -->

@@ -176,7 +176,7 @@
 
                     
 
-                    <div class="col-md-3">
+                    <div class="col-md-2">
 
                         <label class="form-label fw-semibold">Name 
 
@@ -259,11 +259,19 @@
 
                     
 
-                    <div class="col-md-3">
+                    <div class="col-md-2">
 
                         <label class="form-label fw-semibold">Delivery Timeline</label>
 
                         <input type="text" name="vendor<?php echo e($i); ?>_delivery_timeline" class="form-control" value="<?php echo e($record->{'vendor' . $i . '_delivery_timeline'}); ?>">
+
+                    </div>
+                    
+
+                    <div class="col-md-2">
+
+                        <label class="form-label fw-semibold">Remarks</label>
+                        <input type="text" name="vendor<?php echo e($i); ?>_remarks" class="form-control" value="<?php echo e($record->{'vendor' . $i . '_remarks'}); ?>">
 
                     </div>
 
@@ -281,10 +289,10 @@
 
             <?php
                 $settings = \App\Models\CompanySetting::first();
-                $expressionEmail = $settings->expression_permission_email ?? null;
+                $exceptionEmail = $settings->exception_permission_email ?? null;
                 $user = Auth::user();
                 $userEmail = $user ? ($user->official_email ?: $user->email) : null;
-                $isExpressionUser = $expressionEmail && $userEmail && strcasecmp($expressionEmail, $userEmail) === 0;
+                $isExceptionUser = $exceptionEmail && $userEmail && strcasecmp($exceptionEmail, $userEmail) === 0;
 
                 $vendorNamesForPermission = [];
                 for ($i = 1; $i <= 4; $i++) {
@@ -293,7 +301,9 @@
                         $vendorNamesForPermission[] = strtolower($name);
                     }
                 }
-                $allSameVendorsForPermission = count($vendorNamesForPermission) > 0 && count(array_unique($vendorNamesForPermission)) === 1;
+                // Exception permission is only needed when the SAME vendor is used
+                // for 2 or more links, not when there is only a single vendor.
+                $allSameVendorsForPermission = count($vendorNamesForPermission) > 1 && count(array_unique($vendorNamesForPermission)) === 1;
             ?>
 
             <div class="mt-4">
@@ -314,9 +324,9 @@
 
                         
 
-                        <button type="button" class="btn btn-primary me-2" onclick="sendExpressionEmail()">
+                        <button type="button" class="btn btn-primary me-2" onclick="sendExceptionEmail()">
 
-                            <i class="bi bi-send"></i> Send Expression
+                            <i class="bi bi-send"></i> Send Exception
 
                         </button>
 
@@ -324,9 +334,9 @@
 
                         
 
-                        <?php if($record->status === 'InProgress' && $allSameVendorsForPermission && ! $isExpressionUser): ?>
+                        <?php if($record->status === 'InProgress' && $allSameVendorsForPermission && ! $isExceptionUser): ?>
                             <button type="button" class="btn btn-success me-2" disabled
-                                title="Only the Expression Permission Email user can close this feasibility.">
+                                title="Only the Exception Permission Email user can close this feasibility.">
                                 <i class="bi bi-check-circle"></i> Submit (Move to Closed)
                             </button>
                         <?php else: ?>
@@ -532,7 +542,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return false;
         }
 
-        // When record is still Open and all vendors are same, force Expression
+        // When record is still Open and all vendors are same, force Exception
         if (currentStatus === 'Open') {
             const dropdowns = document.querySelectorAll('.vendor-dropdown');
             const selectedNames = [];
@@ -544,12 +554,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
 
-            if (selectedNames.length > 0) {
+            // Only enforce the "same vendor" rule when there are at least 2 vendors selected
+            if (selectedNames.length > 1) {
                 const first = selectedNames[0];
                 const allSame = selectedNames.every(n => n === first);
 
                 if (allSame) {
-                    alert('Same vendor name selected for all links. Please use the "Send Expression" button to move this feasibility to In Progress.');
+                    alert('Same vendor name selected for all links. Please use the "Send Exception" button to move this feasibility to In Progress.');
                     return false;
                 }
             }
@@ -571,7 +582,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return false;
         }
 
-        // When record is still Open and all vendors are same, force Expression instead of direct submit
+        // When record is still Open and all vendors are same, force Exception instead of direct submit
         if (currentStatus === 'Open') {
             const dropdowns = document.querySelectorAll('.vendor-dropdown');
             const selectedNamesForSubmit = [];
@@ -583,12 +594,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
 
-            if (selectedNamesForSubmit.length > 0) {
+            // Only enforce the "same vendor" rule when there are at least 2 vendors selected
+            if (selectedNamesForSubmit.length > 1) {
                 const firstSubmit = selectedNamesForSubmit[0];
                 const allSameSubmit = selectedNamesForSubmit.every(n => n === firstSubmit);
 
                 if (allSameSubmit) {
-                    alert('Same vendor name selected for all links. Please use the "Send Expression" button first before submitting this feasibility to Closed.');
+                    alert('Same vendor name selected for all links. Please use the "Send Exception" button first before submitting this feasibility to Closed.');
                     return false;
                 }
             }
@@ -644,11 +656,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     // -----------------------------
-    // Send Expression Email (Operations)
+    // Send Exception Email (Operations)
     // -----------------------------
-    window.sendExpressionEmail = function () {
+    window.sendExceptionEmail = function () {
         if (!validateVendorNames()) {
-            alert('Please fill all required vendor names before sending expression.');
+            alert('Please fill all required vendor names before sending exception.');
             return false;
         }
 
@@ -664,7 +676,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         if (selectedNames.length === 0) {
-            alert('Please select at least one vendor before sending expression email.');
+            alert('Please select at least one vendor before sending exception email.');
             return false;
         }
 
@@ -672,13 +684,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const allSame = selectedNames.every(n => n === first);
 
         if (!allSame) {
-            alert('For expression, all selected vendor names must be same.');
+            alert('For exception, all selected vendor names must be same.');
             return false;
         }
 
-        if (confirm('Send expression email for the selected vendor?')) {
+        if (confirm('Send exception email for the selected vendor?')) {
             const form = document.getElementById('feasibilityForm');
-            form.action = "<?php echo e(route('operations.feasibility.expression', $record->id)); ?>";
+            form.action = "<?php echo e(route('operations.feasibility.exception', $record->id)); ?>";
             form.submit();
         }
     };

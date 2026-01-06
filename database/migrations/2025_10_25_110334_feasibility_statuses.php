@@ -20,24 +20,28 @@ return new class extends Migration
     $table->string('vendor1_otc')->nullable();
     $table->string('vendor1_static_ip_cost')->nullable();
     $table->string('vendor1_delivery_timeline')->nullable();
+    $table->string('vendor1_remarks')->nullable();
 
     $table->string('vendor2_name')->nullable();
     $table->string('vendor2_arc')->nullable();
     $table->string('vendor2_otc')->nullable();
     $table->string('vendor2_static_ip_cost')->nullable();
     $table->string('vendor2_delivery_timeline')->nullable();
+    $table->string('vendor2_remarks')->nullable();
 
     $table->string('vendor3_name')->nullable();
     $table->string('vendor3_arc')->nullable();
     $table->string('vendor3_otc')->nullable();
     $table->string('vendor3_static_ip_cost')->nullable();
     $table->string('vendor3_delivery_timeline')->nullable();
+    $table->string('vendor3_remarks')->nullable();
 
     $table->string('vendor4_name')->nullable();
     $table->string('vendor4_arc')->nullable();
     $table->string('vendor4_otc')->nullable();
     $table->string('vendor4_static_ip_cost')->nullable();
     $table->string('vendor4_delivery_timeline')->nullable();
+    $table->string('vendor4_remarks')->nullable();
 
     // Status management
     $table->enum('status', ['Open', 'InProgress', 'Closed'])->default('Open');

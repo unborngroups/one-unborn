@@ -38,7 +38,7 @@ class CompanySettingsController extends Controller
             'mail_from_name' => 'nullable|string|max:100',
             'mail_footer' => 'nullable|string|max:500',
             'mail_signature' => 'nullable|string|max:500',
-            'expression_permission_email' => 'nullable|email',
+            'exception_permission_email' => 'nullable|email',
 
         ]);
         

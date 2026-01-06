@@ -10,7 +10,7 @@ class CompanySetting extends Model
         'company_id',
         'company_name',
         'company_email',
-        'expression_permission_email',
+        'exception_permission_email',
         'contact_no',
         'website',
         'address',

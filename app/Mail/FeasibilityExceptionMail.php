@@ -6,7 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class FeasibilityExpressionMail extends Mailable
+class FeasibilityExceptionMail extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -27,8 +27,8 @@ class FeasibilityExpressionMail extends Mailable
     {
         $feasibility = $this->feasibilityStatus->feasibility;
 
-        return $this->subject('Feasibility Expression - ' . ($feasibility->feasibility_request_id ?? ''))
-            ->view('emails.feasibility.expression')
+        return $this->subject('Feasibility Exception - ' . ($feasibility->feasibility_request_id ?? ''))
+            ->view('emails.feasibility.exception')
             ->with([
                 'feasibilityStatus' => $this->feasibilityStatus,
                 'feasibility' => $feasibility,

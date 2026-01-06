@@ -231,7 +231,7 @@ Route::get('/test-email', function () {
     Route::get('/sm/feasibility/{id}/edit', [FeasibilityStatusController::class, 'smEdit'])->name('sm.feasibility.edit');
     Route::post('/sm/feasibility/{id}/save', [FeasibilityStatusController::class, 'smSave'])->name('sm.feasibility.save');
     Route::post('/sm/feasibility/{id}/submit', [FeasibilityStatusController::class, 'smSubmit'])->name('sm.feasibility.submit');
-    Route::post('/sm/feasibility/{id}/expression', [FeasibilityStatusController::class, 'smSendExpression'])->name('sm.feasibility.expression');
+    Route::post('/sm/feasibility/{id}/exception', [FeasibilityStatusController::class, 'smSendException'])->name('sm.feasibility.exception');
 
     // ✅ operations Feasibility Routes (Full functionality like S&M)
     Route::get('/operations/feasibility/open', [FeasibilityStatusController::class, 'operationsOpen'])->name('operations.feasibility.open');
@@ -241,7 +241,7 @@ Route::get('/test-email', function () {
     Route::get('/operations/feasibility/{id}/edit', [FeasibilityStatusController::class, 'operationsEdit'])->name('operations.feasibility.edit');
     Route::post('/operations/feasibility/{id}/save', [FeasibilityStatusController::class, 'operationsSave'])->name('operations.feasibility.save');
     Route::post('/operations/feasibility/{id}/submit', [FeasibilityStatusController::class, 'operationsSubmit'])->name('operations.feasibility.submit');
-    Route::post('/operations/feasibility/{id}/expression', [FeasibilityStatusController::class, 'operationsSendExpression'])->name('operations.feasibility.expression');
+    Route::post('/operations/feasibility/{id}/exception', [FeasibilityStatusController::class, 'operationsSendException'])->name('operations.feasibility.exception');
     
 
     // ✅ operations Feasibility Routes (Full functionality like S&M)
