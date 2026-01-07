@@ -8,6 +8,7 @@ use App\Models\Menu;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Feasibility;
 use App\Models\PurchaseOrder;
+use App\Models\Renewal;
 
 class DashboardController extends Controller
 {
@@ -95,6 +96,41 @@ class DashboardController extends Controller
                           ->where('can_view', 1)
                           ->get();
 
-        return view('welcome', compact('menus', 'feasibilityCounts', 'purchaseOrderCounts', 'deliverableCounts', 'serviceCounts'));
+        // Upcoming Renewals logic
+        $todayRenewals = \App\Models\Renewal::with('deliverable')
+            ->whereNotNull('alert_date')
+            ->whereDate('alert_date', now()->toDateString())
+            ->get();
+
+        // $tomorrowRenewals = \App\Models\Renewal::with('deliverable')
+        //     ->whereDate('alert_date', now()->addDay()->toDateString())
+        //     ->get();
+
+        $tomorrowRenewals = \App\Models\Renewal::with('deliverable')
+            ->whereNotNull('alert_date')
+            ->whereDate('alert_date', now()->addDay()->toDateString())
+            ->get();
+
+        $weekRenewals = \App\Models\Renewal::with('deliverable')
+            ->whereBetween('alert_date', [now()->toDateString(), now()->addDays(7)->toDateString()])
+            ->get();
+
+        $renewalCounts = [
+            'today' => $todayRenewals->count(),
+            'tomorrow' => $tomorrowRenewals->count(),
+            'week' => $weekRenewals->count(),
+        ];
+
+        return view('welcome', compact(
+            'menus',
+            'feasibilityCounts',
+            'purchaseOrderCounts',
+            'deliverableCounts',
+            'serviceCounts',
+            'renewalCounts',
+            'todayRenewals',
+            'tomorrowRenewals',
+            'weekRenewals'
+        ));
      }
 }

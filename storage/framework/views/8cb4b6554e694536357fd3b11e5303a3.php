@@ -82,18 +82,13 @@
                             $assetMasterRoutesAvailable = Route::has('assetmaster.asset_type.index') || Route::has('assetmaster.make_type.index') || Route::has('assetmaster.model_type.index');
                         ?>
                         <?php if($Asset && $Asset->can_menu && $assetMasterRoutesAvailable): ?>
-<li>
-    <a class="nav-link text-white d-flex justify-content-between align-items-center"
-       data-bs-toggle="collapse" href="#assetMasterMenu" role="button"
-       aria-expanded="<?php echo e(request()->is('assetmaster/asset_type*') || request()->is('assetmaster/make_type*') ? 'true' : 'false'); ?>"
-       aria-controls="assetMasterMenu">
-       <span><i class="bi bi-box-seam"></i> Asset Master</span>
-       <i class="bi bi-chevron-down arrow-icon"></i>
-    </a>
-
-    <div class="collapse <?php echo e(request()->is('assetmaster/*') ? 'show' : ''); ?>" id="assetMasterMenu">
+<li class="nav-item">
+    <details class="sidebar-dropdown" <?php echo e(request()->is('assetmaster/*') ? 'open' : ''); ?>>
+        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-box-seam"></i> Asset Master</span>
+            <i class="bi bi-chevron-down arrow-icon"></i>
+        </summary>
         <ul class="nav flex-column ms-3 mt-1">
-
             <?php if($assetType && $assetType->can_menu && Route::has('assetmaster.asset_type.index')): ?>
                 <li>
                     <a href="<?php echo e(route('assetmaster.asset_type.index')); ?>"
@@ -102,7 +97,6 @@
                     </a>
                 </li>
             <?php endif; ?>
-
             <?php if($makeType && $makeType->can_menu && Route::has('assetmaster.make_type.index')): ?>
                 <li>
                     <a href="<?php echo e(route('assetmaster.make_type.index')); ?>"
@@ -111,7 +105,6 @@
                     </a>
                 </li>
             <?php endif; ?>
-
             <?php if($modelType && $modelType->can_menu && Route::has('assetmaster.model_type.index')): ?>
                 <li>
                     <a href="<?php echo e(route('assetmaster.model_type.index')); ?>"
@@ -120,9 +113,8 @@
                     </a>
                 </li>
             <?php endif; ?>
-
         </ul>
-    </div>
+    </details>
 </li>
 
             <?php endif; ?>
@@ -182,25 +174,17 @@
 
             <?php if($feasibilityMaster && $feasibilityMaster->can_menu): ?>
 
-            <li>
+            <li class="nav-item">
 
-                <a class="nav-link text-white d-flex justify-content-between align-items-center"
+                <details class="sidebar-dropdown" <?php echo e(request()->is('sm/feasibility*') || request()->is('feasibility/create*') ? 'open' : ''); ?>>
 
-                   data-bs-toggle="collapse" href="#feasibilityMainMenu" role="button"
+                    <summary class="nav-link text-white d-flex justify-content-between align-items-center">
 
-                   aria-expanded="<?php echo e(request()->is('sm/feasibility*') ? 'true' : 'false'); ?>"
+                        <span><i class="bi bi-diagram-3 me-2"></i> Feasibility</span>
 
-                   aria-controls="feasibilityMainMenu">
+                        <i class="bi bi-chevron-down arrow-icon"></i>
 
-                    <span><i class="bi bi-diagram-3 me-2"></i> Feasibility</span>
-
-                    <i class="bi bi-chevron-down arrow-icon"></i>
-
-                </a>
-
-
-
-                <div class="collapse <?php echo e(request()->is('sm/feasibility*') || request()->is('feasibility/create*') ? 'show' : ''); ?>" id="feasibilityMainMenu">
+                    </summary>
 
                     <ul class="nav flex-column ms-3">
 
@@ -228,8 +212,6 @@
                         
 
                            
-
-                        </li>
 
                         <?php
 
@@ -312,8 +294,6 @@
                         ?>
 
                         
-
-                        
                         <?php if($feasibilityMasterOpen && $feasibilityMasterOpen->can_menu): ?>
 
                         <li>
@@ -363,7 +343,7 @@
 
                     </ul>
 
-                </div>
+                </details>
 
             </li>
 
@@ -751,20 +731,17 @@
             <!-- Feasibility Main Menu --> 
             <?php if($operationsFeasibility && $operationsFeasibility->can_menu): ?>
 
-            <li>
+            <li class="nav-item">
 
-                <a class="nav-link text-white d-flex justify-content-between align-items-center"
+                <details class="sidebar-dropdown" <?php echo e(request()->is('operations/feasibility*') ? 'open' : ''); ?>>
 
-                   data-bs-toggle="collapse" href="#operationsFeasibilityMenu" role="button" aria-expanded="<?php echo e(request()->is('operations/feasibility*') ? 'true' : 'false'); ?>" aria-controls="operationsFeasibilityMenu">
+                    <summary class="nav-link text-white d-flex justify-content-between align-items-center">
 
-                    <span><i class="bi bi-diagram-3 me-2"></i> Feasibility</span>
+                        <span><i class="bi bi-diagram-3 me-2"></i> Feasibility</span>
 
-                    <i class="bi bi-chevron-down arrow-icon"></i>
+                        <i class="bi bi-chevron-down arrow-icon"></i>
 
-                </a>
-
-
-    <div class="collapse <?php echo e(request()->is('operations/feasibility*') ? 'show' : ''); ?>" id="operationsFeasibilityMenu">
+                    </summary>
 
         <ul class="nav flex-column ms-3 mt-1">
 
@@ -811,7 +788,7 @@
 
         </ul>
 
-    </details>
+                </details>
             </li>
             <?php endif; ?>
 
@@ -1071,6 +1048,14 @@
                                     </a>
                                 </li>
                             <?php endif; ?>
+
+                            
+                            <li class="nav-item">
+                                <a class="nav-link text-white menu-item <?php echo e(request()->is('hr/leavetype*') ? 'active' : ''); ?>" href="<?php echo e(route('hr.leavetype.index')); ?>">
+                                    <i class="bi bi-calendar-check"></i> Leave Type
+                                </a>
+                            </li>
+                            
                         </ul>
                     </details>
                 </li>
@@ -1161,23 +1146,15 @@
 
                 <li class="nav-item">
 
-                    <a class="nav-link text-white d-flex justify-content-between align-items-center"
+                    <details class="sidebar-dropdown" <?php echo e(request()->is('emails*') || request()->is('menus*') || request()->is('company-settings*') || request()->is('system-settings*') || request()->is('whatsapp-settings*') ? 'open' : ''); ?>>
 
-                       data-bs-toggle="collapse" href="#systemMenu" role="button"
+                        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
 
-                       aria-expanded="<?php echo e(request()->is('emails*') || request()->is('menus*') || request()->is('company-settings*') || request()->is('system-settings*') ? 'true' : 'false'); ?>"
+                            <span><i class="bi bi-gear"></i> System</span>
 
-                       aria-controls="systemMenu">
+                            <i class="bi bi-chevron-down arrow-icon"></i>
 
-                        <span><i class="bi bi-gear"></i> System</span>
-
-                        <i class="bi bi-chevron-down arrow-icon"></i>
-
-                    </a>
-
-
-
-                    <div class="collapse <?php echo e(request()->is('emails*') || request()->is('menus*') || request()->is('company-settings*') || request()->is('system-settings*') ? 'show' : ''); ?>" id="systemMenu">
+                        </summary>
 
                         <ul class="nav flex-column ms-3 mt-2">
 
@@ -1213,7 +1190,7 @@
 
 
                         </ul>
-                    </div>
+                    </details>
                 </li>
 
             <?php endif; ?>

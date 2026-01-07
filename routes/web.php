@@ -34,6 +34,7 @@ use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\hrController;
+use App\Http\Controllers\LeaveTypeController;
 use App\Http\Controllers\ComplianceController;
 use App\Http\Controllers\Asset_typeController;
 use App\Http\Controllers\Make_typeController;
@@ -146,6 +147,7 @@ Route::patch('/users/{id}/toggle-status', [UserController::class, 'toggleStatus'
     Route::post('/assetmaster/asset_type/bulk-delete', [Asset_typeController::class, 'bulkDestroy'])->name('assetmaster.asset_type.bulk-delete');
     Route::post('/assetmaster/make_type/bulk-delete', [Make_typeController::class, 'bulkDestroy'])->name('assetmaster.make_type.bulk-delete');
     Route::post('/assetmaster/model_type/bulk-delete', [ModelTypeController::class, 'bulkDestroy'])->name('assetmaster.model_type.bulk-delete');
+    Route::post('/hr/leavetype/bulk-delete', [\App\Http\Controllers\LeaveTypeController::class, 'bulkDelete'])->name('hr.leavetype.bulk-delete');
     
 
     //view path
@@ -368,6 +370,16 @@ Route::post('/import-feasibility', [FeasibilityExcelController::class, 'import']
 Route::get('/hr/employee', [hrController::class, 'index'])->name('hr.employee.index');
 Route::get('/hr/{id}/view', [hrController::class, 'show'])->name('hr.view');
 Route::get('/hr/{id}/edit', [hrController::class, 'edit'])->name('hr.edit');
+Route::prefix('hr/leavetype')->name('hr.leavetype.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\LeaveTypeController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\LeaveTypeController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\LeaveTypeController::class, 'store'])->name('store');
+    Route::get('/{id}/edit', [\App\Http\Controllers\LeaveTypeController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [\App\Http\Controllers\LeaveTypeController::class, 'update'])->name('update');
+    Route::delete('/{id}', [\App\Http\Controllers\LeaveTypeController::class, 'destroy'])->name('destroy');
+    Route::get('/{id}/view', [\App\Http\Controllers\LeaveTypeController::class, 'view'])->name('view');
+});
+
 
 Route::get('/compliance', [ComplianceController::class, 'index'])->name('compliance.index');
 Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');

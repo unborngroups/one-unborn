@@ -259,26 +259,16 @@
     </div>
 
     <div class="mt-1">
-        <h3>Upcoming Renewals</h3>
-        <div class="row g-4 mt-2">
-            <div class="col-md-4 col-sm-6">
-                <a href="{{ route('operations.renewals.index') }}" class="text-decoration-none">
-                    <div class="dashboard-card" style="background:#845ec2;">
-                        <h3 class="fw-bold m-0">0</h3>
-                        <h4>Today</h4>
-                        <i class="bi bi-calendar-day dashboard-icon-bg"></i>
-                        <div class="dashboard-bottom">
-                            List <i class="bi bi-arrow-right-circle"></i>
-                        </div>
-                    </div>
-                </a>
-            </div>
 
-            <div class="col-md-4 col-sm-6">
-                <a href="{{ route('operations.renewals.index') }}" class="text-decoration-none">
-                    <div class="dashboard-card" style="background:#d65db1;">
-                        <h3 class="fw-bold m-0">0</h3>
-                        <h4>Tomorrow</h4>
+    <h3>Upcoming Renewals</h3>
+    <div class="row g-4 mt-2">
+
+        <!-- Renewals Today -->
+         <div class="col-md-4 col-sm-6">
+                <a href="{{ route('operations.renewals.index', ['filter' => 'today']) }}" class="text-decoration-none">
+                    <div class="dashboard-card" style="background:#845ec2;">
+                        <h3 class="fw-bold m-0">{{ $renewalCounts['today'] ?? 0 }}</h3>
+                        <h4>Today</h4>
                         <i class="bi bi-calendar2-week dashboard-icon-bg"></i>
                         <div class="dashboard-bottom">
                             List <i class="bi bi-arrow-right-circle"></i>
@@ -287,19 +277,35 @@
                 </a>
             </div>
 
-            <div class="col-md-4 col-sm-6">
-                <a href="{{ route('operations.renewals.index') }}" class="text-decoration-none">
-                    <div class="dashboard-card" style="background:#ff9671;">
-                        <h3 class="fw-bold m-0">0</h3>
-                        <h4>This Week</h4>
-                        <i class="bi bi-calendar-week dashboard-icon-bg"></i>
-                        <div class="dashboard-bottom">
-                            List <i class="bi bi-arrow-right-circle"></i>
+        <!--  -->
+        <div class="col-md-4 col-sm-6">
+                <a href="{{ route('operations.renewals.index', ['filter' => 'tomorrow']) }}" class="text-decoration-none">
+                        <div class="dashboard-card" style="background:#d65db1;">
+                            <h3 class="fw-bold m-0">{{ $renewalCounts['tomorrow'] ?? 0 }}</h3>
+                            <h4>Tomorrow</h4>
+                            <i class="bi bi-calendar2-week dashboard-icon-bg"></i>
+                            <div class="dashboard-bottom">
+                                List <i class="bi bi-arrow-right-circle"></i>
+                            </div>
                         </div>
-                    </div>
-                </a>
+                    </a>
+                    
             </div>
-        </div>
+      
+        <div class="col-md-4 col-sm-6">
+                <a href="{{ route('operations.renewals.index', ['filter' => 'week']) }}" class="text-decoration-none">
+                        <div class="dashboard-card" style="background:#ff9671;">
+                            <h3 class="fw-bold m-0">{{ $renewalCounts['week'] ?? 0 }}</h3>
+                            <h4>This Week</h4>
+                            <i class="bi bi-calendar-week dashboard-icon-bg"></i>
+                            <div class="dashboard-bottom">
+                                List <i class="bi bi-arrow-right-circle"></i>
+                            </div>
+                        </div>
+                    </a>
+            </div>
+
+
     </div>
 
 </div>

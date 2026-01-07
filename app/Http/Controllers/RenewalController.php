@@ -15,7 +15,16 @@ class RenewalController extends Controller
     {
         $perPage = $request->get('per_page', 10);
 
-        $renewals = Renewal::latest()->paginate($perPage);
+        $query = Renewal::query();
+        $filter = $request->get('filter');
+        if ($filter === 'today') {
+            $query->whereDate('alert_date', today());
+        } elseif ($filter === 'tomorrow') {
+            $query->whereDate('alert_date', today()->addDay());
+        } elseif ($filter === 'week') {
+            $query->whereBetween('alert_date', [today(), today()->addDays(7)]);
+        }
+        $renewals = $query->latest()->paginate($perPage);
 
         $permissions = TemplateHelper::getUserMenuPermissions('Renewals') ?? (object)[
             'can_menu'   => true,

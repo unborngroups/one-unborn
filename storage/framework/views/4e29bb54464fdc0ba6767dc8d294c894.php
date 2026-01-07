@@ -22,7 +22,7 @@
 
             
 
-            <div class="col-md-4">
+            <div class="col-md-3">
 
                 <label class="form-label fw-semibold">Feasibility Request ID</label>
 
@@ -38,7 +38,7 @@
 
             
 
-            <div class="col-md-4">
+            <div class="col-md-3">
 
                 <label class="form-label fw-semibold">Type of Service</label>
 
@@ -46,23 +46,55 @@
 
             </div>
 
+             
 
+            <div class="col-md-3">
+
+                <label class="form-label fw-semibold">Company Name</label>
+
+                <p class="form-control-plaintext"><?php echo e($record->feasibility->company->company_name ?? 'N/A'); ?></p>
+
+            </div>
 
             
 
-            <div class="col-md-4">
+            <div class="col-md-3">
 
                 <label class="form-label fw-semibold">Client Name</label>
 
                 <p class="form-control-plaintext"><?php echo e($record->feasibility->client->client_name ?? 'N/A'); ?></p>
 
             </div>
+            
+            <div class="col-md-3">  
 
+                <label class="form-label fw-semibold">Delivery Company Name</label>
+
+                <p class="form-control-plaintext"><?php echo e($record->feasibility->delivery_company_name ?? 'N/A'); ?></p>
+            </div>
+            
+            <div class="col-md-3">
+
+                <label class="form-label fw-semibold">Location ID</label>
+                <p class="form-control-plaintext"><?php echo e($record->feasibility->location_id ?? 'N/A'); ?></p>
+            </div>
+            
+            <div class="col-md-3">
+
+                <label class="form-label fw-semibold">Longitude</label>
+                <p class="form-control-plaintext"><?php echo e($record->feasibility->longitude ?? 'N/A'); ?></p>    
+            </div>
+            
+            <div class="col-md-3">
+
+                <label class="form-label fw-semibold">Latitude</label>
+                <p class="form-control-plaintext"><?php echo e($record->feasibility->latitude ?? 'N/A'); ?></p>
+            </div>
 
 
             
 
-            <div class="col-md-4">
+            <div class="col-md-3">
 
                 <label class="form-label fw-semibold">Pincode</label>
 
@@ -74,7 +106,7 @@
 
             
 
-            <div class="col-md-4">
+            <div class="col-md-3">
 
                 <label class="form-label fw-semibold">State</label>
 
@@ -86,7 +118,7 @@
 
             
 
-            <div class="col-md-4">
+            <div class="col-md-3">
 
                 <label class="form-label fw-semibold">District</label>
 
@@ -98,7 +130,7 @@
 
             
 
-            <div class="col-md-4">
+            <div class="col-md-3">
 
                 <label class="form-label fw-semibold">Area</label>
 
@@ -110,7 +142,7 @@
 
             
 
-            <div class="col-md-6">
+            <div class="col-md-3">
 
                 <label class="form-label fw-semibold">Address</label>
 

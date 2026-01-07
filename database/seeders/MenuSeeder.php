@@ -77,7 +77,7 @@ class MenuSeeder extends Seeder
             // HR Module
             ['module_name' => 'HR', 'user_type' => 'superadmin', 'name' => 'HR', 'sub_section' => null , 'route' => 'null', 'icon' => 'bi bi-people-fill', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             ['module_name' => 'HR', 'user_type' => 'superadmin', 'name' => 'Employee', 'sub_section' => null , 'route' => 'hr.employee.index', 'icon' => 'bi bi-people-fill', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
-            
+            ['module_name' => 'HR', 'user_type' => 'superadmin', 'name' => 'Leave Management', 'sub_section' => null , 'route' => 'hr.leave.index', 'icon' => 'bi bi-calendar-check', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             // Training Module
             ['module_name' => 'Training', 'user_type' => 'superadmin', 'name' => 'Training', 'sub_section' => null , 'route' => 'training.index', 'icon' => 'bi bi-journal-bookmark-fill', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             
