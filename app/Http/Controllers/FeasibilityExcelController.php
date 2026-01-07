@@ -123,6 +123,9 @@ if ($address !== null) {
             'company_id' => $companyId,
             'client_id' => $clientId,
             'delivery_company_name' => $rowData['delivery_company_name'],
+            'location_id' => $rowData['location_id'],
+            'longitude' => $rowData['longitude'],
+            'latitude' => $rowData['latitude'],
             'pincode' => $rowData['pincode'],
             'state' => $state,
             'district' => $district,
@@ -210,7 +213,8 @@ if ($address !== null) {
         $missing = [];
 
         $required = [
-            'type_of_service', 'company_id', 'client_id', 'delivery_company_name', 'pincode', 'state',
+            'type_of_service', 'company_id', 'client_id', 'delivery_company_name',
+            'location_id', 'longitude', 'latitude', 'pincode', 'state',
             'district', 'area', 'address', 'spoc_name', 'spoc_contact1',
             'no_of_links', 'vendor_type', 'speed', 'static_ip',
             'expected_delivery', 'expected_activation',

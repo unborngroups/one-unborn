@@ -19,7 +19,7 @@
 
             {{-- Feasibility Request ID --}}
 
-            <div class="col-md-4">
+            <div class="col-md-3">
 
                 <label class="form-label fw-semibold">Feasibility Request ID</label>
 
@@ -35,7 +35,7 @@
 
             {{-- Type of Service --}}
 
-            <div class="col-md-4">
+            <div class="col-md-3">
 
                 <label class="form-label fw-semibold">Type of Service</label>
 
@@ -47,7 +47,7 @@
 
             {{-- Client Name --}}
 
-            <div class="col-md-4">
+            <div class="col-md-3">
 
                 <label class="form-label fw-semibold">Client Name</label>
 
@@ -57,7 +57,7 @@
 
             {{-- Company Name --}}
 
-            <div class="col-md-4">
+            <div class="col-md-3">
 
                 <label class="form-label fw-semibold">Company Name</label>
                 <p class="form-control-plaintext">{{ $record->feasibility->company->company_name ?? 'N/A' }}</p>
@@ -66,18 +66,37 @@
 
             {{-- Delivery Company Name --}}
 
-            <div class="col-md-4">
+            <div class="col-md-3">
 
                 <label class="form-label fw-semibold">Delivery Company Name</label>
                 <p class="form-control-plaintext">{{ $record->feasibility->delivery_company_name ?? 'N/A' }}</p>
 
             </div>
 
+            {{-- Location ID --}}
+            <div class="col-md-3">
+
+                <label class="form-label fw-semibold">Location ID</label>
+                <p class="form-control-plaintext">{{ $record->feasibility->location_id ?? 'N/A' }}</p>
+            </div>
+            {{-- Longitude --}}
+            <div class="col-md-3">
+
+                <label class="form-label fw-semibold">Longitude</label>
+                <p class="form-control-plaintext">{{ $record->feasibility->longitude ?? 'N/A' }}</p>    
+            </div>
+            {{-- Latitude --}}
+            <div class="col-md-3">
+
+                <label class="form-label fw-semibold">Latitude</label>
+                <p class="form-control-plaintext">{{ $record->feasibility->latitude ?? 'N/A' }}</p>
+            </div>
+
 
 
             {{-- Pincode --}}
 
-            <div class="col-md-4">
+            <div class="col-md-3">
 
                 <label class="form-label fw-semibold">Pincode</label>
 
@@ -89,7 +108,7 @@
 
             {{-- State --}}
 
-            <div class="col-md-4">
+            <div class="col-md-3">
 
                 <label class="form-label fw-semibold">State</label>
 
@@ -101,7 +120,7 @@
 
             {{-- District --}}
 
-            <div class="col-md-4">
+            <div class="col-md-3">
 
                 <label class="form-label fw-semibold">District</label>
 
@@ -113,7 +132,7 @@
 
             {{-- Area --}}
 
-            <div class="col-md-4">
+            <div class="col-md-3">
 
                 <label class="form-label fw-semibold">Area</label>
 
@@ -125,7 +144,7 @@
 
             {{-- Address --}}
 
-            <div class="col-md-6">
+            <div class="col-md-3">
 
                 <label class="form-label fw-semibold">Address</label>
 

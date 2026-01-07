@@ -26,30 +26,24 @@
                     </a>
 
                 </li>
-
-            @endif
-
-            {{-- Masters Dropdown --}}
+                        </ul>
+                    </div>
+                </li>
+                @endif
 
             @if(($company && $company->can_menu) || ($users && $users->can_menu) || ($userType && $userType->can_menu) || ($client && $client->can_menu) || ($vendor && $vendor->can_menu))
 
                 <li class="nav-item">
 
-                    <a class="nav-link text-white d-flex justify-content-between align-items-center"
+                    <details class="sidebar-dropdown" {{ request()->is('companies*') || request()->is('users*') || request()->is('usertypetable*') || request()->is('clients*') || request()->is('vendors*') ? 'open' : '' }}>
 
-                       data-bs-toggle="collapse" href="#masterMenu" role="button"
+                        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
 
-                       aria-expanded="{{ request()->is('companies*') || request()->is('users*') || request()->is('usertypetable*') || request()->is('clients*') || request()->is('vendors*') ? 'true' : 'false' }}"
+                            <span><i class="bi bi-collection"></i> Masters</span>
 
-                       aria-controls="masterMenu">
+                            <i class="bi bi-chevron-down arrow-icon"></i>
 
-                        <span><i class="bi bi-collection"></i> Masters</span>
-
-                        <i class="bi bi-chevron-down arrow-icon"></i>
-
-                    </a>
-
-                    <div class="collapse {{ request()->is('companies*') || request()->is('users*') || request()->is('usertypetable*') || request()->is('clients*') || request()->is('vendors*') ? 'show' : '' }}" id="masterMenu">
+                        </summary>
 
                         <ul class="nav flex-column ms-3 mt-2">
 
@@ -88,18 +82,13 @@
                             $assetMasterRoutesAvailable = Route::has('assetmaster.asset_type.index') || Route::has('assetmaster.make_type.index') || Route::has('assetmaster.model_type.index');
                         @endphp
                         @if($Asset && $Asset->can_menu && $assetMasterRoutesAvailable)
-<li>
-    <a class="nav-link text-white d-flex justify-content-between align-items-center"
-       data-bs-toggle="collapse" href="#assetMasterMenu" role="button"
-       aria-expanded="{{ request()->is('assetmaster/asset_type*') || request()->is('assetmaster/make_type*') ? 'true' : 'false' }}"
-       aria-controls="assetMasterMenu">
-       <span><i class="bi bi-box-seam"></i> Asset Master</span>
-       <i class="bi bi-chevron-down arrow-icon"></i>
-    </a>
-
-    <div class="collapse {{ request()->is('assetmaster/*') ? 'show' : '' }}" id="assetMasterMenu">
+<li class="nav-item">
+    <details class="sidebar-dropdown" {{ request()->is('assetmaster/*') ? 'open' : '' }}>
+        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-box-seam"></i> Asset Master</span>
+            <i class="bi bi-chevron-down arrow-icon"></i>
+        </summary>
         <ul class="nav flex-column ms-3 mt-1">
-
             @if($assetType && $assetType->can_menu && Route::has('assetmaster.asset_type.index'))
                 <li>
                     <a href="{{ route('assetmaster.asset_type.index') }}"
@@ -108,7 +97,6 @@
                     </a>
                 </li>
             @endif
-
             @if($makeType && $makeType->can_menu && Route::has('assetmaster.make_type.index'))
                 <li>
                     <a href="{{ route('assetmaster.make_type.index') }}"
@@ -117,7 +105,6 @@
                     </a>
                 </li>
             @endif
-
             @if($modelType && $modelType->can_menu && Route::has('assetmaster.model_type.index'))
                 <li>
                     <a href="{{ route('assetmaster.model_type.index') }}"
@@ -126,9 +113,8 @@
                     </a>
                 </li>
             @endif
-
         </ul>
-    </div>
+    </details>
 </li>
 
             @endif
@@ -170,21 +156,15 @@
 || ($smDeliverablesDelivery && $smDeliverablesDelivery->can_menu) || ($smDeliverablesAcceptance && $smDeliverablesAcceptance->can_menu)))
 <li class="nav-item">
 
-    <a class="nav-link text-white d-flex justify-content-between align-items-center"
+    <details class="sidebar-dropdown" {{ request()->is('sm/feasibility*') || request()->is('sm/purchaseorder*') || request()->is('sm/deliverables*') ? 'open' : '' }}>
 
-       data-bs-toggle="collapse" href="#salesMarketingMenu" role="button"
+        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
 
-       aria-expanded="{{ request()->is('sm/feasibility*') || request()->is('sm/purchaseorder*') ? 'true' : 'false' }}"
+            <span><i class="bi bi-briefcase"></i> Sales & Marketing</span>
 
-       aria-controls="salesMarketingMenu">
+            <i class="bi bi-chevron-down arrow-icon"></i>
 
-        <span><i class="bi bi-briefcase"></i> Sales & Marketing</span>
-
-        <i class="bi bi-chevron-down arrow-icon"></i>
-
-    </a>
-
-    <div class="collapse {{ request()->is('sm/feasibility*') || request()->is('sm/purchaseorder*') ? 'show' : '' }}" id="salesMarketingMenu">
+        </summary>
 
         <ul class="nav flex-column ms-3 mt-1">
 
@@ -194,29 +174,21 @@
 
             @if($feasibilityMaster && $feasibilityMaster->can_menu)
 
-            <li>
+            <li class="nav-item">
 
-                <a class="nav-link text-white d-flex justify-content-between align-items-center"
+                <details class="sidebar-dropdown" {{ request()->is('sm/feasibility*') || request()->is('feasibility/create*') ? 'open' : '' }}>
 
-                   data-bs-toggle="collapse" href="#feasibilityMainMenu" role="button"
+                    <summary class="nav-link text-white d-flex justify-content-between align-items-center">
 
-                   aria-expanded="{{ request()->is('sm/feasibility*') ? 'true' : 'false' }}"
+                        <span><i class="bi bi-diagram-3 me-2"></i> Feasibility</span>
 
-                   aria-controls="feasibilityMainMenu">
+                        <i class="bi bi-chevron-down arrow-icon"></i>
 
-                    <span><i class="bi bi-diagram-3 me-2"></i> Feasibility</span>
-
-                    <i class="bi bi-chevron-down arrow-icon"></i>
-
-                </a>
-
-
-
-                <div class="collapse {{ request()->is('sm/feasibility*') || request()->is('feasibility/create*') ? 'show' : '' }}" id="feasibilityMainMenu">
+                    </summary>
 
                     <ul class="nav flex-column ms-3">
 
-                        {{-- Add Feasibility --}}
+                        {{-- Add / Edit Feasibility --}}
                         @if($feasibilityMaster && $feasibilityMaster->can_menu)
                         <li>
 
@@ -240,8 +212,6 @@
                         
 
                         {{-- Status-based Menu Items --}}   
-
-                        </li>
 
                         @php
 
@@ -323,8 +293,6 @@
 
                         @endphp
 
-                        
-
                         {{-- Open Status --}}
                         @if($feasibilityMasterOpen && $feasibilityMasterOpen->can_menu)
 
@@ -375,7 +343,7 @@
 
                     </ul>
 
-                </div>
+                </details>
 
             </li>
 
@@ -460,17 +428,17 @@
 
             {{-- Deliverables Main Menu --}}
             @if($smDeliverables && $smDeliverables->can_menu)
-            <li>
+            <li class="nav-item">
 
-                <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#smDeliverablesMenu" role="button" aria-expanded="{{ request()->is('sm/deliverables*') ? 'true' : 'false' }}" aria-controls="smDeliverablesMenu">
+                <details class="sidebar-dropdown" {{ request()->is('sm/deliverables*') ? 'open' : '' }}>
 
-                    <span><i class="bi bi-truck me-2"></i> Deliverables</span>
+                    <summary class="nav-link text-white d-flex justify-content-between align-items-center">
 
-                    <i class="bi bi-chevron-down arrow-icon"></i>
+                        <span><i class="bi bi-truck me-2"></i> Deliverables</span>
 
-                </a>
-                
-                <div class="collapse {{ request()->is('sm/deliverables*') ? 'show' : '' }}" id="smDeliverablesMenu">
+                        <i class="bi bi-chevron-down arrow-icon"></i>
+
+                    </summary>
 
                     <ul class="nav flex-column ms-3 mt-1">
 
@@ -502,21 +470,7 @@
                         </li>
                         @endif
 
-                        {{-- Delivery Status --}}
-                        @if ($smDeliverablesDelivery && $smDeliverablesDelivery->can_menu)
-
-                        <li>
-
-                            <a class="nav-link text-white menu-item {{ $isSmDeliverablesDeliveryActive ? 'active' : '' }}" href="{{ $smDeliverablesDeliveryRoute }}">
-
-                               <i class="bi bi-truck-flatbed me-2"></i> Delivered
-
-                            </a>
-
-                        </li>
-                        @endif
-
-                        {{-- Delivery Status --}}
+                        {{-- Accepted Status --}}
                         @if ($smDeliverablesAcceptance && $smDeliverablesAcceptance->can_menu)
 
                         <li>
@@ -531,9 +485,22 @@
 
                     </ul>
 
-                </div>
+                </details>
             </li>
             @endif
+
+                        {{-- Sales & Marketing Delivered Main Menu --}}
+                        @if($smDeliverablesDelivery && $smDeliverablesDelivery->can_menu)
+                        <li>
+
+                            <a class="nav-link text-white menu-item {{ $isSmDeliverablesDeliveryActive ? 'active' : '' }}" href="{{ $smDeliverablesDeliveryRoute }}">
+
+                               <i class="bi bi-truck-flatbed me-2"></i> Delivered
+
+                            </a>
+
+                        </li>
+                        @endif
 
         </ul>
 
@@ -728,22 +695,15 @@
 
 <li class="nav-item">
 
-    <a class="nav-link text-white d-flex justify-content-between align-items-center"
+    <details class="sidebar-dropdown" {{ request()->is('operations/asset*') || request()->is('operations/renewals*') || request()->is('operations/feasibility*') || request()->is('operations/deliverables*') || request()->is('operations/purchaseorder*') ? 'open' : '' }}>
 
-       data-bs-toggle="collapse" href="#operationsMenu" role="button"
+        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
 
-       aria-expanded="{{ request()->is('operations/asset*') || request()->is('operations/renewals*') || request()->is('operations/feasibility*') || request()->is('operations/deliverables*') ? 'true' : 'false' }}"
+            <span><i class="bi bi-gear-wide-connected"></i> Operations</span>
 
-       aria-controls="operationsMenu">
+            <i class="bi bi-chevron-down arrow-icon"></i>
 
-        <span><i class="bi bi-gear-wide-connected"></i> Operations</span>
-
-        <i class="bi bi-chevron-down arrow-icon"></i>
-
-    </a>
-    <!--  -->
-
-    <div class="collapse {{ request()->is('operations/asset*') || request()->is('operations/renewals*') || request()->is('operations/feasibility*') || request()->is('operations/deliverables*') || request()->is('operations/purchaseorder*') ? 'show' : '' }}" id="operationsMenu">
+        </summary>
 
         <ul class="nav flex-column ms-3 mt-1">
             <!-- Asset in operations -->
@@ -752,7 +712,7 @@
         <li class="nav-item">
 
                     <a class="nav-link text-white menu-item {{ request()->is('operations/asset/*') ? 'active' : '' }}" href="{{ route('operations.asset.index') }}">
-                        <i class="bi bi-gear-fill"></i> Asset
+                        <i class="bi bi-gear-"></i> Asset
 
                     </a>
 
@@ -771,20 +731,17 @@
             <!-- Feasibility Main Menu --> 
             @if($operationsFeasibility && $operationsFeasibility->can_menu)
 
-            <li>
+            <li class="nav-item">
 
-                <a class="nav-link text-white d-flex justify-content-between align-items-center"
+                <details class="sidebar-dropdown" {{ request()->is('operations/feasibility*') ? 'open' : '' }}>
 
-                   data-bs-toggle="collapse" href="#operationsFeasibilityMenu" role="button" aria-expanded="{{ request()->is('operations/feasibility*') ? 'true' : 'false' }}" aria-controls="operationsFeasibilityMenu">
+                    <summary class="nav-link text-white d-flex justify-content-between align-items-center">
 
-                    <span><i class="bi bi-diagram-3 me-2"></i> Feasibility</span>
+                        <span><i class="bi bi-diagram-3 me-2"></i> Feasibility</span>
 
-                    <i class="bi bi-chevron-down arrow-icon"></i>
+                        <i class="bi bi-chevron-down arrow-icon"></i>
 
-                </a>
-
-
-    <div class="collapse {{ request()->is('operations/feasibility*') ? 'show' : '' }}" id="operationsFeasibilityMenu">
+                    </summary>
 
         <ul class="nav flex-column ms-3 mt-1">
 
@@ -831,25 +788,36 @@
 
         </ul>
 
-    </div>
+                </details>
             </li>
             @endif
 
-            <!-- Operations Deliverables Main Menu -->
-            @if($operationsDeliverables && $operationsDeliverables->can_menu)
+              <!-- Operations Delivered Main Menu -->
+            @if($operationsDeliverablesDelivery && $operationsDeliverablesDelivery->can_menu)
             <li>
 
-                <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#operationsDeliverablesMenu" role="button" aria-expanded="{{ request()->is('operations/deliverables*') ? 'true' : 'false' }}" aria-controls="operationsDeliverablesMenu">
+                <a class="nav-link text-white menu-item {{ $isDeliverablesDeliveryActive ? 'active' : '' }}"
+                   href="{{ route('operations.deliverables.delivery') }}">
 
-                    <span><i class="bi bi-truck me-2"></i> Deliverables</span>
-
-                    <i class="bi bi-chevron-down arrow-icon"></i>
-
+                   <i class="bi bi-truck-flatbed me-2"></i> Delivered
                 </a>
-    <!--  -->
+            </li>
+            @endif
 
 
-    <div class="collapse {{ request()->is('operations/deliverables*') ? 'show' : '' }}" id="operationsDeliverablesMenu">
+            <!-- Operations Deliverables Main Menu -->
+            @if($operationsDeliverables && $operationsDeliverables->can_menu)
+            <li class="nav-item">
+
+                <details class="sidebar-dropdown" {{ request()->is('operations/deliverables*') ? 'open' : '' }}>
+
+                    <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+
+                        <span><i class="bi bi-truck me-2"></i> Deliverables</span>
+
+                        <i class="bi bi-chevron-down arrow-icon"></i>
+
+                    </summary>
 
         <ul class="nav flex-column ms-3 mt-1">
 
@@ -880,18 +848,7 @@
             </li>
             @endif
 
-            <!-- Operations Deliverables Delivered Menu -->
-            @if($operationsDeliverablesDelivery && $operationsDeliverablesDelivery->can_menu)
-            <li>
-
-                <a class="nav-link text-white menu-item {{ $isDeliverablesDeliveryActive ? 'active' : '' }}"
-
-                   href="{{ route('operations.deliverables.delivery') }}">
-
-                   <i class="bi bi-truck-flatbed me-2"></i> Delivered
-                </a>
-            </li>
-            @endif
+            <!-- Operations Deliverables Delivered Menu (now shown as main menu item below) -->
 
              <!-- Operations Deliverables Acceptance Menu -->
             @if($operationsDeliverablesAcceptance && $operationsDeliverablesAcceptance->can_menu)
@@ -905,14 +862,15 @@
             </li>
             @endif
         </ul>
-    </div>
+                </details>
             </li>
             @endif
         </ul>
-    </div>
+    </details>
 </li>
 @endif
 
+          
             <!-- Finance Dropdown -->
 
             @php
@@ -931,17 +889,12 @@
 
             @if($finance && $finance->can_menu)
                 <li class="nav-item">
-                    <a class="nav-link text-white d-flex justify-content-between align-items-center"
-                       data-bs-toggle="collapse"
-                       href="#financeMenu"
-                       role="button"
-                       aria-expanded="{{ request()->is('finance/accounts*') || request()->is('finance/sales*') || request()->is('finance/purchases*') || request()->is('finance/gst*') || request()->is('finance/tds*') || request()->is('finance/banking*') || request()->is('finance/reports*') || request()->is('finance/settings*') ? 'true' : 'false' }}"
-                       aria-controls="financeMenu">
-                        <span><i class="bi bi-cash-coin"></i> Finance</span>
-                        <i class="bi bi-chevron-down arrow-icon"></i>
-                    </a>
+                    <details class="sidebar-dropdown" {{ request()->is('finance/*') ? 'open' : '' }}>
+                        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-cash-coin"></i> Finance</span>
+                            <i class="bi bi-chevron-down arrow-icon"></i>
+                        </summary>
 
-                    <div class="collapse {{ request()->is('finance/accounts*') || request()->is('finance/sales*') || request()->is('finance/purchases*') || request()->is('finance/gst*') || request()->is('finance/tds*') || request()->is('finance/banking*') || request()->is('finance/reports*') || request()->is('finance/settings*') ? 'show' : '' }}" id="financeMenu">
                         <ul class="nav flex-column ms-3 mt-1">
                             <li>
                                 <a class="nav-link text-white menu-item {{ request()->is('finance/accounts*') ? 'active' : '' }}"
@@ -969,53 +922,51 @@
                             @endif
 
                             @if(Route::has('finance.gst.index'))
-            <li>
-                <a class="nav-link text-white menu-item {{ request()->is('finance/gst*') ? 'active' : '' }}"
-                   href="{{ route('finance.gst.index') }}">
-                   <i class="bi bi-percent me-2"></i> GST
-                </a>
-            </li>
-            @endif
+                            <li>
+                                <a class="nav-link text-white menu-item {{ request()->is('finance/gst*') ? 'active' : '' }}"
+                                   href="{{ route('finance.gst.index') }}">
+                                   <i class="bi bi-percent me-2"></i> GST
+                                </a>
+                            </li>
+                            @endif
 
                             @if(Route::has('finance.tds.index'))
-            <li>
-                <a class="nav-link text-white menu-item {{ request()->is('finance/tds*') ? 'active' : '' }}"
-                   href="{{ route('finance.tds.index') }}">
-                   <i class="bi bi-scissors me-2"></i> TDS
-                </a>
-            </li>
-            @endif
+                            <li>
+                                <a class="nav-link text-white menu-item {{ request()->is('finance/tds*') ? 'active' : '' }}"
+                                   href="{{ route('finance.tds.index') }}">
+                                   <i class="bi bi-scissors me-2"></i> TDS
+                                </a>
+                            </li>
+                            @endif
 
                             @if(Route::has('finance.banking.index'))
-            <li>
-                <a class="nav-link text-white menu-item {{ request()->is('finance/banking*') ? 'active' : '' }}"
-                   href="{{ route('finance.banking.index') }}">
-                   <i class="bi bi-bank me-2"></i> Banking
-                </a>
-            </li>
-            @endif
-
-            
+                            <li>
+                                <a class="nav-link text-white menu-item {{ request()->is('finance/banking*') ? 'active' : '' }}"
+                                   href="{{ route('finance.banking.index') }}">
+                                   <i class="bi bi-bank me-2"></i> Banking
+                                </a>
+                            </li>
+                            @endif
 
                             @if(Route::has('finance.reports.index'))
-            <li>
-                <a class="nav-link text-white menu-item {{ request()->is('finance/reports*') ? 'active' : '' }}"
-                   href="{{ route('finance.reports.index') }}">
-                   <i class="bi bi-bar-chart-line me-2"></i> Reports
-                </a>
-            </li>
-            @endif
+                            <li>
+                                <a class="nav-link text-white menu-item {{ request()->is('finance/reports*') ? 'active' : '' }}"
+                                   href="{{ route('finance.reports.index') }}">
+                                   <i class="bi bi-bar-chart-line me-2"></i> Reports
+                                </a>
+                            </li>
+                            @endif
 
                             @if(Route::has('finance.settings.index'))
-            <li>
-                <a class="nav-link text-white menu-item {{ request()->is('finance/settings*') ? 'active' : '' }}"
-                   href="{{ route('finance.settings.index') }}">
-                   <i class="bi bi-gear me-2"></i> Settings
-                </a>
-            </li>
-            @endif
+                            <li>
+                                <a class="nav-link text-white menu-item {{ request()->is('finance/settings*') ? 'active' : '' }}"
+                                   href="{{ route('finance.settings.index') }}">
+                                   <i class="bi bi-gear me-2"></i> Settings
+                                </a>
+                            </li>
+                            @endif
                         </ul>
-                    </div>
+                    </details>
                 </li>
             @endif
 
@@ -1187,23 +1138,15 @@
 
                 <li class="nav-item">
 
-                    <a class="nav-link text-white d-flex justify-content-between align-items-center"
+                    <details class="sidebar-dropdown" {{ request()->is('emails*') || request()->is('menus*') || request()->is('company-settings*') || request()->is('system-settings*') || request()->is('whatsapp-settings*') ? 'open' : '' }}>
 
-                       data-bs-toggle="collapse" href="#systemMenu" role="button"
+                        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
 
-                       aria-expanded="{{ request()->is('emails*') || request()->is('menus*') || request()->is('company-settings*') || request()->is('system-settings*') ? 'true' : 'false' }}"
+                            <span><i class="bi bi-gear"></i> System</span>
 
-                       aria-controls="systemMenu">
+                            <i class="bi bi-chevron-down arrow-icon"></i>
 
-                        <span><i class="bi bi-gear"></i> System</span>
-
-                        <i class="bi bi-chevron-down arrow-icon"></i>
-
-                    </a>
-
-
-
-                    <div class="collapse {{ request()->is('emails*') || request()->is('menus*') || request()->is('company-settings*') || request()->is('system-settings*') ? 'show' : '' }}" id="systemMenu">
+                        </summary>
 
                         <ul class="nav flex-column ms-3 mt-2">
 
@@ -1239,7 +1182,7 @@
 
 
                         </ul>
-                    </div>
+                    </details>
                 </li>
 
             @endif

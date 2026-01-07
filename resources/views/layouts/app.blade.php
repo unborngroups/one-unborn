@@ -524,6 +524,8 @@
 
     </div>
 
+    @include('layouts.partials.internal-chat')
+
 </body>
 
 <!-- ✅ jQuery must come before Select2 and before your custom script -->
@@ -546,6 +548,9 @@
 
 <!-- ✅ Summernote CSS & JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.js"></script>
+
+<!-- ✅ Internal chat toggle (fallback if Vite chat bundle isn't loaded) -->
+<script src="{{ asset('js/internal-chat-toggle.js') }}"></script>
 
 <script>
 

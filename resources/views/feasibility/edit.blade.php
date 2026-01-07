@@ -117,6 +117,24 @@
                     <input type="text" name="delivery_company_name" class="form-control" value="{{ old('delivery_company_name', $feasibility->delivery_company_name) }}">
                 </div>
 
+                 <!-- Story ID -->
+                <div class="col-md-3">
+                    <label for="form-label fw-semibold">Location ID</label>
+                    <input type="text" name="location_id" class="form-control" value="{{ old('location_id', $feasibility->location_id ?? '') }}">
+                </div>
+
+                <!-- Longitude Name -->
+                <div class="col-md-3">
+                    <label for="form-label fw-semibold">Longitude </label>
+                    <input type="text" name="longitude" class="form-control" value="{{ old('longitude', $feasibility->longitude ?? '') }}">
+                </div>
+
+                <!-- Delivery Company Name -->
+                <div class="col-md-3">
+                    <label for="form-label fw-semibold">Latitude</label>
+                    <input type="text" name="latitude" class="form-control" value="{{ old('latitude', $feasibility->latitude ?? '') }}">
+                </div>
+
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">Pincode <span class="text-danger">*</span></label>
                     <input type="text" name="pincode" id="pincode" maxlength="6" value="{{ old('pincode', $feasibility->pincode) }}" class="form-control" required>

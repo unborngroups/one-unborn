@@ -67,7 +67,7 @@
                         </div>
                         <div class="col-md-3">
                             <strong>Mac No</strong><br>
-                            <span><?php echo e($record->assets->mac_no ?? '-'); ?></span>
+                            <span><?php echo e($record->asset_mac_no ?? '-'); ?></span>
                         </div>
                     </div>
                 </div>

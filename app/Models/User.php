@@ -69,5 +69,11 @@ public function menuPrivileges()
 }
 
 
+// user status relationship
+    public function status()
+    {
+        return $this->hasOne(\App\Models\UserStatus::class, 'user_id');
+    }
+
 }
 

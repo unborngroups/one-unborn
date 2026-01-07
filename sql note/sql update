@@ -144,3 +144,9 @@ ALTER TABLE deliverable_plans
 ADD COLUMN vendor_name VARCHAR(255) NULL AFTER link_number,
 ADD COLUMN vendor_email VARCHAR(255) NULL AFTER vendor_name,
 ADD COLUMN vendor_contact VARCHAR(255) NULL AFTER vendor_email;
+
+ALTER TABLE feasibilities
+ADD COLUMN location_id VARCHAR(255) NULL AFTER delivery_company_name,
+ADD COLUMN longitude VARCHAR(255) NULL AFTER location_id,
+ADD COLUMN latitude VARCHAR(255) NULL AFTER longitude;
+

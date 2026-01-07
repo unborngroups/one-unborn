@@ -26,6 +26,14 @@ t@extends('layouts.app')
 
             </div>
 
+            {{-- Company Name --}}
+
+            <div class="col-md-6">
+
+                <h6 class="fw-semibold text-muted">Company:</h6>
+                <p>{{ $record->feasibility->company->company_name ?? 'N/A' }}</p>
+
+            </div>
 
 
             {{-- Client Name --}}

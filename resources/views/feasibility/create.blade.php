@@ -184,6 +184,24 @@
                     <input type="text" name="delivery_company_name" class="form-control" value="{{ old('delivery_company_name', $importRow['delivery_company_name'] ?? '') }}">
                 </div>
 
+                <!-- Story ID -->
+                <div class="col-md-3">
+                    <label for="form-label fw-semibold">Location ID</label>
+                    <input type="text" name="location_id" class="form-control" value="{{ old('location_id', $importRow['location_id'] ?? '') }}">
+                </div>
+
+                <!-- Longitude Name -->
+                <div class="col-md-3">
+                    <label for="form-label fw-semibold">Longitude </label>
+                    <input type="text" name="longitude" class="form-control" value="{{ old('longitude', $importRow['longitude'] ?? '') }}">
+                </div>
+
+                <!-- Delivery Company Name -->
+                <div class="col-md-3">
+                    <label for="form-label fw-semibold">Latitude</label>
+                    <input type="text" name="latitude" class="form-control" value="{{ old('latitude', $importRow['latitude'] ?? '') }}">
+                </div>
+
                 <!-- pincode -->
                 <div class="col-md-3">
 

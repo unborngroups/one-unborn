@@ -59,6 +59,18 @@ use App\Models\Company;
 use App\Http\Middleware\ClientAuth;
    
 
+
+// Internal chat APIs used by the floating widget
+Route::prefix('chat')
+    ->middleware(['auth', \App\Http\Middleware\CheckProfileCreated::class])
+    ->group(function () {
+        Route::get('/group/{id}/messages', [App\Http\Controllers\ChatController::class,'fetchMessages'])->name('chat.messages');
+        Route::post('/send', [App\Http\Controllers\ChatController::class,'send'])->name('chat.send');
+        Route::get('/group/{id}/online-users', [App\Http\Controllers\ChatController::class,'onlineUsers'])->name('chat.online-users');
+        Route::post('/typing', [App\Http\Controllers\ChatController::class,'typing'])->name('chat.typing');
+        Route::get('/bootstrap', [App\Http\Controllers\ChatController::class,'bootstrap'])->name('chat.bootstrap');
+    });
+
 // User heartbeat route for online status admin panel
 Route::middleware(['auth'])->post('/user/heartbeat', [UserController::class, 'heartbeat']);
 // User tab close route for online status admin panel

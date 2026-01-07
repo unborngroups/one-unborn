@@ -269,7 +269,7 @@
                                 <div class="col-md-3 mb-3">
                                     <label class="form-label">Speed in Mbps (Plan) <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" name="speed_in_mbps_plan_{{ $i }}"
-                                           value="{{ old('speed_in_mbps_plan_'.$i, $defaultSpeed ?? '' ) }}" required>
+                                           value="{{ old('speed_in_mbps_plan_'.$i, $defaultSpeed ?? '') }}" required>
                                 </div>
                                 <div class="col-md-3 mb-3">
                                     <label class="form-label">No of Months Renewal <span class="text-danger">*</span></label>
