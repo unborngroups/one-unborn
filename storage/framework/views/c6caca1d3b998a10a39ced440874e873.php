@@ -293,18 +293,55 @@
 
             </div>
 
-<?php if(!empty($record->feasibility->hardware_details)): ?>
+<?php
+    $hardwareDetails = $record->feasibility->hardware_details;
+    if (is_string($hardwareDetails)) {
+        $hardwareDetails = json_decode($hardwareDetails, true);
+    }
+?>
+<?php if(!empty($hardwareDetails) && is_array($hardwareDetails)): ?>
     <div class="col-md-3">
         <label class="form-label fw-semibold">Hardware Model Name</label>
-        <?php $__currentLoopData = json_decode($record->feasibility->hardware_details, true); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        <?php $__currentLoopData = $hardwareDetails; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <?php
-                $make = \App\Models\MakeType::find($item['make_type_id']);
-                $model = \App\Models\Asset::select('model')->find($item['model_id']);
+                $makeName = $item['make'] ?? null;
+                $modelName = $item['model'] ?? null;
+                // If only make_type_id/model_id present, fetch names
+                if (!$makeName && !empty($item['make_type_id'])) {
+                    $makeObj = \App\Models\MakeType::find($item['make_type_id']);
+                    if ($makeObj && !($makeObj instanceof \Illuminate\Database\Eloquent\Collection)) {
+                        $makeName = $makeObj->make_name;
+                    } else {
+                        $makeName = $item['make_type_id'];
+                    }
+                }
+                if (!$modelName && !empty($item['model_id'])) {
+                        $modelObj = \App\Models\ModelType::find($item['model_id']);
+                    if ($modelObj && !($modelObj instanceof \Illuminate\Database\Eloquent\Collection)) {
+                            $modelName = $modelObj->model . ' (ID: ' . $item['model_id'] . ')';
+                    } else {
+                        $modelName = $item['model_id'];
+                    }
+                }
             ?>
             <p class="mb-1">
-                Make: <?php echo e(optional($make)->make_name ?? 'N/A'); ?> <br>
-                Model: <?php echo e(optional($model)->model ?? 'N/A'); ?>
+                Make:
+                <?php if(is_array($makeName)): ?>
+                    <?php echo e(collect($makeName)->map(function($id) { $obj = \App\Models\MakeType::find($id); return $obj ? $obj->make_name : $id; })->implode(', ')); ?>
 
+                <?php else: ?>
+                    <?php echo e(is_object($makeName) ? '[object]' : ($makeName ?? 'N/A')); ?>
+
+                <?php endif; ?>
+                <br>
+                Model:
+                <?php if(is_array($modelName)): ?>
+                        <?php echo e(collect($modelName)->map(function($id) { $obj = \App\Models\ModelType::find($id); return $obj ? $obj->model_name : $id; })->implode(', ')); ?>
+
+                <?php else: ?>
+                    <?php echo e(is_object($modelName) ? '[object]' : ($modelName ?? 'N/A')); ?>
+
+                <?php endif; ?>
             </p>
         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </div>

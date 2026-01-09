@@ -17,11 +17,11 @@
         <h3 class="fw-bold text-primary">Leave Type</h3>
 
         
-
+         <?php if($permissions->can_add): ?>
         <a href="<?php echo e(route('hr.leavetype.create')); ?>" class="btn btn-success">
             <i class="bi bi-plus-circle"></i> Add New Leave Type
         </a>
-
+        <?php endif; ?>
     </div>
 
 
@@ -98,9 +98,13 @@
                             <td class="text-center"><?php echo e($index+1); ?></td>
 
                             <td class="text-center d-flex justify-content-center gap-1">
+                                 <?php if($permissions->can_edit): ?>
                                 <a href="<?php echo e(route('hr.leavetype.edit', $leavetypedata)); ?>" class="btn btn-sm btn-primary">
                                     <i class="bi bi-pencil"></i>
                                 </a>
+                                <?php endif; ?>
+
+                                 <?php if($permissions->can_delete): ?>
                                 <form action="<?php echo e(route('hr.leavetype.destroy', $leavetypedata)); ?>" method="POST" class="d-inline">
                                     <?php echo csrf_field(); ?>
                                     <?php echo method_field('DELETE'); ?> 
@@ -108,10 +112,14 @@
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
+                                <?php endif; ?>
+
                                 
+                                 <?php if($permissions->can_view): ?>
                                 <a href="<?php echo e(route('hr.leavetype.view', $leavetypedata->id)); ?>" class="btn btn-sm btn-warning">
                                     <i class="bi bi-eye"></i>
                                 </a>
+                                <?php endif; ?>
                             </td>
 
                             <td class="col"><?php echo e($leavetypedata->leavetype ?? '-'); ?></td>

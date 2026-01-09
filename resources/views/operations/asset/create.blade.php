@@ -28,10 +28,8 @@
     <!-- <h5 class="mb-3 ">Import Assets</h5> -->
         <div class="row g-3 mb-3">
             <div class="col-md-12">
-                <button class="btn btn-info" type="button" id="importExcelBtn" aria-controls="importCard">
-                    Import Assets via Excel
-                </button>
-                <div class="collapse mt-3" id="importCard">
+                <button class="btn btn-info mb-2" type="button" onclick="toggleImportAsset()">Import Assets via Excel</button>
+                <div id="importAssetBox" style="display:none;">
                     <div class="card border-info">
                         <div class="card-body">
                             <p class="mb-3 small text-muted">Download the sample format, populate it with Asset data, and then upload it via Import Excel.</p>
@@ -46,6 +44,12 @@
                         </div>
                     </div>
                 </div>
+                <script>
+                    function toggleImportAsset() {
+                        var box = document.getElementById('importAssetBox');
+                        box.style.display = (box.style.display === 'none' || box.style.display === '') ? 'block' : 'none';
+                    }
+                </script>
             </div>
         </div>
 

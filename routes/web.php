@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\OtpController;
 use App\Http\Controllers\UserTypeController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EmailTemplateController;
@@ -61,6 +62,11 @@ use App\Http\Middleware\ClientAuth;
    
 
 
+
+// OTP routes for login (must be above fallback and client portal)
+Route::post('/otp/send', [OtpController::class, 'send'])->name('otp.send');
+Route::post('/otp/verify', [OtpController::class, 'verify'])->name('otp.verify');
+
 // Internal chat APIs used by the floating widget
 Route::prefix('chat')
     ->middleware(['auth', \App\Http\Middleware\CheckProfileCreated::class])
@@ -98,6 +104,7 @@ Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink
 // reset password routes
 Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm']);
 Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword']);
+
 // 👤 Profile Routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
@@ -147,7 +154,7 @@ Route::patch('/users/{id}/toggle-status', [UserController::class, 'toggleStatus'
     Route::post('/assetmaster/asset_type/bulk-delete', [Asset_typeController::class, 'bulkDestroy'])->name('assetmaster.asset_type.bulk-delete');
     Route::post('/assetmaster/make_type/bulk-delete', [Make_typeController::class, 'bulkDestroy'])->name('assetmaster.make_type.bulk-delete');
     Route::post('/assetmaster/model_type/bulk-delete', [ModelTypeController::class, 'bulkDestroy'])->name('assetmaster.model_type.bulk-delete');
-    Route::post('/hr/leavetype/bulk-delete', [\App\Http\Controllers\LeaveTypeController::class, 'bulkDelete'])->name('hr.leavetype.bulk-delete');
+    Route::post('/hr/leavetype/bulk-delete', [LeaveTypeController::class, 'bulkDelete'])->name('hr.leavetype.bulk-delete');
     
 
     //view path
@@ -319,14 +326,10 @@ Route::get('/operations/asset/{id}/print', [AssetController::class, 'print'])->n
     // ✅ Feasibility Module (Resource routes should come after specific routes)
     Route::resource('feasibility', FeasibilityController::class);
    // Export all users to Excel
-Route::get('/export-feasibility', [FeasibilityExcelController::class, 'export'])->name('feasibility.export');
-// Import Route
-// Route::get('/feasibility/open/{id}', [FeasibilityController::class, 'open'])
-// ->name('feasibility.open');
-
-Route::post('/import-feasibility', [FeasibilityExcelController::class, 'import'])->name('feasibility.import');
-// Route::post('/vendors/import', [VendorController::class, 'import'])->name('vendors.import');
-
+    Route::get('/export-feasibility', [FeasibilityExcelController::class, 'export'])->name('feasibility.export');
+    // Feasibility import failed rows download
+    Route::post('/feasibility/import/failed-rows', [App\Http\Controllers\FeasibilityExcelController::class, 'downloadFailedRows'])->name('feasibility.downloadFailedRows');
+    Route::post('/import-feasibility', [FeasibilityExcelController::class, 'import'])->name('feasibility.import');
     Route::get('/get-client-details/{id}', [ClientController::class, 'getDetails']);
 
 
@@ -371,13 +374,13 @@ Route::get('/hr/employee', [hrController::class, 'index'])->name('hr.employee.in
 Route::get('/hr/{id}/view', [hrController::class, 'show'])->name('hr.view');
 Route::get('/hr/{id}/edit', [hrController::class, 'edit'])->name('hr.edit');
 Route::prefix('hr/leavetype')->name('hr.leavetype.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\LeaveTypeController::class, 'index'])->name('index');
-    Route::get('/create', [\App\Http\Controllers\LeaveTypeController::class, 'create'])->name('create');
-    Route::post('/', [\App\Http\Controllers\LeaveTypeController::class, 'store'])->name('store');
-    Route::get('/{id}/edit', [\App\Http\Controllers\LeaveTypeController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [\App\Http\Controllers\LeaveTypeController::class, 'update'])->name('update');
-    Route::delete('/{id}', [\App\Http\Controllers\LeaveTypeController::class, 'destroy'])->name('destroy');
-    Route::get('/{id}/view', [\App\Http\Controllers\LeaveTypeController::class, 'view'])->name('view');
+    Route::get('/', [LeaveTypeController::class, 'index'])->name('index');
+    Route::get('/create', [LeaveTypeController::class, 'create'])->name('create');
+    Route::post('/', [LeaveTypeController::class, 'store'])->name('store');
+    Route::get('/{id}/edit', [LeaveTypeController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [LeaveTypeController::class, 'update'])->name('update');
+    Route::delete('/{id}', [LeaveTypeController::class, 'destroy'])->name('destroy');
+    Route::get('/{id}/view', [LeaveTypeController::class, 'view'])->name('view');
 });
 
 

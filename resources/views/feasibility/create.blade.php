@@ -8,8 +8,15 @@
 
     <h4 class="text-primary fw-bold mb-3 ">Add Feasibility</h4>
     
-        @if (session('import_errors'))
 
+
+        @if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if (session('import_errors'))
             <div class="alert alert-warning">
                 <strong>Import could not process some rows:</strong>
                 <ul class="mb-0">
@@ -17,8 +24,57 @@
                         <li>{{ $importError }}</li>
                     @endforeach
                 </ul>
+                @if(session('failed_rows'))
+                    @if(count(session('failed_rows', [])) > 0)
+                        <form action="{{ route('feasibility.downloadFailedRows') }}" method="POST" class="mt-2">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Download Failed Rows (CSV)</button>
+                        </form>
+                        <div id="failedRowsTable" style="max-height:300px; overflow:auto;">
+                            <input type="text" id="failedFilterInput" class="form-control form-control-sm mb-2" placeholder="Filter by error reason..." onkeyup="filterFailedRows()">
+                            <table class="table table-bordered table-sm mt-2">
+                                <thead>
+                                    <tr>
+                                        @foreach(session('import_headers', []) as $header)
+                                            <th>{{ $header }}</th>
+                                        @endforeach
+                                    </tr>
+                                </thead>
+                                <tbody id="failedRowsTbody">
+                                    @foreach(session('failed_rows', []) as $row)
+                                        <tr>
+                                            @foreach($row as $cell)
+                                                <td>{{ $cell }}</td>
+                                            @endforeach
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        <script>
+                            function filterFailedRows() {
+                                var input = document.getElementById('failedFilterInput');
+                                var filter = input.value.toLowerCase();
+                                var tbody = document.getElementById('failedRowsTbody');
+                                var rows = tbody.getElementsByTagName('tr');
+                                for (var i = 0; i < rows.length; i++) {
+                                    var show = false;
+                                    var cells = rows[i].getElementsByTagName('td');
+                                    for (var j = 0; j < cells.length; j++) {
+                                        if (cells[j].innerText.toLowerCase().indexOf(filter) > -1) {
+                                            show = true;
+                                            break;
+                                        }
+                                    }
+                                    rows[i].style.display = show ? '' : 'none';
+                                }
+                            }
+                        </script>
+                    @else
+                        <div class="alert alert-info mt-2">No failed rows to display.</div>
+                    @endif
+                @endif
             </div>
-
         @endif
 
         @php
@@ -28,27 +84,52 @@
     <!-- <h5 class="mb-3 ">Import Feasibility</h5> -->
         <div class="row g-3 mb-3">
             <div class="col-md-12">
-                <button class="btn btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#importCard" aria-expanded="false" aria-controls="importCard">
+                <button class="btn btn-info" type="button" onclick="toggleImportFeasibility()">
                     Import Feasibility
                 </button>
-                <div class="collapse mt-3" id="importCard">
+                <div id="importFeasibilityBox" style="display: none;">
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            var hasError = {{ ($errors->any() || session('import_errors')) ? 1 : 0 }};
+                            if (hasError) {
+                                var box = document.getElementById('importFeasibilityBox');
+                                if (box) box.style.display = 'block';
+                            }
+                        });
+                    </script>
                     <div class="card border-info">
                         <div class="card-body">
                             <p class="mb-3 small text-muted">Download the sample format, populate it with feasibility data, and then upload it via Import Excel.</p>
-                            <form action="{{ route('feasibility.import') }}" method="POST" enctype="multipart/form-data">
+                            <form id="importExcelForm" action="{{ route('feasibility.import') }}" method="POST" enctype="multipart/form-data" onsubmit="showImportLoading()">
                                 @csrf
                                 <div class="input-group">
                                     <input type="file" name="file" class="form-control" required>
                                     <a href="{{ asset('images/feasibilityimport/Book 4 (9).xlsx') }}" target="_blank" class="btn btn-outline-secondary" title="Download import template">Download Format</a>
-                                    <button type="submit" class="btn btn-primary">Import Excel</button>
+                                    <button id="importExcelBtn" type="submit" class="btn btn-primary">Import Excel</button>
+                                </div>
+                                <div id="importLoading" style="display:none;" class="mt-2">
+                                    <span class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></span>
+                                    Importing... Please wait.
                                 </div>
                             </form>
+                            <script>
+                                function showImportLoading() {
+                                    document.getElementById('importExcelBtn').disabled = true;
+                                    document.getElementById('importLoading').style.display = 'inline-block';
+                                }
+                            </script>
                         </div>
                     </div>
                 </div>
+                <script>
+                    function toggleImportFeasibility() {
+                        var box = document.getElementById('importFeasibilityBox');
+                        box.style.display = (box.style.display === 'none' || box.style.display === '') ? 'block' : 'none';
+                    }
+                </script>
             </div>
         </div>
-
+<!--  -->
 
 
     <div class="card shadow border-0 p-4">

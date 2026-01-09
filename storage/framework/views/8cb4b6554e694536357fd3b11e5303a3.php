@@ -1021,6 +1021,7 @@
                 $hr = \App\Helpers\TemplateHelper::getUserMenuPermissions('HR');
                 $users = \App\Helpers\TemplateHelper::getUserMenuPermissions('Manage User');
                 $employees = \App\Helpers\TemplateHelper::getUserMenuPermissions('Employee');
+                $leavetype = \App\Helpers\TemplateHelper::getUserMenuPermissions('Leave Management');
 
             ?>
 
@@ -1050,12 +1051,14 @@
                             <?php endif; ?>
 
                             
+                            <?php if($leavetype && $leavetype->can_menu): ?>
                             <li class="nav-item">
                                 <a class="nav-link text-white menu-item <?php echo e(request()->is('hr/leavetype*') ? 'active' : ''); ?>" href="<?php echo e(route('hr.leavetype.index')); ?>">
                                     <i class="bi bi-calendar-check"></i> Leave Type
                                 </a>
                             </li>
-                            
+                            <?php endif; ?>
+
                         </ul>
                     </details>
                 </li>

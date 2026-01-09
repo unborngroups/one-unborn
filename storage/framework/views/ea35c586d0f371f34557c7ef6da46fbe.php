@@ -216,16 +216,140 @@
 
                 </div>
             <?php endif; ?>
-            <form action="<?php echo e(route('login')); ?>" method="POST" class="mt-4">
+            <form id="loginForm" action="<?php echo e(route('login')); ?>" method="POST" class="mt-4" autocomplete="off" onsubmit="return false;">
                 <?php echo csrf_field(); ?>
-                <input type="email" name="email" class="form-control" placeholder="Email" value="<?php echo e(old('email')); ?>" required autofocus>
-                <input type="password" name="password" class="form-control" placeholder="Password" required>
-                <button type="submit" class="btn btn-primary w-100">
+                <div class="mb-3">
+                    <div class="input-group">
+                        <input type="email" name="email" id="email" class="form-control" placeholder="Official Email" value="<?php echo e(old('email')); ?>" required autofocus>
+                        <button type="button" id="verifyEmailBtn" class="btn btn-outline-primary px-3 py-1" style="height: 58px; font-size: 15px;">Verify</button>
+                    </div>
+                </div>
+                <div class="mb-3" id="otpSection" style="display:none;">
+                    <div class="input-group">
+                        <input type="text" name="otp" id="otp" class="form-control" placeholder="Enter OTP">
+                        <button type="button" id="verifyOtpBtn" class="btn btn-outline-success px-3 py-1" style="height: 58px; font-size: 15px;">Verify OTP</button>
+                    </div>
+                </div>
+                <div class="mb-3" id="passwordSection" style="display:none;">
+                    <input type="password" name="password" id="password" class="form-control" placeholder="Password">
+                </div>
+                <button type="submit" id="loginBtn" class="btn btn-primary w-100" style="display:none;">
                     <i class="bi bi-arrow-right-short fs-5"></i>
                     <span>Sign In</span>
                 </button>
             </form>
             <a href="<?php echo e(url('/forgot-password')); ?>" class="forgot-link">Forgot password?</a>
+            <script>
+                function showAlert(message, type = 'danger') {
+                    let alertDiv = document.createElement('div');
+                    alertDiv.className = `alert alert-${type} py-2 mt-3`;
+                    alertDiv.innerText = message;
+                    let form = document.querySelector('.auth-form form');
+                    form.parentNode.insertBefore(alertDiv, form);
+                    setTimeout(() => alertDiv.remove(), 4000);
+                }
+
+                document.getElementById('verifyEmailBtn').onclick = function() {
+                    let email = document.getElementById('email').value;
+                    let btn = document.getElementById('verifyEmailBtn');
+                    if (!email) {
+                        showAlert('Please enter your email.');
+                        return;
+                    }
+                    btn.disabled = true;
+                    let originalText = btn.innerHTML;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
+                    fetch("<?php echo e(route('otp.send')); ?>", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value
+                        },
+                        body: JSON.stringify({ email })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status) {
+                            document.getElementById('otpSection').style.display = 'block';
+                            showAlert(data.message, 'success');
+                        } else {
+                            showAlert(data.message || 'Failed to send OTP.');
+                        }
+                    })
+                    .catch(() => showAlert('Server error. Please try again.'))
+                    .finally(() => {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                    });
+                };
+
+                document.getElementById('verifyOtpBtn').onclick = function() {
+                    let email = document.getElementById('email').value;
+                    let otp = document.getElementById('otp').value;
+                    if (!otp) {
+                        showAlert('Please enter the OTP.');
+                        return;
+                    }
+                    fetch("<?php echo e(route('otp.verify')); ?>", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value
+                        },
+                        body: JSON.stringify({ email, otp })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status) {
+                            document.getElementById('passwordSection').style.display = 'block';
+                            document.getElementById('loginBtn').style.display = 'block';
+                            showAlert(data.message, 'success');
+                            // Disable email and OTP fields after successful OTP verification
+                            document.getElementById('email').readOnly = true;
+                            document.getElementById('verifyEmailBtn').disabled = true;
+                            document.getElementById('otp').readOnly = true;
+                            document.getElementById('verifyOtpBtn').disabled = true;
+                        } else {
+                            showAlert(data.message || 'OTP verification failed.');
+                        }
+                    })
+                    .catch(() => showAlert('Server error. Please try again.'));
+                };
+
+                // AJAX password submit
+                document.getElementById('loginForm').onsubmit = function(e) {
+                    e.preventDefault();
+                    let email = document.getElementById('email').value;
+                    let otp = document.getElementById('otp').value;
+                    let password = document.getElementById('password').value;
+                    let btn = document.getElementById('loginBtn');
+                    btn.disabled = true;
+                    let originalText = btn.innerHTML;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Signing In...';
+                    fetch("<?php echo e(route('login')); ?>", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value
+                        },
+                        body: JSON.stringify({ email, otp, password })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status) {
+                            window.location.href = data.redirect || '/dashboard';
+                        } else {
+                            showAlert(data.message || 'Invalid credentials.');
+                            document.getElementById('password').value = '';
+                        }
+                    })
+                    .catch(() => showAlert('Server error. Please try again.'))
+                    .finally(() => {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                    });
+                };
+            </script>
             <div class="mt-3 d-flex gap-2 align-items-center">
                 <i class="bi bi-shield-lock-fill text-danger fs-5"></i>
                 <span class="text-muted" style="font-size: 14px;">Protected by One-Unborn security.</span>

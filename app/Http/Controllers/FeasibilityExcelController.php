@@ -7,6 +7,7 @@ use App\Models\Company;
 use App\Models\Feasibility;
 use App\Models\FeasibilityStatus;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Shuchkin\SimpleXLSX;
@@ -62,33 +63,56 @@ class FeasibilityExcelController extends Controller
     $this->importErrors = [];
     $imported = 0;
     $lastFeasibilityId = null;
+    $failedRows = [];
+    $originalHeaders = $rows[0] ?? [];
+    $sessionHeaders = array_merge($originalHeaders, ['Error Reason']);
 
     foreach ($rows as $index => $row) {
-
         if ($index === 0) continue;
-
         /** BUILD $rowData **/
         $rowData = [];
         foreach ($headers as $colIndex => $name) {
             $value = $row[$colIndex] ?? null;
             $rowData[$name] = $value === null ? null : trim((string)$value);
         }
-
         /** YES/NO → 1/0 **/
         $staticIpFlag     = strtoupper($rowData['static_ip'] ?? '') === 'YES' ? 1 : 0;
         $hardwareFlag     = strtoupper($rowData['hardware_required'] ?? '') === 'YES' ? 1 : 0;
 
-        /** Resolve Company & Client **/
-        $companyId = $this->resolveCompanyId($rowData['company_name'] ?? null);
-        $clientId  = $this->resolveClientId($rowData['client_name'] ?? null);
-
-        if (!$companyId) {
-            $this->importErrors[] = "Row " . ($index + 1) . ": Company not found.";
-            continue;
+        // Collect hardware details if present
+        $hardwareDetails = null;
+        if ($hardwareFlag) {
+            $make = $rowData['make'] ?? null;
+            $model = $rowData['model'] ?? null;
+            if ($make || $model) {
+                $hardwareDetails = [
+                    [
+                        'make' => $make,
+                        'model' => $model,
+                    ]
+                ];
+            }
         }
 
+        // Collect all error reasons for this row
+        $rowErrors = [];
+        $companyId = $this->resolveCompanyId($rowData['company_name'] ?? null);
+        if (!$companyId) {
+            $rowErrors[] = 'Company not found';
+        }
+        $clientId  = $this->resolveClientId($rowData['client_name'] ?? null);
         if (!$clientId) {
-            $this->importErrors[] = "Row " . ($index + 1) . ": Client not found.";
+            $rowErrors[] = 'Client not found';
+        }
+        // Add more field validations here if needed
+
+        if (!empty($rowErrors)) {
+            $this->importErrors[] = "Row " . ($index + 1) . ": " . implode('; ', $rowErrors) . ".";
+            $assoc = array_combine($originalHeaders, $row);
+            $assoc['Error Reason'] = implode('; ', $rowErrors);
+            $failedRows[] = $assoc;
+            // Debug: log failed row and error
+            Log::info('Feasibility Import Failed Row', ['row' => $assoc, 'row_number' => $index + 1, 'errors' => $rowErrors]);
             continue;
         }
 
@@ -144,6 +168,7 @@ if ($address !== null) {
             'expected_delivery' => $this->parseDate($rowData['expected_delivery']),
             'expected_activation' => $this->parseDate($rowData['expected_activation']),
             'hardware_required' => $hardwareFlag,
+            'hardware_details' => $hardwareDetails,
         ];
 
         try {
@@ -163,16 +188,31 @@ if ($address !== null) {
         }
     }
 
+    // Always flash failed rows and headers for UI
+    session()->flash('failed_rows', $failedRows);
+    session()->flash('import_headers', $sessionHeaders);
+
     if ($lastFeasibilityId) {
-        $response = redirect()
-            ->route('sm.feasibility.open', $lastFeasibilityId)
-            ->with('success', "$imported Records Imported Successfully!");
+        if (!empty($failedRows)) {
+            // Some rows failed, show both success and failed info on import page
+            $response = back()
+                ->with('success', "$imported Records Imported Successfully!")
+                ->with('import_errors', $this->importErrors)
+                ->with('failed_rows', $failedRows)
+                ->with('import_headers', $sessionHeaders);
+        } else {
+            // All rows succeeded, go to open feasibilities
+            $response = redirect()
+                ->route('sm.feasibility.open', $lastFeasibilityId)
+                ->with('success', "$imported Records Imported Successfully!");
+        }
     } else {
         $response = back()->with('error', "No valid rows imported.");
-    }
-
-    if (!empty($this->importErrors)) {
-        $response->with('import_errors', $this->importErrors);
+        if (!empty($this->importErrors)) {
+            $response->with('import_errors', $this->importErrors)
+                ->with('failed_rows', $failedRows)
+                ->with('import_headers', $sessionHeaders);
+        }
     }
 
     return $response;
@@ -254,5 +294,37 @@ if ($address !== null) {
             $q->whereRaw('LOWER(client_name)=?', [$value])
               ->orWhereRaw('LOWER(business_display_name)=?', [$value]);
         })->value('id');
+    }
+
+     /**
+     * Download failed rows as CSV
+     */
+    public function downloadFailedRows(Request $request)
+    {
+        $failedRows = session('failed_rows', []);
+        $headers = session('import_headers', []);
+        if (empty($failedRows) || empty($headers)) {
+            return back()->with('error', 'No failed rows to download.');
+        }
+
+        $filename = 'failed_rows_' . date('Ymd_His') . '.csv';
+        $handle = fopen('php://temp', 'r+');
+        // Write headers
+        fputcsv($handle, $headers);
+        // Write rows
+        foreach ($failedRows as $row) {
+            // If associative, convert to numeric order by headers
+            if (is_array($row) && array_keys($row) !== range(0, count($row) - 1)) {
+                $row = array_map(function($h) use ($row) { return $row[$h] ?? ''; }, $headers);
+            }
+            fputcsv($handle, $row);
+        }
+        rewind($handle);
+        $csv = stream_get_contents($handle);
+        fclose($handle);
+
+        return response($csv)
+            ->header('Content-Type', 'text/csv')
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
     }
 }

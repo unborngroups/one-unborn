@@ -26,30 +26,47 @@ public function showLogin()
         $credentials = $request->only('email', 'password');
         $activeCredentials = array_merge($credentials, ['status' => 'Active']);
 
-        // if (Auth::attempt($credentials)) {
-        //     return redirect()->route('welcome'); // after login, redirect to users page
-        // }
+        // OTP session check for AJAX login
+        $isAjax = $request->expectsJson() || $request->ajax() || $request->isJson();
+        $otpVerified = session('otp_verified_email') === $request->email;
 
+        if ($isAjax) {
+            if (!$otpVerified) {
+                return response()->json(['status' => false, 'message' => 'OTP not verified for this email.'], 401);
+            }
+            if (Auth::attempt($activeCredentials)) {
+                $user = Auth::user();
+                LoginLog::create([
+                    'user_id' => $user->id,
+                    'login_time' => now(),
+                    'last_activity' => now(),
+                    'status' => 'Online',
+                ]);
+                // 👇 Check if profile is created or not
+                if (!$user->profile_created) {
+                    return response()->json(['status' => true, 'redirect' => route('profile.create')]);
+                }
+                // ✅ If profile already created, go to dashboard
+                return response()->json(['status' => true, 'redirect' => route('welcome')]);
+            }
+            return response()->json(['status' => false, 'message' => 'Invalid credentials or the account is inactive.'], 401);
+        }
+
+        // Fallback for normal (non-AJAX) login
         if (Auth::attempt($activeCredentials)) {
             $user = Auth::user();
-
             LoginLog::create([
                 'user_id' => $user->id,
                 'login_time' => now(),
                 'last_activity' => now(),
                 'status' => 'Online',
             ]);
-
-            // 👇 Check if profile is created or not
             if (!$user->profile_created) {
                 return redirect()->route('profile.create')
                                  ->with('info', 'Please complete your profile before continuing.');
             }
-
-            // ✅ If profile already created, go to dashboard
             return redirect()->route('welcome');
         }
-
         return back()->withErrors(['email' => 'Invalid credentials or the account is inactive.']);
     }
 
