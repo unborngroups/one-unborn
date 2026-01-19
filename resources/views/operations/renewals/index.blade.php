@@ -37,6 +37,7 @@
 
     @endif
 
+
    <div class="card-header bg-light d-flex justify-content-between">
         <form id="filterForm" method="GET" class="d-flex align-items-center gap-2 w-100">
             <label for="entriesSelect" class="mb-0">Show</label>
@@ -45,9 +46,7 @@
                 <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
                 <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
                 <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
-                
             </select>
-            <!-- <span>entries</span> -->
             <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search...">
         </form>
    </div>
@@ -59,127 +58,81 @@
 
         <div class="card-body table-responsive">
 
-            <!-- <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search..."> -->
-
             <table class="table table-bordered table-hover align-middle" id="renewalTable">
 
                 <thead class="table-dark-primary text-center">
 
                     <tr>
-
                         <th><input type="checkbox" id="selectAll"></th>
-
                         <th>S.No</th>
-
-                        <th class="col">Action</th>
-
-                        <th class="col">Date of Renewal</th>
-
-                        <th class="col">Date of Expiry</th>
-
+                        <th>Action</th>
+                        <th>Circuit_ID</th>
+                        <th>Month Of Renewal</th>
+                        <th>Date of Activation</th>
+                        <th>Date of Expiry</th>
+                        <th>Date of Renewal</th>
+                        <th>New Date of Expiry</th>
                         <th>Status</th>
-
                     </tr>
-
                 </thead>
-
                 <tbody>
 
                     @forelse($renewals as $key => $renewal)
-
+                        @php
+                            $plan = $renewal->deliverable->deliverablePlans->where('circuit_id', $renewal->circuit_id)->first();
+                        @endphp
                         <tr>
-
-                              <td><input type="checkbox" class="rowCheckbox" value="{{ $renewal->id }}"></td>
+                            <td><input type="checkbox" class="rowCheckbox" value="{{ $renewal->id }}"></td>
                             <td class="text-center">{{ $key+1 }}</td>
-
-                             <td class="text-center d-flex justify-content-center gap-1">
-
+                            <td class="text-center d-flex justify-content-center gap-1">
                                 {{-- Edit --}}
-
                                 @if($permissions->can_edit)
-
-                               <a href="{{ route('operations.renewals.edit', $renewal) }}" class="btn btn-sm btn-primary">
-
-                                    <i class="bi bi-pencil"></i>
-
-                                </a>
-
+                                    <a href="{{ route('operations.renewals.edit', $renewal) }}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
                                 @endif
-                                 {{-- Delete --}}
-
-                                 @if($permissions->can_delete)
-
-                                 <form action="{{ route('operations.renewals.destroy',$renewal) }}" method="POST" class="d-inline">
-
-                                    @csrf
-
-                                    @method('DELETE') 
-
-                                    <button class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this Client?')">
-
-                                        <i class="bi bi-trash"></i>
-
-                                    </button>
-
-                                </form>
-
-                                   @endif
-                                   {{-- Toggle Status --}}
-                                   @if($renewal->status)
-                                   <form action="{{ route('operations.renewals.toggle-status', $renewal->id) }}" method="POST" class="d-inline">
+                                {{-- Renew --}}
+                                <a href="{{ route('operations.renewals.create', ['deliverable_id' => $renewal->deliverable_id]) }}" class="btn btn-sm btn-success">
+                                    <i class="bi bi-arrow-repeat"></i> Renew
+                                </a>
+                                {{-- Delete --}}
+                                @if($permissions->can_delete)
+                                    <form action="{{ route('operations.renewals.destroy',$renewal) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this Client?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                @endif
+                                {{-- Toggle Status --}}
+                                <form action="{{ route('operations.renewals.toggle-status', $renewal->id) }}" method="POST" class="d-inline">
                                     @csrf
                                     @method('PATCH')
                                     <button type="submit" class="btn btn-sm {{ $renewal->status == 'Active' ? 'btn-success' : 'btn-secondary' }}">
-                                        {{ $renewal->status }}
+                                        {{ $renewal->status ?? 'Inactive' }}
                                     </button>
-                                    </form>
-                                    @else
-                                    <span class="badge bg-secondary">Active</span>
-                                    @endif
-
+                                </form>
                                 {{-- View --}}
-
-                                   @if($permissions->can_view)
-
-                                   <a href="{{ route('operations.renewals.view', $renewal->id) }}" class="btn btn-sm btn-warning">
-
-                                    <i class="bi bi-eye"></i>
-
+                                @if($permissions->can_view)
+                                    <a href="{{ route('operations.renewals.view', $renewal->id) }}" class="btn btn-sm btn-warning">
+                                        <i class="bi bi-eye"></i>
                                     </a>
-
-                                     @endif
+                                @endif
                             </td>
+                            <td>{{ $plan ? ($plan->circuit_id ?? '-') : '-' }}</td>
+                            <td>{{ $plan ? ($plan->no_of_months_renewal ?? '-') : '-' }}</td>
+                            <td>{{ $plan && $plan->date_of_activation ? \Carbon\Carbon::parse($plan->date_of_activation)->format('Y-m-d') : '-' }}</td>
+                            <td>{{ $plan && $plan->date_of_expiry ? \Carbon\Carbon::parse($plan->date_of_expiry)->format('Y-m-d') : '-' }}</td>
+                            <td>{{ $renewal->date_of_renewal ? \Carbon\Carbon::parse($renewal->date_of_renewal)->format('Y-m-d') : '-' }}</td>
+                            <td>{{ $renewal->new_expiry_date ? \Carbon\Carbon::parse($renewal->new_expiry_date)->format('Y-m-d') : '-' }}</td>
 
-                            <td>{{ $renewal->date_of_renewal }}</td>
-                            <td>{{ $renewal->new_expiry_date }}</td>
 
-                            <td>
-
-                                <span class="badge {{ $renewal->status == 'Active' ? 'bg-success' : 'bg-danger' }}">
-
-                                {{ $renewal->status }}
-
-                                </span>
-
-                            </td>
-
-                        </tr>
-
-                    @empty
-
-                        <tr>
-
-                            <td colspan="13" class="text-center text-muted">No renewals found.</td>
-
-                        </tr>
-
-                    @endforelse
-
-                </tbody>
-
-            </table>
-
-        </div>
+                        @empty
+                            <tr>
+                                <td colspan="13" class="text-center text-muted">No renewals found.</td>
+                            </tr>
+                        @endforelse
 
 
        <div class="d-flex justify-content-between align-items-center mt-2 flex-wrap">
@@ -317,22 +270,6 @@ document.querySelectorAll('.rowCheckbox').forEach(cb => {
 // Keep the delete button state correct on page load
 updateDeleteButtonVisibility();
 </script>
-
-
-
-
-<style>
-
-    .col {
-
-    width: 130px;
-
-    white-space: nowrap;
-
-}
-
-</style>
-
 
 
 

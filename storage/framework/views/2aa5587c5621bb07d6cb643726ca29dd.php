@@ -24,11 +24,6 @@
 
     <?php endif; ?>
 
-<div class="text-center mb-3">
-    <?php echo DNS1D::getBarcodeHTML($asset->asset_id, 'C128', 1.4, 40); ?>
-
-    <p class="fw-bold"><?php echo e($asset->asset_id); ?></p>
-</div>
 
 <form action="<?php echo e(route('operations.asset.update', $asset->id)); ?>" method="POST">
 <?php echo csrf_field(); ?> <?php echo method_field('PUT'); ?>

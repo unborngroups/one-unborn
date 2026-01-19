@@ -91,7 +91,7 @@
 
                 <th>Procured From</th>
 
-                <td>{{ $asset->procured_from ?? '-' }}</td>
+                <td>{{ $asset->vendor->vendor_name ?? '-' }}</td>
 
             </tr>
 

@@ -577,31 +577,37 @@ document.addEventListener('DOMContentLoaded', function () {
     // Submit → Closed
     // -----------------------------
     window.submitToClosed = function () {
+
         if (!validateVendorNames()) {
             alert('Please fill all required vendor names.');
             return false;
         }
 
-        // When record is still Open and all vendors are same, force Exception instead of direct submit
-        if (currentStatus === 'Open') {
-            const dropdowns = document.querySelectorAll('.vendor-dropdown');
-            const selectedNamesForSubmit = [];
+        // Bypass same vendor popup for SELF vendors
+        if (ownCompanies.includes(vendorType)) {
+            // Allow direct submit for SELF vendors
+        } else {
+            // When record is still Open and all vendors are same, force Exception instead of direct submit
+            if (currentStatus === 'Open') {
+                const dropdowns = document.querySelectorAll('.vendor-dropdown');
+                const selectedNamesForSubmit = [];
 
-            dropdowns.forEach(function (dd) {
-                const val = dd.value.trim();
-                if (val !== '') {
-                    selectedNamesForSubmit.push(val.toLowerCase());
-                }
-            });
+                dropdowns.forEach(function (dd) {
+                    const val = dd.value.trim();
+                    if (val !== '') {
+                        selectedNamesForSubmit.push(val.toLowerCase());
+                    }
+                });
 
-            // Only enforce the "same vendor" rule when there are at least 2 vendors selected
-            if (selectedNamesForSubmit.length > 1) {
-                const firstSubmit = selectedNamesForSubmit[0];
-                const allSameSubmit = selectedNamesForSubmit.every(n => n === firstSubmit);
+                // Only enforce the "same vendor" rule when there are at least 2 vendors selected
+                if (selectedNamesForSubmit.length > 1) {
+                    const firstSubmit = selectedNamesForSubmit[0];
+                    const allSameSubmit = selectedNamesForSubmit.every(n => n === firstSubmit);
 
-                if (allSameSubmit) {
-                    alert('Same vendor name selected for all links. Please use the "Send Exception" button first before submitting this feasibility to Closed.');
-                    return false;
+                    if (allSameSubmit) {
+                        alert('Same vendor name selected for all links. Please use the "Send Exception" button first before submitting this feasibility to Closed.');
+                        return false;
+                    }
                 }
             }
         }

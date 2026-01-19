@@ -9,6 +9,7 @@ class Renewal extends Model
 {
     protected $fillable = [
         'deliverable_id',
+        'circuit_id',
         'date_of_renewal',
         'renewal_months',
         'new_expiry_date',

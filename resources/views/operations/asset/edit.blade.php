@@ -24,10 +24,6 @@
 
     @endif
 
-<div class="text-center mb-3">
-    {!! DNS1D::getBarcodeHTML($asset->asset_id, 'C128', 1.4, 40) !!}
-    <p class="fw-bold">{{ $asset->asset_id }}</p>
-</div>
 
 <form action="{{ route('operations.asset.update', $asset->id) }}" method="POST">
 @csrf @method('PUT')

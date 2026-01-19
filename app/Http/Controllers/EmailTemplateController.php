@@ -21,7 +21,8 @@ class EmailTemplateController extends Controller
     $templates = EmailTemplate::with('company')->get();
 
      // ✅ Use the helper correctly
-        $permissions = TemplateHelper::getUserMenuPermissions('Template Master') ?? (object)[
+        $permissions = TemplateHelper::getUserMenuPermissions('Template Masters') ?? (object)[
+    'can_menu' => true,
     'can_add' => true,
     'can_edit' => true,
     'can_delete' => true,
@@ -47,19 +48,19 @@ class EmailTemplateController extends Controller
     {
          $request->validate([
            'company_id' => 'required|exists:companies,id',
-    'subject'    => 'required|string|max:255',
-    'body'       => 'required|string',
-  
+           'event_key'  => 'required|string|max:255|unique:email_templates,event_key',
+           'subject'    => 'required|string|max:255',
+           'body'       => 'required|string',
         ]);
         // Fetch company name automatically
          EmailTemplate::create([
         'company_id' => $request->company_id,
+        'event_key'  => $request->event_key,
         'name'       => 'User Created', // ✅ Fix: Set the name field
         'subject'    => $request->subject,
         'body'       => $request->body,
         'status'     => 'Active', // default
     ]);
-
         return redirect()->route('emails.index')->with('success', 'Template created successfully.');
     }
 
@@ -93,23 +94,22 @@ class EmailTemplateController extends Controller
 {
     $request->validate([
         'company_id' => 'required|exists:companies,id',
-    'subject'    => 'required|string|max:255',
-    'body'       => 'required|string',
-    'header'     => 'nullable|string',
-    'footer'     => 'nullable|string',
+        'event_key'  => 'required|string|max:255|unique:email_templates,event_key,' . $email,
+        'subject'    => 'required|string|max:255',
+        'body'       => 'required|string',
+        'header'     => 'nullable|string',
+        'footer'     => 'nullable|string',
     ]);
-
     $template = EmailTemplate::findOrFail($email);
-
     $template->update([
         'company_id' => $request->company_id,
+        'event_key'  => $request->event_key,
         'name'       => 'User Created', // ✅ Fix: Ensure name field is set
-    'subject'    => $request->subject,
-    'body'       => $request->body,
-    'header'     => $request->header,
-    'footer'     => $request->footer,
+        'subject'    => $request->subject,
+        'body'       => $request->body,
+        'header'     => $request->header,
+        'footer'     => $request->footer,
     ]);
-
     return redirect()->route('emails.index')->with('success', 'Template updated successfully.');
 }
 

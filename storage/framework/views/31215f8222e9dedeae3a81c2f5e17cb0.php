@@ -5,6 +5,7 @@
 
     <h4 class="mb-3">Add Asset</h4>
 
+
     
     <?php if(session('success')): ?>
         <div class="alert alert-success alert-dismissible fade show">
@@ -12,6 +13,33 @@
 
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
+        <?php if(session('imported_rows')): ?>
+            <div class="card border-success mb-3">
+                <div class="card-header bg-success text-white py-1">Imported Rows Summary</div>
+                <div class="card-body p-2">
+                    <div style="max-height:300px;overflow:auto;">
+                        <table class="table table-bordered table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <?php $__currentLoopData = session('import_headers', []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $header): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <th><?php echo e($header); ?></th>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php $__currentLoopData = session('imported_rows', []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $row): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <tr>
+                                        <?php $__currentLoopData = $row; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cell): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <td><?php echo e($cell); ?></td>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </tr>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
     <?php endif; ?>
 
     
@@ -20,6 +48,67 @@
             <?php echo e(session('error')); ?>
 
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
+
+    
+    <?php if(session('import_errors')): ?>
+        <div class="alert alert-warning">
+            <strong>Import could not process some rows:</strong>
+            <?php if(session('failed_rows')): ?>
+                <?php if(count(session('failed_rows', [])) > 0): ?>
+                    <form action="#" method="POST" class="mt-2">
+                        <?php echo csrf_field(); ?>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="downloadFailedRowsAsset()">Download Failed Rows (CSV)</button>
+                    </form>
+                    <div id="failedRowsTable" style="max-height:300px; overflow:auto;">
+                        <input type="text" id="failedFilterInput" class="form-control form-control-sm mb-2" placeholder="Filter by error reason..." onkeyup="filterFailedRows()">
+                        <table class="table table-bordered table-sm mt-2">
+                            <thead>
+                                <tr>
+                                    <?php $__currentLoopData = session('import_headers', []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $header): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <th><?php echo e($header); ?></th>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </tr>
+                            </thead>
+                            <tbody id="failedRowsTbody">
+                                <?php $__currentLoopData = session('failed_rows', []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $row): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <tr>
+                                        <?php $__currentLoopData = $row; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cell): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <td><?php echo e($cell); ?></td>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </tr>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <script>
+                        function filterFailedRows() {
+                            var input = document.getElementById('failedFilterInput');
+                            var filter = input.value.toLowerCase();
+                            var tbody = document.getElementById('failedRowsTbody');
+                            var rows = tbody.getElementsByTagName('tr');
+                            for (var i = 0; i < rows.length; i++) {
+                                var show = false;
+                                var cells = rows[i].getElementsByTagName('td');
+                                for (var j = 0; j < cells.length; j++) {
+                                    if (cells[j].innerText.toLowerCase().indexOf(filter) > -1) {
+                                        show = true;
+                                        break;
+                                    }
+                                }
+                                rows[i].style.display = show ? '' : 'none';
+                            }
+                        }
+                        function downloadFailedRowsAsset() {
+                            // You can implement a route for asset failed rows download if needed
+                            alert('Download failed rows not implemented.');
+                        }
+                    </script>
+                <?php else: ?>
+                    <div class="alert alert-info mt-2">No failed rows to display.</div>
+                <?php endif; ?>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
 
@@ -55,7 +144,7 @@
             </div>
         </div>
 
-
+<!-- 
     
     <?php if(session('import_errors')): ?>
         <div class="alert alert-warning mt-2">
@@ -65,7 +154,7 @@
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </ul>
         </div>
-    <?php endif; ?>
+    <?php endif; ?> -->
 
 </div>
 

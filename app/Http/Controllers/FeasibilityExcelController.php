@@ -67,6 +67,7 @@ class FeasibilityExcelController extends Controller
     $originalHeaders = $rows[0] ?? [];
     $sessionHeaders = array_merge($originalHeaders, ['Error Reason']);
 
+
     foreach ($rows as $index => $row) {
         if ($index === 0) continue;
         /** BUILD $rowData **/
@@ -96,15 +97,54 @@ class FeasibilityExcelController extends Controller
 
         // Collect all error reasons for this row
         $rowErrors = [];
+        // Company and client validation
         $companyId = $this->resolveCompanyId($rowData['company_name'] ?? null);
         if (!$companyId) {
-            $rowErrors[] = 'Company not found';
+            $rowErrors[] = "Company not found (column: company_name)";
         }
         $clientId  = $this->resolveClientId($rowData['client_name'] ?? null);
         if (!$clientId) {
-            $rowErrors[] = 'Client not found';
+            $rowErrors[] = "Client not found (column: client_name)";
         }
-        // Add more field validations here if needed
+
+        // Detailed per-column validation
+        if (empty($rowData['type_of_service'])) {
+            $rowErrors[] = "Type of Service is required (column: type_of_service)";
+        }
+        if (empty($rowData['delivery_company_name'])) {
+            $rowErrors[] = "Delivery Company Name is required (column: delivery_company_name)";
+        }
+        if (empty($rowData['location_id'])) {
+            $rowErrors[] = "Location ID is required (column: location_id)";
+        }
+        if (empty($rowData['longitude'])) {
+            $rowErrors[] = "Longitude is required (column: longitude)";
+        }
+        if (empty($rowData['latitude'])) {
+            $rowErrors[] = "Latitude is required (column: latitude)";
+        }
+        if (empty($rowData['pincode']) || !is_numeric($rowData['pincode']) || strlen($rowData['pincode']) != 6) {
+            $rowErrors[] = "Invalid or missing Pincode (column: pincode)";
+        }
+        if (empty($rowData['address'])) {
+            $rowErrors[] = "Address is required (column: address)";
+        }
+        if (empty($rowData['spoc_name'])) {
+            $rowErrors[] = "SPOC Name is required (column: spoc_name)";
+        }
+        if (empty($rowData['spoc_contact1'])) {
+            $rowErrors[] = "SPOC Contact 1 is required (column: spoc_contact1)";
+        }
+        if (empty($rowData['no_of_links']) || !is_numeric($rowData['no_of_links'])) {
+            $rowErrors[] = "No. of Links is required and must be numeric (column: no_of_links)";
+        }
+        if (empty($rowData['vendor_type'])) {
+            $rowErrors[] = "Vendor Type is required (column: vendor_type)";
+        }
+        if (empty($rowData['speed'])) {
+            $rowErrors[] = "Speed is required (column: speed)";
+        }
+        // Add more field validations as needed
 
         if (!empty($rowErrors)) {
             $this->importErrors[] = "Row " . ($index + 1) . ": " . implode('; ', $rowErrors) . ".";
@@ -179,6 +219,17 @@ if ($address !== null) {
                 'status' => 'Open',
             ]);
 
+            // --- Trigger emails as in FeasibilityController ---
+            $feasibilityController = app(\App\Http\Controllers\FeasibilityController::class);
+            if (method_exists($feasibilityController, 'sendCreatedEmail')) {
+                $feasibilityController->sendCreatedEmail($feasibility);
+            }
+            // If imported status is Closed, also trigger completed email
+            $importedStatus = strtolower(trim($rowData['status'] ?? ''));
+            if ($importedStatus === 'closed' && method_exists($feasibilityController, 'sendCompletedEmail')) {
+                $feasibilityController->sendCompletedEmail($feasibility);
+            }
+
             $lastFeasibilityId = $feasibility->id;
             $imported++;
 
@@ -194,17 +245,18 @@ if ($address !== null) {
 
     if ($lastFeasibilityId) {
         if (!empty($failedRows)) {
-            // Some rows failed, show both success and failed info on import page
             $response = back()
                 ->with('success', "$imported Records Imported Successfully!")
                 ->with('import_errors', $this->importErrors)
                 ->with('failed_rows', $failedRows)
                 ->with('import_headers', $sessionHeaders);
         } else {
-            // All rows succeeded, go to open feasibilities
-            $response = redirect()
-                ->route('sm.feasibility.open', $lastFeasibilityId)
-                ->with('success', "$imported Records Imported Successfully!");
+            // All rows succeeded, show summary table
+            $importedRows = array_slice($rows, 1); // skip header
+            $response = back()
+                ->with('success', "$imported Records Imported Successfully!")
+                ->with('imported_rows', $importedRows)
+                ->with('import_headers', $originalHeaders);
         }
     } else {
         $response = back()->with('error', "No valid rows imported.");

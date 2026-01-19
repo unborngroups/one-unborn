@@ -19,7 +19,7 @@
 
                 <li class="nav-item">
 
-                    <a class="nav-link text-white menu-item {{ request()->is('welcome') ? 'active' : '' }}" href="{{ url('/welcome') }}">
+                    <a class="nav-link text-white menu-item {{ request()->is('welcome') ? 'active' : '' }}" href="{{ url('/welcome') }}"> 
 
                         <i class="bi bi-speedometer2"></i> Dashboard
 
@@ -37,7 +37,7 @@
 
                     <details class="sidebar-dropdown" {{ request()->is('companies*') || request()->is('users*') || request()->is('usertypetable*') || request()->is('clients*') || request()->is('vendors*') ? 'open' : '' }}>
 
-                        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+                        <summary class="nav-link text-white d-flex justify-content-between align-items-center" style="background:#ff9671;">
 
                             <span><i class="bi bi-collection"></i> Masters</span>
 
@@ -84,7 +84,7 @@
                         @if($Asset && $Asset->can_menu && $assetMasterRoutesAvailable)
 <li class="nav-item">
     <details class="sidebar-dropdown" {{ request()->is('assetmaster/*') ? 'open' : '' }}>
-        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+        <summary class="nav-link text-white d-flex justify-content-between align-items-center menu-sales">
             <span><i class="bi bi-box-seam"></i> Asset Master</span>
             <i class="bi bi-chevron-down arrow-icon"></i>
         </summary>
@@ -154,11 +154,11 @@
 @if(($feasibilityMaster && $feasibilityMaster->can_menu) || ($feasibilityMasterOpen && $feasibilityMasterOpen->can_menu) || ($feasibilityMasterInProgress && $feasibilityMasterInProgress->can_menu) || ($feasibilityMasterClosed && $feasibilityMasterClosed->can_menu) 
 || ($purchaseOrder && $purchaseOrder->can_menu) || ($proposal && $proposal->can_menu) || ($smDeliverables && $smDeliverables->can_menu || ($smDeliverablesOpen && $smDeliverablesOpen->can_menu) || ($smDeliverablesInProgress && $smDeliverablesInProgress->can_menu) 
 || ($smDeliverablesDelivery && $smDeliverablesDelivery->can_menu) || ($smDeliverablesAcceptance && $smDeliverablesAcceptance->can_menu)))
-<li class="nav-item">
+<li class="nav-item ">
 
     <details class="sidebar-dropdown" {{ request()->is('sm/feasibility*') || request()->is('sm/purchaseorder*') || request()->is('sm/deliverables*') ? 'open' : '' }}>
 
-        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+        <summary class="nav-link text-white d-flex justify-content-between align-items-center bg-primary">
 
             <span><i class="bi bi-briefcase"></i> Sales & Marketing</span>
 
@@ -693,11 +693,11 @@
 @if(($operationsAsset && $operationsAsset->can_menu) || ($operationsRenewals && $operationsRenewals->can_menu) || ($operationsFeasibility && $operationsFeasibility->can_menu) 
 || ($operationsFeasibilityOpen && $operationsFeasibilityOpen->can_menu) || ($operationsDeliverables && $operationsDeliverables->can_menu))
 
-<li class="nav-item">
+<li class="nav-item ">
 
     <details class="sidebar-dropdown" {{ request()->is('operations/asset*') || request()->is('operations/renewals*') || request()->is('operations/feasibility*') || request()->is('operations/deliverables*') || request()->is('operations/purchaseorder*') ? 'open' : '' }}>
 
-        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+        <summary class="nav-link text-white d-flex justify-content-between align-items-center bg-success">
 
             <span><i class="bi bi-gear-wide-connected"></i> Operations</span>
 
@@ -706,28 +706,7 @@
         </summary>
 
         <ul class="nav flex-column ms-3 mt-1">
-            <!-- Asset in operations -->
-            @if($operationsAsset && $operationsAsset->can_menu)
-
-        <li class="nav-item">
-
-                    <a class="nav-link text-white menu-item {{ request()->is('operations/asset/*') ? 'active' : '' }}" href="{{ route('operations.asset.index') }}">
-                        <i class="bi bi-gear-"></i> Asset
-
-                    </a>
-
-                </li>
-            @endif
-
-                <!-- Renewals in operations -->
-                @if($operationsRenewals && $operationsRenewals->can_menu)
-                      <li>
-                        <a class="nav-link text-white menu-item {{ request()->is('operations/renewals*') ? 'active' : '' }}"
-                                   href="{{ route('operations.renewals.index') }}">
-                            <i class="bi bi-receipt me-2"></i> Renewals
-                        </a>
-                        </li>
-                @endif
+            
             <!-- Feasibility Main Menu --> 
             @if($operationsFeasibility && $operationsFeasibility->can_menu)
 
@@ -792,18 +771,6 @@
             </li>
             @endif
 
-              <!-- Operations Delivered Main Menu -->
-            @if($operationsDeliverablesDelivery && $operationsDeliverablesDelivery->can_menu)
-            <li>
-
-                <a class="nav-link text-white menu-item {{ $isDeliverablesDeliveryActive ? 'active' : '' }}"
-                   href="{{ route('operations.deliverables.delivery') }}">
-
-                   <i class="bi bi-truck-flatbed me-2"></i> Delivered
-                </a>
-            </li>
-            @endif
-
 
             <!-- Operations Deliverables Main Menu -->
             @if($operationsDeliverables && $operationsDeliverables->can_menu)
@@ -865,6 +832,43 @@
                 </details>
             </li>
             @endif
+            
+              <!-- Operations Delivered Main Menu -->
+            @if($operationsDeliverablesDelivery && $operationsDeliverablesDelivery->can_menu)
+            <li>
+
+                <a class="nav-link text-white menu-item {{ $isDeliverablesDeliveryActive ? 'active' : '' }}"
+                   href="{{ route('operations.deliverables.delivery') }}">
+
+                   <i class="bi bi-truck-flatbed me-2"></i> Delivered
+                </a>
+            </li>
+            @endif
+
+            
+                <!-- Renewals in operations -->
+                @if($operationsRenewals && $operationsRenewals->can_menu)
+                      <li>
+                        <a class="nav-link text-white menu-item {{ request()->is('operations/renewals*') ? 'active' : '' }}"
+                                   href="{{ route('operations.renewals.index') }}">
+                            <i class="bi bi-receipt me-2"></i> Renewals
+                        </a>
+                        </li>
+                @endif
+
+                <!-- Asset in operations -->
+            @if($operationsAsset && $operationsAsset->can_menu)
+
+        <li class="nav-item">
+
+                    <a class="nav-link text-white menu-item {{ request()->is('operations/asset/*') ? 'active' : '' }}" href="{{ route('operations.asset.index') }}">
+                        <i class="bi bi-gear"></i> Asset
+
+                    </a>
+
+                </li>
+            @endif
+
         </ul>
     </details>
 </li>
@@ -890,7 +894,7 @@
             @if($finance && $finance->can_menu)
                 <li class="nav-item">
                     <details class="sidebar-dropdown" {{ request()->is('finance/*') ? 'open' : '' }}>
-                        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+                        <summary class="nav-link text-white d-flex justify-content-between align-items-center  bg-warning">
                             <span><i class="bi bi-cash-coin"></i> Finance</span>
                             <i class="bi bi-chevron-down arrow-icon"></i>
                         </summary>
@@ -1026,9 +1030,9 @@
             @endphp
 
             @if($hr && $hr->can_menu)
-                <li class="nav-item">
+                <li class="nav-item ">
                     <details class="sidebar-dropdown" {{ request()->is('hr*') || request()->is('users*') ? 'open' : '' }}>
-                        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+                        <summary class="nav-link text-white d-flex justify-content-between align-items-center bg-secondary">
                             <span><i class="bi bi-people-fill"></i> HR</span>
                             <i class="bi bi-chevron-down arrow-icon"></i>
                         </summary>
@@ -1076,7 +1080,8 @@
 
                 <li class="nav-item">
 
-                    <a class="nav-link text-white menu-item {{ request()->is('training/*') ? 'active' : '' }}" href="{{ url('/training') }}">
+                    <a class="nav-link text-white menu-item {{ request()->is('training/*') ? 'active' : '' }}"
+                     href="{{ url('/training') }}">
                         <i class="bi bi-journal-bookmark"></i> Training
 
                     </a>
@@ -1094,7 +1099,7 @@
 
             @if($admin && $admin->can_menu)
 
-                <li class="nav-item">
+                <li class="nav-item" >
 
                     <a class="nav-link text-white menu-item {{ request()->is('admin/*') ? 'active' : '' }}" href="{{ url('/admin') }}">
 
@@ -1147,11 +1152,11 @@
 
             @if(($template && $template->can_menu) || ($menu && $menu->can_menu) || ($companySettings && $companySettings->can_menu))
 
-                <li class="nav-item">
+                <li class="nav-item" >
 
                     <details class="sidebar-dropdown" {{ request()->is('emails*') || request()->is('menus*') || request()->is('company-settings*') || request()->is('system-settings*') || request()->is('whatsapp-settings*') ? 'open' : '' }}>
 
-                        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+                        <summary class="nav-link text-white d-flex justify-content-between align-items-center" style="background:#0083b0;">
 
                             <span><i class="bi bi-gear"></i> System</span>
 

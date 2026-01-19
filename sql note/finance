@@ -6,3 +6,55 @@ ADD is_locked TINYINT(1) DEFAULT 0 AFTER status,
 ADD maker_id BIGINT UNSIGNED NULL,
 ADD checker_id BIGINT UNSIGNED NULL,
 ADD approved_at TIMESTAMP NULL;
+
+
+
+-- 
+-- 
+SELECT f.*
+FROM feasibilities f
+JOIN feasibility_statuses fs ON fs.feasibility_id = f.id
+WHERE fs.status = 'Closed'
+AND f.id NOT IN (SELECT feasibility_id FROM purchase_orders);
+
+
+SELECT f.id, f.feasibility_request_id, f.address
+FROM feasibilities f
+JOIN feasibility_statuses fs ON fs.feasibility_id = f.id
+WHERE fs.status = 'Closed'
+AND f.id NOT IN (SELECT feasibility_id FROM purchase_orders);
+-- /
+-- /
+
+ALTER TABLE purchase_orders
+ADD COLUMN `feasibility_request_id` VARCHAR(255) NULL AFTER 'feasibility_id';
+
+ALTER TABLE deliverables
+CHANGE payment_account_or_username_1 payment_account_1 TEXT NULL,
+ADD COLUMN payment_username_1 TEXT NULL AFTER payment_account_1;
+
+ALTER TABLE deliverables
+CHANGE payment_account_or_username_2 payment_account_2 TEXT NULL,
+ADD COLUMN payment_username_2 TEXT NULL AFTER payment_account_2;
+
+ALTER TABLE deliverables
+CHANGE payment_account_or_username_3 payment_account_3 TEXT NULL,
+ADD COLUMN payment_username_3 TEXT NULL AFTER payment_account_3;
+
+ALTER TABLE deliverables
+CHANGE payment_account_or_username_4 payment_account_4 TEXT NULL,
+ADD COLUMN payment_username_4 TEXT NULL AFTER payment_account_4;
+
+ALTER TABLE deliverable_plans
+CHANGE payment_account_or_username payment_account TEXT NULL,
+ADD COLUMN payment_username TEXT NULL AFTER payment_account;
+
+
+ALTER TABLE email_templates
+ADD event_key VARCHAR(255) NULL AFTER company_id;
+
+ALTER TABLE purchase_orders
+ADD COLUMN `feasibility_request_id` VARCHAR(255) NULL AFTER 'feasibility_id';
+
+ALTER TABLE renewals
+ADD COLUMN `circuit_id` VARCHAR(255) NULL AFTER `deliverable_id`;

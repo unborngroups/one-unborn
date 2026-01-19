@@ -376,24 +376,31 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-3 mb-2">
+                            <div class="col-md-2 mb-2">
         <label>Login URL</label>
         <input type="text" name="payment_login_url_{{ $i }}" class="form-control"
                value="{{ old('payment_login_url_'.$i, $plan->payment_login_url ?? '') }}">
     </div>
 
-    <div class="col-md-3 mb-2">
+    <div class="col-md-2 mb-2">
         <label>Quick URL</label>
         <input type="text" name="payment_quick_url_{{ $i }}" class="form-control"
                value="{{ old('payment_quick_url_'.$i, $plan->payment_quick_url ?? '') }}">
     </div>
 
     <div class="col-md-3 mb-2">
-        <label>Account Number / Username</label>
-        <input type="text" name="payment_account_or_username_{{ $i }}" class="form-control"
-               value="{{ old('payment_account_or_username_'.$i, $plan->payment_account_or_username ?? '') }}">
+        <label>Account Number</label>
+        <input type="text" name="payment_account_{{ $i }}" class="form-control"
+               value="{{ old('payment_account_'.$i, $plan->payment_account ?? '') }}">
     </div>
+
     <div class="col-md-3 mb-2">
+        <label>Account Username</label>
+        <input type="text" name="payment_username_{{ $i }}" class="form-control"
+               value="{{ old('payment_username_'.$i, $plan->payment_username ?? '') }}">
+    </div>
+
+    <div class="col-md-2 mb-2">
         <label>Password</label>
         <input type="text" name="payment_password_{{ $i }}" class="form-control" placeholder="Enter new password"
                    value="{{ old('payment_password_'.$i, $plan->payment_password ?? '') }}" placeholder="Enter new password">

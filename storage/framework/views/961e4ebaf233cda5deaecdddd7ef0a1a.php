@@ -1,35 +1,65 @@
 
 
-
-
 <?php $__env->startSection('content'); ?>
 
 <div class="container-fluid py-4">
 
     <h4 class="text-primary fw-bold mb-3 ">Add Feasibility</h4>
     
-
-
+    
         <?php if(session('success')): ?>
-            <div class="alert alert-success">
+            <div class="alert alert-success alert-dismissible fade show">
                 <?php echo e(session('success')); ?>
 
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
+                <?php if(session('imported_rows')): ?>
+                    <div class="card border-success mb-3 mt-2">
+                        <div class="card-header bg-success text-white py-1">Imported Rows Summary</div>
+                        <div class="card-body p-2">
+                            <div style="max-height:300px;overflow:auto;">
+                                <table class="table table-bordered table-sm mb-0">
+                                    <thead>
+                                        <tr>
+                                            <?php $__currentLoopData = session('import_headers', []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $header): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <th><?php echo e($header); ?></th>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php $__currentLoopData = session('imported_rows', []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $row): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <tr>
+                                                <?php $__currentLoopData = $row; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cell): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                    <td><?php echo e($cell); ?></td>
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                            </tr>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
         <?php endif; ?>
 
+    
+    <?php if(session('error')): ?>
+        <div class="alert alert-danger alert-dismissible fade show">
+            <?php echo e(session('error')); ?>
+
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
+
+    
         <?php if(session('import_errors')): ?>
             <div class="alert alert-warning">
                 <strong>Import could not process some rows:</strong>
-                <ul class="mb-0">
-                    <?php $__currentLoopData = session('import_errors'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $importError): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <li><?php echo e($importError); ?></li>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                </ul>
                 <?php if(session('failed_rows')): ?>
                     <?php if(count(session('failed_rows', [])) > 0): ?>
-                        <form action="<?php echo e(route('feasibility.downloadFailedRows')); ?>" method="POST" class="mt-2">
+                        <form action="#" method="POST" class="mt-2">
                             <?php echo csrf_field(); ?>
-                            <button type="submit" class="btn btn-sm btn-outline-danger">Download Failed Rows (CSV)</button>
+                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="downloadFailedRowFeasibility()">Download Failed Rows (CSV)</button>
                         </form>
                         <div id="failedRowsTable" style="max-height:300px; overflow:auto;">
                             <input type="text" id="failedFilterInput" class="form-control form-control-sm mb-2" placeholder="Filter by error reason..." onkeyup="filterFailedRows()">
@@ -70,6 +100,10 @@
                                     rows[i].style.display = show ? '' : 'none';
                                 }
                             }
+                            function downloadFailedRowFeasibility() {
+                                // You can implement a route for feasibility failed rows download if needed
+                            alert('Download failed rows not implemented.');
+                            }
                         </script>
                     <?php else: ?>
                         <div class="alert alert-info mt-2">No failed rows to display.</div>
@@ -89,37 +123,27 @@
                     Import Feasibility
                 </button>
                 <div id="importFeasibilityBox" style="display: none;">
-                    <script>
-                        document.addEventListener('DOMContentLoaded', function() {
-                            var hasError = <?php echo e(($errors->any() || session('import_errors')) ? 1 : 0); ?>;
-                            if (hasError) {
-                                var box = document.getElementById('importFeasibilityBox');
-                                if (box) box.style.display = 'block';
-                            }
-                        });
-                    </script>
                     <div class="card border-info">
                         <div class="card-body">
                             <p class="mb-3 small text-muted">Download the sample format, populate it with feasibility data, and then upload it via Import Excel.</p>
-                            <form id="importExcelForm" action="<?php echo e(route('feasibility.import')); ?>" method="POST" enctype="multipart/form-data" onsubmit="showImportLoading()">
+                            <form id="importExcelForm" action="<?php echo e(route('feasibility.import')); ?>" method="POST" enctype="multipart/form-data">
                                 <?php echo csrf_field(); ?>
                                 <div class="input-group">
                                     <input type="file" name="file" class="form-control" required>
-                                    <a href="<?php echo e(asset('images/feasibilityimport/Book 4 (9).xlsx')); ?>" target="_blank" class="btn btn-outline-secondary" title="Download import template">Download Format</a>
-                                    <button id="importExcelBtn" type="submit" class="btn btn-primary">Import Excel</button>
-                                </div>
-                                <div id="importLoading" style="display:none;" class="mt-2">
-                                    <span class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></span>
-                                    Importing... Please wait.
+                                    <a href="<?php echo e(asset('images/feasibilityimport/Import Example Feasibility.csv')); ?>" target="_blank" class="btn btn-outline-secondary" title="Download import template">Download Format</a>
+                                    <button type="submit" class="btn btn-primary">Import Excel</button>
                                 </div>
                             </form>
-                            <script>
-                                function showImportLoading() {
-                                    document.getElementById('importExcelBtn').disabled = true;
-                                    document.getElementById('importLoading').style.display = 'inline-block';
-                                }
-                            </script>
                         </div>
+                    </div>
+                </div>
+                <!-- Loader Overlay -->
+                <div id="importLoaderOverlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.7);z-index:9999;align-items:center;justify-content:center;">
+                    <div style="text-align:center;">
+                        <div class="spinner-border text-primary" role="status" style="width:3rem;height:3rem;">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div class="mt-2 fw-bold">Importing, please wait...</div>
                     </div>
                 </div>
                 <script>
@@ -127,6 +151,15 @@
                         var box = document.getElementById('importFeasibilityBox');
                         box.style.display = (box.style.display === 'none' || box.style.display === '') ? 'block' : 'none';
                     }
+                    // Show loader on import form submit
+                    document.addEventListener('DOMContentLoaded', function() {
+                        var form = document.getElementById('importExcelForm');
+                        if (form) {
+                            form.addEventListener('submit', function() {
+                                document.getElementById('importLoaderOverlay').style.display = 'flex';
+                            });
+                        }
+                    });
                 </script>
             </div>
         </div>

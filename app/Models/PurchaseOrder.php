@@ -11,6 +11,7 @@ class PurchaseOrder extends Model
         'po_number',
         'po_date',
         'feasibility_id',
+        'feasibility_request_id', // <-- Added for full formatted ID
         'reused_from_purchase_order_id',
         'arc_per_link',
         'otc_per_link',

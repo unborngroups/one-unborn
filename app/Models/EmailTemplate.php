@@ -9,16 +9,16 @@ class EmailTemplate extends Model
 {
     use HasFactory;
 
-    protected $fillable =[
-        // 'company_name',
+    protected $fillable = [
         'company_id',
+        'event_key', // e.g. feasibility_created, password_reset
         'subject',
         'body',
         'status'
     ];
-    public function company()
-{
-    return $this->belongsTo(Company::class, 'company_id');
-}
 
+    public function company()
+    {
+        return $this->belongsTo(Company::class, 'company_id');
+    }
 }

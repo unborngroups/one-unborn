@@ -160,11 +160,15 @@ class MenuController extends Controller
             ]);
         }
 
-        // Sync the new defaults to every user who belongs to this type so their per-user entries match
+        // Sync the new defaults to every user who belongs to this type
+        // Only update users who do NOT have custom privileges (skip users with any UserMenuPrivilege records)
         $users = User::where('user_type_id', $userTypeId)->get();
         foreach ($users as $user) {
-            UserMenuPrivilege::where('user_id', $user->id)->delete();
-
+            $hasCustom = UserMenuPrivilege::where('user_id', $user->id)->exists();
+            if ($hasCustom) {
+                // Skip users with custom privileges
+                continue;
+            }
             foreach ($privileges as $menuId => $rights) {
                 UserMenuPrivilege::create([
                     'user_id' => $user->id,

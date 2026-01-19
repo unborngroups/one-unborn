@@ -25,10 +25,10 @@ class CompanySettingsController extends Controller
             'gst_number' => 'nullable|string|max:50',
             'company_logo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'linkedin_url' => 'nullable|url',
-        'facebook_url' => 'nullable|url',
-        'instagram_url' => 'nullable|url',
-        'whatsapp_number' => 'nullable|string|max:20',
-        // ✅ Email Settings
+            'facebook_url' => 'nullable|url',
+            'instagram_url' => 'nullable|url',
+            'whatsapp_number' => 'nullable|string|max:20',
+            // ✅ Email Settings
             'mail_host' => 'nullable|string|max:100',
             'mail_port' => 'nullable|string|max:10',
             'mail_username' => 'nullable|string|max:100',
@@ -39,15 +39,18 @@ class CompanySettingsController extends Controller
             'mail_footer' => 'nullable|string|max:500',
             'mail_signature' => 'nullable|string|max:500',
             'exception_permission_email' => 'nullable|email',
-
+            // Add validation for feasibility_notifications
+            'feasibility_notifications.Open' => 'nullable|string|max:255',
         ]);
         
 
         // Handle logo upload
-     
-    if ($request->hasFile('company_logo')) {
-        $data['company_logo'] = $request->file('company_logo')->store('logos', 'public');
-    }
+        if ($request->hasFile('company_logo')) {
+            $data['company_logo'] = $request->file('company_logo')->store('logos', 'public');
+        }
+
+        // Save feasibility_notifications as array
+        $data['feasibility_notifications'] = $request->input('feasibility_notifications', []);
 
     // Create or update record
     CompanySetting::updateOrCreate(['id' => 1], $data);

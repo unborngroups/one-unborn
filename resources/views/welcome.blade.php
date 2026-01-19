@@ -308,5 +308,9 @@
 
     </div>
 
+    <!-- Detailed Upcoming Renewals Table -->
+    <div class="mt-4">
+
+
 </div>
 @endsection

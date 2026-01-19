@@ -70,7 +70,8 @@ return new class extends Migration
                 // Payment & Network (convert to text to reduce row size)
                 $table->text("payment_login_url_{$i}")->nullable();
                 $table->text("payment_quick_url_{$i}")->nullable();
-                $table->text("payment_account_or_username_{$i}")->nullable();
+                $table->text("payment_account_{$i}")->nullable();
+                $table->text("payment_username_{$i}")->nullable();
                 $table->text("payment_password_{$i}")->nullable();
                 $table->text("mtu_{$i}")->nullable();
                 $table->text("wifi_username_{$i}")->nullable();

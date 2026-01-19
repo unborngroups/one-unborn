@@ -75,7 +75,7 @@
    
     <!--  -->
 
-    <div class="col-md-4 mt-3">
+    <!-- <div class="col-md-4 mt-3">
 
         <label class="form-label">Procured From</label>
 
@@ -90,8 +90,21 @@
 
                     </select>
 
-                </div>
+                </div> -->
     <!--  -->
+                <div class="col-md-4 mt-3">
+        <label>Procured From</label>
+        <select name="vendor_id" class="form-control" required>
+            <option value="">Select Vendor</option>
+            <?php $__currentLoopData = $vendors; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $vendor): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <option value="<?php echo e($vendor->id); ?>" <?php echo e(isset($asset) && $asset->vendor_id == $vendor->id ? 'selected' : ''); ?>>
+                    <?php echo e($vendor->vendor_name); ?>
+
+                </option>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+        </select>
+    </div>
+
     <div class="col-md-4 mt-3">
         <label>Purchase Date</label>
         <input type="date" value="<?php echo e($asset->purchase_date ?? ''); ?>" name="purchase_date" class="form-control">

@@ -20,16 +20,11 @@
             <div class="live-chat-header">
                 <div>
                     <strong>Team Chat</strong>
-                    <div class="live-chat-subtitle" data-role="active-group-label">Connecting...</div>
                 </div>
                 <button type="button" class="live-chat-close" data-role="close" aria-label="Close chat">×</button>
             </div>
             <div class="live-chat-body">
                 <aside class="live-chat-sidebar">
-                    <div class="live-chat-section">
-                        <h6>Groups</h6>
-                        <ul data-role="group-list" class="live-chat-list"></ul>
-                    </div>
                     <div class="live-chat-section">
                         <h6>Online</h6>
                         <ul data-role="online-list" class="live-chat-list"></ul>
@@ -39,7 +34,7 @@
                     <div class="live-chat-messages" data-role="messages"></div>
                     <div class="live-chat-typing" data-role="typing" hidden></div>
                     <form class="live-chat-composer" data-role="composer">
-                        <input type="hidden" name="group_id" value="">
+                        <!-- group_id removed: direct chat only -->
                         <input type="text" name="message" placeholder="Type a message" autocomplete="off">
                         <input type="file" name="attachment" class="live-chat-file" hidden>
                         <button type="button" class="live-chat-attach" data-role="attach" title="Attach file">📎</button>

@@ -18,7 +18,7 @@
                     <option value="">Select Deliverable</option>
                     <?php $__currentLoopData = $deliverables; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $d): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <option value="<?php echo e($d->id); ?>">
-                            <?php echo e($d->circuit_id ?? $d->po_number ?? 'Deliverable #'.$d->id); ?>
+                            <?php echo e($d->circuit_id); ?>
 
                         </option>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>

@@ -18,7 +18,7 @@
                     <option value="">Select Deliverable</option>
                     @foreach($deliverables as $d)
                         <option value="{{ $d->id }}">
-                            {{ $d->circuit_id ?? $d->po_number ?? 'Deliverable #'.$d->id }}
+                            {{ $d->circuit_id }}
                         </option>
                     @endforeach
                 </select>

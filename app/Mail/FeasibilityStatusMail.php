@@ -33,15 +33,22 @@ class FeasibilityStatusMail extends Mailable
      */
     public function build()
     {
+        // Use Template Master content for feasibility_completed
+        if ($this->status === 'Closed') {
+            $template = \App\Models\EmailTemplate::where('event_key', 'feasibility_completed')->where('status', 1)->first();
+            if ($template) {
+                return $this->subject($this->getEmailSubject())
+                    ->html($template->body);
+            }
+        }
+
+        // Fallback: send basic info if not closed or no template
+        $body = '<p>Feasibility Status: '.e($this->status).'</p>';
+        $body .= '<p>Feasibility ID: '.e($this->feasibility->feasibility_request_id ?? '').'</p>';
+        $body .= '<p>Action By: '.e($this->actionBy->name ?? '').'</p>';
+        $body .= '<p>Previous Status: '.e($this->previousStatus ?? '-').'</p>';
         return $this->subject($this->getEmailSubject())
-                    ->view('emails.feasibility.status')
-                    ->with([
-                        'feasibility'     => $this->feasibility,
-                        'status'          => $this->status,
-                        'previousStatus'  => $this->previousStatus,
-                        'actionBy'        => $this->actionBy,
-                        'emailType'       => $this->emailType
-                    ]);
+            ->html($body);
     }
 
     /**

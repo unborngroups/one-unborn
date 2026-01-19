@@ -50,7 +50,8 @@ class Deliverables extends Model
        //payment details    
         'payment_login_url',
         'payment_quick_url',
-        'payment_account_or_username',
+        'payment_account',
+        'payment_username',
         'payment_password',
         'info_ip_address',
 

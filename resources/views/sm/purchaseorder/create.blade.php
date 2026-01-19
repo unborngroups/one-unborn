@@ -129,6 +129,7 @@
                             <div class="col-md-4 mb-3">
                                 <label for="import_file">Import Document</label>
                                 <input type="file" class="form-control" name="import_file" id="import_file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx">
+                                <div id="importFileInfo" class="mt-2"></div>
                             </div>
                         </div>
 
@@ -148,6 +149,68 @@
 
 
 <script>
+// --- Autofill PO fields when 'Use this PO' is clicked ---
+document.addEventListener('DOMContentLoaded', function () {
+    const reuseButton = document.getElementById('poDuplicateReuse');
+    if (reuseButton) {
+        reuseButton.addEventListener('click', function () {
+            const poNumber = document.getElementById('po_number').value.trim();
+            if (!poNumber) return;
+            fetch(`/sm/purchaseorder/fetch-by-number/${encodeURIComponent(poNumber)}`)
+                .then(r => r.json())
+                .then(res => {
+                    if (res.success && res.data) {
+                        // Fill main fields
+                        if (res.data.feasibility_id) document.getElementById('feasibility_id').value = res.data.feasibility_id;
+                        if (res.data.po_date) document.getElementById('po_date').value = res.data.po_date;
+                        if (res.data.no_of_links) {
+                            const linksDropdown = document.getElementById('no_of_links_dropdown');
+                            linksDropdown.value = res.data.no_of_links;
+                            // Manually trigger change event so dynamic fields/buttons are rendered
+                            linksDropdown.dispatchEvent(new Event('change'));
+                        }
+                        if (res.data.contract_period) document.getElementById('contract_period').value = res.data.contract_period;
+                        if (res.data.total_cost !== undefined) document.getElementById('totalCost').value = '₹' + parseFloat(res.data.total_cost).toFixed(2);
+                        if (res.data.import_file) document.getElementById('import_file').value = res.data.import_file;
+
+                        // Fill per-link pricing fields after dynamic fields are rendered
+                        setTimeout(function() {
+                            for (let i = 1; i <= 4; i++) {
+                                if (res.data[`arc_link_${i}`] !== undefined && document.getElementById(`arc_link_${i}`)) {
+                                    document.getElementById(`arc_link_${i}`).value = res.data[`arc_link_${i}`];
+                                }
+                                if (res.data[`otc_link_${i}`] !== undefined && document.getElementById(`otc_link_${i}`)) {
+                                    document.getElementById(`otc_link_${i}`).value = res.data[`otc_link_${i}`];
+                                }
+                                if (res.data[`static_ip_link_${i}`] !== undefined && document.getElementById(`static_ip_link_${i}`)) {
+                                    document.getElementById(`static_ip_link_${i}`).value = res.data[`static_ip_link_${i}`];
+                                }
+                            }
+                            // Show previously uploaded file info if available
+                            const importFileInfo = document.getElementById('importFileInfo');
+                            if (importFileInfo) {
+                                if (res.data.import_file) {
+                                    // Adjust the file path as per your storage/public path
+                                    const fileUrl = `/storage/purchaseorders/${res.data.import_file}`;
+                                    importFileInfo.innerHTML = `<a href="${fileUrl}" target="_blank">Previously uploaded: ${res.data.import_file}</a>`;
+                                } else {
+                                    importFileInfo.innerHTML = '';
+                                }
+                            }
+                            // Recalculate total after filling
+                            if (typeof calculateTotal === 'function') calculateTotal();
+                            // Remove focus from any input to ensure info button is clickable
+                            if (document.activeElement && document.activeElement.blur) {
+                                document.activeElement.blur();
+                            }
+                        }, 400);
+                    } else {
+                        alert('PO not found!');
+                    }
+                });
+        });
+    }
+});
 let poDuplicateAlert = null;
 let poDuplicateMessage = null;
 function checkPoNumber(forceCheck = false) {

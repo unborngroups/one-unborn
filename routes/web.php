@@ -74,14 +74,16 @@ Route::prefix('chat')
         Route::get('/group/{id}/messages', [App\Http\Controllers\ChatController::class,'fetchMessages'])->name('chat.messages');
         Route::post('/send', [App\Http\Controllers\ChatController::class,'send'])->name('chat.send');
         Route::get('/group/{id}/online-users', [App\Http\Controllers\ChatController::class,'onlineUsers'])->name('chat.online-users');
+        Route::get('/all-users', [App\Http\Controllers\ChatController::class, 'allOnlineUsers'])->name('chat.all-online-users');
         Route::post('/typing', [App\Http\Controllers\ChatController::class,'typing'])->name('chat.typing');
         Route::get('/bootstrap', [App\Http\Controllers\ChatController::class,'bootstrap'])->name('chat.bootstrap');
     });
 
-// User heartbeat route for online status admin panel
-Route::middleware(['auth'])->post('/user/heartbeat', [UserController::class, 'heartbeat']);
-// User tab close route for online status admin panel
-Route::middleware(['auth'])->post('/user/tab-close', [UserController::class, 'tabClose']);
+// Heartbeat route for user activity
+Route::post('/user/activity/heartbeat', [\App\Http\Controllers\UserActivityController::class, 'heartbeat'])->middleware(['auth']);
+// Tab close route for user activity
+Route::post('/user/activity/tab-close', [\App\Http\Controllers\UserActivityController::class, 'tabClose'])->middleware(['auth']);
+
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -156,7 +158,6 @@ Route::patch('/users/{id}/toggle-status', [UserController::class, 'toggleStatus'
     Route::post('/assetmaster/model_type/bulk-delete', [ModelTypeController::class, 'bulkDestroy'])->name('assetmaster.model_type.bulk-delete');
     Route::post('/hr/leavetype/bulk-delete', [LeaveTypeController::class, 'bulkDelete'])->name('hr.leavetype.bulk-delete');
     
-
     //view path
     Route::get('/users/{id}/view', [UserController::class, 'view'])->name('users.view');
     Route::get('/usertypetable/{id}/view', [App\Http\Controllers\UserTypeController::class, 'view'])->name('usertypetable.view');
@@ -347,6 +348,8 @@ Route::get('/operations/asset/{id}/print', [AssetController::class, 'print'])->n
         Route::patch('/{id}/toggle-status', [PurchaseOrderController::class, 'toggleStatus'])->name('toggle-status');
         // Route::get('/check-po-number', [PurchaseOrderController::class, 'checkPoNumber'])->name('check-po-number');
         Route::get('/purchase-order/check-po-number', [PurchaseOrderController::class, 'checkPoNumber'])->name('check-po-number');
+        // API: Fetch PO by number (for autofill)
+        Route::get('/fetch-by-number/{po_number}', [PurchaseOrderController::class, 'fetchByNumber'])->name('fetch-by-number');
     });
 
    

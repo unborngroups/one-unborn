@@ -38,6 +38,7 @@
 
     <?php endif; ?>
 
+
    <div class="card-header bg-light d-flex justify-content-between">
         <form id="filterForm" method="GET" class="d-flex align-items-center gap-2 w-100">
             <label for="entriesSelect" class="mb-0">Show</label>
@@ -46,9 +47,7 @@
                 <option value="25" <?php echo e(request('per_page') == 25 ? 'selected' : ''); ?>>25</option>
                 <option value="50" <?php echo e(request('per_page') == 50 ? 'selected' : ''); ?>>50</option>
                 <option value="100" <?php echo e(request('per_page') == 100 ? 'selected' : ''); ?>>100</option>
-                
             </select>
-            <!-- <span>entries</span> -->
             <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search...">
         </form>
    </div>
@@ -60,129 +59,82 @@
 
         <div class="card-body table-responsive">
 
-            <!-- <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search..."> -->
-
             <table class="table table-bordered table-hover align-middle" id="renewalTable">
 
                 <thead class="table-dark-primary text-center">
 
                     <tr>
-
                         <th><input type="checkbox" id="selectAll"></th>
-
                         <th>S.No</th>
-
-                        <th class="col">Action</th>
-
-                        <th class="col">Date of Renewal</th>
-
-                        <th class="col">Date of Expiry</th>
-
+                        <th>Action</th>
+                        <th>Circuit_ID</th>
+                        <th>Month Of Renewal</th>
+                        <th>Date of Activation</th>
+                        <th>Date of Expiry</th>
+                        <th>Date of Renewal</th>
+                        <th>New Date of Expiry</th>
                         <th>Status</th>
-
                     </tr>
-
                 </thead>
-
                 <tbody>
 
                     <?php $__empty_1 = true; $__currentLoopData = $renewals; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $renewal): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-
+                        <?php
+                            $plan = $renewal->deliverable->deliverablePlans->where('circuit_id', $renewal->circuit_id)->first();
+                        ?>
                         <tr>
-
-                              <td><input type="checkbox" class="rowCheckbox" value="<?php echo e($renewal->id); ?>"></td>
+                            <td><input type="checkbox" class="rowCheckbox" value="<?php echo e($renewal->id); ?>"></td>
                             <td class="text-center"><?php echo e($key+1); ?></td>
-
-                             <td class="text-center d-flex justify-content-center gap-1">
-
+                            <td class="text-center d-flex justify-content-center gap-1">
                                 
-
                                 <?php if($permissions->can_edit): ?>
-
-                               <a href="<?php echo e(route('operations.renewals.edit', $renewal)); ?>" class="btn btn-sm btn-primary">
-
-                                    <i class="bi bi-pencil"></i>
-
-                                </a>
-
+                                    <a href="<?php echo e(route('operations.renewals.edit', $renewal)); ?>" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
                                 <?php endif; ?>
-                                 
-
-                                 <?php if($permissions->can_delete): ?>
-
-                                 <form action="<?php echo e(route('operations.renewals.destroy',$renewal)); ?>" method="POST" class="d-inline">
-
-                                    <?php echo csrf_field(); ?>
-
-                                    <?php echo method_field('DELETE'); ?> 
-
-                                    <button class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this Client?')">
-
-                                        <i class="bi bi-trash"></i>
-
-                                    </button>
-
-                                </form>
-
-                                   <?php endif; ?>
-                                   
-                                   <?php if($renewal->status): ?>
-                                   <form action="<?php echo e(route('operations.renewals.toggle-status', $renewal->id)); ?>" method="POST" class="d-inline">
+                                
+                                <a href="<?php echo e(route('operations.renewals.create', ['deliverable_id' => $renewal->deliverable_id])); ?>" class="btn btn-sm btn-success">
+                                    <i class="bi bi-arrow-repeat"></i> Renew
+                                </a>
+                                
+                                <?php if($permissions->can_delete): ?>
+                                    <form action="<?php echo e(route('operations.renewals.destroy',$renewal)); ?>" method="POST" class="d-inline">
+                                        <?php echo csrf_field(); ?>
+                                        <?php echo method_field('DELETE'); ?>
+                                        <button class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this Client?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+                                
+                                <form action="<?php echo e(route('operations.renewals.toggle-status', $renewal->id)); ?>" method="POST" class="d-inline">
                                     <?php echo csrf_field(); ?>
                                     <?php echo method_field('PATCH'); ?>
                                     <button type="submit" class="btn btn-sm <?php echo e($renewal->status == 'Active' ? 'btn-success' : 'btn-secondary'); ?>">
-                                        <?php echo e($renewal->status); ?>
+                                        <?php echo e($renewal->status ?? 'Inactive'); ?>
 
                                     </button>
-                                    </form>
-                                    <?php else: ?>
-                                    <span class="badge bg-secondary">Active</span>
-                                    <?php endif; ?>
-
+                                </form>
                                 
-
-                                   <?php if($permissions->can_view): ?>
-
-                                   <a href="<?php echo e(route('operations.renewals.view', $renewal->id)); ?>" class="btn btn-sm btn-warning">
-
-                                    <i class="bi bi-eye"></i>
-
+                                <?php if($permissions->can_view): ?>
+                                    <a href="<?php echo e(route('operations.renewals.view', $renewal->id)); ?>" class="btn btn-sm btn-warning">
+                                        <i class="bi bi-eye"></i>
                                     </a>
-
-                                     <?php endif; ?>
+                                <?php endif; ?>
                             </td>
-
-                            <td><?php echo e($renewal->date_of_renewal); ?></td>
-                            <td><?php echo e($renewal->new_expiry_date); ?></td>
-
-                            <td>
-
-                                <span class="badge <?php echo e($renewal->status == 'Active' ? 'bg-success' : 'bg-danger'); ?>">
-
-                                <?php echo e($renewal->status); ?>
+                            <td><?php echo e($plan ? ($plan->circuit_id ?? '-') : '-'); ?></td>
+                            <td><?php echo e($plan ? ($plan->no_of_months_renewal ?? '-') : '-'); ?></td>
+                            <td><?php echo e($plan && $plan->date_of_activation ? \Carbon\Carbon::parse($plan->date_of_activation)->format('Y-m-d') : '-'); ?></td>
+                            <td><?php echo e($plan && $plan->date_of_expiry ? \Carbon\Carbon::parse($plan->date_of_expiry)->format('Y-m-d') : '-'); ?></td>
+                            <td><?php echo e($renewal->date_of_renewal ? \Carbon\Carbon::parse($renewal->date_of_renewal)->format('Y-m-d') : '-'); ?></td>
+                            <td><?php echo e($renewal->new_expiry_date ? \Carbon\Carbon::parse($renewal->new_expiry_date)->format('Y-m-d') : '-'); ?></td>
 
 
-                                </span>
-
-                            </td>
-
-                        </tr>
-
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-
-                        <tr>
-
-                            <td colspan="13" class="text-center text-muted">No renewals found.</td>
-
-                        </tr>
-
-                    <?php endif; ?>
-
-                </tbody>
-
-            </table>
-
-        </div>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                            <tr>
+                                <td colspan="13" class="text-center text-muted">No renewals found.</td>
+                            </tr>
+                        <?php endif; ?>
 
 
        <div class="d-flex justify-content-between align-items-center mt-2 flex-wrap">
@@ -322,22 +274,6 @@ document.querySelectorAll('.rowCheckbox').forEach(cb => {
 // Keep the delete button state correct on page load
 updateDeleteButtonVisibility();
 </script>
-
-
-
-
-<style>
-
-    .col {
-
-    width: 130px;
-
-    white-space: nowrap;
-
-}
-
-</style>
-
 
 
 

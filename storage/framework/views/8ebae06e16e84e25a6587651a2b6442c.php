@@ -125,6 +125,35 @@ unset($__errorArgs, $__bag); ?>
 
             
 
+            <div class="mb-3">
+
+                <label class="form-label">Event Key</label>
+
+                <input type="text" name="event_key" class="form-control" 
+
+                       value="<?php echo e(old('event_key', $template->event_key)); ?>" required>
+
+                <small class="text-muted">
+
+                    Unique key for this event (e.g. user_registered, po_approved)
+
+                </small>
+
+                <?php $__errorArgs = ['event_key'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="text-danger small"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+
+            </div>
+
+
+
+            
+
             <button type="submit" class="btn btn-primary">Update Template</button>
 
             <a href="<?php echo e(route('emails.index')); ?>" class="btn btn-secondary">Cancel</a>

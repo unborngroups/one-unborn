@@ -89,8 +89,7 @@
                 <option value="50" <?php echo e(request('per_page') == 50 ? 'selected' : ''); ?>>50</option>
                 <option value="100" <?php echo e(request('per_page') == 100 ? 'selected' : ''); ?>>100</option>
             </select>
-            <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search...">
-
+            <input type="text" name="feasibility_request_id" value="<?php echo e(request('feasibility_request_id')); ?>" class="form-control form-control-sm w-25" placeholder="Feasibility ID..." onchange="this.form.submit()">
         </form>
                     </div>
 

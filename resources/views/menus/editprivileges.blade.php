@@ -46,6 +46,7 @@
                             <th>Add</th>
                             <th>Edit</th>
                             <th>Delete</th>
+                            <th>All</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -95,10 +96,10 @@
                                                class="perm-checkbox"
                                                {{ $priv && $priv->can_delete ? 'checked' : '' }}>
                                     </td>
-                                    <!-- <td>
+                                    <td>
                                         <input type="checkbox" class="grant-row-all form-check-input"
                                                title="Grant all permissions for this menu">
-                                    </td> -->
+                                    </td>
                                 </tr>
                             @endforeach
                         @endforeach

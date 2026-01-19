@@ -189,29 +189,33 @@ $status->save();
 
         return redirect()->route('sm.feasibility.open')->with('success', 'Feasibility added successfully!');
     }
-
  
-private function sendCreatedEmail($feasibility)
+public function sendCreatedEmail($feasibility)
 {
     try {
-        $settings = \App\Models\CompanySetting::first();
-        $notifyConfig = $settings->feasibility_notifications ?? [];
-        $userTypeName = $notifyConfig['Open'] ?? 'Team OPS';
-
-        $teamType = \App\Models\UserType::where('name', $userTypeName)->first();
-
-        if ($teamType && $teamType->email) {
-            Mail::to($teamType->email)->send(
-                new \App\Mail\FeasibilityStatusMail(
-                    $feasibility,
-                    'Created',
-                    null,
-                    Auth::user(),
-                    'created'
-                )
-            );
+        // Fetch template for feasibility creation
+        $template = \App\Models\EmailTemplate::where('event_key', 'feasibility_create')->where('status', 'Active')->first();
+        if ($template) {
+            // Get recipient email directly from Company Settings
+            $settings = \App\Models\CompanySetting::first();
+            $notifyConfig = $settings->feasibility_notifications ?? [];
+            $recipient = $notifyConfig['Open_email'] ?? null;
+            Log::info('[Feasibility Email] Picked recipient', ['recipient' => $recipient]);
+            if ($recipient) {
+                $creator = $feasibility->createdByUser ? $feasibility->createdByUser->name : 'Unknown User';
+                $body = str_replace(['{{feasibility_id}}', '{{creator_name}}'], [$feasibility->feasibility_request_id, $creator], $template->body);
+                Log::info('[Feasibility Email] Triggering mail send', ['to' => $recipient, 'subject' => $template->subject]);
+                Mail::send([], [], function ($message) use ($recipient, $template, $body) {
+                    $message->to($recipient)
+                        ->subject($template->subject)
+                        ->html($body);
+                });
+            } else {
+                Log::warning('[Feasibility Email] No recipient found in Company Settings.');
+            }
+        } else {
+            Log::warning('[Feasibility Email] No active template found for feasibility_create.');
         }
-
     } catch (\Exception $e) {
         Log::error('Feasibility create email failed', [
             'error' => $e->getMessage()
@@ -316,14 +320,15 @@ private function sendUpdatedEmail($feasibility)
     // Build hardware JSON exactly like store()
     $hardwareData = [];
     if ($request->hardware_required == '1') {
-        for ($i = 0; $i < count($request->hardware_make); $i++) {
-            if (empty($request->hardware_make[$i]) && empty($request->hardware_model_name[$i])) {
+        $hardwareMakes = $request->hardware_make ?? [];
+        $hardwareModels = $request->hardware_model_name ?? [];
+        for ($i = 0; $i < count($hardwareMakes); $i++) {
+            if (empty($hardwareMakes[$i]) && empty($hardwareModels[$i])) {
                 continue;
             }
-
             $hardwareData[] = [
-                'make'  => $request->hardware_make[$i],
-                'model' => $request->hardware_model_name[$i],
+                'make'  => $hardwareMakes[$i],
+                'model' => $hardwareModels[$i],
             ];
         }
     }
@@ -341,30 +346,64 @@ private function sendUpdatedEmail($feasibility)
     // load status
 $status = FeasibilityStatus::where('feasibility_id', $feasibility->id)->first();
 
+
     // SELF vendor auto assign
-$selfVendors = ['UNB', 'UNS', 'UBL', 'INF'];
+    $selfVendors = ['UNB', 'UNS', 'UBL', 'INF'];
+    if (in_array($validated['vendor_type'], $selfVendors)) {
+        $status->vendor1_name = 'Self';
+        $status->vendor1_arc = $request->vendor1_arc;
+        $status->vendor1_otc = $request->vendor1_otc;
+        $status->vendor1_static_ip_cost = $request->vendor1_static_ip_cost;
+        $status->vendor1_delivery_timeline = $request->vendor1_delivery_timeline;
+        $status->vendor1_remarks = $request->vendor1_remarks;
+        $status->vendor2_name = null;
+        $status->vendor3_name = null;
+        $status->vendor4_name = null;
+        // Bypass any 'same vendor' exception requirement for Self vendors
+        // (No validation block here, always allow close for Self)
+    } else {
+        // If not self vendor, you may keep your existing validation here if needed
+        $status->vendor1_name = $request->vendor1_name;
+        $status->vendor2_name = $request->vendor2_name;
+        $status->vendor3_name = $request->vendor3_name;
+        $status->vendor4_name = $request->vendor4_name;
+        // (If you have a same-vendor validation, it would go here)
+    }
+    $status->save();
 
-if (in_array($validated['vendor_type'], $selfVendors)) {
+    // Debug: Log the status value
+    Log::info('[Feasibility Update] Status value for close email check', [
+        'status' => $validated['status'] ?? null,
+        'feasibility_id' => $feasibility->id
+    ]);
 
-    $status->vendor1_name = 'Self';
-    $status->vendor1_arc = $request->vendor1_arc;
-    $status->vendor1_otc = $request->vendor1_otc;
-    $status->vendor1_static_ip_cost = $request->vendor1_static_ip_cost;
-    $status->vendor1_delivery_timeline = $request->vendor1_delivery_timeline;
-    $status->vendor1_remarks = $request->vendor1_remarks;
-
-    $status->vendor2_name = null;
-    $status->vendor3_name = null;
-    $status->vendor4_name = null;
-
-} else {
-
-    $status->vendor1_name = $request->vendor1_name;
-    $status->vendor2_name = $request->vendor2_name;
-    $status->vendor3_name = $request->vendor3_name;
-    $status->vendor4_name = $request->vendor4_name;
-}
-$status->save();
+    // If status is being set to Closed in FeasibilityStatus, always sync and trigger email
+    $isClosing = false;
+    if (
+        (isset($validated['status']) && strtolower(trim($validated['status'])) === 'closed') ||
+        (isset($request->status) && strtolower(trim($request->status)) === 'closed') ||
+        ($status && strtolower(trim($status->status)) === 'closed')
+    ) {
+        $isClosing = true;
+        // Force main feasibility status to Closed
+        if ($feasibility->status !== 'Closed') {
+            $feasibility->status = 'Closed';
+            $feasibility->save();
+        }
+        // Sync FeasibilityStatus as well
+        if ($status && $status->status !== 'Closed') {
+            $status->status = 'Closed';
+            $status->save();
+        }
+    }
+    if ($isClosing) {
+        Log::info('[Feasibility Update] About to call sendCompletedEmail', [
+            'feasibility_id' => $feasibility->id,
+            'feasibility_status' => $feasibility->status,
+            'status_table_status' => $status ? $status->status : null
+        ]);
+        $this->sendCompletedEmail($feasibility);
+    }
 
 
         return redirect()->route('feasibility.index')->with('success', 'Feasibility added successfully!');
@@ -417,5 +456,44 @@ $status->save();
         
 //     dd($request->all());
 //  }
+
+public function sendCompletedEmail($feasibility)
+{
+    $template = \App\Models\EmailTemplate::where([
+        ['event_key', '=', 'feasibility_completed'],
+        ['status', '=', 'Active'],
+    ])->first();
+
+    if (!$template) {
+        Log::warning('Completed mail skipped - template missing/inactive');
+        return;
+    }
+
+    $recipient = optional($feasibility->createdByUser)->email;
+    if (!$recipient) return;
+
+    $companyName = optional($feasibility->company)->name ?? '';
+    $closedBy = optional($feasibility->updatedByUser)->name ?? '';
+    $closedOn = $feasibility->updated_at ? $feasibility->updated_at->format('d-m-Y H:i') : '';
+
+    $body = str_replace(
+        ['{{feasibility_id}}', '{{company_name}}', '{{closed_by}}', '{{date}}'],
+        [
+            $feasibility->feasibility_request_id,
+            $companyName,
+            $closedBy,
+            $closedOn
+        ],
+        $template->body
+    );
+
+    Mail::send([], [], function ($message) use ($recipient, $template, $body) {
+        $message->to($recipient)
+            ->subject($template->subject)
+            ->html($body);
+    });
+
+    Log::info('Completed mail sent');
+}
 
 }

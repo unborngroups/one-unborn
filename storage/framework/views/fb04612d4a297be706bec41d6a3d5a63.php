@@ -14,15 +14,11 @@
 
     <link rel="icon" type="image/png" width="20" height="20" href="<?php echo e(asset('images/logo.jpg')); ?>">
 
-
-
     <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.js']); ?>
 
     <!-- ✅ Flatpickr CSS -->
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-
-   
 
     <!-- ✅ Flatpickr JS -->
 
@@ -32,8 +28,6 @@
     <!-- <link href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.css" rel="stylesheet"> -->
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.css" rel="stylesheet">
-
-
 
     <!-- ✅ Bootstrap CSS -->
 
@@ -50,6 +44,7 @@
     <!-- style -->
 
      <style>
+               
         body{
             background:#f4f6f9;
             overflow-y: auto !important;
@@ -83,26 +78,6 @@
             margin-top: 1.2rem !important;
         }
         /* Sidebar default for large screens */
-
-    /* #sidebar {
-
-        width: 250px;
-
-        min-height: 100vh;
-
-        transition: all 0.3s;
-
-        position: fixed;
-
-        top: 0;
-
-        left: 0;
-
-        background-color: #061c5cff;
-
-        z-index: 100;
-
-} */
 
     #sidebar {
     width: 260px;
@@ -186,7 +161,49 @@
     border-radius: 6px;
 
 
+     }
+         .nav-item{
+           padding: 1px;
+           transition: background-color 0.3s ease;
+      }
+
+      details > summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
+
+details > summary::-webkit-details-marker {
+    display: none;
+}
+
+/* Arrow default */
+.arrow {
+    transition: transform 0.2s ease;
+}
+
+/* When opened → arrow up */
+details[open] .arrow {
+    transform: rotate(180deg);
+}
+
+details > ul {
+    animation: dropdown 0.2s ease-out;
+}
+
+@keyframes dropdown {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 
 #sidebar .collapse .nav-link {
 
@@ -422,12 +439,11 @@
 .table td .btn {
 
     margin: 2px 3px;
-
     vertical-align: middle;
 
 }
 .table th,  .table td {
-    width: 230px;
+    width: 300px;
     white-space: nowrap;
     text-align: center;
     }
@@ -713,7 +729,7 @@ $(document).ready(function () {
 <script>
 // Heartbeat: ping server every 2 minutes to update user last activity
 setInterval(function() {
-    fetch("<?php echo e(url('user/heartbeat')); ?>", {
+    fetch("<?php echo e(url('user/activity/heartbeat')); ?>", {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -727,10 +743,10 @@ setInterval(function() {
 // On tab close, update last_activity and set status to Offline
 window.addEventListener('beforeunload', function (e) {
     if (navigator.sendBeacon) {
-        navigator.sendBeacon("<?php echo e(url('user/tab-close')); ?>");
+        navigator.sendBeacon("<?php echo e(url('user/activity/tab-close')); ?>");
     } else {
         // fallback for older browsers
-        fetch("<?php echo e(url('user/tab-close')); ?>", {method: 'POST', headers: {'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']').getAttribute('content')}});
+        fetch("<?php echo e(url('user/activity/tab-close')); ?>", {method: 'POST', headers: {'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']').getAttribute('content')}});
     }
 });
 </script>

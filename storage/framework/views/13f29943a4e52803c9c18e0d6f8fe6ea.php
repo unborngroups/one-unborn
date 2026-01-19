@@ -2,8 +2,6 @@
 
 
 
-
-
 <?php $__env->startSection('content'); ?>
 
 <div class="container py-4">
@@ -408,7 +406,24 @@
 
 <?php endif; ?>
 
-
+<hr>
+        <h5 class="text-primary fw-bold mb-3">🔔 Feasibility Notification Settings</h5>
+        <div class="row mb-3">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Feasibility Notification User Type (Open)</label>
+                <input type="text" name="feasibility_notifications[Open]" class="form-control"
+                       value="<?php echo e(old('feasibility_notifications.Open', $company->feasibility_notifications['Open'] ?? '')); ?>">
+                <small class="text-muted">Set the user type to receive feasibility creation emails (e.g., Team OPS)</small>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Feasibility Notification Email (Open)</label>
+                <input type="email" name="feasibility_notifications[Open_email]" class="form-control"
+                       value="<?php echo e(old('feasibility_notifications.Open_email', $company->feasibility_notifications['Open_email'] ?? '')); ?>">
+                <small class="text-muted">Set the email to receive feasibility creation notifications (e.g., divya@unborn.co.in)</small>
+            </div>
+        </div>
 
 
 

@@ -37,6 +37,7 @@ class AssetController extends Controller
         $assetTypes = AssetType::all();
         $makes = MakeType::all();
         $models = ModelType::all();
+        $vendors = Vendor::all();
 
         $perPage = (int) $request->get('per_page', 10);
     $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
@@ -44,7 +45,7 @@ class AssetController extends Controller
     // Paginated vendors
     $assets = Asset::orderBy('id', 'desc')->paginate($perPage);
 
-        return view('operations.asset.index', compact('assets', 'companies', 'assetTypes', 'makes', 'permissions', 'models'));
+        return view('operations.asset.index', compact('assets', 'companies', 'assetTypes', 'makes', 'permissions', 'models', 'vendors'));
     }
 
     public function create()
@@ -53,7 +54,7 @@ class AssetController extends Controller
         $assetTypes = AssetType::all();
         $makes = MakeType::all();
         $models = ModelType::all();
-        $vendors = Vendor::whereNotNull('vendor_name')->where('vendor_name', '!=', '')->get();
+        $vendors = Vendor::all();
         $permissions = TemplateHelper::getUserMenuPermissions('Asset') ?? (object)[
             'can_menu' => true,
             'can_add' => true,
@@ -75,7 +76,7 @@ class AssetController extends Controller
             'brand' => 'nullable|string|max:255',
             'serial_no' => 'required|string|max:255',
             'mac_no' => 'nullable|string|max:255',
-            'procured_from' => 'nullable|string|max:255',
+            'vendor_id' => 'nullable|exists:vendors,id',
             'purchase_date' => 'nullable|date',
             'warranty' => 'nullable|string|max:100',
             'po_no' => 'nullable|string|max:255',
@@ -113,6 +114,7 @@ class AssetController extends Controller
         $assetTypes = AssetType::all();
         $makes = MakeType::all();
         $models = ModelType::all();
+        $vendors = Vendor::all();       
         $permissions = TemplateHelper::getUserMenuPermissions('Asset') ?? (object)[
             'can_menu' => true,
             'can_add' => true,
@@ -121,7 +123,7 @@ class AssetController extends Controller
             'can_view' => true,
         ];
 
-        return view('operations.asset.edit', compact('asset', 'companies', 'assetTypes', 'makes', 'permissions', 'models'));
+        return view('operations.asset.edit', compact('asset', 'companies', 'assetTypes', 'makes', 'permissions', 'models', 'vendors'));
     }
 
     public function update(Request $request, $id)
@@ -136,7 +138,7 @@ class AssetController extends Controller
             'brand' => 'nullable|string|max:255',
             'serial_no' => 'required|string|max:255',
             'mac_no' => 'nullable|string|max:255',
-            'procured_from' => 'nullable|string|max:255',
+            'vendor_id' => 'nullable|exists:vendors,id',
             'purchase_date' => 'nullable|date',
             'warranty' => 'nullable|string|max:100',
             'po_no' => 'nullable|string|max:255',
@@ -153,7 +155,7 @@ class AssetController extends Controller
 
     public function view($id)
     {
-        $asset = Asset::with(['company', 'assetType', 'makeType'])->findOrFail($id);
+        $asset = Asset::with(['company', 'assetType', 'makeType', 'modelType', 'vendor'])->findOrFail($id);
         $permissions = TemplateHelper::getUserMenuPermissions('Asset') ?? (object)[
             'can_menu' => true,
             'can_add' => true,
@@ -239,22 +241,45 @@ class AssetController extends Controller
     // =======================
 
     $imported = 0;
+    $importedRows = [];
+    $failedRows = [];
+    $originalHeaders = !empty($rows) ? array_keys($rows[0]) : [];
+    $sessionHeaders = array_merge($originalHeaders, ['Error Reason']);
     $errors = [];
 
     foreach ($rows as $index => $row) {
-
         $rowNumber = $index + 2; // because row 1 is header
-
-        // Normalize row
         $data = $this->normalizeImportRow($row);
+        $rowErrors = [];
 
-        // Resolve relations
-        $company = $this->resolveCompany($data, $rowNumber, $errors);
-        $assetType = $this->resolveAssetType($data, $rowNumber, $errors);
-        $makeType = $this->resolveMakeType($data, $rowNumber, $errors);
-        $modelType = $this->resolveModelType($data, $rowNumber, $errors);
+        $company = $this->resolveCompany($data, $rowNumber, $rowErrors);
+        $assetType = $this->resolveAssetType($data, $rowNumber, $rowErrors);
+        $makeType = $this->resolveMakeType($data, $rowNumber, $rowErrors);
+        $modelType = $this->resolveModelType($data, $rowNumber, $rowErrors);
+        $vendors = $this->resolveVendor($data, $rowNumber, $rowErrors);
 
-        if (!$company || !$assetType || !$makeType) {
+        if (!$company) $rowErrors[] = "Company not found (column: company_id/company_name)";
+        if (!$assetType) $rowErrors[] = "Asset Type not found (column: asset_type_id/asset_type)";
+        if (!$makeType) $rowErrors[] = "Make Type not found (column: make_type_id/make_name)";
+        if (!$modelType) $rowErrors[] = "Model Type not found (column: model_type_id/model_name)";
+        if (!$vendors) $rowErrors[] = "Vendor not found (column: vendor_id/vendor_name)";
+
+        // Validate required fields
+        if (empty($data['serial_no'])) $rowErrors[] = "Serial No is required (column: serial_no)";
+        if (empty($data['brand'])) $rowErrors[] = "Brand is required (column: brand)";
+
+        if (!empty($data['purchase_date'])) {
+            $normalizedDate = $this->normalizePurchaseDate($data['purchase_date']);
+            if (!$normalizedDate) {
+                $rowErrors[] = "Invalid purchase_date (column: purchase_date)";
+            }
+        }
+
+        if (!empty($rowErrors)) {
+            $assoc = $row;
+            $assoc['Error Reason'] = implode('; ', $rowErrors);
+            $failedRows[] = $assoc;
+            $errors[] = "Row $rowNumber: " . implode('; ', $rowErrors);
             continue;
         }
 
@@ -264,11 +289,11 @@ class AssetController extends Controller
             'asset_type_id' => $assetType->id,
             'make_type_id' => $makeType->id,
             'model_type_id' => $modelType->id,
-            // 'model' => $data['model'] ?? null,
+            'model' => $data['model'] ?? ($modelType ? $modelType->model_name : null),
             'brand' => $data['brand'] ?? $makeType->make_name,
             'serial_no' => $data['serial_no'] ?? null,
             'mac_no' => $data['mac_no'] ?? null,
-            'procured_from' => $data['procured_from'] ?? null,
+            'vendor_id' => $vendors->id ?? null,
             'warranty' => $data['warranty'] ?? null,
             'po_no' => $data['po_no'] ?? null,
             'mrp' => $data['mrp'] ?? null,
@@ -277,10 +302,6 @@ class AssetController extends Controller
 
         if (!empty($data['purchase_date'])) {
             $normalizedDate = $this->normalizePurchaseDate($data['purchase_date']);
-            if (!$normalizedDate) {
-                $errors[] = "Row $rowNumber: Invalid purchase_date";
-                continue;
-            }
             $assetData['purchase_date'] = $normalizedDate;
         }
 
@@ -290,15 +311,39 @@ class AssetController extends Controller
         try {
             Asset::create($assetData);
             $imported++;
+            $importedRows[] = $row;
         } catch (\Throwable $e) {
+            $assoc = $row;
+            $assoc['Error Reason'] = "Failed to save (" . $e->getMessage() . ")";
+            $failedRows[] = $assoc;
             $errors[] = "Row $rowNumber: Failed to save (" . $e->getMessage() . ")";
         }
     }
-    // Final response
-    $response = back()->with('success', "$imported assets imported successfully.");
 
-    if (!empty($errors)) {
-        $response->with('import_errors', $errors);
+    // Always flash failed rows and headers for UI
+    session()->flash('failed_rows', $failedRows);
+    session()->flash('import_headers', $sessionHeaders);
+
+    if ($imported > 0) {
+        $response = back()->with('success', "$imported assets imported successfully!");
+        if (!empty($failedRows)) {
+            $response = $response
+                ->with('import_errors', $errors)
+                ->with('failed_rows', $failedRows)
+                ->with('import_headers', $sessionHeaders);
+        } else {
+            // All rows succeeded, show summary table
+            $response = $response
+                ->with('imported_rows', $importedRows)
+                ->with('import_headers', $originalHeaders);
+        }
+    } else {
+        $response = back()->with('error', "No valid assets imported.");
+        if (!empty($errors)) {
+            $response->with('import_errors', $errors)
+                ->with('failed_rows', $failedRows)
+                ->with('import_headers', $sessionHeaders);
+        }
     }
 
     return $response;
@@ -390,6 +435,54 @@ private function normalizePurchaseDate(mixed $value): ?string
             return ModelType::find($data['model_type_id'])?->makeType;
         }
         $errors[] = "Row $rowNumber: make_type_id/make_name is required";
+        return null;
+    }
+
+    // 
+    private function resolveModelType(array $data, int $rowNumber, array &$errors): ?ModelType
+    {
+        if (!empty($data['model_type_id'])) {
+            return ModelType::find($data['model_type_id']);
+        }
+
+        if (!empty($data['model_name'])) {
+            return ModelType::where('model_name', $data['model_name'])->first();
+        }
+
+        if (!empty($data['model_type'])) {
+            return ModelType::where('model_name', $data['model_type'])->first();
+        }
+
+        if (!empty($data['model'])) {
+            return ModelType::where('model_name', $data['model'])->first();
+        }
+        $errors[] = "Row $rowNumber: model_type_id/model_name is required";
+        return null;
+    }
+
+    // 
+    private function resolveVendor(array $data, int $rowNumber, array &$errors): ?Vendor
+    {
+        if (!empty($data['vendor_id'])) {
+            return Vendor::find($data['vendor_id']);
+        }
+
+        if (!empty($data['vendor_name'])) {
+            return Vendor::where('vendor_name', $data['vendor_name'])->first();
+        }
+
+        if (!empty($data['vendor_type'])) {
+            return Vendor::where('vendor_name', $data['vendor_type'])->first();
+        }
+
+        if (!empty($data['vendor'])) {
+            return Vendor::where('vendor_name', $data['vendor'])->first();
+        }
+
+        if (!empty($data['vendor_id'])) {
+            return Vendor::find($data['vendor_id']) ;
+        }
+        $errors[] = "Row $rowNumber: vendor_id/vendor_name is required";
         return null;
     }
 
@@ -506,7 +599,7 @@ private function normalizePurchaseDate(mixed $value): ?string
 
     public function exportAssets()
     {
-        $assets = Asset::with(['company', 'assetType', 'makeType'])->get();
+        $assets = Asset::with(['company', 'assetType', 'makeType', 'modelType'])->get();
         $filename = "assets_" . date('Y-m-d_H-i-s') . ".csv";
 
         return response()->streamDownload(function () use ($assets) {
@@ -536,10 +629,10 @@ private function normalizePurchaseDate(mixed $value): ?string
                 $a->company->company_name ?? '',
                 $a->assetType->type_name ?? '',
                 $a->makeType->make_name ?? '',
-                $a->model,
+                $a->modelType->model_name ?? '',
                 $a->serial_no,
                 $a->mac_no,
-                $a->procured_from,
+                $a->vendor->vendor_name ?? '',
                 $a->purchase_date,
                 $a->warranty,
                 $a->po_no,

@@ -1,34 +1,63 @@
 @extends('layouts.app')
 
-
-
 @section('content')
 
 <div class="container-fluid py-4">
 
     <h4 class="text-primary fw-bold mb-3 ">Add Feasibility</h4>
     
-
-
-        @if (session('success'))
-            <div class="alert alert-success">
+    {{-- SUCCESS MESSAGE & IMPORTED ROWS SUMMARY --}}
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show">
                 {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
+                @if (session('imported_rows'))
+                    <div class="card border-success mb-3 mt-2">
+                        <div class="card-header bg-success text-white py-1">Imported Rows Summary</div>
+                        <div class="card-body p-2">
+                            <div style="max-height:300px;overflow:auto;">
+                                <table class="table table-bordered table-sm mb-0">
+                                    <thead>
+                                        <tr>
+                                            @foreach(session('import_headers', []) as $header)
+                                                <th>{{ $header }}</th>
+                                            @endforeach
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach(session('imported_rows', []) as $row)
+                                            <tr>
+                                                @foreach($row as $cell)
+                                                    <td>{{ $cell }}</td>
+                                                @endforeach
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                @endif
         @endif
 
+    {{-- ERROR MESSAGE --}}
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    {{-- IMPORT FAILED ROWS TABLE --}}
         @if (session('import_errors'))
             <div class="alert alert-warning">
                 <strong>Import could not process some rows:</strong>
-                <ul class="mb-0">
-                    @foreach (session('import_errors') as $importError)
-                        <li>{{ $importError }}</li>
-                    @endforeach
-                </ul>
                 @if(session('failed_rows'))
                     @if(count(session('failed_rows', [])) > 0)
-                        <form action="{{ route('feasibility.downloadFailedRows') }}" method="POST" class="mt-2">
+                        <form action="#" method="POST" class="mt-2">
                             @csrf
-                            <button type="submit" class="btn btn-sm btn-outline-danger">Download Failed Rows (CSV)</button>
+                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="downloadFailedRowFeasibility()">Download Failed Rows (CSV)</button>
                         </form>
                         <div id="failedRowsTable" style="max-height:300px; overflow:auto;">
                             <input type="text" id="failedFilterInput" class="form-control form-control-sm mb-2" placeholder="Filter by error reason..." onkeyup="filterFailedRows()">
@@ -69,6 +98,10 @@
                                     rows[i].style.display = show ? '' : 'none';
                                 }
                             }
+                            function downloadFailedRowFeasibility() {
+                                // You can implement a route for feasibility failed rows download if needed
+                            alert('Download failed rows not implemented.');
+                            }
                         </script>
                     @else
                         <div class="alert alert-info mt-2">No failed rows to display.</div>
@@ -88,37 +121,27 @@
                     Import Feasibility
                 </button>
                 <div id="importFeasibilityBox" style="display: none;">
-                    <script>
-                        document.addEventListener('DOMContentLoaded', function() {
-                            var hasError = {{ ($errors->any() || session('import_errors')) ? 1 : 0 }};
-                            if (hasError) {
-                                var box = document.getElementById('importFeasibilityBox');
-                                if (box) box.style.display = 'block';
-                            }
-                        });
-                    </script>
                     <div class="card border-info">
                         <div class="card-body">
                             <p class="mb-3 small text-muted">Download the sample format, populate it with feasibility data, and then upload it via Import Excel.</p>
-                            <form id="importExcelForm" action="{{ route('feasibility.import') }}" method="POST" enctype="multipart/form-data" onsubmit="showImportLoading()">
+                            <form id="importExcelForm" action="{{ route('feasibility.import') }}" method="POST" enctype="multipart/form-data">
                                 @csrf
                                 <div class="input-group">
                                     <input type="file" name="file" class="form-control" required>
-                                    <a href="{{ asset('images/feasibilityimport/Book 4 (9).xlsx') }}" target="_blank" class="btn btn-outline-secondary" title="Download import template">Download Format</a>
-                                    <button id="importExcelBtn" type="submit" class="btn btn-primary">Import Excel</button>
-                                </div>
-                                <div id="importLoading" style="display:none;" class="mt-2">
-                                    <span class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></span>
-                                    Importing... Please wait.
+                                    <a href="{{ asset('images/feasibilityimport/Import Example Feasibility.csv') }}" target="_blank" class="btn btn-outline-secondary" title="Download import template">Download Format</a>
+                                    <button type="submit" class="btn btn-primary">Import Excel</button>
                                 </div>
                             </form>
-                            <script>
-                                function showImportLoading() {
-                                    document.getElementById('importExcelBtn').disabled = true;
-                                    document.getElementById('importLoading').style.display = 'inline-block';
-                                }
-                            </script>
                         </div>
+                    </div>
+                </div>
+                <!-- Loader Overlay -->
+                <div id="importLoaderOverlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.7);z-index:9999;align-items:center;justify-content:center;">
+                    <div style="text-align:center;">
+                        <div class="spinner-border text-primary" role="status" style="width:3rem;height:3rem;">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div class="mt-2 fw-bold">Importing, please wait...</div>
                     </div>
                 </div>
                 <script>
@@ -126,6 +149,15 @@
                         var box = document.getElementById('importFeasibilityBox');
                         box.style.display = (box.style.display === 'none' || box.style.display === '') ? 'block' : 'none';
                     }
+                    // Show loader on import form submit
+                    document.addEventListener('DOMContentLoaded', function() {
+                        var form = document.getElementById('importExcelForm');
+                        if (form) {
+                            form.addEventListener('submit', function() {
+                                document.getElementById('importLoaderOverlay').style.display = 'flex';
+                            });
+                        }
+                    });
                 </script>
             </div>
         </div>

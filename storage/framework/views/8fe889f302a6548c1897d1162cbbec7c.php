@@ -91,7 +91,7 @@
 
                 <th>Procured From</th>
 
-                <td><?php echo e($asset->procured_from ?? '-'); ?></td>
+                <td><?php echo e($asset->vendor->vendor_name ?? '-'); ?></td>
 
             </tr>
 

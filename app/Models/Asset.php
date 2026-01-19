@@ -8,7 +8,7 @@ class Asset extends Model
 {
     protected $fillable = [
         'asset_id','company_id','asset_type_id','make_type_id','model','brand',
-        'serial_no','mac_no','procured_from','purchase_date','warranty',
+        'serial_no','mac_no','vendor_id','purchase_date','warranty',
         'po_no','mrp','purchase_cost'
     ];
 
@@ -16,4 +16,6 @@ class Asset extends Model
     public function assetType() { return $this->belongsTo(AssetType::class); }
     public function makeType() { return $this->belongsTo(MakeType::class); }
     public function modelType() { return $this->belongsTo(ModelType::class); }
+    public function vendor() { return $this->belongsTo(\App\Models\Vendor::class); }
+
 }

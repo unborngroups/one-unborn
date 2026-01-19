@@ -108,6 +108,28 @@
 
 
 
+            {{-- Event Key --}}
+
+            <div class="mb-3">
+
+                <label class="form-label">Event Key</label>
+
+                <input type="text" name="event_key" class="form-control" 
+
+                       value="{{ old('event_key', $template->event_key) }}" required>
+
+                <small class="text-muted">
+
+                    Unique key for this event (e.g. user_registered, po_approved)
+
+                </small>
+
+                @error('event_key') <span class="text-danger small">{{ $message }}</span> @enderror
+
+            </div>
+
+
+
             {{-- Buttons --}}
 
             <button type="submit" class="btn btn-primary">Update Template</button>

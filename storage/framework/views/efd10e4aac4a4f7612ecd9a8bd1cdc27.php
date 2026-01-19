@@ -159,7 +159,8 @@
                         <div class="col-12 mt-2 text-danger"><strong>Payment Information</strong></div>
                         <div class="col-md-3 mb-2"><strong>Login URL:</strong><br><?php echo e($plan->payment_login_url ?? 'N/A'); ?></div>
                         <div class="col-md-3 mb-2"><strong>Quick URL:</strong><br><?php echo e($plan->payment_quick_url ?? 'N/A'); ?></div>
-                        <div class="col-md-3 mb-2"><strong>Account Number / Username:</strong><br><?php echo e($plan->payment_account_or_username ?? 'N/A'); ?></div>
+                        <div class="col-md-3 mb-2"><strong>Account Number:</strong><br><?php echo e($plan->payment_account ?? 'N/A'); ?></div>
+                        <div class="col-md-3 mb-2"><strong>Account Username:</strong><br><?php echo e($plan->payment_username ?? 'N/A'); ?></div>
                         <div class="col-md-3 mb-2"><strong>Password:</strong><br><?php echo e($plan->payment_password ?? 'N/A'); ?></div>
                         <?php endif; ?>
                     </div>

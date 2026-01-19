@@ -11,28 +11,33 @@ use App\Helpers\TemplateHelper;
 use App\Helpers\CircuitIdHelper;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use Shuchkin\SimpleXLSX;
+require_once app_path('Libraries/SimpleXLSX.php');
 
 class PurchaseOrderController extends Controller
 {
     
     public function index(Request $request)
     {
-        // $purchaseOrders = PurchaseOrder::orderBy('id', 'desc')->get();
+        $query = PurchaseOrder::with('feasibility.client')->orderBy('id', 'desc');
 
-        $purchaseOrders = PurchaseOrder::with('feasibility.client')->orderBy('created_at', 'desc')->get();
+        // Filter by feasibility_request_id if provided
+        if ($request->filled('feasibility_request_id')) {
+            $query->where('feasibility_request_id', 'like', '%' . $request->feasibility_request_id . '%');
+        }
+
         $permissions = TemplateHelper::getUserMenuPermissions('Purchase Order') ?? (object)[
             'can_menu' => true,
-    'can_add' => true,
-    'can_edit' => true,
-    'can_delete' => true,
-    'can_view' => true,
+            'can_add' => true,
+            'can_edit' => true,
+            'can_delete' => true,
+            'can_view' => true,
         ];
-        
-    $perPage = (int) $request->get('per_page', 10);
-    $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
 
-    // Paginated vendors
-    $purchaseOrders = PurchaseOrder::orderBy('id', 'desc')->paginate($perPage);
+        $perPage = (int) $request->get('per_page', 10);
+        $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+
+        $purchaseOrders = $query->paginate($perPage);
         return view('sm.purchaseorder.index', compact('purchaseOrders', 'permissions'));
     }
 
@@ -195,8 +200,10 @@ class PurchaseOrderController extends Controller
                 $importFilePath = 'images/purchaseorder/' . $filename;
             }
         // Prepare data for storage
+        $feasibility = Feasibility::find($validated['feasibility_id']);
         $poData = [
             'feasibility_id' => $validated['feasibility_id'],
+            'feasibility_request_id' => $feasibility ? $feasibility->feasibility_request_id : null,
             'po_number' => $validated['po_number'],
             'po_date' => $normalizedPoDate,
             'no_of_links' => $validated['no_of_links'],
@@ -370,8 +377,10 @@ class PurchaseOrderController extends Controller
 
         
         // Prepare data for update
+        $feasibility = Feasibility::find($validated['feasibility_id']);
         $poData = [
             'feasibility_id' => $validated['feasibility_id'],
+            'feasibility_request_id' => $feasibility ? $feasibility->feasibility_request_id : null,
             'po_number' => $validated['po_number'],
             'po_date' => $validated['po_date'],
             'no_of_links' => $validated['no_of_links'],
@@ -585,4 +594,26 @@ class PurchaseOrderController extends Controller
             Log::error("Failed to create deliverable from purchase order: " . $e->getMessage());
         }
     }
-}
+        // API: Fetch PO by number (for autofill)
+    public function fetchByNumber($po_number)
+    {
+        $po = \App\Models\PurchaseOrder::where('po_number', $po_number)->first();
+        if (!$po) {
+            return response()->json(['success' => false, 'message' => 'PO not found'], 404);
+        }
+        // Return all fields needed for autofill, including per-link pricing and formatted date
+        $data = $po->toArray();
+        // Add formatted date for input[type=date]
+        $data['po_date'] = $po->po_date ? $po->po_date->format('Y-m-d') : '';
+        // Add total cost (sum of all pricing fields)
+        $total = 0;
+        for ($i = 1; $i <= 4; $i++) {
+            $total += (float)($po->{"arc_link_{$i}"} ?? 0);
+            $total += (float)($po->{"otc_link_{$i}"} ?? 0);
+            $total += (float)($po->{"static_ip_link_{$i}"} ?? 0);
+        }
+        $data['total_cost'] = $total;
+        return response()->json(['success' => true, 'data' => $data]);
+    }
+
+    }

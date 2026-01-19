@@ -108,17 +108,18 @@ class DeliverablesController extends Controller
             ->count() + 1;
     }
 
+
     // Operations Deliverables Views
-    public function operationsOpen()       { return $this->page('open', 'Open'); }
-    public function operationsInProgress() { return $this->page('inprogress', 'InProgress'); }
-    public function operationsDelivery()   { return $this->page('delivery', 'Delivery'); }
+    public function operationsOpen()       { return $this->page('open', 'Open', 'operations Deliverables'); }
+    public function operationsInProgress() { return $this->page('inprogress', 'InProgress', 'operations Deliverables'); }
+    public function operationsDelivery()   { return $this->page('delivery', 'Delivery', 'operations Deliverables'); }
 
     // S&M Deliverables Views
-    public function smOpen()       { return $this->page('open', 'Open'); }
-    public function smInProgress() { return $this->page('inprogress', 'InProgress'); }
-    public function smDelivery()   { return $this->page('delivery', 'Delivery'); }
+    public function smOpen()       { return $this->page('open', 'Open', 'Sm Deliverables'); }
+    public function smInProgress() { return $this->page('inprogress', 'InProgress', 'Sm Deliverables'); }
+    public function smDelivery()   { return $this->page('delivery', 'Delivery', 'Sm Deliverables'); }
 
-    private function page(string $view, string $status)
+    private function page(string $view, string $status, $menuName = 'operations Deliverables')
     {
         $perPage = request()->input('per_page', 10);
         $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
@@ -128,7 +129,7 @@ class DeliverablesController extends Controller
                 'feasibility.company',
                 'feasibility.feasibilityStatus'
             ])->where('status', $status)->orderBy('id')->paginate($perPage),
-            'permissions' => TemplateHelper::getUserMenuPermissions('operations Deliverables')
+            'permissions' => TemplateHelper::getUserMenuPermissions($menuName)
         ]);
     }
 
@@ -174,10 +175,10 @@ class DeliverablesController extends Controller
 
         return view('operations.deliverables.edit', [
             'record' => $record,
-            'assetOptions' => Asset::whereNotNull('asset_id')
-                ->whereNotNull('serial_no')
-                ->select('asset_id', 'serial_no', 'mac_no', DB::raw("COALESCE(procured_from,'Inventory') vendor_name"))
-                ->orderBy('asset_id')->get(),
+                'assetOptions' => Asset::whereNotNull('asset_id')
+                    ->whereNotNull('serial_no')
+                    ->select('asset_id', 'serial_no', 'mac_no', DB::raw("'Inventory' as vendor_name"))
+                    ->orderBy('asset_id')->get(),
             'hardwareDetails' => json_decode($record->feasibility->hardware_details ?? '[]', true),
             'linkVendors' => $linkVendors,
         ]);
@@ -364,7 +365,8 @@ class DeliverablesController extends Controller
                     'router_password' => $request->input('router_password_' . $i),
                     'payment_login_url' => $request->input('payment_login_url_' . $i),
                     'payment_quick_url' => $request->input('payment_quick_url_' . $i),
-                    'payment_account_or_username' => $request->input('payment_account_or_username_' . $i),
+                    'payment_account' => $request->input('payment_account_' . $i),
+                    'payment_username' => $request->input('payment_username_' . $i),
                     'payment_password' => $request->input('payment_password_' . $i),
                     'pppoe_username' => $request->input('pppoe_username_' . $i),
                     'pppoe_password' => $request->input('pppoe_password_' . $i),
@@ -405,7 +407,30 @@ class DeliverablesController extends Controller
                 ]
             );
 
-
+            // Auto-create renewal entry if not exists
+            // Create a renewal for each deliverable plan (link) if not exists
+            foreach ($deliverable->deliverablePlans as $plan) {
+                $activation = $plan->date_of_activation;
+                $months = $plan->no_of_months_renewal;
+                $circuitId = $plan->circuit_id;
+                // Check if a renewal already exists for this deliverable and circuit_id
+                $existingRenewal = \App\Models\Renewal::where('deliverable_id', $deliverable->id)
+                    ->where('circuit_id', $circuitId)
+                    ->first();
+                if (!$existingRenewal && $activation && $months && $circuitId) {
+                    $renewalDate = \Carbon\Carbon::parse($activation);
+                    $expiry = $renewalDate->copy()->addMonths((int)$months)->subDay();
+                    $alertDate = $expiry->copy()->subDay();
+                    \App\Models\Renewal::create([
+                        'deliverable_id' => $deliverable->id,
+                        'circuit_id' => $circuitId,
+                        'date_of_renewal' => $renewalDate->format('Y-m-d'),
+                        'renewal_months' => $months,
+                        'new_expiry_date' => $expiry->format('Y-m-d'),
+                        'alert_date' => $alertDate->format('Y-m-d'),
+                    ]);
+                }
+            }
         }
 
         // Redirect logic:
