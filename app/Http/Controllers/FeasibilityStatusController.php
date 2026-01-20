@@ -154,16 +154,61 @@ public function editSave(Request $request, $id)
             'can_view' => true,
         ];
 
-
-         $perPage = (int) $request->get('per_page', 10);
-         $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+        $perPage = (int) $request->get('per_page', 10);
+        $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+        $search = $request->get('search');
 
         $records = FeasibilityStatus::with(['feasibility', 'feasibility.client'])
             ->where('status', 'Open')
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('feasibility', function ($fq) use ($search) {
+                        $fq->where('feasibility_request_id', 'like', "%$search%")
+                            ->orWhere('type_of_service', 'like', "%$search%")
+                            ->orWhere('company_id', 'like', "%$search%")
+                            ->orWhere('client_id', 'like', "%$search%")
+                            ->orWhere('delivery_company_name', 'like', "%$search%")
+                            ->orWhere('location_id', 'like', "%$search%")
+                            ->orWhere('longitude', 'like', "%$search%")
+                            ->orWhere('latitude', 'like', "%$search%")
+                            ->orWhere('pincode', 'like', "%$search%")
+                            ->orWhere('state', 'like', "%$search%")
+                            ->orWhere('district', 'like', "%$search%")
+                            ->orWhere('area', 'like', "%$search%")
+                            ->orWhere('address', 'like', "%$search%")
+                            ->orWhere('spoc_name', 'like', "%$search%")
+                            ->orWhere('spoc_contact1', 'like', "%$search%")
+                            ->orWhere('spoc_contact2', 'like', "%$search%")
+                            ->orWhere('spoc_email', 'like', "%$search%")
+                            ->orWhere('no_of_links', 'like', "%$search%")
+                            ->orWhere('speed', 'like', "%$search%")
+                            ->orWhere('vendor_type', 'like', "%$search%")
+                            ->orWhere('static_ip', 'like', "%$search%")
+                            ->orWhere('static_ip_subnet', 'like', "%$search%")
+                            ->orWhere('expected_delivery', 'like', "%$search%")
+                            ->orWhere('expected_activation', 'like', "%$search%")
+                            ->orWhere('hardware_required', 'like', "%$search%")
+                            ->orWhereHas('company', function ($cq) use ($search) {
+                                $cq->where('company_name', 'like', "%$search%")
+                                    ;
+                            })
+                            ->orWhereHas('client', function ($cq) use ($search) {
+                                $cq->where('client_name', 'like', "%$search%")
+                                    // ->orWhere('company_name', 'like', "%$search%")
+                                    // ->orWhere('email', 'like', "%$search%")
+                                    // ->orWhere('mobile', 'like', "%$search%")
+                                    // ->orWhere('gstin', 'like', "%$search%")
+                                    // ->orWhere('pan', 'like', "%$search%")
+                                    ;
+                            });
+                    });
+                });
+            })
             ->orderBy('id', 'desc')
-            ->paginate($perPage);
-            
-        return view('sm.feasibility.open', compact('records', 'permissions'));
+            ->paginate($perPage)
+            ->appends(request()->except('page'));
+
+        return view('sm.feasibility.open', compact('records', 'permissions', 'search'));
     }
 
     public function smInProgress(Request $request)
@@ -176,15 +221,61 @@ public function editSave(Request $request, $id)
             'can_view' => true,
         ];
 
-         $perPage = (int) $request->get('per_page', 10);
-         $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+        $perPage = (int) $request->get('per_page', 10);
+        $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+        $search = $request->get('search');
 
         $records = FeasibilityStatus::with(['feasibility', 'feasibility.client'])
             ->where('status', 'InProgress')
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('feasibility', function ($fq) use ($search) {
+                        $fq->where('feasibility_request_id', 'like', "%$search%")
+                            ->orWhere('type_of_service', 'like', "%$search%")
+                            ->orWhere('company_id', 'like', "%$search%")
+                            ->orWhere('client_id', 'like', "%$search%")
+                            ->orWhere('delivery_company_name', 'like', "%$search%")
+                            ->orWhere('location_id', 'like', "%$search%")
+                            ->orWhere('longitude', 'like', "%$search%")
+                            ->orWhere('latitude', 'like', "%$search%")
+                            ->orWhere('pincode', 'like', "%$search%")
+                            ->orWhere('state', 'like', "%$search%")
+                            ->orWhere('district', 'like', "%$search%")
+                            ->orWhere('area', 'like', "%$search%")
+                            ->orWhere('address', 'like', "%$search%")
+                            ->orWhere('spoc_name', 'like', "%$search%")
+                            ->orWhere('spoc_contact1', 'like', "%$search%")
+                            ->orWhere('spoc_contact2', 'like', "%$search%")
+                            ->orWhere('spoc_email', 'like', "%$search%")
+                            ->orWhere('no_of_links', 'like', "%$search%")
+                            ->orWhere('speed', 'like', "%$search%")
+                            ->orWhere('vendor_type', 'like', "%$search%")
+                            ->orWhere('static_ip', 'like', "%$search%")
+                            ->orWhere('static_ip_subnet', 'like', "%$search%")
+                            ->orWhere('expected_delivery', 'like', "%$search%")
+                            ->orWhere('expected_activation', 'like', "%$search%")
+                            ->orWhere('hardware_required', 'like', "%$search%")
+                            ->orWhereHas('company', function ($cq) use ($search) {
+                                $cq->where('company_name', 'like', "%$search%")
+                                    ;
+                            })
+                            ->orWhereHas('client', function ($cq) use ($search) {
+                                $cq->where('client_name', 'like', "%$search%")
+                                    // ->orWhere('company_name', 'like', "%$search%")
+                                    // ->orWhere('email', 'like', "%$search%")
+                                    // ->orWhere('mobile', 'like', "%$search%")
+                                    // ->orWhere('gstin', 'like', "%$search%")
+                                    // ->orWhere('pan', 'like', "%$search%")
+                                    ;
+                            });
+                    });
+                });
+            })
             ->orderBy('id', 'desc')
-            ->paginate($perPage);
+            ->paginate($perPage)
+            ->appends(request()->except('page'));
 
-        return view('sm.feasibility.inprogress', compact('records', 'permissions'));
+        return view('sm.feasibility.inprogress', compact('records', 'permissions', 'search'));
     }
 
     public function smClosed(Request $request)
@@ -197,15 +288,61 @@ public function editSave(Request $request, $id)
             'can_view' => true,
         ];
 
-         $perPage = (int) $request->get('per_page', 10);
-         $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+        $perPage = (int) $request->get('per_page', 10);
+        $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+        $search = $request->get('search');
 
         $records = FeasibilityStatus::with(['feasibility', 'feasibility.client'])
             ->where('status', 'Closed')
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('feasibility', function ($fq) use ($search) {
+                        $fq->where('feasibility_request_id', 'like', "%$search%")
+                            ->orWhere('type_of_service', 'like', "%$search%")
+                            ->orWhere('company_id', 'like', "%$search%")
+                            ->orWhere('client_id', 'like', "%$search%")
+                            ->orWhere('delivery_company_name', 'like', "%$search%")
+                            ->orWhere('location_id', 'like', "%$search%")
+                            ->orWhere('longitude', 'like', "%$search%")
+                            ->orWhere('latitude', 'like', "%$search%")
+                            ->orWhere('pincode', 'like', "%$search%")
+                            ->orWhere('state', 'like', "%$search%")
+                            ->orWhere('district', 'like', "%$search%")
+                            ->orWhere('area', 'like', "%$search%")
+                            ->orWhere('address', 'like', "%$search%")
+                            ->orWhere('spoc_name', 'like', "%$search%")
+                            ->orWhere('spoc_contact1', 'like', "%$search%")
+                            ->orWhere('spoc_contact2', 'like', "%$search%")
+                            ->orWhere('spoc_email', 'like', "%$search%")
+                            ->orWhere('no_of_links', 'like', "%$search%")
+                            ->orWhere('speed', 'like', "%$search%")
+                            ->orWhere('vendor_type', 'like', "%$search%")
+                            ->orWhere('static_ip', 'like', "%$search%")
+                            ->orWhere('static_ip_subnet', 'like', "%$search%")
+                            ->orWhere('expected_delivery', 'like', "%$search%")
+                            ->orWhere('expected_activation', 'like', "%$search%")
+                            ->orWhere('hardware_required', 'like', "%$search%")
+                            ->orWhereHas('company', function ($cq) use ($search) {
+                                $cq->where('company_name', 'like', "%$search%")
+                                    ;
+                            })
+                            ->orWhereHas('client', function ($cq) use ($search) {
+                                $cq->where('client_name', 'like', "%$search%")
+                                    // ->orWhere('company_name', 'like', "%$search%")
+                                    // ->orWhere('email', 'like', "%$search%")
+                                    // ->orWhere('mobile', 'like', "%$search%")
+                                    // ->orWhere('gstin', 'like', "%$search%")
+                                    // ->orWhere('pan', 'like', "%$search%")
+                                    ;
+                            });
+                    });
+                });
+            })
             ->orderBy('id', 'desc')
-            ->paginate($perPage);
+            ->paginate($perPage)
+            ->appends(request()->except('page'));
 
-        return view('sm.feasibility.closed', compact('records', 'permissions'));
+        return view('sm.feasibility.closed', compact('records', 'permissions', 'search'));
     }
 
     public function smView($id)
@@ -380,14 +517,59 @@ public function editSave(Request $request, $id)
 
         $perPage = (int) $request->get('per_page', 10);
         $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+        $search = $request->get('search');
 
         $records = FeasibilityStatus::with(['feasibility', 'feasibility.client'])
             ->where('status', 'Open')
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('feasibility', function ($fq) use ($search) {
+                        $fq->where('feasibility_request_id', 'like', "%$search%")
+                            ->orWhere('type_of_service', 'like', "%$search%")
+                            ->orWhere('company_id', 'like', "%$search%")
+                            ->orWhere('client_id', 'like', "%$search%")
+                            ->orWhere('delivery_company_name', 'like', "%$search%")
+                            ->orWhere('location_id', 'like', "%$search%")
+                            ->orWhere('longitude', 'like', "%$search%")
+                            ->orWhere('latitude', 'like', "%$search%")
+                            ->orWhere('pincode', 'like', "%$search%")
+                            ->orWhere('state', 'like', "%$search%")
+                            ->orWhere('district', 'like', "%$search%")
+                            ->orWhere('area', 'like', "%$search%")
+                            ->orWhere('address', 'like', "%$search%")
+                            ->orWhere('spoc_name', 'like', "%$search%")
+                            ->orWhere('spoc_contact1', 'like', "%$search%")
+                            ->orWhere('spoc_contact2', 'like', "%$search%")
+                            ->orWhere('spoc_email', 'like', "%$search%")
+                            ->orWhere('no_of_links', 'like', "%$search%")
+                            ->orWhere('speed', 'like', "%$search%")
+                            ->orWhere('vendor_type', 'like', "%$search%")
+                            ->orWhere('static_ip', 'like', "%$search%")
+                            ->orWhere('static_ip_subnet', 'like', "%$search%")
+                            ->orWhere('expected_delivery', 'like', "%$search%")
+                            ->orWhere('expected_activation', 'like', "%$search%")
+                            ->orWhere('hardware_required', 'like', "%$search%")
+                            ->orWhereHas('company', function ($cq) use ($search) {
+                                $cq->where('company_name', 'like', "%$search%")
+                                    ;
+                            })
+                            ->orWhereHas('client', function ($cq) use ($search) {
+                                $cq->where('client_name', 'like', "%$search%")
+                                    // ->orWhere('company_name', 'like', "%$search%")
+                                    // ->orWhere('email', 'like', "%$search%")
+                                    // ->orWhere('mobile', 'like', "%$search%")
+                                    // ->orWhere('gstin', 'like', "%$search%")
+                                    // ->orWhere('pan', 'like', "%$search%")
+                                    ;
+                            });
+                    });
+                });
+            })
             ->orderBy('id', 'desc')
-            ->paginate($perPage);
+            ->paginate($perPage)
+            ->appends(request()->except('page'));
 
-        // $permissions = $this->getOperationsFeasibilityPermissions();
-        return view('operations.feasibility.open', compact('records', 'permissions'));
+        return view('operations.feasibility.open', compact('records', 'permissions', 'search'));
     }
 
     public function operationsInProgress(Request $request)
@@ -396,6 +578,7 @@ public function editSave(Request $request, $id)
 
         $perPage = (int) $request->get('per_page', 10);
         $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+        $search = $request->get('search');
 
         $query = FeasibilityStatus::with(['feasibility', 'feasibility.client'])
             ->where('status', 'InProgress');
@@ -438,11 +621,57 @@ public function editSave(Request $request, $id)
             );
         }
 
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('feasibility', function ($fq) use ($search) {
+                    $fq->where('feasibility_request_id', 'like', "%$search%")
+                        ->orWhere('type_of_service', 'like', "%$search%")
+                            ->orWhere('company_id', 'like', "%$search%")
+                            ->orWhere('client_id', 'like', "%$search%")
+                            ->orWhere('delivery_company_name', 'like', "%$search%")
+                            ->orWhere('location_id', 'like', "%$search%")
+                            ->orWhere('longitude', 'like', "%$search%")
+                            ->orWhere('latitude', 'like', "%$search%")
+                            ->orWhere('pincode', 'like', "%$search%")
+                            ->orWhere('state', 'like', "%$search%")
+                            ->orWhere('district', 'like', "%$search%")
+                            ->orWhere('area', 'like', "%$search%")
+                            ->orWhere('address', 'like', "%$search%")
+                            ->orWhere('spoc_name', 'like', "%$search%")
+                            ->orWhere('spoc_contact1', 'like', "%$search%")
+                            ->orWhere('spoc_contact2', 'like', "%$search%")
+                            ->orWhere('spoc_email', 'like', "%$search%")
+                            ->orWhere('no_of_links', 'like', "%$search%")
+                            ->orWhere('speed', 'like', "%$search%")
+                            ->orWhere('vendor_type', 'like', "%$search%")
+                            ->orWhere('static_ip', 'like', "%$search%")
+                            ->orWhere('static_ip_subnet', 'like', "%$search%")
+                            ->orWhere('expected_delivery', 'like', "%$search%")
+                            ->orWhere('expected_activation', 'like', "%$search%")
+                            ->orWhere('hardware_required', 'like', "%$search%")
+                            ->orWhereHas('company', function ($cq) use ($search) {
+                                $cq->where('company_name', 'like', "%$search%")
+                                    ;
+                            })
+                        ->orWhereHas('client', function ($cq) use ($search) {
+                            $cq->where('client_name', 'like', "%$search%")
+                                // ->orWhere('company_name', 'like', "%$search%")
+                                // ->orWhere('email', 'like', "%$search%")
+                                // ->orWhere('mobile', 'like', "%$search%")
+                                // ->orWhere('gstin', 'like', "%$search%")
+                                // ->orWhere('pan', 'like', "%$search%")
+                                ;
+                        });
+                });
+            });
+        }
+
         $records = $query
             ->orderBy('id', 'desc')
-            ->paginate($perPage);
+            ->paginate($perPage)
+            ->appends(request()->except('page'));
 
-        return view('operations.feasibility.inprogress', compact('records', 'permissions'));
+        return view('operations.feasibility.inprogress', compact('records', 'permissions', 'search'));
     }
 
     public function operationsClosed(Request $request)
@@ -455,16 +684,61 @@ public function editSave(Request $request, $id)
             'can_view' => true,
         ];
 
-
         $perPage = (int) $request->get('per_page', 10);
         $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+        $search = $request->get('search');
 
         $records = FeasibilityStatus::with(['feasibility', 'feasibility.client'])
             ->where('status', 'Closed')
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('feasibility', function ($fq) use ($search) {
+                        $fq->where('feasibility_request_id', 'like', "%$search%")
+                            ->orWhere('type_of_service', 'like', "%$search%")
+                            ->orWhere('company_id', 'like', "%$search%")
+                            ->orWhere('client_id', 'like', "%$search%")
+                            ->orWhere('delivery_company_name', 'like', "%$search%")
+                            ->orWhere('location_id', 'like', "%$search%")
+                            ->orWhere('longitude', 'like', "%$search%")
+                            ->orWhere('latitude', 'like', "%$search%")
+                            ->orWhere('pincode', 'like', "%$search%")
+                            ->orWhere('state', 'like', "%$search%")
+                            ->orWhere('district', 'like', "%$search%")
+                            ->orWhere('area', 'like', "%$search%")
+                            ->orWhere('address', 'like', "%$search%")
+                            ->orWhere('spoc_name', 'like', "%$search%")
+                            ->orWhere('spoc_contact1', 'like', "%$search%")
+                            ->orWhere('spoc_contact2', 'like', "%$search%")
+                            ->orWhere('spoc_email', 'like', "%$search%")
+                            ->orWhere('no_of_links', 'like', "%$search%")
+                            ->orWhere('speed', 'like', "%$search%")
+                            ->orWhere('vendor_type', 'like', "%$search%")
+                            ->orWhere('static_ip', 'like', "%$search%")
+                            ->orWhere('static_ip_subnet', 'like', "%$search%")
+                            ->orWhere('expected_delivery', 'like', "%$search%")
+                            ->orWhere('expected_activation', 'like', "%$search%")
+                            ->orWhere('hardware_required', 'like', "%$search%")
+                            ->orWhereHas('company', function ($cq) use ($search) {
+                                $cq->where('company_name', 'like', "%$search%")
+                                    ;
+                            })
+                            ->orWhereHas('client', function ($cq) use ($search) {
+                                $cq->where('client_name', 'like', "%$search%")
+                                    // ->orWhere('company_name', 'like', "%$search%")
+                                    // ->orWhere('email', 'like', "%$search%")
+                                    // ->orWhere('mobile', 'like', "%$search%")
+                                    // ->orWhere('gstin', 'like', "%$search%")
+                                    // ->orWhere('pan', 'like', "%$search%")
+                                    ;
+                            });
+                    });
+                });
+            })
             ->orderBy('id', 'desc')
-            ->paginate($perPage);
+            ->paginate($perPage)
+            ->appends(request()->except('page'));
 
-        return view('operations.feasibility.closed', compact('records', 'permissions'));
+        return view('operations.feasibility.closed', compact('records', 'permissions', 'search'));
     }
 
     public function operationsView($id)

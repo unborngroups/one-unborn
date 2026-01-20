@@ -1,13 +1,30 @@
 
 
 <?php $__env->startSection('content'); ?>
+
+    
+
+    <?php if(session('success')): ?>
+
+        <div class="alert alert-success">
+
+            <?php echo e(session('success')); ?>
+
+
+        </div>
+
+    <?php endif; ?>
+
 <div class="container-fluid py-4">
     <div class="card shadow border-0">
         <div class="card-header bg-warning text-dark">
             <h5 class="mb-0">
                 <i class="bi bi-hourglass-half me-2 float-start"></i>In Progress Deliverables
                 
-            <input type="text" id="tableSearch" class="form-control form-control-sm w-25 float-end" placeholder="Search...">
+            <form id="searchForm" method="GET" class="d-flex align-items-center w-25 float-end">
+                <input type="text" name="search" id="tableSearch" class="form-control form-control-sm w-100" placeholder="Search..." value="<?php echo e(request('search') ?? ''); ?>" oninput="this.form.submit()">
+                <input type="hidden" name="per_page" value="<?php echo e(request('per_page', 10)); ?>">
+            </form>
 
             </h5>
         </div>
@@ -48,7 +65,8 @@
                                     <input type="checkbox" class="form-check-input row-checkbox" value="<?php echo e($record->id); ?>">
                                 </td> -->
 
-                                <td><?php echo e($index + 1); ?></td>
+                                <td><?php echo e(($records->currentPage() - 1) * $records->perPage() + $loop->iteration); ?></td>
+
 
                                 <td>
                                     <?php if($permissions->can_edit): ?>

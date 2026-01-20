@@ -10,10 +10,10 @@
 
         {{-- Deliverable --}}
         <div class="mb-3">
-            <label class="form-label">Deliverable</label>
+            <label class="form-label">Deliverable (Circuit ID)</label>
             <input type="text"
                    class="form-control"
-                   value="{{ $renewal->deliverable->circuit_id ?? $renewal->deliverable->po_number ?? 'Deliverable #'.$renewal->deliverable_id }}"
+                   value="{{ $renewal->circuit_id ?? (\App\Models\DeliverablePlan::where('deliverable_id', $renewal->deliverable_id)->value('circuit_id') ?? '-') }}"
                    readonly>
         </div>
 

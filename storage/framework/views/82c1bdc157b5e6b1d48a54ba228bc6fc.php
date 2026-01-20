@@ -1,14 +1,32 @@
 
 
 <?php $__env->startSection('content'); ?>
+
+    
+
+    <?php if(session('success')): ?>
+
+        <div class="alert alert-success">
+
+            <?php echo e(session('success')); ?>
+
+
+        </div>
+
+    <?php endif; ?>
+
 <div class="container-fluid py-4">
     <div class="card shadow border-0">
         <div class="card-header bg-primary text-white">
             <h5 class="mb-0 float-start"><i class="bi bi-hourglass-split me-2"></i>Open Deliverables</h5>
             
-            <input type="text" id="tableSearch" class="form-control form-control-sm w-25 float-end" placeholder="Search...">
+            <form id="searchForm" method="GET" class="d-flex align-items-center w-25 float-end">
+                <input type="text" name="search" id="tableSearch" class="form-control form-control-sm w-100" placeholder="Search..." value="<?php echo e(request('search') ?? ''); ?>" oninput="this.form.submit()">
+                <input type="hidden" name="per_page" value="<?php echo e(request('per_page', 10)); ?>">
+            </form>
 
         </div>
+        
         <form id="filterForm" method="GET" class="d-flex align-items-center gap-2 w-100">
             <label for="entriesSelect" class="mb-0">Show</label>
             <select id="entriesSelect" name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
@@ -37,9 +55,6 @@
                                 <th>Client Name</th>
                                 <th>No. of Links</th>
                             </tr>
-
-                            
-
                         </thead>
 
                         <tbody>
@@ -49,7 +64,8 @@
                                     <input type="checkbox" class="form-check-input row-checkbox" value="<?php echo e($record->id); ?>">
                                 </td> -->
 
-                                <td><?php echo e($index + 1); ?></td>
+                              <td><?php echo e(($records->currentPage() - 1) * $records->perPage() + $loop->iteration); ?></td>
+
 
                                 <td>
                                     <?php if($permissions->can_edit): ?>

@@ -15,12 +15,22 @@ use Shuchkin\SimpleXLSX;
 require_once app_path('Libraries/SimpleXLSX.php');
 
 class PurchaseOrderController extends Controller
-{
-    
+{   
     public function index(Request $request)
     {
-        $query = PurchaseOrder::with('feasibility.client')->orderBy('id', 'desc');
+        $query = PurchaseOrder::with('feasibility.client')
+    ->where(function ($q) use ($request) {
+        if ($request->filled('search')) {
+            $search = $request->search;
 
+            $q->where('po_number', 'like', "%{$search}%")
+              ->orWhere('feasibility_request_id', 'like', "%{$search}%")
+              ->orWhereHas('feasibility.client', function ($qc) use ($search) {
+                  $qc->where('client_name', 'like', "%{$search}%");
+              });
+        }
+    })
+    ->orderBy('id', 'desc');
         // Filter by feasibility_request_id if provided
         if ($request->filled('feasibility_request_id')) {
             $query->where('feasibility_request_id', 'like', '%' . $request->feasibility_request_id . '%');
@@ -37,7 +47,7 @@ class PurchaseOrderController extends Controller
         $perPage = (int) $request->get('per_page', 10);
         $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
 
-        $purchaseOrders = $query->paginate($perPage);
+        $purchaseOrders = $query->paginate($perPage)->withQueryString(); // Maintain query string parameters in pagination links
         return view('sm.purchaseorder.index', compact('purchaseOrders', 'permissions'));
     }
 
@@ -534,66 +544,135 @@ class PurchaseOrderController extends Controller
     /**
      * Create deliverable from purchase order
      */
-    private function createDeliverableFromPurchaseOrder($purchaseOrder)
-    {
-        try {
-            // Check if deliverable already exists for this purchase order
-            $existingDeliverable = Deliverables::where('purchase_order_id', $purchaseOrder->id)->first();
-            
-            if ($existingDeliverable) {
-                Log::info("Deliverable already exists for purchase order ID: {$purchaseOrder->id}");
-                return;
-            }
-            
-            // Get feasibility and feasibility status data
-            $feasibility = $purchaseOrder->feasibility;
-            $feasibilityStatus = FeasibilityStatus::where('feasibility_id', $purchaseOrder->feasibility_id)->first();
-            
-            if (!$feasibility) {
-                Log::error("Feasibility not found for Purchase Order ID: {$purchaseOrder->id}");
-                return;
-            }
-            
-            // Prepare circuit_id components
-            $companyName = $feasibility->company->company_name ?? '';
-            $shortname = $feasibility->client->short_name ?? '';
-            $state = $feasibility->state ?? '';
-            $year = date('Y');
-            // Get sequence and generate circuit_id using DeliverablesController helper
+    public function createDeliverableFromPurchaseOrder($purchaseOrder)
+{
+    try {
+        Log::info('Attempting to create deliverable for PO', ['po_id' => $purchaseOrder->id, 'po_number' => $purchaseOrder->po_number]);
+
+        $existingCount = Deliverables::where('purchase_order_id', $purchaseOrder->id)->count();
+        $requiredCount = $purchaseOrder->no_of_links ?? 1;
+
+        if ($existingCount >= $requiredCount) {
+            Log::info("All deliverables already created for PO ID {$purchaseOrder->id}");
+            return;
+        }
+
+        $feasibility = $purchaseOrder->feasibility;
+        if (!$feasibility) {
+            Log::warning('No feasibility found for PO', ['po_id' => $purchaseOrder->id]);
+            return;
+        }
+        $feasibilityStatus = FeasibilityStatus::where('feasibility_id', $purchaseOrder->feasibility_id)->first();
+        if (!$feasibilityStatus) {
+            Log::warning('No feasibility status found for PO', ['po_id' => $purchaseOrder->id]);
+            return;
+        }
+
+        for ($i = $existingCount + 1; $i <= $requiredCount; $i++) {
+            // Generate circuit id
             $deliverablesController = new \App\Http\Controllers\DeliverablesController();
-            $sequence = $deliverablesController->getCircuitSequence($companyName, $shortname, $state, $year);
-            $circuit_id = $deliverablesController->generateCircuitId($companyName, $shortname, $state, $year, $sequence);
+            $sequence = $deliverablesController->getCircuitSequence(
+                $feasibility->company->company_name ?? '',
+                $feasibility->client->short_name ?? '',
+                $feasibility->state ?? '',
+                date('Y')
+            );
+
+            $circuit_id = $deliverablesController->generateCircuitId(
+                $feasibility->company->company_name ?? '',
+                $feasibility->client->short_name ?? '',
+                $feasibility->state ?? '',
+                date('Y'),
+                $sequence
+            );
+
             $deliverable = Deliverables::create([
                 'feasibility_id' => $feasibility->id,
                 'purchase_order_id' => $purchaseOrder->id,
                 'status' => 'Open',
                 'circuit_id' => $circuit_id,
-                // Site Information from Feasibility
-                'site_address' => $feasibility->site_address ?? '',
-                'local_contact' => $feasibility->contact_person ?? '',
-                'state' => $feasibility->state ?? '',
-                'gst_number' => $feasibility->gst_number ?? '',
-                // Network Configuration from Feasibility
-                'link_type' => $feasibility->connection_type ?? '',
-                'speed_in_mbps' => $feasibility->bandwidth ?? '',
-                'no_of_links' => $purchaseOrder->no_of_links ?? 1,
-                // Vendor Information from Feasibility Status
+                'site_address' => $feasibility->site_address,
+                'local_contact' => $feasibility->contact_person,
+                'state' => $feasibility->state,
+                'gst_number' => $feasibility->gst_number,
+                'link_type' => $feasibility->connection_type,
+                'speed_in_mbps' => $feasibility->bandwidth,
+                'no_of_links' => 1,
                 'vendor' => $feasibilityStatus->vendor1_name ?? '',
-                // Pricing from Purchase Order
-                'arc_cost' => $purchaseOrder->arc_per_link ?? 0,
-                'otc_cost' => $purchaseOrder->otc_per_link ?? 0,
-                'static_ip_cost' => $purchaseOrder->static_ip_cost_per_link ?? 0,
-                // PO Details
+                'arc_cost' => $purchaseOrder->arc_per_link,
+                'otc_cost' => $purchaseOrder->otc_per_link,
+                'static_ip_cost' => $purchaseOrder->static_ip_cost_per_link,
                 'po_number' => $purchaseOrder->po_number,
                 'po_date' => $purchaseOrder->po_date,
             ]);
-            
-            Log::info("Deliverable created successfully with ID: {$deliverable->id} for Purchase Order: {$purchaseOrder->po_number}");
-            
-        } catch (\Exception $e) {
-            Log::error("Failed to create deliverable from purchase order: " . $e->getMessage());
+            Log::info('Deliverable created', ['deliverable_id' => $deliverable->id, 'po_id' => $purchaseOrder->id]);
         }
+
+    } catch (\Exception $e) {
+        Log::error("Deliverable creation failed: " . $e->getMessage(), ['po_id' => $purchaseOrder->id]);
     }
+}
+
+    // private function createDeliverableFromPurchaseOrder($purchaseOrder)
+    // {
+    //     try {
+    //         // Check if deliverable already exists for this purchase order
+    //         $existingDeliverable = Deliverables::where('purchase_order_id', $purchaseOrder->id)->first();
+            
+    //         if ($existingDeliverable) {
+    //             Log::info("Deliverable already exists for purchase order ID: {$purchaseOrder->id}");
+    //             return;
+    //         }
+            
+    //         // Get feasibility and feasibility status data
+    //         $feasibility = $purchaseOrder->feasibility;
+    //         $feasibilityStatus = FeasibilityStatus::where('feasibility_id', $purchaseOrder->feasibility_id)->first();
+            
+    //         if (!$feasibility) {
+    //             Log::error("Feasibility not found for Purchase Order ID: {$purchaseOrder->id}");
+    //             return;
+    //         }
+            
+    //         // Prepare circuit_id components
+    //         $companyName = $feasibility->company->company_name ?? '';
+    //         $shortname = $feasibility->client->short_name ?? '';
+    //         $state = $feasibility->state ?? '';
+    //         $year = date('Y');
+    //         // Get sequence and generate circuit_id using DeliverablesController helper
+    //         $deliverablesController = new \App\Http\Controllers\DeliverablesController();
+    //         $sequence = $deliverablesController->getCircuitSequence($companyName, $shortname, $state, $year);
+    //         $circuit_id = $deliverablesController->generateCircuitId($companyName, $shortname, $state, $year, $sequence);
+    //         $deliverable = Deliverables::create([
+    //             'feasibility_id' => $feasibility->id,
+    //             'purchase_order_id' => $purchaseOrder->id,
+    //             'status' => 'Open',
+    //             'circuit_id' => $circuit_id,
+    //             // Site Information from Feasibility
+    //             'site_address' => $feasibility->site_address ?? '',
+    //             'local_contact' => $feasibility->contact_person ?? '',
+    //             'state' => $feasibility->state ?? '',
+    //             'gst_number' => $feasibility->gst_number ?? '',
+    //             // Network Configuration from Feasibility
+    //             'link_type' => $feasibility->connection_type ?? '',
+    //             'speed_in_mbps' => $feasibility->bandwidth ?? '',
+    //             'no_of_links' => $purchaseOrder->no_of_links ?? 1,
+    //             // Vendor Information from Feasibility Status
+    //             'vendor' => $feasibilityStatus->vendor1_name ?? '',
+    //             // Pricing from Purchase Order
+    //             'arc_cost' => $purchaseOrder->arc_per_link ?? 0,
+    //             'otc_cost' => $purchaseOrder->otc_per_link ?? 0,
+    //             'static_ip_cost' => $purchaseOrder->static_ip_cost_per_link ?? 0,
+    //             // PO Details
+    //             'po_number' => $purchaseOrder->po_number,
+    //             'po_date' => $purchaseOrder->po_date,
+    //         ]);
+            
+    //         Log::info("Deliverable created successfully with ID: {$deliverable->id} for Purchase Order: {$purchaseOrder->po_number}");
+            
+    //     } catch (\Exception $e) {
+    //         Log::error("Failed to create deliverable from purchase order: " . $e->getMessage());
+    //     }
+    // }
         // API: Fetch PO by number (for autofill)
     public function fetchByNumber($po_number)
     {

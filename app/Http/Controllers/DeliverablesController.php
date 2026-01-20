@@ -110,26 +110,108 @@ class DeliverablesController extends Controller
 
 
     // Operations Deliverables Views
-    public function operationsOpen()       { return $this->page('open', 'Open', 'operations Deliverables'); }
+    public function operationsOpen()
+        {
+             return $this->page('open', 'Open', 'operations Deliverables'); 
+             
+        }
     public function operationsInProgress() { return $this->page('inprogress', 'InProgress', 'operations Deliverables'); }
     public function operationsDelivery()   { return $this->page('delivery', 'Delivery', 'operations Deliverables'); }
 
     // S&M Deliverables Views
     public function smOpen()       { return $this->page('open', 'Open', 'Sm Deliverables'); }
     public function smInProgress() { return $this->page('inprogress', 'InProgress', 'Sm Deliverables'); }
-    public function smDelivery()   { return $this->page('delivery', 'Delivery', 'Sm Deliverables'); }
+    public function smDelivery()   { 
+        
+    return $this->page('delivery', 'Delivery', 'Sm Deliverables'); }
 
     private function page(string $view, string $status, $menuName = 'operations Deliverables')
     {
         $perPage = request()->input('per_page', 10);
         $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+        $search = request()->input('search');
+
+        $records = Deliverables::with([
+            'feasibility.client',
+            'feasibility.company',
+            'feasibility.feasibilityStatus',
+            'deliverablePlans',
+        ])
+        ->where('status', $status)
+        ->when($search, function ($query) use ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('po_number', 'like', "%$search%")
+                  ->orWhere('feasibility_id', 'like', "%$search%")
+                  ->orWhere('circuit_id', 'like', "%$search%") // Search main deliverables.circuit_id
+                  ->orWhereHas('feasibility', function ($fq) use ($search) {
+                      $fq->where('feasibility_request_id', 'like', "%$search%")
+                         ->orWhereHas('client', function ($cq) use ($search) {
+                             $cq->where('client_name', 'like', "%$search%")
+                                 //  ->orWhere('mobile', 'like', "%$search%")
+                                 //  ->orWhere('email', 'like', "%$search%")
+                                 ->orWhere('gstin', 'like', "%$search%")
+                                 ->orWhere('status_of_link', 'like', "%$search%")
+                                 //  ->orWhere('mode_of_delivery', 'like', "%$search%")
+                                 ->orWhere('circuit_id', 'like', "%$search%")
+                                 ->orWhere('client_circuit_id', 'like', "%$search%")
+                                 ->orWhere('client_feasibility', 'like', "%$search%")
+                                 ->orWhere('vendor_code', 'like', "%$search%")
+                                 ->orWhere('asset_serial_no', 'like', "%$search%")
+                                 ->orWhere('asset_mac_no', 'like', "%$search%")
+                                 ->orWhere('otc_extra_charges', 'like', "%$search%")
+                                 ->orWhere('ipsec', 'like', "%$search%")
+                                 ;
+                         })
+                         ->orWhereHas('company', function ($cq) use ($search) {
+                             $cq->where('company_name', 'like', "%$search%")
+                                 ;
+                         });
+                  })
+                  // Add search for deliverable_plans (plan name, etc)
+                  ->orWhereHas('deliverablePlans', function ($dpq) use ($search) {
+                      $dpq->where('plans_name', 'like', "%$search%")
+                          ->orWhere('circuit_id', 'like', "%$search%")
+                          ->orWhere('speed_in_mbps_plan', 'like', "%$search%")
+                          ->orWhere('sla', 'like', "%$search%")
+                          ->orWhere('status_of_link', 'like', "%$search%")
+                          ->orWhere('mode_of_delivery', 'like', "%$search%")
+                          ->orWhere('client_circuit_id', 'like', "%$search%")
+                          ->orWhere('client_feasibility', 'like', "%$search%")
+                          ->orWhere('vendor_code', 'like', "%$search%")
+                          ->orWhere('mtu', 'like', "%$search%")
+                          ->orWhere('wifi_username', 'like', "%$search%")
+                          ->orWhere('wifi_password', 'like', "%$search%")
+                          ->orWhere('router_username', 'like', "%$search%")
+                          ->orWhere('router_password', 'like', "%$search%")
+                          ->orWhere('payment_login_url', 'like', "%$search%")
+                          ->orWhere('payment_quick_url', 'like', "%$search%")
+                          ->orWhere('payment_account', 'like', "%$search%")
+                          ->orWhere('payment_username', 'like', "%$search%")
+                          ->orWhere('payment_password', 'like', "%$search%")
+                          ->orWhere('pppoe_username', 'like', "%$search%")
+                          ->orWhere('pppoe_password', 'like', "%$search%")
+                          ->orWhere('pppoe_vlan', 'like', "%$search%")
+                          ->orWhere('dhcp_ip_address', 'like', "%$search%")
+                          ->orWhere('dhcp_vlan', 'like', "%$search%")
+                          ->orWhere('static_ip_address', 'like', "%$search%")
+                          ->orWhere('static_vlan', 'like', "%$search%")
+                          ->orWhere('network_ip', 'like', "%$search%")
+                          ->orWhere('static_subnet_mask', 'like', "%$search%")
+                          ->orWhere('static_gateway', 'like', "%$search%")
+                          ->orWhere('usable_ips', 'like', "%$search%")
+                          ->orWhere('remarks', 'like', "%$search%")
+                          ;
+                  });
+            });
+        })
+        ->orderBy('id','desc')
+        ->paginate($perPage)
+        ->appends(request()->except('page'));
+
         return view("operations.deliverables.$view", [
-            'records' => Deliverables::with([
-                'feasibility.client',
-                'feasibility.company',
-                'feasibility.feasibilityStatus'
-            ])->where('status', $status)->orderBy('id')->paginate($perPage),
-            'permissions' => TemplateHelper::getUserMenuPermissions($menuName)
+            'records' => $records,
+            'permissions' => TemplateHelper::getUserMenuPermissions($menuName),
+            'search' => $search,
         ]);
     }
 
@@ -211,7 +293,7 @@ class DeliverablesController extends Controller
                 'router_username','router_password',
                 'lan_ip_1','lan_ip_2','lan_ip_3','lan_ip_4',
                 'asset_id','asset_serial_no','asset_mac_no','otc_extra_charges','payment_login_url',
-                'payment_quick_url','payment_account_or_username','payment_password','ipsec',
+                'payment_quick_url','payment_account','payment_username','payment_password','ipsec',
                 'phase_1','phase_2','ipsec_interface','export_file'
             ]);
             // Ensure ipsec is never null
@@ -399,7 +481,7 @@ class DeliverablesController extends Controller
                     'deliverable_id' => $deliverable->id,
                     'service_id'     => $deliverable->circuit_id,
                     'client_id'      => $deliverable->feasibility->client->id,
-                    'link_type'      => $deliverable->link_type,
+                    'link_type'      => $deliverable->link_type ?? 'Unknown',
                     'bandwidth'      => $bandwidth,
                     'interface_name' => $request->input('mode_of_delivery_1'),
                     'router_id'      => $deliverable->router_id,
@@ -470,7 +552,7 @@ class DeliverablesController extends Controller
             ->whereHas('feasibility', function ($q) {
                 $q->where('type_of_service', 'ILL');
             })
-            ->orderBy('id')
+            ->orderBy('id', 'desc')
             ->paginate($perPage);
 
         return view('operations.deliverables.acceptance', [
@@ -495,7 +577,7 @@ class DeliverablesController extends Controller
                 $q->where('type_of_service', 'ILL');
             })
             ->where('id', $id)
-            ->orderBy('id')
+            ->orderBy('id', 'desc')
             ->paginate($perPage);
 
         return view('operations.deliverables.acceptance', [

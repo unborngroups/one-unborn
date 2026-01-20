@@ -31,41 +31,44 @@ class ClientController extends Controller
             'can_view' => true,
         ];
 
-        // $query = Client::orderBy('id', 'desc');
-        // $canViewAllClients = $permissions->can_view;
-
-        // if (!$canViewAllClients) {
-        //     $companyIds = $user->companies()->pluck('companies.id')->toArray();
-        //     if (!empty($companyIds)) {
-        //         $query->whereIn('company_id', $companyIds);
-        //     }
-        // }
-
-        // Search filter
-        // if ($request->filled('search')) {
-        //     $search = $request->search;
-        //     $query->where(function($q) use ($search) {
-        //         $q->where('client_code', 'like', "%$search%")
-        //           ->orWhere('client_name', 'like', "%$search%")
-        //           ->orWhere('business_display_name', 'like', "%$search%")
-        //           ->orWhere('support_spoc_name', 'like', "%$search%")
-        //           ->orWhere('support_spoc_email', 'like', "%$search%")
-        //           ->orWhere('support_spoc_mobile', 'like', "%$search%")
-        //           ->orWhere('status', 'like', "%$search%")
-        //         ;
-        //     });
-        // }
-
         $perPage = $request->input('per_page', 10); // default 10
         $perPage = in_array($perPage, [10,25,50,100]) ? $perPage : 10;
-        $clients = Client::orderBy('id', 'desc')->paginate($perPage);
+        $query = Client::query();
+        if ($request->filled('search')) {
+                        $search = $request->search;
+                        $query->where(function($q) use ($search) {
+                                $q->where('client_name', 'like', "%{$search}%")
+                                    ->orWhere('client_code', 'like', "%{$search}%")
+                                    ->orWhere('business_display_name', 'like', "%{$search}%")
+                                    ->orWhere('short_name', 'like', "%{$search}%")
+                                    ->orWhere('user_name', 'like', "%{$search}%")
+                                    ->orWhere('address1', 'like', "%{$search}%")
+                                    ->orWhere('address2', 'like', "%{$search}%")
+                                    ->orWhere('address3', 'like', "%{$search}%")
+                                    ->orWhere('city', 'like', "%{$search}%")
+                                    ->orWhere('state', 'like', "%{$search}%")
+                                    ->orWhere('country', 'like', "%{$search}%")
+                                    ->orWhere('pincode', 'like', "%{$search}%")
+                                    ->orWhere('billing_spoc_name', 'like', "%{$search}%")
+                                    ->orWhere('billing_spoc_contact', 'like', "%{$search}%")
+                                    ->orWhere('billing_spoc_email', 'like', "%{$search}%")
+                                    ->orWhere('gstin', 'like', "%{$search}%")
+                                    ->orWhere('invoice_email', 'like', "%{$search}%")
+                                    ->orWhere('invoice_cc', 'like', "%{$search}%")
+                                    ->orWhere('support_spoc_name', 'like', "%{$search}%")
+                                    ->orWhere('support_spoc_email', 'like', "%{$search}%")
+                                    ->orWhere('support_spoc_mobile', 'like', "%{$search}%")
+                                    ->orWhere('pan_number', 'like', "%{$search}%");
+                        });
+        }
+        $clients = $query->orderBy('id', 'desc')->paginate($perPage)->withQueryString();
         return view('clients.index', compact('clients', 'permissions'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
- 
+
     public function create()
 {
     // Fetch all clients that are head offices

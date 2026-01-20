@@ -67,6 +67,7 @@
                         <th><input type="checkbox" id="selectAll"></th>
                         <th>S.No</th>
                         <th>Action</th>
+                        <th>Client Name</th>
                         <th>Circuit_ID</th>
                         <th>Month Of Renewal</th>
                         <th>Date of Activation</th>
@@ -122,20 +123,18 @@
                                     </a>
                                 <?php endif; ?>
                             </td>
+                                <td><?php echo e($renewal->deliverable->client->name ?? ($renewal->feasibility->deliverable->client->name ?? '-')); ?></td>
                             <td><?php echo e($plan ? ($plan->circuit_id ?? '-') : '-'); ?></td>
                             <td><?php echo e($plan ? ($plan->no_of_months_renewal ?? '-') : '-'); ?></td>
                             <td><?php echo e($plan && $plan->date_of_activation ? \Carbon\Carbon::parse($plan->date_of_activation)->format('Y-m-d') : '-'); ?></td>
                             <td><?php echo e($plan && $plan->date_of_expiry ? \Carbon\Carbon::parse($plan->date_of_expiry)->format('Y-m-d') : '-'); ?></td>
                             <td><?php echo e($renewal->date_of_renewal ? \Carbon\Carbon::parse($renewal->date_of_renewal)->format('Y-m-d') : '-'); ?></td>
                             <td><?php echo e($renewal->new_expiry_date ? \Carbon\Carbon::parse($renewal->new_expiry_date)->format('Y-m-d') : '-'); ?></td>
-
-
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <tr>
                                 <td colspan="13" class="text-center text-muted">No renewals found.</td>
                             </tr>
                         <?php endif; ?>
-
 
        <div class="d-flex justify-content-between align-items-center mt-2 flex-wrap">
             <div class="text-muted small">

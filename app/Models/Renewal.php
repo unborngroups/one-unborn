@@ -2,6 +2,7 @@
 
 namespace App\Models;
 use App\Models\Deliverables;
+use App\Models\DeliverablePlan;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -19,5 +20,10 @@ class Renewal extends Model
     public function deliverable()
     {
         return $this->belongsTo(Deliverables::class);
+    }
+
+    public function deliverable_plans()
+    {
+        return $this->belongsTo(DeliverablePlan::class);
     }
 }

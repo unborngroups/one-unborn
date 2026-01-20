@@ -13,11 +13,11 @@
 
             {{-- Deliverable --}}
             <div class="mb-3">
-                <label for="deliverable_id" class="form-label">Deliverable</label>
-                <select name="deliverable_id" id="deliverable_id" class="form-select" required>
-                    <option value="">Select Deliverable</option>
-                    @foreach($deliverables as $d)
-                        <option value="{{ $d->id }}">
+                <label for="deliverable_id" class="form-label">Deliverable (Circuit ID)</label>
+                <select name="deliverable_id" id="deliverable_id" class="form-select select2-tags" required>
+                    <option value="">Select Circuit ID</option>
+                    @foreach($deliverables_plans as $d)
+                        <option value="{{ $d->deliverable_id }}">
                             {{ $d->circuit_id }}
                         </option>
                     @endforeach

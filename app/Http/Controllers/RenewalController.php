@@ -8,6 +8,7 @@ use App\Models\Deliverables;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use App\Helpers\TemplateHelper;
+use App\Models\DeliverablePlan;
 
 class RenewalController extends Controller
 {
@@ -16,6 +17,7 @@ class RenewalController extends Controller
         $perPage = $request->get('per_page', 10);
 
         $query = Renewal::query();
+        // this lines for filtering today, tomorrow, week in dashboard
         $filter = $request->get('filter');
         if ($filter === 'today') {
             $query->whereDate('alert_date', today());
@@ -55,8 +57,8 @@ class RenewalController extends Controller
 
     public function create()
     {
-        $deliverables = Deliverables::all();
-        return view('operations.renewals.create', compact('deliverables'));
+        $deliverables_plans = DeliverablePlan::all();
+        return view('operations.renewals.create', compact('deliverables_plans'));
     }
 
     public function store(Request $request)
@@ -93,11 +95,11 @@ class RenewalController extends Controller
     public function edit($id)
     {
         $renewal = Renewal::findOrFail($id);
-        $deliverables = Deliverables::all();
+        $deliverables_plans = DeliverablePlan::all();
 
         return view(
             'operations.renewals.edit',
-            compact('renewal', 'deliverables')
+            compact('renewal', 'deliverables_plans')
         );
     }
 
@@ -153,5 +155,14 @@ class RenewalController extends Controller
     return redirect()->route('operations.renewals.index')
                      ->with('success', 'Renewal status updated successfully.');
 }
+
+        /**
+         * Show the renewal details (for /view route).
+         */
+        public function view($id)
+        {
+            $renewal = Renewal::findOrFail($id);
+            return view('operations.renewals.view', compact('renewal'));
+        }
 
 }

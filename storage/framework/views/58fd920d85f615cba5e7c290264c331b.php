@@ -59,7 +59,7 @@
                     <option value="50" <?php echo e(request('per_page') == 50 ? 'selected' : ''); ?>>50</option>
                     <option value="100" <?php echo e(request('per_page') == 100 ? 'selected' : ''); ?>>100</option>
                 </select>
-                <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search...">
+                <input type="text" name="search" value="<?php echo e(request('search')); ?>" class="form-control form-control-sm w-25" placeholder="Search..." onkeyup="this.form.submit();">
             </form>
 
             
@@ -327,17 +327,8 @@
 
 <script>
 
-document.getElementById('tableSearch').addEventListener('keyup', function() {
 
-    let value = this.value.toLowerCase();
-
-    document.querySelectorAll('#vendorTable tbody tr').forEach(row => {
-
-        row.style.display = row.textContent.toLowerCase().includes(value) ? '' : 'none';
-
-    });
-
-});
+// (No client-side search, now server-side search is used)
 
 
 

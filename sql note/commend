@@ -1,0 +1,4 @@
+<!-- purchase order ra db la import panna itha terminal la run pannanum -->
+php artisan sync:deliverables-from-pos
+
+

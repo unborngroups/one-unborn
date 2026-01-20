@@ -87,7 +87,7 @@
                 <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
                 <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
             </select>
-            <input type="text" name="feasibility_request_id" value="{{ request('feasibility_request_id') }}" class="form-control form-control-sm w-25" placeholder="Feasibility ID..." onchange="this.form.submit()">
+                        <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-sm w-25" placeholder="Search..." onkeyup="this.form.submit()">
         </form>
                     </div>
 
@@ -136,7 +136,7 @@
                                     <input type="checkbox" class="row-checkbox" value="{{ $po->id }}">
                                 </td>
 
-                                        <td>{{ $index + 1 }}</td>
+                                        <td>{{ $purchaseOrders->firstItem() + $index }}</td>
 
                                         <td class="text-center d-flex justify-content-center gap-1">
 
@@ -349,17 +349,17 @@
 
 <script>
     // 
-     document.getElementById('tableSearch').addEventListener('keyup', function() {
+//      document.getElementById('tableSearch').addEventListener('keyup', function() {
 
-    let value = this.value.toLowerCase();
+//     let value = this.value.toLowerCase();
 
-    document.querySelectorAll('#purchaseorder tbody tr').forEach(row => {
+//     document.querySelectorAll('#purchaseorder tbody tr').forEach(row => {
 
-        row.style.display = row.textContent.toLowerCase().includes(value) ? '' : 'none';
+//         row.style.display = row.textContent.toLowerCase().includes(value) ? '' : 'none';
 
-    });
+//     });
 
-});
+// });
 
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -382,7 +382,7 @@
 });
 
     
-document.getElementById('tableSearch').addEventListener('keyup', function() {
+document.getElementById('search').addEventListener('keyup', function() {
 
     let value = this.value.toLowerCase();
 

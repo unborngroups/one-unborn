@@ -1,13 +1,29 @@
 @extends('layouts.app')
 
 @section('content')
+
+    {{-- Success Message --}}
+
+    @if(session('success'))
+
+        <div class="alert alert-success">
+
+            {{ session('success') }}
+
+        </div>
+
+    @endif
+
 <div class="container-fluid py-4">
     <div class="card shadow border-0">
         <div class="card-header bg-warning text-dark">
             <h5 class="mb-0">
                 <i class="bi bi-hourglass-half me-2 float-start"></i>In Progress Deliverables
                 
-            <input type="text" id="tableSearch" class="form-control form-control-sm w-25 float-end" placeholder="Search...">
+            <form id="searchForm" method="GET" class="d-flex align-items-center w-25 float-end">
+                <input type="text" name="search" id="tableSearch" class="form-control form-control-sm w-100" placeholder="Search..." value="{{ request('search') ?? '' }}" oninput="this.form.submit()">
+                <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
+            </form>
 
             </h5>
         </div>
@@ -48,7 +64,8 @@
                                     <input type="checkbox" class="form-check-input row-checkbox" value="{{ $record->id }}">
                                 </td> -->
 
-                                <td>{{ $index + 1 }}</td>
+                                <td>{{ ($records->currentPage() - 1) * $records->perPage() + $loop->iteration }}</td>
+
 
                                 <td>
                                     @if($permissions->can_edit)

@@ -27,7 +27,10 @@
 
                     <h5 class="mb-0"><i class="bi bi-hourglass-split me-2"></i>Open Feasibilities</h5>
 
-                    <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search...">
+                    <form id="searchForm" method="GET" class="d-flex align-items-center w-25">
+                        <input type="text" name="search" id="tableSearch" class="form-control form-control-sm w-100" placeholder="Search..." value="<?php echo e($search ?? ''); ?>" oninput="this.form.submit()">
+                        <input type="hidden" name="per_page" value="<?php echo e(request('per_page', 10)); ?>">
+                    </form>
                 </div>
 
 
@@ -82,7 +85,7 @@
                                             <td class="text-center">
                                     <input type="checkbox" class="row-checkbox" value="<?php echo e($record->id); ?>" style="width: 18px; height: 18px; cursor: pointer;">
                                 </td>
-                                            <td><?php echo e($index + 1); ?></td>
+                                            <td><?php echo e(($records->currentPage() - 1) * $records->perPage() + $loop->iteration); ?></td>
 
                                             <!-- Display feasibility request ID -->
 

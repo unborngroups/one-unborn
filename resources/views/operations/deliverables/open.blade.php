@@ -1,14 +1,31 @@
 @extends('layouts.app')
 
 @section('content')
+
+    {{-- Success Message --}}
+
+    @if(session('success'))
+
+        <div class="alert alert-success">
+
+            {{ session('success') }}
+
+        </div>
+
+    @endif
+
 <div class="container-fluid py-4">
     <div class="card shadow border-0">
         <div class="card-header bg-primary text-white">
             <h5 class="mb-0 float-start"><i class="bi bi-hourglass-split me-2"></i>Open Deliverables</h5>
             
-            <input type="text" id="tableSearch" class="form-control form-control-sm w-25 float-end" placeholder="Search...">
+            <form id="searchForm" method="GET" class="d-flex align-items-center w-25 float-end">
+                <input type="text" name="search" id="tableSearch" class="form-control form-control-sm w-100" placeholder="Search..." value="{{ request('search') ?? '' }}" oninput="this.form.submit()">
+                <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
+            </form>
 
         </div>
+        
         <form id="filterForm" method="GET" class="d-flex align-items-center gap-2 w-100">
             <label for="entriesSelect" class="mb-0">Show</label>
             <select id="entriesSelect" name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
@@ -33,13 +50,11 @@
                                 <th width="50">S.No</th>
                                 <th width="150">Action</th>
                                 <th>PO Number</th>
-                                <th>PO Date</th>
                                 <th>Client Name</th>
+                                <th>Area</th>
+                                <th>State</th>
                                 <th>No. of Links</th>
                             </tr>
-
-                            
-
                         </thead>
 
                         <tbody>
@@ -49,7 +64,8 @@
                                     <input type="checkbox" class="form-check-input row-checkbox" value="{{ $record->id }}">
                                 </td> -->
 
-                                <td>{{ $index + 1 }}</td>
+                              <td>{{ ($records->currentPage() - 1) * $records->perPage() + $loop->iteration }}</td>
+
 
                                 <td>
                                     @if($permissions->can_edit)
@@ -65,15 +81,10 @@
                                     </a>
                                     @endif
                                 </td>
-
                                 <td>{{ $record->po_number ?? 'N/A' }}</td>
-
-                                <td>
-                                    {{ $record->po_date ? \Carbon\Carbon::parse($record->po_date)->format('Y-m-d') : 'N/A' }}
-                                </td>
-
                                 <td>{{ $record->feasibility->client->client_name ?? 'N/A' }}</td>
-
+                                <td>{{ $record->feasibility->area ?? 'N/A' }}</td>
+                                <td>{{ $record->feasibility->state ?? 'N/A' }}</td>
                                 <td>{{ $record->no_of_links ?? 'N/A' }}</td>
                             </tr>
                             @endforeach

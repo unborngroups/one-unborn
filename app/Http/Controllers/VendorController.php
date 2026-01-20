@@ -26,25 +26,49 @@ class VendorController extends Controller
      */
     protected array $importErrors = [];
 
+
    public function index(Request $request)
-{
-    // Permissions
-    $permissions = TemplateHelper::getUserMenuPermissions('Vendor Master') ?? (object)[
-        'can_add' => true,
-        'can_edit' => true,
-        'can_delete' => true,
-        'can_view' => true,
-    ];
+   {
+       // Permissions
+       $permissions = TemplateHelper::getUserMenuPermissions('Vendor Master') ?? (object)[
+           'can_add' => true,
+           'can_edit' => true,
+           'can_delete' => true,
+           'can_view' => true,
+       ];
 
-    // Per page (frontend only)
-    $perPage = (int) $request->get('per_page', 10);
-    $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+       $perPage = (int) $request->get('per_page', 10);
+       $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
 
-    // Paginated vendors
-    $vendors = Vendor::orderBy('id', 'desc')->paginate($perPage);
-
-    return view('vendors.index', compact('vendors', 'permissions'));
-}
+       $query = Vendor::query();
+       if ($request->filled('search')) {
+           $search = $request->search;
+           $query->where(function($q) use ($search) {
+               $q->where('vendor_name', 'like', "%{$search}%")
+                   ->orWhere('vendor_code', 'like', "%{$search}%")
+                   ->orWhere('business_display_name', 'like', "%{$search}%")
+                   ->orWhere('contact_person_name', 'like', "%{$search}%")
+                   ->orWhere('contact_person_email', 'like', "%{$search}%")
+                   ->orWhere('contact_person_mobile', 'like', "%{$search}%")
+                   ->orWhere('address1', 'like', "%{$search}%")
+                   ->orWhere('address2', 'like', "%{$search}%")
+                   ->orWhere('address3', 'like', "%{$search}%")
+                   ->orWhere('city', 'like', "%{$search}%")
+                   ->orWhere('state', 'like', "%{$search}%")
+                   ->orWhere('country', 'like', "%{$search}%")
+                   ->orWhere('pincode', 'like', "%{$search}%")
+                   ->orWhere('contact_person_name', 'like', "%{$search}%")
+                   ->orWhere('contact_person_mobile', 'like', "%{$search}%")
+                   ->orWhere('contact_person_email', 'like', "%{$search}%")
+                   ->orWhere('bank_account_no', 'like', "%{$search}%")
+                   ->orWhere('ifsc_code', 'like', "%{$search}%")
+                   ->orWhere('gstin', 'like', "%{$search}%")
+                   ->orWhere('pan_no', 'like', "%{$search}%");
+           });
+       }
+       $vendors = $query->orderBy('id', 'desc')->paginate($perPage)->withQueryString();
+       return view('vendors.index', compact('vendors', 'permissions'));
+   }
 
 
     /**

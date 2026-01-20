@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Deliverables;
+use App\Models\Renewal;
 
 class DeliverablePlan extends Model
 {
@@ -58,5 +60,10 @@ class DeliverablePlan extends Model
     public function deliverable()
     {
         return $this->belongsTo(Deliverables::class);
+    }
+
+    public function renewals()
+    {
+        return $this->hasMany(Renewal::class, 'deliverable_id', 'deliverable_id');
     }
 }

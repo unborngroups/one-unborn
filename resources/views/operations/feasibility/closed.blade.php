@@ -27,7 +27,10 @@
 
                     <h5 class="mb-0"><i class="bi bi-check-circle me-2"></i>Closed Feasibilities</h5>
 
-                 <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search...">
+                      <form id="searchForm" method="GET" class="d-flex align-items-center w-25">
+                          <input type="text" name="search" id="tableSearch" class="form-control form-control-sm w-100" placeholder="Search..." value="{{ $search ?? '' }}" oninput="this.form.submit()">
+                          <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
+                      </form>
 
                 </div>
 
@@ -79,7 +82,7 @@
 
                                             <!-- Display serial number -->
 
-                                            <td>{{ $index + 1 }}</td>
+                                            <td>{{ ($records->currentPage() - 1) * $records->perPage() + $loop->iteration }}</td>
 
                                             <!-- Display feasibility request ID -->
 

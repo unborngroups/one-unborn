@@ -52,7 +52,7 @@
                 <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
                 <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
             </select>
-            <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search...">
+            <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-sm w-25" placeholder="Search..." onkeyup="this.form.submit();">
 
         </form>
 
