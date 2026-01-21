@@ -1,8 +1,8 @@
-@extends('layouts.app')
 
 
 
-@section('content')
+
+<?php $__env->startSection('content'); ?>
 
 <div class="container-fluid">
 
@@ -12,7 +12,7 @@
 
             <div class="card">
 
-                {{-- ✅ Page Header --}}
+                
 
                 <div class="card-header text-dark">
 
@@ -28,43 +28,44 @@
 
                 <div class="card-body">
 
-                    {{-- ✅ Error Display --}}
-                    @if(session('error'))
+                    
+                    <?php if(session('error')): ?>
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            <strong>Validation Error:</strong> {{ session('error') }}
+                            <strong>Validation Error:</strong> <?php echo e(session('error')); ?>
+
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
-                    @endif
+                    <?php endif; ?>
 
-                    @if($errors->any())
+                    <?php if($errors->any()): ?>
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
                             <strong>Please fix the following errors:</strong>
                             <ul class="mb-0 mt-2">
-                                @foreach($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
+                                <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <li><?php echo e($error); ?></li>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </ul>
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
-                    @endif
+                    <?php endif; ?>
 
-                    {{-- ✅ Purchase Order Edit Form --}}
+                    
 
-                    <form action="{{ route('sm.purchaseorder.update', $purchaseOrder->id) }}" method="POST" enctype="multipart/form-data" id="purchaseOrderForm">
+                    <form action="<?php echo e(route('sm.purchaseorder.update', $purchaseOrder->id)); ?>" method="POST" enctype="multipart/form-data" id="purchaseOrderForm">
 
                         <input type="hidden" name="allow_reuse" value="0">
 
-                        @csrf
+                        <?php echo csrf_field(); ?>
 
-                        @method('PUT')
+                        <?php echo method_field('PUT'); ?>
 
                         
 
                         <div class="row">
 
-                            {{-- ✅ Feasibility Dropdown (disabled on edit to prevent change) --}}
+                            
 
                             <div class="col-md-6 mb-3">
 
@@ -76,14 +77,14 @@
 
                                 <input type="text" class="form-control" 
 
-                                       value="{{ $purchaseOrder->feasibility->feasibility_request_id }} - {{ $purchaseOrder->feasibility->client->client_name ?? 'Unknown' }}" 
+                                       value="<?php echo e($purchaseOrder->feasibility->feasibility_request_id); ?> - <?php echo e($purchaseOrder->feasibility->client->client_name ?? 'Unknown'); ?>" 
 
                                        disabled>
 
-                                <input type="hidden" name="feasibility_id" value="{{ $purchaseOrder->feasibility_id }}">
+                                <input type="hidden" name="feasibility_id" value="<?php echo e($purchaseOrder->feasibility_id); ?>">
 
-                                {{-- Feasibility Address Preview (read-only) --}}
-                                @php
+                                
+                                <?php
                                     $feas = $purchaseOrder->feasibility;
                                     $addrParts = collect([
                                         $feas->address ?? null,
@@ -93,19 +94,19 @@
                                         $feas->pincode ?? null,
                                     ])->filter();
                                     $feasAddressText = $addrParts->isNotEmpty() ? $addrParts->implode(', ') : '';
-                                @endphp
-                                @if($feasAddressText)
+                                ?>
+                                <?php if($feasAddressText): ?>
                                     <div class="mt-2">
                                         <label class="form-label mb-1"><strong>Feasibility Address</strong></label>
-                                        <textarea class="form-control bg-light" rows="2" readonly>{{ $feasAddressText }}</textarea>
+                                        <textarea class="form-control bg-light" rows="2" readonly><?php echo e($feasAddressText); ?></textarea>
                                     </div>
-                                @endif
+                                <?php endif; ?>
 
                             </div>
 
 
 
-                            {{-- PO Number --}}
+                            
 
                             <div class="col-md-6 mb-3">
 
@@ -115,23 +116,37 @@
 
                                 </label>
 
-                                <input type="text" class="form-control @error('po_number') is-invalid @enderror" 
+                                <input type="text" class="form-control <?php $__errorArgs = ['po_number'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
 
                                        id="po_number" name="po_number" 
 
-                                       value="{{ old('po_number', $purchaseOrder->po_number) }}" required>
+                                       value="<?php echo e(old('po_number', $purchaseOrder->po_number)); ?>" required>
 
-                                @error('po_number')
+                                <?php $__errorArgs = ['po_number'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
 
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    <div class="invalid-feedback"><?php echo e($message); ?></div>
 
-                                @enderror
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
 
                             </div>
 
 
 
-                            {{-- PO Date --}}
+                            
 
                             <div class="col-md-6 mb-3">
 
@@ -141,32 +156,60 @@
 
                                 </label>
 
-                                <input type="date" class="form-control @error('po_date') is-invalid @enderror" 
+                                <input type="date" class="form-control <?php $__errorArgs = ['po_date'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
 
                                        id="po_date" name="po_date" 
 
-                                       value="{{ old('po_date', $purchaseOrder->po_date) }}" required>
+                                       value="<?php echo e(old('po_date', $purchaseOrder->po_date)); ?>" required>
 
-                                @error('po_date')
+                                <?php $__errorArgs = ['po_date'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
 
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    <div class="invalid-feedback"><?php echo e($message); ?></div>
 
-                                @enderror
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
 
                             </div>
 
-                            {{-- PO Status --}}
+                            
                             <!-- <div class="col-md-6 mb-3">
                                 <label for="status" class="form-label">
                                     <strong>PO Status <span class="text-danger">*</span></strong>
                                 </label>
-                                <select class="form-select @error('status') is-invalid @enderror" id="status" name="status" required>
-                                    <option value="Active" {{ old('status', $purchaseOrder->status) == 'Active' ? 'selected' : '' }}>Active</option>
-                                    <option value="Inactive" {{ old('status', $purchaseOrder->status) == 'Inactive' ? 'selected' : '' }}>Inactive</option>
+                                <select class="form-select <?php $__errorArgs = ['status'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" id="status" name="status" required>
+                                    <option value="Active" <?php echo e(old('status', $purchaseOrder->status) == 'Active' ? 'selected' : ''); ?>>Active</option>
+                                    <option value="Inactive" <?php echo e(old('status', $purchaseOrder->status) == 'Inactive' ? 'selected' : ''); ?>>Inactive</option>
                                 </select>
-                                @error('status')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                <?php $__errorArgs = ['status'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <div class="invalid-feedback"><?php echo e($message); ?></div>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                                 <div class="form-text">
                                     <i class="bi bi-info-circle"></i> Changing status to <strong>"Active"</strong> will automatically create a Deliverable record.
                                 </div>
@@ -176,7 +219,7 @@
 
 
 
-                        {{-- Number of Links --}}
+                        
 
                         <div class="row">
 
@@ -188,11 +231,11 @@
 
                                     <option value="">Select</option>
 
-                                    @for($i = 1; $i <= 4; $i++)
+                                    <?php for($i = 1; $i <= 4; $i++): ?>
 
-                                        <option value="{{ $i }}" {{ old('no_of_links', $purchaseOrder->no_of_links) == $i ? 'selected' : '' }}>{{ $i }}</option>
+                                        <option value="<?php echo e($i); ?>" <?php echo e(old('no_of_links', $purchaseOrder->no_of_links) == $i ? 'selected' : ''); ?>><?php echo e($i); ?></option>
 
-                                    @endfor
+                                    <?php endfor; ?>
 
                                 </select>
 
@@ -202,7 +245,7 @@
 
 
 
-                        {{-- Dynamic Pricing Fields --}}
+                        
 
                         <div id="dynamicPricingContainer" style="display: block;">
 
@@ -218,27 +261,27 @@
 
                                     <div id="pricingFieldsContainer">
 
-                                        @for($i = 1; $i <= $purchaseOrder->no_of_links; $i++)
+                                        <?php for($i = 1; $i <= $purchaseOrder->no_of_links; $i++): ?>
 
                                             <div class="row mb-3">
 
                                                 <div class="col-12 mb-2">
 
-                                                    <h6 class="text-primary">Link {{ $i }} Pricing</h6>
+                                                    <h6 class="text-primary">Link <?php echo e($i); ?> Pricing</h6>
 
                                                 </div>
 
                                                 <div class="col-md-4">
 
-                                                    <label class="form-label">ARC - Link {{ $i }} (₹) *</label>
+                                                    <label class="form-label">ARC - Link <?php echo e($i); ?> (₹) *</label>
 
                                                     <input type="number" step="0.01" min="0" 
 
-                                                        class="form-control" name="arc_link_{{ $i }}" 
+                                                        class="form-control" name="arc_link_<?php echo e($i); ?>" 
 
-                                                        id="arc_link_{{ $i }}" 
+                                                        id="arc_link_<?php echo e($i); ?>" 
 
-                                                        value="{{ old('arc_link_'.$i, $purchaseOrder['arc_link_'.$i]) }}" 
+                                                        value="<?php echo e(old('arc_link_'.$i, $purchaseOrder['arc_link_'.$i])); ?>" 
 
                                                         required onchange="calculateTotal()">
 
@@ -246,15 +289,15 @@
 
                                                 <div class="col-md-4">
 
-                                                    <label class="form-label">OTC - Link {{ $i }} (₹) *</label>
+                                                    <label class="form-label">OTC - Link <?php echo e($i); ?> (₹) *</label>
 
                                                     <input type="number" step="0.01" min="0" 
 
-                                                        class="form-control" name="otc_link_{{ $i }}" 
+                                                        class="form-control" name="otc_link_<?php echo e($i); ?>" 
 
-                                                        id="otc_link_{{ $i }}" 
+                                                        id="otc_link_<?php echo e($i); ?>" 
 
-                                                        value="{{ old('otc_link_'.$i, $purchaseOrder['otc_link_'.$i]) }}" 
+                                                        value="<?php echo e(old('otc_link_'.$i, $purchaseOrder['otc_link_'.$i])); ?>" 
 
                                                         required onchange="calculateTotal()">
 
@@ -262,15 +305,15 @@
 
                                                 <div class="col-md-4">
 
-                                                    <label class="form-label">STATIC IP - Link {{ $i }} (₹) *</label>
+                                                    <label class="form-label">STATIC IP - Link <?php echo e($i); ?> (₹) *</label>
 
                                                     <input type="number" step="0.01" min="0" 
 
-                                                        class="form-control" name="static_ip_link_{{ $i }}" 
+                                                        class="form-control" name="static_ip_link_<?php echo e($i); ?>" 
 
-                                                        id="static_ip_link_{{ $i }}" 
+                                                        id="static_ip_link_<?php echo e($i); ?>" 
 
-                                                        value="{{ old('static_ip_link_'.$i, $purchaseOrder['static_ip_link_'.$i]) }}" 
+                                                        value="<?php echo e(old('static_ip_link_'.$i, $purchaseOrder['static_ip_link_'.$i])); ?>" 
 
                                                         required onchange="calculateTotal()">
 
@@ -278,7 +321,7 @@
 
                                             </div>
 
-                                        @endfor
+                                        <?php endfor; ?>
 
                                     </div>
 
@@ -290,7 +333,7 @@
 
 
 
-                        {{-- Contract + Total Cost --}}
+                        
 
                         <div class="row">
 
@@ -302,17 +345,31 @@
 
                                 </label>
 
-                                <input type="number" min="1" class="form-control @error('contract_period') is-invalid @enderror" 
+                                <input type="number" min="1" class="form-control <?php $__errorArgs = ['contract_period'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
 
                                        id="contract_period" name="contract_period" 
 
-                                       value="{{ old('contract_period', $purchaseOrder->contract_period) }}" required>
+                                       value="<?php echo e(old('contract_period', $purchaseOrder->contract_period)); ?>" required>
 
-                                @error('contract_period')
+                                <?php $__errorArgs = ['contract_period'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
 
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    <div class="invalid-feedback"><?php echo e($message); ?></div>
 
-                                @enderror
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
 
                             </div>
 
@@ -324,7 +381,8 @@
 
                                 <div class="form-control bg-light" id="totalCost">
 
-                                    ₹{{ number_format($purchaseOrder->total_cost, 2) }}
+                                    ₹<?php echo e(number_format($purchaseOrder->total_cost, 2)); ?>
+
 
                                 </div>
 
@@ -335,11 +393,11 @@
                             <div class="col-md-4 mb-3">
                                 <label for="import_file">Import Document</label>
                                 <input type="file" class="form-control" name="import_file" id="import_file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx">
-                                @if($purchaseOrder->import_file)
-                                <a href="{{ asset($purchaseOrder->import_file) }}" target="_blank">
+                                <?php if($purchaseOrder->import_file): ?>
+                                <a href="<?php echo e(asset($purchaseOrder->import_file)); ?>" target="_blank">
                                     View existing file
                                 </a>
-                                @endif
+                                <?php endif; ?>
 
                             </div>
                         </div>
@@ -349,13 +407,13 @@
 
 
 
-                        {{-- Action Buttons --}}
+                        
 
                         <div class="row">
 
                             <div class="col-12 text-end">
 
-                                <a href="{{ route('sm.purchaseorder.index') }}" class="btn btn-secondary me-2">
+                                <a href="<?php echo e(route('sm.purchaseorder.index')); ?>" class="btn btn-secondary me-2">
 
                                     <i class="bi bi-arrow-left"></i> Cancel
 
@@ -387,7 +445,7 @@
 
 
 
-{{-- ✅ Enhanced JavaScript for Dynamic Pricing and Feasibility Integration --}}
+
 
 <script>
 
@@ -917,7 +975,7 @@ function checkFeasibilityAmount(amountType, amount) {
 
 
 
-// {{-- ✅ Auto-calculate Total Cost --}}
+// 
 
 function calculateTotal() {
 
@@ -1173,5 +1231,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
 </script>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views/sm/purchaseorder/edit.blade.php ENDPATH**/ ?>

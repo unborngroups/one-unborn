@@ -255,13 +255,19 @@ class DeliverablesController extends Controller
             }
         }
 
+        $hardwareDetails = $record->feasibility->hardware_details ?? [];
+        if (is_array($hardwareDetails)) {
+            // Already casted by Eloquent $casts
+        } else {
+            $hardwareDetails = json_decode($hardwareDetails ?: '[]', true);
+        }
         return view('operations.deliverables.edit', [
             'record' => $record,
-                'assetOptions' => Asset::whereNotNull('asset_id')
-                    ->whereNotNull('serial_no')
-                    ->select('asset_id', 'serial_no', 'mac_no', DB::raw("'Inventory' as vendor_name"))
-                    ->orderBy('asset_id')->get(),
-            'hardwareDetails' => json_decode($record->feasibility->hardware_details ?? '[]', true),
+            'assetOptions' => Asset::whereNotNull('asset_id')
+                ->whereNotNull('serial_no')
+                ->select('asset_id', 'serial_no', 'mac_no', DB::raw("'Inventory' as vendor_name"))
+                ->orderBy('asset_id')->get(),
+            'hardwareDetails' => $hardwareDetails,
             'linkVendors' => $linkVendors,
         ]);
     }

@@ -28,114 +28,13 @@ ADD personal_email VARCHAR(500) NULL;
 ALTER TABLE user_types
 ADD email VARCHAR(500) NULL AFTER name;
 
-
-/*****************************************************************************************/
-/*****************************************************************************************/
-
--- ============================================
--- Add "Common Settings" menu to live database
--- ============================================
-
-INSERT INTO menus (module_name, user_type, name, route, icon, can_menu, can_add, can_edit, can_delete, can_view, created_at, updated_at)
-SELECT 'Settings', 'superadmin', 'Common Settings', 'settings.index', 'bi bi-gear', 1, 1, 1, 1, 1, NOW(), NOW()
-FROM DUAL
-WHERE NOT EXISTS (
-    SELECT 1 FROM menus WHERE route = 'settings.index' AND name = 'Common Settings'
-);
-
--- Get the inserted or existing menu ID
-SET @menu_id = (SELECT id FROM menus WHERE route = 'settings.index' AND name = 'Common Settings' LIMIT 1);
-
-SET @superadmin_type_id = (SELECT id FROM user_types WHERE name = 'superadmin' LIMIT 1);
-
-INSERT INTO user_type_menu_privileges (user_type_id, menu_id, can_menu, can_add, can_edit, can_delete, can_view, created_at, updated_at)
-SELECT @superadmin_type_id, @menu_id, 1, 1, 1, 1, 1, NOW(), NOW()
-FROM DUAL
-WHERE NOT EXISTS (
-    SELECT 1 FROM user_type_menu_privileges 
-    WHERE user_type_id = @superadmin_type_id AND menu_id = @menu_id
-);
-
-SET @superadmin_user_id = (SELECT id FROM users WHERE email = 'superadmin@example.com' LIMIT 1);
-
-INSERT INTO user_menu_privileges (user_id, menu_id, can_menu, can_add, can_edit, can_delete, can_view, created_at, updated_at)
-SELECT @superadmin_user_id, @menu_id, 1, 1, 1, 1, 1, NOW(), NOW()
-FROM DUAL
-WHERE NOT EXISTS (
-    SELECT 1 FROM user_menu_privileges 
-    WHERE user_id = @superadmin_user_id AND menu_id = @menu_id
-);
-
-/****************************************************************/
--- ============================================
--- Add "WhatsApp Settings" menu to live database
--- ============================================
-
-INSERT INTO menus (module_name, user_type, name, route, icon, can_menu, can_add, can_edit, can_delete, can_view, created_at, updated_at)
-SELECT 'Settings', 'superadmin', 'WhatsApp Settings', 'whatsapp.settings', 'bi bi-whatsapp', 1, 1, 1, 1, 1, NOW(), NOW()
-FROM DUAL
-WHERE NOT EXISTS (
-    SELECT 1 FROM menus WHERE route = 'whatsapp.settings' AND name = 'WhatsApp Settings'
-);
-
--- Get the inserted or existing menu ID
-SET @menu_id = (SELECT id FROM menus WHERE route = 'whatsapp.settings' AND name = 'WhatsApp Settings' LIMIT 1);
-
-SET @superadmin_type_id = (SELECT id FROM user_types WHERE name = 'superadmin' LIMIT 1);
-
-INSERT INTO user_type_menu_privileges (user_type_id, menu_id, can_menu, can_add, can_edit, can_delete, can_view, created_at, updated_at)
-SELECT @superadmin_type_id, @menu_id, 1, 1, 1, 1, 1, NOW(), NOW()
-FROM DUAL
-WHERE NOT EXISTS (
-    SELECT 1 FROM user_type_menu_privileges
-    WHERE user_type_id = @superadmin_type_id AND menu_id = @menu_id
-);
-
-SET @superadmin_user_id = (SELECT id FROM users WHERE email = 'superadmin@example.com' LIMIT 1);
-
-INSERT INTO user_menu_privileges (user_id, menu_id, can_menu, can_add, can_edit, can_delete, can_view, created_at, updated_at)
-SELECT @superadmin_user_id, @menu_id, 1, 1, 1, 1, 1, NOW(), NOW()
-FROM DUAL
-WHERE NOT EXISTS (
-    SELECT 1 FROM user_menu_privileges
-    WHERE user_id = @superadmin_user_id AND menu_id = @menu_id
-);
-
 /********************************************************************************/
 ALTER TABLE feasibilities 
 ADD COLUMN static_ip_subnet VARCHAR(10) NULL 
 AFTER static_ip;
 
 /*************************************************************************************21/11/2025**********************************************************/
-INSERT INTO menus (module_name, user_type, name, route, icon, can_menu, can_add, can_edit, can_delete, can_view, created_at, updated_at)
-SELECT 'Sales & Marketing', 'superadmin', 'Proposal', 'proposal.index', 'bi bi-whatsapp', 1, 1, 1, 1, 1, NOW(), NOW()
-FROM DUAL
-WHERE NOT EXISTS (
-    SELECT 1 FROM menus WHERE route = 'proposal.index' AND name = 'Proposal'
-);
 
--- Get the inserted or existing menu ID
-SET @menu_id = (SELECT id FROM menus WHERE route = 'proposal.index' AND name = 'proposal.index' LIMIT 1);
-
-SET @superadmin_type_id = (SELECT id FROM user_types WHERE name = 'superadmin' LIMIT 1);
-
-INSERT INTO user_type_menu_privileges (user_type_id, menu_id, can_menu, can_add, can_edit, can_delete, can_view, created_at, updated_at)
-SELECT @superadmin_type_id, @menu_id, 1, 1, 1, 1, 1, NOW(), NOW()
-FROM DUAL
-WHERE NOT EXISTS (
-    SELECT 1 FROM user_type_menu_privileges
-    WHERE user_type_id = @superadmin_type_id AND menu_id = @menu_id
-);
-
-SET @superadmin_user_id = (SELECT id FROM users WHERE email = 'superadmin@example.com' LIMIT 1);
-
-INSERT INTO user_menu_privileges (user_id, menu_id, can_menu, can_add, can_edit, can_delete, can_view, created_at, updated_at)
-SELECT @superadmin_user_id, @menu_id, 1, 1, 1, 1, 1, NOW(), NOW()
-FROM DUAL
-WHERE NOT EXISTS (
-    SELECT 1 FROM user_menu_privileges
-    WHERE user_id = @superadmin_user_id AND menu_id = @menu_id
-);
 /*************************************************************************24-11-2025**************************************************************************************/
 
 ALTER TABLE companies 
@@ -186,15 +85,6 @@ ALTER TABLE vendors
 ADD COLUMN bank_name VARCHAR(255) NULL 
 AFTER branch_name;
 
-
-INSERT INTO menus (id, module_name, user_type, name, route, icon, can_menu, can_add, can_edit, can_delete, can_view)
-VALUES
-  (35, 'Finance', 'superadmin', 'Accounts', 'finance.accounts.index', 'bi bi-wallet2', 1, 1, 1, 1, 1),
-  (36, 'Compliance', 'superadmin', 'Compliance', 'compliance.index', 'bi bi-shield-check', 1, 1, 1, 1, 1),
-  (37, 'HR', 'superadmin', 'HR', 'hr.index', 'bi bi-people-fill', 1, 1, 1, 1, 1),
-  (38, 'Training', 'superadmin', 'Training', 'training.index', 'bi bi-journal-bookmark', 1, 1, 1, 1, 1),
-  (39, 'Admin', 'superadmin', 'Admin', 'admin.index', 'bi bi-gear-fill', 1, 1, 1, 1, 1),
-  (40, 'Strategy', 'superadmin', 'Strategy', 'strategy.index', 'bi bi-graph-up', 1, 1, 1, 1, 1);
 
 ALTER TABLE menus
   MODIFY created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -322,14 +212,6 @@ ADD `asset_serial_no` VARCHAR(255) NULL AFTER `asset_id`;
 
 /*****/
 
-INSERT INTO menus (id, module_name, user_type, name, route, icon, can_menu, can_add, can_edit, can_delete, can_view)
-VALUES
-  (42, 'Asset Master', 'superadmin', 'Asset Master', 'null', 'bi bi-box-seam', 1, 1, 1, 1, 1),
-  (43, 'Asset Master', 'superadmin', 'Asset Type', 'assetmaster.asset_type.index', 'bi bi-tag', 1, 1, 1, 1, 1),
-  (44, 'Asset Master', 'superadmin', 'Make Type', 'assetmaster.make_type.index', 'bi bi-tools', 1, 1, 1, 1, 1),
-  (45, 'Asset', 'superadmin', 'Asset', 'asset.index', 'bi bi-shield-check', 1, 1, 1, 1, 1),
-
-  
 ALTER TABLE `assets`
 DROP COLUMN `warranty_date`;
 
@@ -375,49 +257,10 @@ REFERENCES purchase_orders(id)
 ON DELETE CASCADE;
 
 
-INSERT INTO menus (id, module_name, user_type, name, route, icon, can_menu, can_add, can_edit, can_delete, can_view)
-VALUES
-  (46, 'Sales & Marketing', 'superadmin', 'sm Deliverables', 'sm.deliverables.open', 'bi bi-truck', 1, 1, 1, 1, 1),
-
 
 ALTER TABLE login_logs
 ADD COLUMN last_activity TIMESTAMP NULL AFTER logout_time;
 
-
-/****************************************************************************************************/
--- ALTER TABLE `purchase_orders`
---   DROP INDEX `purchase_orders_po_number_unique`;
--- ALTER TABLE `purchase_orders`
---   DROP INDEX `purchase_orders_po_number_index`;
--- ALTER TABLE `purchase_orders`
---   ADD INDEX `po_number_idx` (`po_number`),
---   ADD COLUMN `reused_from_purchase_order_id` BIGINT UNSIGNED NULL AFTER `po_number`,
---   ADD CONSTRAINT `purchase_orders_reused_from_purchase_order_id_foreign`
---     FOREIGN KEY (`reused_from_purchase_order_id`)
---     REFERENCES `purchase_orders` (`id`)
---     ON DELETE SET NULL;
-
-
---     ALTER TABLE `purchase_orders`
---   DROP FOREIGN KEY `purchase_orders_reused_from_purchase_order_id_foreign`,
---   DROP COLUMN `reused_from_purchase_order_id`;
--- ALTER TABLE `purchase_orders`
---   DROP INDEX `po_number_idx`;
--- ALTER TABLE `purchase_orders`
---   ADD UNIQUE INDEX `purchase_orders_po_number_unique` (`po_number`);
-
-
-
-  -- ALTER TABLE `purchase_orders`
-  -- DROP INDEX `purchase_orders_po_number_unique`,
-  -- DROP INDEX IF EXISTS `purchase_orders_po_number_index`,
-  -- ADD INDEX `po_number_idx` (`po_number`),
-  -- ADD COLUMN `reused_from_purchase_order_id` BIGINT UNSIGNED NULL AFTER `po_number`,
-  -- ADD CONSTRAINT `purchase_orders_reused_from_purchase_order_id_foreign`
-  --   FOREIGN KEY (`reused_from_purchase_order_id`)
-  --   REFERENCES `purchase_orders` (`id`)
-  --   ON DELETE SET NULL;
--- 
 ALTER TABLE purchase_orders
 ADD COLUMN reused_from_purchase_order_id BIGINT UNSIGNED NULL AFTER po_number,
 ADD CONSTRAINT purchase_orders_reused_from_purchase_order_id_foreign

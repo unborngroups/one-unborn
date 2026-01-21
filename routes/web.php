@@ -17,7 +17,8 @@ use App\Http\Controllers\TaxInvoiceSettingsController;
 use App\Http\Controllers\FeasibilityStatusController;
 use App\Http\Controllers\Finance\VendorInvoiceController;
 use App\Http\Controllers\Finance\ExpenseController;
-use App\Http\Controllers\Finance\DebitNoteController;  
+use App\Http\Controllers\Finance\DebitNoteController; 
+use App\Http\Controllers\TerminationController;
 use App\Http\Controllers\RenewalController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PincodeLookupController;
@@ -303,6 +304,15 @@ Route::put('/operations/asset/{id}', [AssetController::class, 'update'])->name('
 Route::delete('/operations/asset/{asset}', [AssetController::class, 'destroy'])->name('operations.asset.destroy');
 Route::get('/operations/asset/{id}/print', [AssetController::class, 'print'])->name('operations.asset.print');
 
+    route::get('/operations/termination', [TerminationController::class, 'index'])->name('operations.termination.index');
+    route::get('/operations/termination/create', [TerminationController::class, 'create'])->name('operations.termination.create');
+    route::post('/operations/termination', [TerminationController::class, 'store'])->name('operations.termination.store');
+    Route::get('/operations/termination/{id}/edit', [TerminationController::class, 'edit'])->name('operations.termination.edit');
+    Route::put('/operations/termination/{id}', [TerminationController::class, 'update'])->name('operations.termination.update');
+    // Route::delete('/operations/termination/{id}', [TerminationController::class, 'destroy'])->name('operations.termination.destroy');
+    Route::get('/operations/termination/{id}/view', [TerminationController::class, 'view'])->name('operations.termination.view');
+    // Route::patch('/operations/termination/{id}/toggle-status', [TerminationController::class, 'toggleStatus'])->name('operations.termination.toggle-status');
+    
             // Route::get('renewals/{id}/view', [RenewalController::class, 'view'])->name('renewals.view');
 
     // ✅ Sales & Marketing Deliverables keep their own URLs but reuse the operations controller

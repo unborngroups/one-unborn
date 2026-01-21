@@ -55,6 +55,7 @@ class ClientController extends Controller
                                     ->orWhere('gstin', 'like', "%{$search}%")
                                     ->orWhere('invoice_email', 'like', "%{$search}%")
                                     ->orWhere('invoice_cc', 'like', "%{$search}%")
+                                    ->orWhere('billing_sequence', 'like', "%{$search}%")
                                     ->orWhere('support_spoc_name', 'like', "%{$search}%")
                                     ->orWhere('support_spoc_email', 'like', "%{$search}%")
                                     ->orWhere('support_spoc_mobile', 'like', "%{$search}%")
@@ -116,6 +117,7 @@ class ClientController extends Controller
             'billing_spoc_name'    => 'nullable|string|max:255',
             'billing_spoc_contact' => 'nullable|string|max:20',
             'billing_spoc_email'   => 'nullable|email|max:255',
+            'billing_sequence'     => 'nullable|string|max:20',
             'gstin'                => 'nullable|string|max:20',
 
             //New Invoice Emails
@@ -233,6 +235,7 @@ $validated['portal_active'] = 1;
         'billing_spoc_name'    => 'nullable|string|max:255',
         'billing_spoc_contact' => 'nullable|string|max:20',
         'billing_spoc_email'   => 'nullable|email|max:255',
+        'billing_sequence'     => 'nullable|string|max:20',
         'gstin'                => 'nullable|string|max:20',
 
         // Invoice

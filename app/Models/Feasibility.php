@@ -4,7 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use App\Models\FeasibilityStatus;
+use App\Models\Client;
+use App\Models\User;
+use App\Models\PurchaseOrder;
+use App\Models\Company;
+use App\Models\DeliverablePlan;
 
 class Feasibility extends Model
 {
@@ -96,5 +101,8 @@ public function company() {
     return $this->belongsTo(Company::class);
 }
 
-  
+public function deliverable_plans()
+    {
+        return $this->belongsTo(DeliverablePlan::class);
+    }
 }

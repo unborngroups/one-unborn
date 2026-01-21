@@ -253,24 +253,26 @@
                     
                 </div>
 
+                <div class="col-md-3">
+                    <!-- <label for="form-label">Billing Sequence</label> -->
+                    <select name="billing_sequence" class="form-select">
+                        <option value="">select billing sequence</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="quarterly">Quarterly</option>
+                        <option value="half-yearly">Half-Yearly</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
+                </div>
+
             </div>
-
-
-
-            
-
-
-
 
             
 
             <h5 class="text-secondary mt-3">Invoice Details</h5>
 
-
-
             <div class="row mb-3">
 
-                <div class="col-md-6">
+                <div class="col-md-4">
 
                     <label class="form-label">Invoice Email</label>
 
@@ -278,9 +280,7 @@
 
                 </div>
 
-
-
-                <div class="col-md-6">
+                <div class="col-md-4">
 
                     <label class="form-label">Invoice CC</label>
 
@@ -294,8 +294,6 @@
 
             </div>
 
-
-
             
 
             <h5 class="text-secondary mt-3">Technical Support</h5>
@@ -305,25 +303,15 @@
             <div class="row">
 
                 <div class="col-md-4">
-
                     <input type="text" name="support_spoc_name" class="form-control mb-2" placeholder="SPOC Name">
-
                 </div>
 
-
-
                 <div class="col-md-4">
-
                     <input type="text" name="support_spoc_mobile" class="form-control mb-2" placeholder="Mobile Number">
-
                 </div>
 
-
-
                 <div class="col-md-4">
-
                     <input type="email" name="support_spoc_email" id="support_spoc_email" class="form-control mb-2" placeholder="Email">
-
                 </div>
                 
             </div>
@@ -331,8 +319,6 @@
 
 
             <input type="hidden" name="status" value="Active">
-
-
 
             <button type="submit" class="btn btn-success mt-3">Save Client</button>
 

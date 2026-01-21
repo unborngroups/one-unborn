@@ -64,14 +64,11 @@
                 <thead class="table-dark-primary text-center">
 
                     <tr>
-                        <th><input type="checkbox" id="selectAll"></th>
                         <th>S.No</th>
                         <th>Action</th>
                         <th>Client Name</th>
+                        <th>Area State</th>
                         <th>Circuit_ID</th>
-                        <th>Month Of Renewal</th>
-                        <th>Date of Activation</th>
-                        <th>Date of Expiry</th>
                         <th>Date of Renewal</th>
                         <th>New Date of Expiry</th>
                         <th>Status</th>
@@ -84,7 +81,6 @@
                             $plan = $renewal->deliverable->deliverablePlans->where('circuit_id', $renewal->circuit_id)->first();
                         ?>
                         <tr>
-                            <td><input type="checkbox" class="rowCheckbox" value="<?php echo e($renewal->id); ?>"></td>
                             <td class="text-center"><?php echo e($key+1); ?></td>
                             <td class="text-center d-flex justify-content-center gap-1">
                                 
@@ -123,13 +119,26 @@
                                     </a>
                                 <?php endif; ?>
                             </td>
-                                <td><?php echo e($renewal->deliverable->client->name ?? ($renewal->feasibility->deliverable->client->name ?? '-')); ?></td>
-                            <td><?php echo e($plan ? ($plan->circuit_id ?? '-') : '-'); ?></td>
-                            <td><?php echo e($plan ? ($plan->no_of_months_renewal ?? '-') : '-'); ?></td>
-                            <td><?php echo e($plan && $plan->date_of_activation ? \Carbon\Carbon::parse($plan->date_of_activation)->format('Y-m-d') : '-'); ?></td>
-                            <td><?php echo e($plan && $plan->date_of_expiry ? \Carbon\Carbon::parse($plan->date_of_expiry)->format('Y-m-d') : '-'); ?></td>
+                                
+                            <td><?php echo e($renewal->deliverable->feasibility->client->client_name ?? '-'); ?></td>
+                            <td><?php echo e($renewal->deliverable->feasibility->area ?? '-'); ?>, <?php echo e($renewal->deliverable->feasibility->state ?? '-'); ?></td>
+                            <td><?php echo e($renewal->circuit_id ?? (\App\Models\DeliverablePlan::where('deliverable_id', $renewal->deliverable_id)->value('circuit_id') ?? '-')); ?></td>
                             <td><?php echo e($renewal->date_of_renewal ? \Carbon\Carbon::parse($renewal->date_of_renewal)->format('Y-m-d') : '-'); ?></td>
-                            <td><?php echo e($renewal->new_expiry_date ? \Carbon\Carbon::parse($renewal->new_expiry_date)->format('Y-m-d') : '-'); ?></td>
+                            <td>
+                                <?php echo e($renewal->date_of_renewal && $renewal->new_expiry_date ? \Carbon\Carbon::parse($renewal->new_expiry_date)->format('Y-m-d') : 'N/A'); ?>
+
+                            </td>
+                           
+                            <td>
+                                <form action="<?php echo e(route('operations.renewals.toggle-status', $renewal->id)); ?>" method="POST" class="d-inline">
+                                    <?php echo csrf_field(); ?>
+                                    <?php echo method_field('PATCH'); ?>
+                                    <button type="submit" class="btn btn-sm <?php echo e($renewal->status == 'Active' ? 'btn-success' : 'btn-secondary'); ?>">
+                                        <?php echo e($renewal->status ?? 'Inactive'); ?>
+
+                                    </button>
+                                </form>
+                            </td>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <tr>
                                 <td colspan="13" class="text-center text-muted">No renewals found.</td>

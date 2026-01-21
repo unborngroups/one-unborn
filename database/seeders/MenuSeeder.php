@@ -55,6 +55,7 @@ class MenuSeeder extends Seeder
             ['module_name' => 'operations', 'user_type' => 'superadmin', 'name' => 'operations Deliverables', 'sub_section' => 'Operations Deliverables Acceptance' , 'route' => 'operations.deliverables.acceptance', 'icon' => 'bi bi-truck', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             ['module_name' => 'operations', 'user_type' => 'superadmin', 'name' => 'Asset', 'sub_section' => null , 'route' => 'operations.asset.index', 'icon' => 'bi bi-shield-check', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             ['module_name' => 'operations', 'user_type' => 'superadmin', 'name' => 'Renewals', 'sub_section' => null , 'route' => 'operations.renewals.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
+            ['module_name' => 'operations', 'user_type' => 'superadmin', 'name' => 'Termination', 'sub_section' => null , 'route' => 'operations.termination.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             
             // Finance Module
             ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Accounts', 'sub_section' => null , 'route' => 'finance.accounts.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],

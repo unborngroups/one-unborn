@@ -49,66 +49,70 @@
         </div>
     @endif
 
+
     {{-- IMPORT FAILED ROWS TABLE --}}
-        @if (session('import_errors'))
-            <div class="alert alert-warning">
-                <strong>Import could not process some rows:</strong>
-                @if(session('failed_rows'))
-                    @if(count(session('failed_rows', [])) > 0)
-                        <form action="#" method="POST" class="mt-2">
-                            @csrf
-                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="downloadFailedRowFeasibility()">Download Failed Rows (CSV)</button>
-                        </form>
-                        <div id="failedRowsTable" style="max-height:300px; overflow:auto;">
-                            <input type="text" id="failedFilterInput" class="form-control form-control-sm mb-2" placeholder="Filter by error reason..." onkeyup="filterFailedRows()">
-                            <table class="table table-bordered table-sm mt-2">
-                                <thead>
-                                    <tr>
-                                        @foreach(session('import_headers', []) as $header)
-                                            <th>{{ $header }}</th>
-                                        @endforeach
-                                    </tr>
-                                </thead>
-                                <tbody id="failedRowsTbody">
-                                    @foreach(session('failed_rows', []) as $row)
-                                        <tr>
-                                            @foreach($row as $cell)
-                                                <td>{{ $cell }}</td>
-                                            @endforeach
-                                        </tr>
+    @if (session('import_errors'))
+        <div class="alert alert-warning">
+            <strong>Import could not process some rows:</strong>
+            <ul class="mb-2">
+                @foreach(session('import_errors') as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            @if(session('failed_rows') && count(session('failed_rows', [])) > 0)
+                <form action="{{ route('feasibility.downloadFailedRows') }}" method="POST" class="mb-2">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        Download Failed Rows (CSV)
+                    </button>
+                </form>
+                <div id="failedRowsTable" style="max-height:300px; overflow:auto;">
+                    <input type="text" id="failedFilterInput" class="form-control form-control-sm mb-2" placeholder="Filter by error reason..." onkeyup="filterFailedRows()">
+                    <table class="table table-bordered table-sm mt-2">
+                        <thead>
+                            <tr>
+                                @foreach(session('import_headers', []) as $header)
+                                    <th>{{ $header }}</th>
+                                @endforeach
+                                <th>Error Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody id="failedRowsTbody">
+                            @foreach(session('failed_rows', []) as $row)
+                                <tr>
+                                    @foreach(session('import_headers', []) as $header)
+                                        <td>{{ $row[$header] ?? '' }}</td>
                                     @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                        <script>
-                            function filterFailedRows() {
-                                var input = document.getElementById('failedFilterInput');
-                                var filter = input.value.toLowerCase();
-                                var tbody = document.getElementById('failedRowsTbody');
-                                var rows = tbody.getElementsByTagName('tr');
-                                for (var i = 0; i < rows.length; i++) {
-                                    var show = false;
-                                    var cells = rows[i].getElementsByTagName('td');
-                                    for (var j = 0; j < cells.length; j++) {
-                                        if (cells[j].innerText.toLowerCase().indexOf(filter) > -1) {
-                                            show = true;
-                                            break;
-                                        }
-                                    }
-                                    rows[i].style.display = show ? '' : 'none';
+                                    <td class="text-danger">{{ $row['Error Reason'] ?? '' }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <script>
+                    function filterFailedRows() {
+                        var input = document.getElementById('failedFilterInput');
+                        var filter = input.value.toLowerCase();
+                        var tbody = document.getElementById('failedRowsTbody');
+                        var rows = tbody.getElementsByTagName('tr');
+                        for (var i = 0; i < rows.length; i++) {
+                            var show = false;
+                            var cells = rows[i].getElementsByTagName('td');
+                            for (var j = 0; j < cells.length; j++) {
+                                if (cells[j].innerText.toLowerCase().indexOf(filter) > -1) {
+                                    show = true;
+                                    break;
                                 }
                             }
-                            function downloadFailedRowFeasibility() {
-                                // You can implement a route for feasibility failed rows download if needed
-                            alert('Download failed rows not implemented.');
-                            }
-                        </script>
-                    @else
-                        <div class="alert alert-info mt-2">No failed rows to display.</div>
-                    @endif
-                @endif
-            </div>
-        @endif
+                            rows[i].style.display = show ? '' : 'none';
+                        }
+                    }
+                </script>
+            @else
+                <div class="alert alert-info mt-2">No failed rows to display.</div>
+            @endif
+        </div>
+    @endif
 
         @php
             $importRow = session('imported_row', []);
@@ -218,10 +222,31 @@
          {{-- Form starts here --}}
 
         <form action="{{ route('feasibility.store') }}" method="POST">
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Link Type <span class="text-danger">*</span></label>
+                    <select id="link_type" name="link_type" class="form-select" required>
+                        <option value="">Select</option>
+                        <option value="new">New Link</option>
+                        <option value="existing">Existing Link</option>
+                    </select>
+                </div>
+                <div class="col-md-4" id="existing_circuit_box" style="display:none;">
+                    <label class="form-label fw-semibold">Select Circuit ID</label>
+                    <select id="circuit_id" name="circuit_id" class="form-select select2-tags">
+                        <option value="">Select Circuit ID</option>
+                    @foreach($deliverables_plans as $d)
+                        <option value="{{ $d->deliverable_id }}">
+                            {{ $d->circuit_id }}
+                        </option>
+                    @endforeach
+                    </select>
+                </div>
+            </div>
 
             @csrf
 
-            <div class="row g-3">
+            <div class="row g-3" id="new_link_fields">
                 <!-- Feasibility ID -->
                 <div class="col-md-3">
 
@@ -469,60 +494,73 @@
                 </div>
 
                 <!-- Speed -->
-                <div class="col-md-3">
-
+                <div class="col-md-3" id="speed_box">
                     <label class="form-label fw-semibold">Speed <span class="text-danger">*</span></label>
-
-                    <input type="text" name="speed" placeholder="Mbps or Gbps" class="form-control" value="{{ old('speed', $importRow['speed'] ?? '') }}" required>
-
+                    <input type="text" name="speed" id="speed" placeholder="Mbps or Gbps" class="form-control" value="{{ old('speed', $importRow['speed'] ?? '') }}" required>
                 </div>
                 <!-- Static IP -->
-                <div class="col-md-3">
-
+                <div class="col-md-3" id="static_ip_box">
                     <label class="form-label fw-semibold">Static IP <span class="text-danger">*</span></label>
                     @php $staticIpValue = old('static_ip', $importRow['static_ip'] ?? ''); @endphp
-                        
                     <select name="static_ip" id="static_ip" class="form-select" required>
-
                         <option value="" {{ $staticIpValue === '' ? 'selected' : '' }}>Select</option>
-
                         <option value="Yes" {{ $staticIpValue === 'Yes' ? 'selected' : '' }}>Yes</option>
-
                         <option value="No" {{ $staticIpValue === 'No' ? 'selected' : '' }}>No</option>
-
                     </select>
-
                 </div>
                 <!-- Static IP Subnet -->
-                <div class="col-md-3">
-
+                <div class="col-md-3" id="static_ip_subnet_box">
                     <label class="form-label fw-semibold">Static IP Subnet</label>
                     @php $staticIpSubnetValue = old('static_ip_subnet', $importRow['static_ip_subnet'] ?? ''); @endphp
                     <select name="static_ip_subnet" id="static_ip_subnet" class="form-select" disabled>
-
                         <option value="" {{ $staticIpSubnetValue === '' ? 'selected' : '' }}>Select Subnet</option>
-
                         <option value="/32" {{ $staticIpSubnetValue === '/32' ? 'selected' : '' }}>/32</option>
-
                         <option value="/31" {{ $staticIpSubnetValue === '/31' ? 'selected' : '' }}>/31</option>
-
                         <option value="/30" {{ $staticIpSubnetValue === '/30' ? 'selected' : '' }}>/30</option>
                         <option value="/29" {{ $staticIpSubnetValue === '/29' ? 'selected' : '' }}>/29</option>
-
                         <option value="/28" {{ $staticIpSubnetValue === '/28' ? 'selected' : '' }}>/28</option>
-
                         <option value="/27" {{ $staticIpSubnetValue === '/27' ? 'selected' : '' }}>/27</option>
-
                         <option value="/26" {{ $staticIpSubnetValue === '/26' ? 'selected' : '' }}>/26</option>
-
                         <option value="/25" {{ $staticIpSubnetValue === '/25' ? 'selected' : '' }}>/25</option>
                         <option value="/24" {{ $staticIpSubnetValue === '/24' ? 'selected' : '' }}>/24</option>
-
                     </select>
-
                     <small class="text-muted">Select subnet only if Static IP is Yes</small>
-
                 </div>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    const linkType = document.getElementById('link_type');
+                                    const existingBox = document.getElementById('existing_circuit_box');
+                                    const newLinkFields = document.getElementById('new_link_fields');
+                                    const circuitSelect = document.getElementById('circuit_id');
+                                    // Show/hide fields based on link type
+                                    linkType.addEventListener('change', function() {
+                                        if (this.value === 'existing') {
+                                            existingBox.style.display = '';
+                                            newLinkFields.style.display = '';
+                                        } else if (this.value === 'new') {
+                                            existingBox.style.display = 'none';
+                                            newLinkFields.style.display = '';
+                                            // Clear circuit selection
+                                            if (circuitSelect) circuitSelect.value = '';
+                                        } else {
+                                            existingBox.style.display = 'none';
+                                            newLinkFields.style.display = '';
+                                        }
+                                    });
+                                    // Autofill fields on circuit select
+                                    if (circuitSelect) {
+                                        circuitSelect.addEventListener('change', function() {
+                                            const selected = this.options[this.selectedIndex];
+                                            if (selected && selected.dataset.circuit) {
+                                                const data = JSON.parse(selected.dataset.circuit);
+                                                document.getElementById('speed').value = data.speed || '';
+                                                document.getElementById('static_ip').value = data.static_ip || '';
+                                                document.getElementById('static_ip_subnet').value = data.static_ip_subnet || '';
+                                            }
+                                        });
+                                    }
+                                });
+                            </script>
                 <!-- Expected Delivery -->
                 <div class="col-md-3">
 

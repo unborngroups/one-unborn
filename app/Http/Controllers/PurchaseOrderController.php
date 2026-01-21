@@ -271,43 +271,37 @@ class PurchaseOrderController extends Controller
     public function update(Request $request, $id)
     {
         $purchaseOrder = PurchaseOrder::findOrFail($id);
-        
-        // Base validation
-        $validated = $request->validate([
+        // Basic validation for main fields
+        $rules = [
             'feasibility_id' => 'required|exists:feasibilities,id',
-            'po_number' => 'required|string|max:255|unique:purchase_orders,po_number,' . $id,
+            'po_number' => 'required|string|max:255',
+            'allow_reuse' => 'required|in:0,1',
             'po_date' => 'required|date',
             'no_of_links' => 'required|integer|min:1|max:4',
             'contract_period' => 'required|integer|min:1',
             'import_file' => 'sometimes|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx|max:5120',
-        ]);
-
-        $noOfLinks = $validated['no_of_links'];
-        
-        // Dynamic validation for link pricing
-        $linkValidationRules = [];
+        ];
+        $staticIpRequired = $request->input('static_ip_required') === '1';
+        // Dynamic validation for pricing fields based on number of links
+        $noOfLinks = (int) $request->input('no_of_links');
         for ($i = 1; $i <= $noOfLinks; $i++) {
-            $linkValidationRules["arc_link_{$i}"] = 'required|numeric|min:0';
-            $linkValidationRules["otc_link_{$i}"] = 'required|numeric|min:0';
-            $linkValidationRules["static_ip_link_{$i}"] = 'required|numeric|min:0';
+            $rules["arc_link_{$i}"] = 'required|numeric|min:0';
+            $rules["otc_link_{$i}"] = 'required|numeric|min:0';
+            $rules["static_ip_link_{$i}"] = $staticIpRequired ? 'required|numeric|min:0' : 'nullable|numeric|min:0';
         }
-        
-        $request->validate($linkValidationRules);
-        
-        // Calculate totals for backward compatibility
+        $validated = $request->validate($rules);
+        // Duplicate PO number check removed to allow duplicate PO numbers as per new requirement.
+        // Calculate totals from individual link pricing
         $totalARC = 0;
         $totalOTC = 0;
         $totalStaticIP = 0;
-        
         for ($i = 1; $i <= $noOfLinks; $i++) {
-            $totalARC += $request->input("arc_link_{$i}");
-            $totalOTC += $request->input("otc_link_{$i}");
-            $totalStaticIP += $request->input("static_ip_link_{$i}");
+            $totalARC += (float) ($request->input("arc_link_{$i}") ?? 0);
+            $totalOTC += (float) ($request->input("otc_link_{$i}") ?? 0);
+            $totalStaticIP += (float) ($request->input("static_ip_link_{$i}") ?? 0);
         }
-        
         // 🔥 PRICE VALIDATION for UPDATE: Check if PO amount is at least 20% higher than feasibility amount
         $feasibilityStatus = FeasibilityStatus::where('feasibility_id', $validated['feasibility_id'])->first();
-        
         if ($feasibilityStatus) {
             // Get all vendor amounts and find the minimum (most conservative validation)
             $vendorPrices = [];

@@ -36,12 +36,26 @@
             </thead>
             <tbody>
                 @foreach($logs as $key => $log)
-                <tr>
+                <tr @if(intval($log->total_minutes) >= 120) style="background-color:#fff3cd;" @endif>
                     <td>{{ $logs->firstItem() + $key }}</td>
+
                     <td>{{ $log->user->name ?? 'Unknown User' }}</td>
-                    <td>{{ $log->login_time }}</td>
-                    <td>{{ $log->logout_display }}</td>
-                    <td>{{ $log->total_minutes }}
+
+                    <td>{{ \Carbon\Carbon::parse($log->login_time)->format('d-m-Y h:i:s A') }}</td>
+                    <td>
+                        @if(str_contains($log->logout_display, 'Active Now'))
+                            {{ $log->logout_display }}
+                        @else
+                            {{ \Carbon\Carbon::parse($log->logout_display)->format('d-m-Y h:i:s A') }}
+                        @endif
+                    </td>
+                    <td>
+                        @php
+                            $minutes = intval($log->total_minutes);
+                            $hours = intdiv($minutes, 60);
+                            $mins = $minutes % 60;
+                        @endphp
+                        {{ $hours > 0 ? $hours . ' hr ' : '' }}{{ max($mins, 1) }} min
                         @if($log->status_display === 'Online')
                         <small class="text-muted">(Live)</small>
                         @endif
@@ -126,22 +140,60 @@
 
 </div>
 
+
+
 <script>
-    
+var userId = @json(Auth::id());
+
 document.getElementById('tableSearch').addEventListener('keyup', function() {
-
-    // ✅ Filter table rows by search value
-
     let value = this.value.toLowerCase();
-
     document.querySelectorAll('#admin tbody tr').forEach(row => {
-
         row.style.display = row.textContent.toLowerCase().includes(value) ? '' : 'none';
-
     });
-
 });
 
+window.addEventListener('beforeunload', function () {
+    if (userId) {
+        navigator.sendBeacon('/api/user-logout', JSON.stringify({ user_id: userId }));
+    }
+});
 
 </script>
+
+@push('scripts')
+<script>
+function updateLiveMinutes() {
+    const now = new Date();
+    document.querySelectorAll('#admin tbody tr').forEach(function(row) {
+        const statusCell = row.querySelector('td:last-child .badge');
+        if (statusCell && statusCell.textContent.trim() === 'Online') {
+            const loginCell = row.querySelector('td:nth-child(3)');
+            if (!loginCell) return;
+            const loginText = loginCell.textContent.trim();
+            // Parse date and time from cell (d-m-Y h:i:s A)
+            const match = loginText.match(/(\d{2})-(\d{2})-(\d{4}) (\d{2}):(\d{2}):(\d{2}) (AM|PM)/);
+            if (!match) return;
+            const [_, day, month, year, hour, min, sec, ampm] = match;
+            let h = parseInt(hour);
+            if (ampm === 'PM' && h < 12) h += 12;
+            if (ampm === 'AM' && h === 12) h = 0;
+            const loginDate = new Date(year, month - 1, day, h, parseInt(min), parseInt(sec));
+            let diffMs = now - loginDate;
+            if (diffMs < 0) diffMs = 0;
+            let totalMinutes = Math.floor(diffMs / 60000);
+            let hours = Math.floor(totalMinutes / 60);
+            let mins = totalMinutes % 60;
+            let displayMins = (hours > 0 || mins > 0) ? mins : 1;
+            let text = (hours > 0 ? hours + ' hr ' : '') + displayMins + ' min';
+            const minCell = row.querySelector('td:nth-child(5)');
+            if (minCell) minCell.innerHTML = text + ' <small class="text-muted">(Live)</small>';
+        }
+    });
+}
+setInterval(updateLiveMinutes, 60000);
+document.addEventListener('DOMContentLoaded', updateLiveMinutes);
+</script>
+@endpush
+
+@stack('scripts')
 @endsection

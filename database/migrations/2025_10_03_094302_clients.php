@@ -31,11 +31,12 @@ return new class extends Migration
     $table->string('state')->nullable();
     $table->string('country')->nullable();
     $table->string('pincode', 10)->nullable();
-
+    
     // Business Contact
     $table->string('billing_spoc_name')->nullable();
     $table->string('billing_spoc_contact', 20)->nullable();
     $table->string('billing_spoc_email')->nullable();
+    $table->string('billing_sequence')->nullable();
     $table->string('gstin', 20)->nullable();
     $table->string('invoice_email')->nullable();
     $table->string('invoice_cc', 1000)->nullable();

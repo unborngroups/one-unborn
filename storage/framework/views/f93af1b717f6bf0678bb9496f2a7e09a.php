@@ -53,7 +53,6 @@
                                 <!-- <th width="50"><input type="checkbox" id="select_all"></th> -->
                                 <th width="50">S.No</th>
                                 <th width="150">Action</th>
-                                <th class="col">Circuit ID</th>
                                 <th class="col">Feasibility ID</th>
                                 <th class="col">Client Name</th>
                                 <th class="col">Area</th>
@@ -88,12 +87,7 @@
                                     <?php endif; ?>
                                 </td>
 
-                                <!-- <td><?php echo e($record->po_number ?? 'N/A'); ?></td> -->
-                               <td>
-                                    
-                                    <?php echo e($record->circuit_id ?? ($record->deliverablePlans->first()->circuit_id ?? 'N/A')); ?>
-
-                                </td>
+                               
 
                                 <td><?php echo e($record->feasibility->feasibility_request_id ?? 'N/A'); ?></td>
 

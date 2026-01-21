@@ -528,6 +528,7 @@
 
     $operationsAsset = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset');
     $operationsRenewals = \App\Helpers\TemplateHelper::getUserMenuPermissions('Renewals');
+    $operationsTermination = \App\Helpers\TemplateHelper::getUserMenuPermissions('Termination');
 
     // Determine which operations feasibility menu item should be active
 
@@ -691,12 +692,11 @@
 @endphp
 
 @if(($operationsAsset && $operationsAsset->can_menu) || ($operationsRenewals && $operationsRenewals->can_menu) || ($operationsFeasibility && $operationsFeasibility->can_menu) 
-|| ($operationsFeasibilityOpen && $operationsFeasibilityOpen->can_menu) || ($operationsDeliverables && $operationsDeliverables->can_menu))
+|| ($operationsFeasibilityOpen && $operationsFeasibilityOpen->can_menu) || ($operationsDeliverables && $operationsDeliverables->can_menu) || ($operationsTermination && $operationsTermination->can_menu))
 
 <li class="nav-item ">
 
-    <details class="sidebar-dropdown" {{ request()->is('operations/asset*') || request()->is('operations/renewals*') || request()->is('operations/feasibility*') || request()->is('operations/deliverables*') || request()->is('operations/purchaseorder*') ? 'open' : '' }}>
-
+    <details class="sidebar-dropdown" {{ request()->is('operations/asset*') || request()->is('operations/renewals*') || request()->is('operations/feasibility*') || request()->is('operations/deliverables*') || request()->is('operations/purchaseorder*') || request()->is('operations/termination*') ? 'open' : '' }}>
         <summary class="nav-link text-white d-flex justify-content-between align-items-center bg-success">
 
             <span><i class="bi bi-gear-wide-connected"></i> Operations</span>
@@ -863,6 +863,20 @@
 
                     <a class="nav-link text-white menu-item {{ request()->is('operations/asset/*') ? 'active' : '' }}" href="{{ route('operations.asset.index') }}">
                         <i class="bi bi-gear"></i> Asset
+
+                    </a>
+
+                </li>
+            @endif
+
+                <!-- Termination in operations -->                 
+
+             @if($operationsTermination && $operationsTermination->can_menu)
+
+        <li class="nav-item">
+
+                    <a class="nav-link text-white menu-item {{ request()->is('operations/termination/*') ? 'active' : '' }}" href="{{ route('operations.termination.index') }}">
+                        <i class="bi bi-wallet2"></i> Termination
 
                     </a>
 

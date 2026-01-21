@@ -14,7 +14,25 @@ class RenewalController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = $request->get('per_page', 10);
+        // $perPage = $request->get('per_page', 10);
+        $perPage = (int) $request->get('per_page', 10);
+       $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+
+       $query = Renewal::query();
+       if ($request->filled('search')) {
+           $search = $request->search;
+           $query->where(function($q) use ($search) {
+               $q->where('deliverable_id', 'like', "%{$search}%")
+                   ->orWhere('date_of_renewal', 'like', "%{$search}%")
+                   ->orWhere('renewal_months', 'like', "%{$search}%")
+                   ->orWhere('new_expiry_date', 'like', "%{$search}%")
+                   ->orWhere('client_name', 'like', "%{$search}%")
+                   ->orWhere('area', 'like', "%{$search}%")
+                   ->orWhere('state', 'like', "%{$search}%");
+           });
+       }
+       $renewals = $query->orderBy('id', 'desc')->paginate($perPage)->withQueryString();
+
 
         $query = Renewal::query();
         // this lines for filtering today, tomorrow, week in dashboard

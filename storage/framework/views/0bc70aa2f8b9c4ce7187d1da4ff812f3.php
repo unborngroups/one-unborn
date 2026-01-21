@@ -153,6 +153,17 @@
                 <input type="text" name="gstin" id="gstin" class="form-control mb-2"
                        value="<?php echo e(old('gstin', $client->gstin)); ?>" placeholder="GSTIN">
             </div>
+
+            <div class="col-md-3">
+                    <!-- <label for="form-label">Billing Sequence</label> -->
+                    <select name="billing_sequence" class="form-select">
+                        <option value="">select billing sequence</option>
+                        <option value="monthly" <?php echo e($client->billing_sequence=='monthly'?'selected':''); ?>>Monthly</option>
+                        <option value="quarterly" <?php echo e($client->billing_sequence=='quarterly'?'selected':''); ?>>Quarterly</option>
+                        <option value="half-yearly" <?php echo e($client->billing_sequence=='half-yearly'?'selected':''); ?>>Half-Yearly</option>
+                        <option value="yearly" <?php echo e($client->billing_sequence=='yearly'?'selected':''); ?>>Yearly</option>
+                    </select>
+            </div>
         </div>
 
         <h5 class="text-secondary mt-3">Invoice Details</h5>

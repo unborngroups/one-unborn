@@ -13,8 +13,6 @@ use Illuminate\Support\Str;
 use Shuchkin\SimpleXLSX;
 require_once app_path('Libraries/SimpleXLSX.php');
 
-
-
 class FeasibilityExcelController extends Controller
 {
     protected array $importErrors = [];
@@ -76,6 +74,16 @@ class FeasibilityExcelController extends Controller
             $value = $row[$colIndex] ?? null;
             $rowData[$name] = $value === null ? null : trim((string)$value);
         }
+
+        // Clean invisible/non-breaking spaces from contact and email fields
+        foreach (['spoc_contact1', 'spoc_contact2', 'spoc_email'] as $field) {
+            if (isset($rowData[$field])) {
+                // Remove non-breaking spaces and invisible/control characters
+                $rowData[$field] = preg_replace('/[\x00-\x1F\x7F\xA0]/u', '', $rowData[$field]);
+                $rowData[$field] = trim($rowData[$field]);
+            }
+        }
+
         /** YES/NO → 1/0 **/
         $staticIpFlag     = strtoupper($rowData['static_ip'] ?? '') === 'YES' ? 1 : 0;
         $hardwareFlag     = strtoupper($rowData['hardware_required'] ?? '') === 'YES' ? 1 : 0;
@@ -234,8 +242,12 @@ if ($address !== null) {
             $imported++;
 
         } catch (\Throwable $e) {
-            $this->importErrors[] = 
-                "Row " . ($index + 1) . ": Failed to save - " . $e->getMessage();
+            $errorMsg = "Row " . ($index + 1) . ": Failed to save - " . $e->getMessage();
+            $this->importErrors[] = $errorMsg;
+            // Add failed row data for table display
+            $assoc = array_combine($originalHeaders, $row);
+            $assoc['Error Reason'] = $errorMsg;
+            $failedRows[] = $assoc;
         }
     }
 
@@ -243,31 +255,32 @@ if ($address !== null) {
     session()->flash('failed_rows', $failedRows);
     session()->flash('import_headers', $sessionHeaders);
 
-    if ($lastFeasibilityId) {
+    if ($imported > 0) {
         if (!empty($failedRows)) {
-            $response = back()
+            // Some rows imported, some failed
+            return back()
                 ->with('success', "$imported Records Imported Successfully!")
                 ->with('import_errors', $this->importErrors)
                 ->with('failed_rows', $failedRows)
                 ->with('import_headers', $sessionHeaders);
         } else {
-            // All rows succeeded, show summary table
+            // All rows succeeded
             $importedRows = array_slice($rows, 1); // skip header
-            $response = back()
+            return back()
                 ->with('success', "$imported Records Imported Successfully!")
                 ->with('imported_rows', $importedRows)
                 ->with('import_headers', $originalHeaders);
         }
     } else {
+        // No valid rows imported
         $response = back()->with('error', "No valid rows imported.");
         if (!empty($this->importErrors)) {
             $response->with('import_errors', $this->importErrors)
                 ->with('failed_rows', $failedRows)
                 ->with('import_headers', $sessionHeaders);
         }
+        return $response;
     }
-
-    return $response;
 }
 
     /* ========================================

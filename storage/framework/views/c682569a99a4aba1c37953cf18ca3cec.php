@@ -14,13 +14,12 @@
 
             
             <div class="mb-3">
-                <label for="deliverable_id" class="form-label">Deliverable</label>
+                <label for="deliverable_id" class="form-label">Deliverable (Circuit ID)</label>
                 <select name="deliverable_id" id="deliverable_id" class="form-select" required>
-                    <option value="">Select Deliverable</option>
-                    <?php $__currentLoopData = $deliverables; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $d): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <option value="<?php echo e($d->id); ?>"
-                            <?php echo e($renewal->deliverable_id == $d->id ? 'selected' : ''); ?>>
-                            <?php echo e($d->circuit_id ?? $d->po_number ?? 'Deliverable #'.$d->id); ?>
+                    <option value="">Select Circuit ID</option>
+                    <?php $__currentLoopData = $deliverables_plans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $d): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($d->deliverable_id); ?>" <?php echo e($renewal->deliverable_id == $d->deliverable_id ? 'selected' : ''); ?>>
+                            <?php echo e($d->circuit_id); ?>
 
                         </option>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>

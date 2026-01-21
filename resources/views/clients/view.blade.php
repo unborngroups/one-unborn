@@ -148,6 +148,11 @@
             </tr>
 
             <tr>
+                <th>Billing Sequence</th>
+                
+                <td style="text-align: left;">{{ ucfirst($client->billing_sequence) ?? '-' }}</td>
+            </tr>
+            <tr>
 
                 <th>GSTIN</th>
 

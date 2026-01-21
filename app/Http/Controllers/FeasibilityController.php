@@ -81,9 +81,9 @@ class FeasibilityController extends Controller
                  ->get();
 
         $makes     = MakeType::all();
-        $models    =ModelType::all();
-
-        return view('feasibility.create', compact('clients', 'companies', 'makes', 'models'));
+        $models    = ModelType::all();
+        $deliverables_plans = \App\Models\DeliverablePlan::all();
+        return view('feasibility.create', compact('clients', 'companies', 'makes', 'models', 'deliverables_plans'));
     }
 
     public function store(Request $request)
@@ -108,7 +108,7 @@ class FeasibilityController extends Controller
             'no_of_links' => 'required',
             'speed' => 'required',
             'vendor_type' => 'required',
-            'static_ip' => 'required',
+            // 'static_ip' => 'required',
             'static_ip_subnet' => 'nullable',
             'expected_delivery' => 'required|date',
             'expected_activation' => 'required|date',
@@ -160,7 +160,7 @@ if ($request->hardware_required == '1') {
 $status = FeasibilityStatus::where('feasibility_id', $feasibility->id)->first();
 
         // SELF vendor auto assign
-$selfVendors = ['UNB', 'UNS', 'UBL', 'INF'];
+$selfVendors = ['UBN', 'UBS', 'UBL', 'INF'];
 
 if (in_array($validated['vendor_type'], $selfVendors)) {
 
@@ -348,7 +348,7 @@ $status = FeasibilityStatus::where('feasibility_id', $feasibility->id)->first();
 
 
     // SELF vendor auto assign
-    $selfVendors = ['UNB', 'UNS', 'UBL', 'INF'];
+    $selfVendors = ['UBN', 'UBS', 'UBL', 'INF'];
     if (in_array($validated['vendor_type'], $selfVendors)) {
         $status->vendor1_name = 'Self';
         $status->vendor1_arc = $request->vendor1_arc;

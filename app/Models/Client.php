@@ -42,6 +42,7 @@ class Client extends Authenticatable
         'billing_spoc_name', 
         'billing_spoc_contact',
          'billing_spoc_email', 
+         'billing_sequence',
          'gstin',
          'invoice_email',
         'invoice_cc',

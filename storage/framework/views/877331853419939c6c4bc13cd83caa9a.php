@@ -86,6 +86,7 @@
                         <th class="col">Action</th>
 
                         <th class="col">Client Code</th>
+                        <th class="col">State</th>
 
                         <th class="col">Client Name</th>
 
@@ -192,6 +193,7 @@
                             <!-- <td><?php echo e($key+1); ?></td> -->
 
                             <td><?php echo e($client->client_code); ?></td>
+                            <td><?php echo e($client->state ?? '-'); ?></td>
 
                             <td class="col"><?php echo e($client->client_name); ?></td>
 

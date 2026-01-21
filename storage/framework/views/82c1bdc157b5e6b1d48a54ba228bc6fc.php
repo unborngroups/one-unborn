@@ -51,8 +51,9 @@
                                 <th width="50">S.No</th>
                                 <th width="150">Action</th>
                                 <th>PO Number</th>
-                                <th>PO Date</th>
                                 <th>Client Name</th>
+                                <th>Area</th>
+                                <th>State</th>
                                 <th>No. of Links</th>
                             </tr>
                         </thead>
@@ -81,16 +82,10 @@
                                     </a>
                                     <?php endif; ?>
                                 </td>
-
                                 <td><?php echo e($record->po_number ?? 'N/A'); ?></td>
-
-                                <td>
-                                    <?php echo e($record->po_date ? \Carbon\Carbon::parse($record->po_date)->format('Y-m-d') : 'N/A'); ?>
-
-                                </td>
-
                                 <td><?php echo e($record->feasibility->client->client_name ?? 'N/A'); ?></td>
-
+                                <td><?php echo e($record->feasibility->area ?? 'N/A'); ?></td>
+                                <td><?php echo e($record->feasibility->state ?? 'N/A'); ?></td>
                                 <td><?php echo e($record->no_of_links ?? 'N/A'); ?></td>
                             </tr>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>

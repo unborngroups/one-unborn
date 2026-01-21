@@ -51,66 +51,70 @@
         </div>
     <?php endif; ?>
 
+
     
-        <?php if(session('import_errors')): ?>
-            <div class="alert alert-warning">
-                <strong>Import could not process some rows:</strong>
-                <?php if(session('failed_rows')): ?>
-                    <?php if(count(session('failed_rows', [])) > 0): ?>
-                        <form action="#" method="POST" class="mt-2">
-                            <?php echo csrf_field(); ?>
-                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="downloadFailedRowFeasibility()">Download Failed Rows (CSV)</button>
-                        </form>
-                        <div id="failedRowsTable" style="max-height:300px; overflow:auto;">
-                            <input type="text" id="failedFilterInput" class="form-control form-control-sm mb-2" placeholder="Filter by error reason..." onkeyup="filterFailedRows()">
-                            <table class="table table-bordered table-sm mt-2">
-                                <thead>
-                                    <tr>
-                                        <?php $__currentLoopData = session('import_headers', []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $header): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                            <th><?php echo e($header); ?></th>
-                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                    </tr>
-                                </thead>
-                                <tbody id="failedRowsTbody">
-                                    <?php $__currentLoopData = session('failed_rows', []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $row): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <tr>
-                                            <?php $__currentLoopData = $row; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cell): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                <td><?php echo e($cell); ?></td>
-                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                        </tr>
+    <?php if(session('import_errors')): ?>
+        <div class="alert alert-warning">
+            <strong>Import could not process some rows:</strong>
+            <ul class="mb-2">
+                <?php $__currentLoopData = session('import_errors'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <li><?php echo e($error); ?></li>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </ul>
+            <?php if(session('failed_rows') && count(session('failed_rows', [])) > 0): ?>
+                <form action="<?php echo e(route('feasibility.downloadFailedRows')); ?>" method="POST" class="mb-2">
+                    <?php echo csrf_field(); ?>
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        Download Failed Rows (CSV)
+                    </button>
+                </form>
+                <div id="failedRowsTable" style="max-height:300px; overflow:auto;">
+                    <input type="text" id="failedFilterInput" class="form-control form-control-sm mb-2" placeholder="Filter by error reason..." onkeyup="filterFailedRows()">
+                    <table class="table table-bordered table-sm mt-2">
+                        <thead>
+                            <tr>
+                                <?php $__currentLoopData = session('import_headers', []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $header): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <th><?php echo e($header); ?></th>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                <th>Error Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody id="failedRowsTbody">
+                            <?php $__currentLoopData = session('failed_rows', []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $row): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <tr>
+                                    <?php $__currentLoopData = session('import_headers', []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $header): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <td><?php echo e($row[$header] ?? ''); ?></td>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                </tbody>
-                            </table>
-                        </div>
-                        <script>
-                            function filterFailedRows() {
-                                var input = document.getElementById('failedFilterInput');
-                                var filter = input.value.toLowerCase();
-                                var tbody = document.getElementById('failedRowsTbody');
-                                var rows = tbody.getElementsByTagName('tr');
-                                for (var i = 0; i < rows.length; i++) {
-                                    var show = false;
-                                    var cells = rows[i].getElementsByTagName('td');
-                                    for (var j = 0; j < cells.length; j++) {
-                                        if (cells[j].innerText.toLowerCase().indexOf(filter) > -1) {
-                                            show = true;
-                                            break;
-                                        }
-                                    }
-                                    rows[i].style.display = show ? '' : 'none';
+                                    <td class="text-danger"><?php echo e($row['Error Reason'] ?? ''); ?></td>
+                                </tr>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </tbody>
+                    </table>
+                </div>
+                <script>
+                    function filterFailedRows() {
+                        var input = document.getElementById('failedFilterInput');
+                        var filter = input.value.toLowerCase();
+                        var tbody = document.getElementById('failedRowsTbody');
+                        var rows = tbody.getElementsByTagName('tr');
+                        for (var i = 0; i < rows.length; i++) {
+                            var show = false;
+                            var cells = rows[i].getElementsByTagName('td');
+                            for (var j = 0; j < cells.length; j++) {
+                                if (cells[j].innerText.toLowerCase().indexOf(filter) > -1) {
+                                    show = true;
+                                    break;
                                 }
                             }
-                            function downloadFailedRowFeasibility() {
-                                // You can implement a route for feasibility failed rows download if needed
-                            alert('Download failed rows not implemented.');
-                            }
-                        </script>
-                    <?php else: ?>
-                        <div class="alert alert-info mt-2">No failed rows to display.</div>
-                    <?php endif; ?>
-                <?php endif; ?>
-            </div>
-        <?php endif; ?>
+                            rows[i].style.display = show ? '' : 'none';
+                        }
+                    }
+                </script>
+            <?php else: ?>
+                <div class="alert alert-info mt-2">No failed rows to display.</div>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
 
         <?php
             $importRow = session('imported_row', []);
@@ -221,10 +225,32 @@
          
 
         <form action="<?php echo e(route('feasibility.store')); ?>" method="POST">
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Link Type <span class="text-danger">*</span></label>
+                    <select id="link_type" name="link_type" class="form-select" required>
+                        <option value="">Select</option>
+                        <option value="new">New Link</option>
+                        <option value="existing">Existing Link</option>
+                    </select>
+                </div>
+                <div class="col-md-4" id="existing_circuit_box" style="display:none;">
+                    <label class="form-label fw-semibold">Select Circuit ID</label>
+                    <select id="circuit_id" name="circuit_id" class="form-select select2-tags">
+                        <option value="">Select Circuit ID</option>
+                    <?php $__currentLoopData = $deliverables_plans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $d): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($d->deliverable_id); ?>">
+                            <?php echo e($d->circuit_id); ?>
+
+                        </option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </select>
+                </div>
+            </div>
 
             <?php echo csrf_field(); ?>
 
-            <div class="row g-3">
+            <div class="row g-3" id="new_link_fields">
                 <!-- Feasibility ID -->
                 <div class="col-md-3">
 
@@ -472,60 +498,73 @@
                 </div>
 
                 <!-- Speed -->
-                <div class="col-md-3">
-
+                <div class="col-md-3" id="speed_box">
                     <label class="form-label fw-semibold">Speed <span class="text-danger">*</span></label>
-
-                    <input type="text" name="speed" placeholder="Mbps or Gbps" class="form-control" value="<?php echo e(old('speed', $importRow['speed'] ?? '')); ?>" required>
-
+                    <input type="text" name="speed" id="speed" placeholder="Mbps or Gbps" class="form-control" value="<?php echo e(old('speed', $importRow['speed'] ?? '')); ?>" required>
                 </div>
                 <!-- Static IP -->
-                <div class="col-md-3">
-
+                <div class="col-md-3" id="static_ip_box">
                     <label class="form-label fw-semibold">Static IP <span class="text-danger">*</span></label>
                     <?php $staticIpValue = old('static_ip', $importRow['static_ip'] ?? ''); ?>
-                        
                     <select name="static_ip" id="static_ip" class="form-select" required>
-
                         <option value="" <?php echo e($staticIpValue === '' ? 'selected' : ''); ?>>Select</option>
-
                         <option value="Yes" <?php echo e($staticIpValue === 'Yes' ? 'selected' : ''); ?>>Yes</option>
-
                         <option value="No" <?php echo e($staticIpValue === 'No' ? 'selected' : ''); ?>>No</option>
-
                     </select>
-
                 </div>
                 <!-- Static IP Subnet -->
-                <div class="col-md-3">
-
+                <div class="col-md-3" id="static_ip_subnet_box">
                     <label class="form-label fw-semibold">Static IP Subnet</label>
                     <?php $staticIpSubnetValue = old('static_ip_subnet', $importRow['static_ip_subnet'] ?? ''); ?>
                     <select name="static_ip_subnet" id="static_ip_subnet" class="form-select" disabled>
-
                         <option value="" <?php echo e($staticIpSubnetValue === '' ? 'selected' : ''); ?>>Select Subnet</option>
-
                         <option value="/32" <?php echo e($staticIpSubnetValue === '/32' ? 'selected' : ''); ?>>/32</option>
-
                         <option value="/31" <?php echo e($staticIpSubnetValue === '/31' ? 'selected' : ''); ?>>/31</option>
-
                         <option value="/30" <?php echo e($staticIpSubnetValue === '/30' ? 'selected' : ''); ?>>/30</option>
                         <option value="/29" <?php echo e($staticIpSubnetValue === '/29' ? 'selected' : ''); ?>>/29</option>
-
                         <option value="/28" <?php echo e($staticIpSubnetValue === '/28' ? 'selected' : ''); ?>>/28</option>
-
                         <option value="/27" <?php echo e($staticIpSubnetValue === '/27' ? 'selected' : ''); ?>>/27</option>
-
                         <option value="/26" <?php echo e($staticIpSubnetValue === '/26' ? 'selected' : ''); ?>>/26</option>
-
                         <option value="/25" <?php echo e($staticIpSubnetValue === '/25' ? 'selected' : ''); ?>>/25</option>
                         <option value="/24" <?php echo e($staticIpSubnetValue === '/24' ? 'selected' : ''); ?>>/24</option>
-
                     </select>
-
                     <small class="text-muted">Select subnet only if Static IP is Yes</small>
-
                 </div>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    const linkType = document.getElementById('link_type');
+                                    const existingBox = document.getElementById('existing_circuit_box');
+                                    const newLinkFields = document.getElementById('new_link_fields');
+                                    const circuitSelect = document.getElementById('circuit_id');
+                                    // Show/hide fields based on link type
+                                    linkType.addEventListener('change', function() {
+                                        if (this.value === 'existing') {
+                                            existingBox.style.display = '';
+                                            newLinkFields.style.display = '';
+                                        } else if (this.value === 'new') {
+                                            existingBox.style.display = 'none';
+                                            newLinkFields.style.display = '';
+                                            // Clear circuit selection
+                                            if (circuitSelect) circuitSelect.value = '';
+                                        } else {
+                                            existingBox.style.display = 'none';
+                                            newLinkFields.style.display = '';
+                                        }
+                                    });
+                                    // Autofill fields on circuit select
+                                    if (circuitSelect) {
+                                        circuitSelect.addEventListener('change', function() {
+                                            const selected = this.options[this.selectedIndex];
+                                            if (selected && selected.dataset.circuit) {
+                                                const data = JSON.parse(selected.dataset.circuit);
+                                                document.getElementById('speed').value = data.speed || '';
+                                                document.getElementById('static_ip').value = data.static_ip || '';
+                                                document.getElementById('static_ip_subnet').value = data.static_ip_subnet || '';
+                                            }
+                                        });
+                                    }
+                                });
+                            </script>
                 <!-- Expected Delivery -->
                 <div class="col-md-3">
 

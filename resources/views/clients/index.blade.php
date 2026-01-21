@@ -85,6 +85,7 @@
                         <th class="col">Action</th>
 
                         <th class="col">Client Code</th>
+                        <th class="col">State</th>
 
                         <th class="col">Client Name</th>
 
@@ -188,6 +189,7 @@
                             <!-- <td>{{ $key+1 }}</td> -->
 
                             <td>{{ $client->client_code }}</td>
+                            <td>{{ $client->state ?? '-' }}</td>
 
                             <td class="col">{{ $client->client_name }}</td>
 

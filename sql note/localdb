@@ -3,7 +3,6 @@ ADD deliverable_id BIGINT UNSIGNED NULL AFTER id,
 ADD INDEX client_links_deliverable_id_index (deliverable_id);
 
 
-
 ALTER TABLE deliverables
 DROP COLUMN dhcp_ip_address,
 DROP COLUMN dhcp_vlan,
@@ -21,3 +20,4 @@ DROP COLUMN wifi_username,
 DROP COLUMN wifi_password,
 DROP COLUMN router_username,
 DROP COLUMN router_password;
+
