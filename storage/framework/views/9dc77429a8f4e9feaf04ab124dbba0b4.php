@@ -1,73 +1,144 @@
 
 
-<?php $__env->startSection('content'); ?>
-<div class="container-fluid py-4">
-	<h4 class="text-primary fw-bold mb-3">View Termination Request</h4>
-	<div class="card shadow border-0 p-4">
-		
-		<div class="row g-3">
-			<div class="col-md-4">
-                <label>Circuit ID</label>
-                <input type="text" class="form-control" value="<?php echo e($termination->circuit_id); ?>" readonly>
-           </div>
-			<div class="col-md-4">
-                <label>Company Name</label>
-                <input type="text" class="form-control" value="<?php echo e($termination->company_name); ?>" readonly>
-            </div>
-			<div class="col-md-4">
-                <label>Address</label>
-                <input type="text" class="form-control" value="<?php echo e($termination->address); ?>" readonly>
-            </div>
-			<div class="col-md-4">
-                <label>Bandwidth</label>
-                <input type="text" class="form-control" value="<?php echo e($termination->bandwidth); ?>" readonly>
-            </div>
-			<div class="col-md-4">
-                <label>Asset Make</label>
-                <input type="text" class="form-control" value="<?php echo e($termination->asset_make); ?>" readonly>
-            </div>
-			<div class="col-md-4">
-                <label>Asset MAC</label>
-                <input type="text" class="form-control" value="<?php echo e($termination->asset_mac); ?>" readonly>
-            </div>
-			<div class="col-md-4">
-                <label>Asset Serial</label>
-                <input type="text" class="form-control" value="<?php echo e($termination->asset_serial); ?>" readonly>
-            </div>
-			<div class="col-md-4">
-                <label>Date of Activation</label>
-                <input type="text" class="form-control" value="<?php echo e($termination->date_of_activation); ?>" readonly>
-            </div>
-			<div class="col-md-4">
-                <label>Date of Delivered</label>
-                <input type="text" class="form-control" value="<?php echo e($termination->date_of_delivered); ?>" readonly>
-            </div>
-			<div class="col-md-4">
-                <label>Date of Last Renewal</label>
-                <input type="text" class="form-control" value="<?php echo e($termination->date_of_last_renewal); ?>" readonly>
-            </div>
-			<div class="col-md-4">
-                <label>Date of Expiry</label>
-                <input type="text" class="form-control" value="<?php echo e($termination->date_of_expiry); ?>" readonly>
-            </div>
-			<div class="col-md-4">
-                <label>Termination Request Date</label>
-                <input type="text" class="form-control" value="<?php echo e($termination->termination_request_date); ?>" readonly>
-            </div>
-			<div class="col-md-4">
-                <label>Termination Requested By</label>
-                <input type="text" class="form-control" value="<?php echo e($termination->termination_requested_by); ?>" readonly>
-            </div>
-			<div class="col-md-4">
-                <label>Termination Request Document</label>
-				<a href="<?php echo e(asset($termination->termination_request_document)); ?>" target="_blank"> View Document
-</a>
 
-			</div>
-			<div class="col-md-4"><label>Termination Date</label><input type="text" class="form-control" value="<?php echo e($termination->termination_date); ?>" readonly></div>
-			<div class="col-md-4"><label>Status</label><input type="text" class="form-control" value="<?php echo e($termination->status); ?>" readonly></div>
-		</div>
-	</div>
+
+<?php $__env->startSection('content'); ?>
+
+<div class="container py-4">
+
+    <h3 class="mb-3 text-primary">View Termination Request</h3>
+
+
+
+    <div class="card shadow border-0 p-4">
+
+        <table class="table table-bordered">
+
+            <tr>
+
+                <th>Circuit ID</th>
+
+                <td style="text-align: left;"><?php echo e($termination->circuit_id ?? '-'); ?></td>
+
+            </tr>
+            <tr>
+
+                <th>Company Name</th>
+
+                <td style="text-align: left;"><?php echo e($termination->company_name ?? '-'); ?></td> 
+
+            <tr>
+
+                <th>Address</th>
+
+                <td style="text-align: left;"><?php echo e($termination->address ?? '-'); ?></td>
+
+            </tr>
+
+            <tr>
+
+                <th>Bandwidth</th>
+
+                <td style="text-align: left;"><?php echo e($termination->bandwidth ?? '-'); ?></td>
+
+            </tr>
+
+            <tr>
+
+                <th>Asset ID</th>
+
+                <td style="text-align: left;"><?php echo e($termination->asset_id ?? '-'); ?></td>
+
+            <tr>
+               
+            <tr>
+                <th>Asset MAC</th>
+                <td style="text-align: left;"><?php echo e($termination->asset_mac ?? '-'); ?></td>
+            </tr>
+            <tr>
+                <th>Asset Serial</th>
+                <td style="text-align: left;"><?php echo e($termination->asset_serial ?? '-'); ?></td>
+            <tr>
+
+
+                <th>Date of Activation</th>
+                <td style="text-align: left;"><?php echo e($termination->date_of_activation ?? '-'); ?></td>
+            </tr>
+
+            <tr>
+
+                <th>Date of Last Renewal</th>
+
+                <td style="text-align: left;"><?php echo e($termination->date_of_last_renewal ?? '-'); ?></td>
+
+            </tr>
+
+            <tr>
+
+                <th>Date of Expiry</th>
+
+                <td style="text-align: left;"><?php echo e($termination->date_of_expiry ?? '-'); ?></td>
+
+            </tr>
+
+            <tr>
+
+                <th>Termination Request Date</th>
+
+                <td style="text-align: left;"><?php echo e($termination->termination_request_date ?? '-'); ?></td>
+
+            </tr>
+
+            <tr>
+
+                <th>Termination Requested By</th>
+
+                <td style="text-align: left;"><?php echo e($termination->termination_requested_by ?? '-'); ?></td>
+
+            </tr>
+
+            <tr>
+
+                <th>Termination Request Document</th>
+
+                <td style="text-align: left;"><?php echo e($termination->termination_request_document ?? '-'); ?></td>
+
+            </tr>
+
+            <tr>
+
+                <th>Termination Date</th>
+
+                <td style="text-align: left;"><?php echo e($termination->termination_date ?? '-'); ?></td>
+
+            </tr>
+
+            <tr>
+
+                <th>Status</th>
+
+                <td style="text-align: left;"><?php echo e($termination->status ?? '-'); ?></td>
+
+            </tr>
+
+        </table>
+
+        <div class="text-end">
+
+            <a href="<?php echo e(route('operations.termination.index')); ?>" class="btn btn-secondary">Back</a>
+
+        </div>
+
+    </div>
+
 </div>
+
+<style>
+    td{
+        text-align: left;
+    
+    }
+</style>
+
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\operations\termination\view.blade.php ENDPATH**/ ?>

@@ -16,7 +16,6 @@ return new class extends Migration {
             $table->string('asset_mac')->nullable();
             $table->string('asset_serial')->nullable();
             $table->date('date_of_activation')->nullable();
-            $table->date('date_of_delivered')->nullable();
             $table->date('date_of_last_renewal')->nullable();
             $table->date('date_of_expiry')->nullable();
             $table->date('termination_request_date')->nullable();

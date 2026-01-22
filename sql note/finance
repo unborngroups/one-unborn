@@ -66,3 +66,16 @@ ALTER TABLE renewals ADD COLUMN status VARCHAR(20) DEFAULT 'Active' AFTER alert_
 
 ALTER TABLE clients
 ADD COLUMN billing_sequence VARCHAR(225) NULL AFTER billing_spoc_email;
+
+ALTER TABLE terminations
+DROP COLUMN date_of_delivered;
+
+ALTER TABLE terminations MODIFY circuit_id VARCHAR(20);
+
+UPDATE terminations
+SET status = 
+    CASE
+        WHEN termination_date IS NOT NULL THEN 'Terminated'
+        WHEN termination_request_date IS NOT NULL THEN 'Pending'
+        ELSE NULL
+    END;

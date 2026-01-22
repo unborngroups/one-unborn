@@ -55,6 +55,8 @@
 
                     <form action="<?php echo e(route('sm.purchaseorder.update', $purchaseOrder->id)); ?>" method="POST" enctype="multipart/form-data" id="purchaseOrderForm">
 
+                        <input type="hidden" name="allow_reuse" value="0">
+
                         <?php echo csrf_field(); ?>
 
                         <?php echo method_field('PUT'); ?>

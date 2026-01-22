@@ -5,6 +5,8 @@
 <?php $__env->startSection('content'); ?>
 
 <div class="container-fluid py-4">
+
+<div class="">
     <form id="filterForm" method="GET" class="d-flex align-items-center gap-2 w-100">
             <label for="entriesSelect" class="mb-0">Show</label>
             <select id="entriesSelect" name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
@@ -17,6 +19,20 @@
 
         </form>
 
+
+            <?php if($permissions->can_delete): ?>
+            <form id="bulkDeleteForm" action="<?php echo e(route('operations.feasibility.bulk-delete')); ?>" method="POST" class="d-inline">
+                <?php echo csrf_field(); ?>
+                <div id="bulkDeleteInputs"></div>
+            </form>
+            <button id="deleteSelectedBtn" class="btn btn-danger d-none">
+                <i class="bi bi-trash"></i>
+            </button>
+            <?php endif; ?>
+
+</div>
+    
+
     <div class="row">
 
         <div class="col-12">
@@ -28,7 +44,7 @@
                     <h5 class="mb-0"><i class="bi bi-hourglass-split me-2"></i>Open Feasibilities</h5>
 
                     <form id="searchForm" method="GET" class="d-flex align-items-center w-25">
-                        <input type="text" name="search" id="tableSearch" class="form-control form-control-sm w-100" placeholder="Search..." value="<?php echo e($search ?? ''); ?>" oninput="this.form.submit()">
+                        <input type="text" name="search" class="form-control form-control-sm w-100" placeholder="Search..." value="<?php echo e($search ?? ''); ?>" oninput="this.form.submit()">
                         <input type="hidden" name="per_page" value="<?php echo e(request('per_page', 10)); ?>">
                     </form>
                 </div>
@@ -83,7 +99,7 @@
                                             <!-- Display serial number -->
 
                                             <td class="text-center">
-                                    <input type="checkbox" class="row-checkbox" value="<?php echo e($record->id); ?>" style="width: 18px; height: 18px; cursor: pointer;">
+                                    <input type="checkbox" class="rowCheckbox" value="<?php echo e($record->id); ?>" style="width: 18px; height: 18px; cursor: pointer;">
                                 </td>
                                             <td><?php echo e(($records->currentPage() - 1) * $records->perPage() + $loop->iteration); ?></td>
 
@@ -252,18 +268,68 @@
 </div>
 
 <script>
-    document.getElementById('tableSearch').addEventListener('keyup', function() {
+// (No client-side search, now server-side search is used)
 
-    let value = this.value.toLowerCase();
 
-    document.querySelectorAll('#open tbody tr').forEach(row => {
 
-        row.style.display = row.textContent.toLowerCase().includes(value) ? '' : 'none';
+// ✅ Select / Deselect all checkboxes
 
+document.getElementById('select_all').addEventListener('change', function(){
+    let isChecked = this.checked;
+    document.querySelectorAll('.rowCheckbox').forEach(cb => {
+        cb.checked = isChecked;
+    });
+    updateDeleteButtonVisibility();
+});
+
+// Update Delete Button Visibility
+document.getElementById('deleteSelectedBtn')?.addEventListener('click', function () {
+    const selectedIds = Array.from(document.querySelectorAll('.rowCheckbox:checked')).map(cb => cb.value);
+    if (!selectedIds.length) {
+        return;
+    }
+
+    if (!confirm(`Delete ${selectedIds.length} selected termination(s)?`)) {
+        return;
+    }
+
+    const inputsContainer = document.getElementById('bulkDeleteInputs');
+    inputsContainer.innerHTML = '';
+    selectedIds.forEach(id => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'ids[]';
+        input.value = id;
+        inputsContainer.appendChild(input);
     });
 
+    document.getElementById('bulkDeleteForm')?.submit();
 });
+// 
+function updateDeleteButtonVisibility() {
+    const totalChecked = document.querySelectorAll('.rowCheckbox:checked').length;
+    const deleteBtn = document.getElementById('deleteSelectedBtn');
+    if (!deleteBtn) {
+        return;
+    }
+    if (totalChecked > 0) {
+        deleteBtn.classList.remove('d-none');
+    } else {
+        deleteBtn.classList.add('d-none');
+    }
+}
+
+document.querySelectorAll('.rowCheckbox').forEach(cb => {
+    cb.addEventListener('change', updateDeleteButtonVisibility);
+});
+
+// Keep the delete button state correct on page load
+updateDeleteButtonVisibility();
+
+
 </script>
+
+
 <style>
     .table th,  .table td {
         width: 130px;

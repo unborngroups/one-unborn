@@ -158,6 +158,9 @@ Route::patch('/users/{id}/toggle-status', [UserController::class, 'toggleStatus'
     Route::post('/assetmaster/make_type/bulk-delete', [Make_typeController::class, 'bulkDestroy'])->name('assetmaster.make_type.bulk-delete');
     Route::post('/assetmaster/model_type/bulk-delete', [ModelTypeController::class, 'bulkDestroy'])->name('assetmaster.model_type.bulk-delete');
     Route::post('/hr/leavetype/bulk-delete', [LeaveTypeController::class, 'bulkDelete'])->name('hr.leavetype.bulk-delete');
+    Route::post('/operations/termination/bulk-delete', [TerminationController::class, 'bulkDestroy'])->name('operations.termination.bulk-delete');
+    Route::post('/operations/feasibility/bulk-delete', [FeasibilityStatusController::class, 'bulkDestroy'])->name('operations.feasibility.bulk-delete');
+
     
     //view path
     Route::get('/users/{id}/view', [UserController::class, 'view'])->name('users.view');
@@ -309,7 +312,7 @@ Route::get('/operations/asset/{id}/print', [AssetController::class, 'print'])->n
     route::post('/operations/termination', [TerminationController::class, 'store'])->name('operations.termination.store');
     Route::get('/operations/termination/{id}/edit', [TerminationController::class, 'edit'])->name('operations.termination.edit');
     Route::put('/operations/termination/{id}', [TerminationController::class, 'update'])->name('operations.termination.update');
-    // Route::delete('/operations/termination/{id}', [TerminationController::class, 'destroy'])->name('operations.termination.destroy');
+    Route::delete('/operations/termination/{termination}', [TerminationController::class, 'destroy'])->name('operations.termination.destroy');
     Route::get('/operations/termination/{id}/view', [TerminationController::class, 'view'])->name('operations.termination.view');
     // Route::patch('/operations/termination/{id}/toggle-status', [TerminationController::class, 'toggleStatus'])->name('operations.termination.toggle-status');
     

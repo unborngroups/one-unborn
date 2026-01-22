@@ -4,7 +4,7 @@
 <div class="container-fluid py-4">
 	<h4 class="text-primary fw-bold mb-3">Edit Termination Request</h4>
 	<div class="card shadow border-0 p-4">
-		<form action="{{ route('termination.update', $termination->id) }}" method="POST" enctype="multipart/form-data">
+		<form action="{{ route('operations.termination.update', $termination->id) }}" method="POST" enctype="multipart/form-data">
 			@csrf
 			@method('PUT')
 			<div class="row g-3">
@@ -26,8 +26,8 @@
                     <input type="text" name="bandwidth" class="form-control" value="{{ $termination->bandwidth }}"></div>
 				
                     <div class="col-md-4">
-                    <label>Asset Make</label>
-                    <input type="text" name="asset_make" class="form-control" value="{{ $termination->asset_make }}"></div>
+                    <label>Asset ID</label>
+                    <input type="text" name="asset_id" class="form-control" value="{{ $termination->asset_id }}"></div>
 				
                     <div class="col-md-4">
                     <label>Asset MAC</label>
@@ -40,10 +40,6 @@
                     <div class="col-md-4">
                     <label>Date of Activation</label>
                     <input type="date" name="date_of_activation" class="form-control" value="{{ $termination->date_of_activation }}"></div>
-				
-                    <div class="col-md-4">
-                    <label>Date of Delivered</label>
-                    <input type="date" name="date_of_delivered" class="form-control" value="{{ $termination->date_of_delivered }}"></div>
 				
                     <div class="col-md-4">
                     <label>Date of Last Renewal</label>
@@ -70,9 +66,19 @@
 				<div class="col-md-4"><label>Termination Date</label><input type="date" name="termination_date" class="form-control" value="{{ $termination->termination_date }}"></div>
 				<div class="col-md-4"><label>Status</label><input type="text" name="status" class="form-control" value="{{ $termination->status }}"></div>
 			</div>
-			<div class="mt-4 text-end">
+
+            <div class="">
+                <div class="float-start mt-4">
+                <a href="{{ route('operations.termination.index') }}" class="btn btn-secondary">Back</a>
+                </div>
+
+                <div class="mt-4 float-end">
 				<button type="submit" class="btn btn-primary">Update</button>
 			</div>
+
+
+            </div>
+			
 		</form>
 	</div>
 </div>

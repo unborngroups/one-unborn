@@ -1104,4 +1104,21 @@ public function editSave(Request $request, $id)
 
     return [];
 }
+
+
+    /**
+     * Bulk delete clients selected from the open feasibility table only.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'required|integer|exists:feasibilities,id',
+        ]);
+
+        Feasibility::whereIn('id', $request->input('ids'))->delete();
+
+        return redirect()->route('operations.feasibility.open')
+            ->with('success', count($request->input('ids')) . ' feasibility(s) deleted successfully.');
+    }
 }

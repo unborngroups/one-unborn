@@ -30,6 +30,14 @@
                     </div>
                 </li>
                 @endif
+                <style>
+                    .master{
+                        background-color: green!important;
+                        border-color: greenyellow!important;
+                        border-width: 255px!important;
+                        
+                    }
+                </style>
 
             @if(($company && $company->can_menu) || ($users && $users->can_menu) || ($userType && $userType->can_menu) || ($client && $client->can_menu) || ($vendor && $vendor->can_menu))
 
@@ -37,7 +45,7 @@
 
                     <details class="sidebar-dropdown" {{ request()->is('companies*') || request()->is('users*') || request()->is('usertypetable*') || request()->is('clients*') || request()->is('vendors*') ? 'open' : '' }}>
 
-                        <summary class="nav-link text-white d-flex justify-content-between align-items-center" style="background:#ff9671;">
+                        <summary class="nav-link text-white d-flex justify-content-between align-items-center master">
 
                             <span><i class="bi bi-collection"></i> Masters</span>
 

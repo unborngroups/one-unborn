@@ -6,6 +6,7 @@
 	<div class="card shadow border-0 p-4">
 		<form action="{{ route('operations.termination.store') }}" method="POST" enctype="multipart/form-data">
 			@csrf
+			<input type="hidden" name="circuit_id" value="">
 			<div class="row mb-3">
 				<div class="col-md-4">
 					<label class="form-label fw-semibold">Circuit ID <span class="text-danger">*</span></label>
@@ -20,7 +21,6 @@
 							data-asset_mac="{{ $d['asset_mac'] ?? '' }}"
 							data-asset_serial="{{ $d['asset_serial'] ?? '' }}"
 							data-date_of_activation="{{ $d['date_of_activation'] ?? '' }}"
-							data-date_of_delivered="{{ $d['date_of_delivered'] ?? '' }}"
 							data-date_of_last_renewal="{{ $d['date_of_last_renewal'] ?? '' }}"
 							data-date_of_expiry="{{ $d['date_of_expiry'] ?? '' }}"
 						>
@@ -46,15 +46,15 @@
 						<label>Bandwidth</label>
 						<input type="text" name="bandwidth" class="form-control" readonly>
 					</div>
-					<div class="col-md-4">
+					<div class="col-md-4 asset-fields" style="display:none">
 						<label>Asset ID</label>
 						<input type="text" name="asset_id" class="form-control" readonly>
 					</div>
-					<div class="col-md-4">
+					<div class="col-md-4 asset-fields" style="display:none">
 						<label>Asset MAC</label>
 						<input type="text" name="asset_mac" class="form-control" readonly>
 					</div>
-					<div class="col-md-4">
+					<div class="col-md-4 asset-fields" style="display:none">
 						<label>Asset Serial</label>
 						<input type="text" name="asset_serial" class="form-control" readonly>
 					</div>
@@ -62,10 +62,7 @@
 						<label>Date of Activation</label>
 						<input type="text" name="date_of_activation" class="form-control" readonly>
 					</div>
-					<div class="col-md-4">
-						<label>Date of Delivered</label>
-						<input type="text" name="date_of_delivered" class="form-control" readonly>
-					</div>
+					
 					<div class="col-md-4">
 						<label>Date of Last Renewal</label>
 						<input type="text" name="date_of_last_renewal" class="form-control" readonly>
@@ -97,9 +94,21 @@
 					<input type="date" name="termination_date" class="form-control">
 				</div>
 			</div>
-			<div class="mt-4 text-end">
+
+			<div class="">
+				<div class="float-start mt-4">
+                <a href="{{ route('operations.termination.index') }}" class="btn btn-secondary">Back</a>
+                </div>
+
+				<div class="float-end mt-4">
 				<button type="submit" class="btn btn-primary">Submit</button>
+			    </div>
+
+			
+
+
 			</div>
+			
 		</form>
 	</div>
 </div>
@@ -112,14 +121,27 @@ $(document).ready(function () {
 		$('[name="company_name"]').val(selected.data('company_name') || '');
 		$('[name="address"]').val(selected.data('address') || '');
 		$('[name="bandwidth"]').val(selected.data('bandwidth') || '');
-		$('[name="asset_id"]').val(selected.data('asset_id') || '');
-		$('[name="asset_mac"]').val(selected.data('asset_mac') || '');
-		$('[name="asset_serial"]').val(selected.data('asset_serial') || '');
+		var assetId = selected.data('asset_id') || '';
+		var assetMac = selected.data('asset_mac') || '';
+		var assetSerial = selected.data('asset_serial') || '';
+		$('[name="asset_id"]').val(assetId);
+		$('[name="asset_mac"]').val(assetMac);
+		$('[name="asset_serial"]').val(assetSerial);
+		// Show asset fields only if any asset data is present and not a NO ASSET message
+		if ((assetId && !assetId.startsWith('[NO')) || assetMac || assetSerial) {
+			$('.asset-fields').show();
+		} else {
+			$('.asset-fields').hide();
+		}
 		$('[name="date_of_activation"]').val(selected.data('date_of_activation') || '');
 		$('[name="date_of_expiry"]').val(selected.data('date_of_expiry') || '');
 		$('[name="date_of_last_renewal"]').val(selected.data('date_of_last_renewal') || '');
 		$('[name="date_of_expiry"]').val(selected.data('date_of_expiry') || '');
+		// Set circuit_id hidden field
+		$('[name="circuit_id"]').val(selected.text().trim() || '');
 	});
+	// On page load, trigger change if a value is already selected
+	$('#deliverable_id').trigger('change');
 });
 </script>
 
