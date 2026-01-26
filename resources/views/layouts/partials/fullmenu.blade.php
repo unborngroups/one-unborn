@@ -30,22 +30,15 @@
                     </div>
                 </li>
                 @endif
-                <style>
-                    .master{
-                        background-color: green!important;
-                        border-color: greenyellow!important;
-                        border-width: 255px!important;
-                        
-                    }
-                </style>
+                
 
             @if(($company && $company->can_menu) || ($users && $users->can_menu) || ($userType && $userType->can_menu) || ($client && $client->can_menu) || ($vendor && $vendor->can_menu))
 
                 <li class="nav-item">
 
-                    <details class="sidebar-dropdown" {{ request()->is('companies*') || request()->is('users*') || request()->is('usertypetable*') || request()->is('clients*') || request()->is('vendors*') ? 'open' : '' }}>
+                    <details class="master sidebar-dropdown" {{ request()->is('companies*') || request()->is('users*') || request()->is('usertypetable*') || request()->is('clients*') || request()->is('vendors*') ? 'open' : '' }}>
 
-                        <summary class="nav-link text-white d-flex justify-content-between align-items-center master">
+                        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
 
                             <span><i class="bi bi-collection"></i> Masters</span>
 
@@ -164,9 +157,9 @@
 || ($smDeliverablesDelivery && $smDeliverablesDelivery->can_menu) || ($smDeliverablesAcceptance && $smDeliverablesAcceptance->can_menu)))
 <li class="nav-item ">
 
-    <details class="sidebar-dropdown" {{ request()->is('sm/feasibility*') || request()->is('sm/purchaseorder*') || request()->is('sm/deliverables*') ? 'open' : '' }}>
+    <details class="sm sidebar-dropdown" {{ request()->is('sm/feasibility*') || request()->is('sm/purchaseorder*') || request()->is('sm/deliverables*') ? 'open' : '' }}>
 
-        <summary class="nav-link text-white d-flex justify-content-between align-items-center bg-primary">
+        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
 
             <span><i class="bi bi-briefcase"></i> Sales & Marketing</span>
 
@@ -704,8 +697,8 @@
 
 <li class="nav-item ">
 
-    <details class="sidebar-dropdown" {{ request()->is('operations/asset*') || request()->is('operations/renewals*') || request()->is('operations/feasibility*') || request()->is('operations/deliverables*') || request()->is('operations/purchaseorder*') || request()->is('operations/termination*') ? 'open' : '' }}>
-        <summary class="nav-link text-white d-flex justify-content-between align-items-center bg-success">
+    <details class="operation sidebar-dropdown" {{ request()->is('operations/asset*') || request()->is('operations/renewals*') || request()->is('operations/feasibility*') || request()->is('operations/deliverables*') || request()->is('operations/purchaseorder*') || request()->is('operations/termination*') ? 'open' : '' }}>
+        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
 
             <span><i class="bi bi-gear-wide-connected"></i> Operations</span>
 
@@ -915,8 +908,8 @@
 
             @if($finance && $finance->can_menu)
                 <li class="nav-item">
-                    <details class="sidebar-dropdown" {{ request()->is('finance/*') ? 'open' : '' }}>
-                        <summary class="nav-link text-white d-flex justify-content-between align-items-center  bg-warning">
+                    <details class="finance sidebar-dropdown" {{ request()->is('finance/*') ? 'open' : '' }}>
+                        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
                             <span><i class="bi bi-cash-coin"></i> Finance</span>
                             <i class="bi bi-chevron-down arrow-icon"></i>
                         </summary>
@@ -1053,8 +1046,8 @@
 
             @if($hr && $hr->can_menu)
                 <li class="nav-item ">
-                    <details class="sidebar-dropdown" {{ request()->is('hr*') || request()->is('users*') ? 'open' : '' }}>
-                        <summary class="nav-link text-white d-flex justify-content-between align-items-center bg-secondary">
+                    <details class="hr sidebar-dropdown" {{ request()->is('hr*') || request()->is('users*') ? 'open' : '' }}>
+                        <summary class="nav-link text-white d-flex justify-content-between align-items-center ">
                             <span><i class="bi bi-people-fill"></i> HR</span>
                             <i class="bi bi-chevron-down arrow-icon"></i>
                         </summary>
@@ -1176,9 +1169,9 @@
 
                 <li class="nav-item" >
 
-                    <details class="sidebar-dropdown" {{ request()->is('emails*') || request()->is('menus*') || request()->is('company-settings*') || request()->is('system-settings*') || request()->is('whatsapp-settings*') ? 'open' : '' }}>
+                    <details class="system sidebar-dropdown" {{ request()->is('emails*') || request()->is('menus*') || request()->is('company-settings*') || request()->is('system-settings*') || request()->is('whatsapp-settings*') ? 'open' : '' }}>
 
-                        <summary class="nav-link text-white d-flex justify-content-between align-items-center" style="background:#0083b0;">
+                        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
 
                             <span><i class="bi bi-gear"></i> System</span>
 
@@ -1320,5 +1313,59 @@
     .nav .collapse .nav-item + .nav-item {
         margin-top: 0.05rem;
     }
+
+   
+    .system{
+        border: #ca2da8!important;
+        border-width: 4px!important;
+        border-style: solid!important; 
+    }
+    .hr{
+        border: #f5f3f4!important;
+        border-width: 4px!important;
+        border-style: solid!important; 
+    }
+    .finance{
+        border: orange!important;
+        border-width: 4px!important;
+        border-style: solid!important; 
+    }
+    .operation{
+        border: green!important;
+        border-width: 4px!important;
+        border-style: solid!important; 
+    }
+    .sm{
+        border: #07a4e7!important;
+        border-width: 4px!important;
+        border-style: solid!important; 
+    }
+    .master{
+        border: #f83003!important;
+        border-width: 4px!important;
+        border-style: solid!important;
+    }
+    </style>
+
+<!-- Responsive Navbar/Profile/Time CSS for Mobile -->
+<style>
+@media (max-width: 767px) {
+  .navbar .container-fluid {
+    flex-wrap: nowrap !important;
+  }
+  .navbar .d-flex.align-items-center {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .navbar .dropdown {
+    margin-left: auto !important;
+  }
+  #onlineStatusTicker {
+    margin-left: auto !important;
+    margin-right: 0 !important;
+    display: flex;
+    align-items: center;
+  }
+}
 </style>
 

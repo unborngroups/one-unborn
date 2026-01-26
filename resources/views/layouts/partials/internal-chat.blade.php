@@ -27,7 +27,7 @@
                 <aside class="live-chat-sidebar">
                     <div class="live-chat-section">
                         <h6>Online</h6>
-                        <ul data-role="online-list" class="live-chat-list"></ul>
+                        <ul data-role="user-list" class="live-chat-list"></ul>
                     </div>
                 </aside>
                 <section class="live-chat-content">
@@ -35,10 +35,19 @@
                     <div class="live-chat-typing" data-role="typing" hidden></div>
                     <form class="live-chat-composer" data-role="composer">
                         <!-- group_id removed: direct chat only -->
-                        <input type="text" name="message" placeholder="Type a message" autocomplete="off">
-                        <input type="file" name="attachment" class="live-chat-file" hidden>
+                        <!-- <input type="text" name="message" placeholder="Type a message" autocomplete="off">
+                        <input type="file" name="attachment" class="live-chat-file" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt" hidden>
                         <button type="button" class="live-chat-attach" data-role="attach" title="Attach file">📎</button>
-                        <button type="submit" class="live-chat-send" title="Send message">➤</button>
+                        <span class="live-chat-file-preview" style="display:none;"></span>
+                        <button type="submit" class="live-chat-send" title="Send message">➤</button> -->
+                        <button type="button" class="live-chat-plus" title="More options">＋</button>
+<button type="button" class="live-chat-emoji" title="Emoji">😊</button>
+<input type="text" name="message" placeholder="Type a message" autocomplete="off">
+<input type="file" name="file" class="live-chat-file" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt" hidden>
+<button type="button" class="live-chat-attach" data-role="attach" title="Attach file">📎</button>
+<span class="live-chat-file-preview" style="display:none;"></span>
+<button type="button" class="live-chat-mic" title="Voice message">🎤</button>
+<button type="submit" class="live-chat-send" title="Send message">➤</button>
                     </form>
                 </section>
             </div>
@@ -141,57 +150,143 @@
             background: #e0e7ff;
             font-weight: 600;
         }
-        .live-chat-list li span.dot {
-            width: 8px;
-            height: 8px;
+        .live-chat-list li.private-chat-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .live-chat-list li.private-chat-user:hover,
+        .live-chat-list li.private-chat-user.selected {
+            background: #e0e7ff;
+            font-weight: 600;
+        }
+        .live-chat-list li.private-chat-user .dot {
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             background: #22c55e;
             display: inline-block;
         }
+        .live-chat-list li.private-chat-user[data-online="true"] {
+            font-weight: 600;
+            color: #22c55e !important;
+        }
+        .live-chat-list li.private-chat-user[data-online="true"]::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e !important;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        .live-chat-list li.private-chat-user[data-online="false"] {
+            color: #222 !important;
+        }
+        .live-chat-list li.private-chat-user[data-online="false"]::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #bbb !important;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+            .live-chat-list li.private-chat-user[data-online="true"] .last-seen {
+                display: none;
+            }
+            .live-chat-list li.private-chat-user[data-online="false"] .last-seen {
+                display: inline;
+                font-size: 11px;
+                color: #888;
+                margin-left: 4px;
+            }
         .live-chat-content {
             flex: 1;
             display: flex;
             flex-direction: column;
             min-width: 0;
+            height: 100%;
         }
         .live-chat-messages {
-            flex: 1;
-            padding: 16px;
-            overflow-y: auto;
-            background: #f1f5f9;
             display: flex;
             flex-direction: column;
             gap: 12px;
+            overflow-y: auto;
+            flex: 1;
+            min-height: 80px;
+            max-height: 320px;
+            background: #f1f5f9;
+            border-radius: 0 0 12px 12px;
         }
-        .live-chat-message {
-            max-width: 80%;
-            padding: 10px 14px;
-            border-radius: 12px;
-            background: #fff;
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+        .private-chat-message {
+            max-width: 70%;
+            padding: 10px 16px;
+            border-radius: 18px;
+            background: #f1f5f9;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
             position: relative;
-            font-size: 14px;
+            font-size: 15px;
+            margin-bottom: 10px;
+            clear: both;
+            word-break: break-word;
+            min-height: 36px;
+            display: flex;
+            align-items: flex-end;
         }
-        .live-chat-message[data-mine="true"] {
+        .private-chat-message.mine {
             margin-left: auto;
-            background: #0d6efd;
-            color: #fff;
+            margin-right: 8px;
+            background: #e3f0ff;
+            color: #222;
+            text-align: right;
+            border-bottom-right-radius: 8px;
+            border-bottom-left-radius: 18px;
+            border-top-right-radius: 18px;
+            border-top-left-radius: 18px;
+            float: right;
         }
-        .live-chat-meta {
-            font-size: 11px;
-            color: rgba(15, 23, 42, 0.6);
-            margin-top: 6px;
+        .private-chat-message.theirs {
+            background: #fff;
+            color: #222;
+            margin-right: auto;
+            margin-left: 8px;
+            text-align: left;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 18px;
+            border-top-right-radius: 18px;
+            border-top-left-radius: 18px;
+            float: left;
         }
-        .live-chat-message[data-mine="true"] .live-chat-meta {
-            color: rgba(255, 255, 255, 0.75);
+        .private-chat-sender {
+            font-size: 13px;
+            color: #222;
+            font-weight: 600;
+            margin-bottom: 2px;
+            margin-right: 8px;
         }
-        .live-chat-files a {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+        .private-chat-meta {
             font-size: 12px;
-            color: inherit;
-            text-decoration: underline;
+            color: #888;
+            margin-left: 8px;
+            margin-right: 8px;
+            margin-bottom: 2px;
+            display: inline-block;
+        }
+        .private-chat-message.mine .private-chat-meta {
+            text-align: right;
+            float: right;
+        }
+        .private-chat-message.theirs .private-chat-meta {
+            text-align: left;
+            float: left;
         }
         .live-chat-typing {
             padding: 0 16px 12px;
@@ -205,6 +300,7 @@
             padding: 12px 16px;
             background: #fff;
             border-top: 1px solid #e2e8f0;
+            min-height: 56px;
         }
         .live-chat-composer input[type="text"] {
             flex: 1;
@@ -212,6 +308,8 @@
             border-radius: 999px;
             padding: 8px 14px;
             background: #f8fafc;
+            min-height: 38px;
+            font-size: 15px;
         }
         .live-chat-send,
         .live-chat-attach {
@@ -234,5 +332,31 @@
                 display: none;
             }
         }
+
+        .live-chat-plus, .live-chat-emoji, .live-chat-mic {
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 20px;
+    margin-right: 2px;
+}
+.live-chat-list li.private-chat-user[data-online="true"] {
+    font-weight: 600;
+    color: #22c55e !important;
+    background: #eaffea;
+}
+.live-chat-list li.private-chat-user.selected {
+    background: #c7d2fe !important;
+    font-weight: 700;
+    color: #1e40af !important;
+}
+.live-chat-list li.private-chat-user.selected[data-online="true"] {
+    background: #b6f4c6 !important;
+    color: #166534 !important;
+}
+
     </style>
 @endif
+@push('scripts')
+<script src="{{ asset('public/js/private-chat.js') }}"></script>
+@endpush

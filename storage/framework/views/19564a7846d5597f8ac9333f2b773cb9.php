@@ -360,4 +360,4 @@
 <?php $__env->startPush('scripts'); ?>
 <script src="<?php echo e(asset('public/js/private-chat.js')); ?>"></script>
 <?php $__env->stopPush(); ?>
-<?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\layouts\partials\internal-chat.blade.php ENDPATH**/ ?>
+<?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views/layouts/partials/internal-chat.blade.php ENDPATH**/ ?>

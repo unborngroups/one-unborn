@@ -59,7 +59,7 @@ class DeliverablePlan extends Model
 
     public function deliverable()
     {
-        return $this->belongsTo(Deliverables::class);
+        return $this->belongsTo(Deliverables::class, 'deliverable_id');
     }
 
     public function renewals()

@@ -1,18 +1,19 @@
-@extends('layouts.app')
 
-@section('content')
+
+<?php $__env->startSection('content'); ?>
 
 <div class="container-fluid py-4">
 
     <h4 class="text-primary fw-bold mb-3 ">Add Feasibility</h4>
     
-    {{-- SUCCESS MESSAGE & IMPORTED ROWS SUMMARY --}}
-        @if(session('success'))
+    
+        <?php if(session('success')): ?>
             <div class="alert alert-success alert-dismissible fade show">
-                {{ session('success') }}
+                <?php echo e(session('success')); ?>
+
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-                @if (session('imported_rows'))
+                <?php if(session('imported_rows')): ?>
                     <div class="card border-success mb-3 mt-2">
                         <div class="card-header bg-success text-white py-1">Imported Rows Summary</div>
                         <div class="card-body p-2">
@@ -20,48 +21,49 @@
                                 <table class="table table-bordered table-sm mb-0">
                                     <thead>
                                         <tr>
-                                            @foreach(session('import_headers', []) as $header)
-                                                <th>{{ $header }}</th>
-                                            @endforeach
+                                            <?php $__currentLoopData = session('import_headers', []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $header): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <th><?php echo e($header); ?></th>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach(session('imported_rows', []) as $row)
+                                        <?php $__currentLoopData = session('imported_rows', []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $row): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                             <tr>
-                                                @foreach($row as $cell)
-                                                    <td>{{ $cell }}</td>
-                                                @endforeach
+                                                <?php $__currentLoopData = $row; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cell): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                    <td><?php echo e($cell); ?></td>
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                             </tr>
-                                        @endforeach
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
-                @endif
-        @endif
+                <?php endif; ?>
+        <?php endif; ?>
 
-    {{-- ERROR MESSAGE --}}
-    @if(session('error'))
+    
+    <?php if(session('error')): ?>
         <div class="alert alert-danger alert-dismissible fade show">
-            {{ session('error') }}
+            <?php echo e(session('error')); ?>
+
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-    @endif
+    <?php endif; ?>
 
 
-    {{-- IMPORT FAILED ROWS TABLE --}}
-    @if (session('import_errors'))
+    
+    <?php if(session('import_errors')): ?>
         <div class="alert alert-warning">
             <strong>Import could not process some rows:</strong>
             <ul class="mb-2">
-                @foreach(session('import_errors') as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
+                <?php $__currentLoopData = session('import_errors'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <li><?php echo e($error); ?></li>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </ul>
-            @if(session('failed_rows') && count(session('failed_rows', [])) > 0)
-                <form action="{{ route('feasibility.downloadFailedRows') }}" method="POST" class="mb-2">
-                    @csrf
+            <?php if(session('failed_rows') && count(session('failed_rows', [])) > 0): ?>
+                <form action="<?php echo e(route('feasibility.downloadFailedRows')); ?>" method="POST" class="mb-2">
+                    <?php echo csrf_field(); ?>
                     <button type="submit" class="btn btn-sm btn-outline-danger">
                         Download Failed Rows (CSV)
                     </button>
@@ -71,21 +73,21 @@
                     <table class="table table-bordered table-sm mt-2">
                         <thead>
                             <tr>
-                                @foreach(session('import_headers', []) as $header)
-                                    <th>{{ $header }}</th>
-                                @endforeach
+                                <?php $__currentLoopData = session('import_headers', []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $header): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <th><?php echo e($header); ?></th>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 <th>Error Reason</th>
                             </tr>
                         </thead>
                         <tbody id="failedRowsTbody">
-                            @foreach(session('failed_rows', []) as $row)
+                            <?php $__currentLoopData = session('failed_rows', []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $row): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <tr>
-                                    @foreach(session('import_headers', []) as $header)
-                                        <td>{{ $row[$header] ?? '' }}</td>
-                                    @endforeach
-                                    <td class="text-danger">{{ $row['Error Reason'] ?? '' }}</td>
+                                    <?php $__currentLoopData = session('import_headers', []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $header): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <td><?php echo e($row[$header] ?? ''); ?></td>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    <td class="text-danger"><?php echo e($row['Error Reason'] ?? ''); ?></td>
                                 </tr>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </tbody>
                     </table>
                 </div>
@@ -108,15 +110,15 @@
                         }
                     }
                 </script>
-            @else
+            <?php else: ?>
                 <div class="alert alert-info mt-2">No failed rows to display.</div>
-            @endif
+            <?php endif; ?>
         </div>
-    @endif
+    <?php endif; ?>
 
-        @php
+        <?php
             $importRow = session('imported_row', []);
-        @endphp
+        ?>
      
     <!-- <h5 class="mb-3 ">Import Feasibility</h5> -->
         <div class="row g-3 mb-3">
@@ -128,11 +130,11 @@
                     <div class="card border-info">
                         <div class="card-body">
                             <p class="mb-3 small text-muted">Download the sample format, populate it with feasibility data, and then upload it via Import Excel.</p>
-                            <form id="importExcelForm" action="{{ route('feasibility.import') }}" method="POST" enctype="multipart/form-data">
-                                @csrf
+                            <form id="importExcelForm" action="<?php echo e(route('feasibility.import')); ?>" method="POST" enctype="multipart/form-data">
+                                <?php echo csrf_field(); ?>
                                 <div class="input-group">
                                     <input type="file" name="file" class="form-control" required>
-                                    <a href="{{ asset('images/feasibilityimport/Import Example Feasibility.csv') }}" target="_blank" class="btn btn-outline-secondary" title="Download import template">Download Format</a>
+                                    <a href="<?php echo e(asset('images/feasibilityimport/Import Example Feasibility.csv')); ?>" target="_blank" class="btn btn-outline-secondary" title="Download import template">Download Format</a>
                                     <button type="submit" class="btn btn-primary">Import Excel</button>
                                 </div>
                             </form>
@@ -172,33 +174,34 @@
 
 
 
-     {{-- ⚠️ Display validation errors if any --}}
+     
 
-        @if ($errors->any())
+        <?php if($errors->any()): ?>
 
             <div class="alert alert-danger">
 
                 <ul class="mb-0">
 
-                    @foreach ($errors->all() as $error)
+                    <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 
-                        <li>{{ $error }}</li> {{-- List each validation error --}}
+                        <li><?php echo e($error); ?></li> 
 
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
                 </ul>
 
             </div>
 
-        @endif
+        <?php endif; ?>
 
-        @if (session('success'))
+        <?php if(session('success')): ?>
 
             <div class="alert alert-success">
-                {{ session('success') }}
+                <?php echo e(session('success')); ?>
+
             </div>
 
-        @endif
+        <?php endif; ?>
 
 
 <!--         
@@ -206,8 +209,8 @@
         <h5 class="mb-3">Import Feasibility</h5>
         <div class="row g-3 align-items-center ml-2 mb-4">
             <div class="col-md-4">
-                <form action="{{ route('feasibility.import') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
+                <form action="<?php echo e(route('feasibility.import')); ?>" method="POST" enctype="multipart/form-data">
+                    <?php echo csrf_field(); ?>
                     <div class="input-group">
                         <input type="file" name="file" class="form-control" required>
                         <button type="submit" class="btn btn-primary">Import Excel</button>
@@ -219,9 +222,9 @@
 
 
 
-         {{-- Form starts here --}}
+         
 
-        <form action="{{ route('feasibility.store') }}" method="POST">
+        <form action="<?php echo e(route('feasibility.store')); ?>" method="POST">
             <div class="row mb-3">
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">Link Type <span class="text-danger">*</span></label>
@@ -235,14 +238,14 @@
                     <label class="form-label fw-semibold">Select Circuit ID</label>
                     <select id="circuit_id" name="circuit_id" class="form-select select2-tags">
                         <option value="">Select Circuit ID</option>
-                        @foreach($deliverables_plans as $d)
-                            <option value="{{ $d['circuit_id'] }}">{{ $d['circuit_id'] }}</option>
-                        @endforeach
+                        <?php $__currentLoopData = $deliverables_plans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $d): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($d['circuit_id']); ?>"><?php echo e($d['circuit_id']); ?></option>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
             </div>
 
-            @csrf
+            <?php echo csrf_field(); ?>
 
             <div class="row g-3" id="new_link_fields">
                 <!-- Feasibility ID -->
@@ -261,16 +264,16 @@
 
                     <label class="form-label fw-semibold">Type of Service <span class="text-danger">*</span></label>
 
-                    @php $typeSelection = old('type_of_service', $importRow['type_of_service'] ?? ''); @endphp
+                    <?php $typeSelection = old('type_of_service', $importRow['type_of_service'] ?? ''); ?>
                     <select name="type_of_service" id="type_of_service" class="form-select" required>
 
-                        <option value="" {{ $typeSelection === '' ? 'selected' : '' }}>Select</option>
+                        <option value="" <?php echo e($typeSelection === '' ? 'selected' : ''); ?>>Select</option>
 
-                        <option value="Broadband" {{ $typeSelection === 'Broadband' ? 'selected' : '' }}>Broadband</option>
+                        <option value="Broadband" <?php echo e($typeSelection === 'Broadband' ? 'selected' : ''); ?>>Broadband</option>
 
-                        <option value="ILL" {{ $typeSelection === 'ILL' ? 'selected' : '' }}>ILL</option>
+                        <option value="ILL" <?php echo e($typeSelection === 'ILL' ? 'selected' : ''); ?>>ILL</option>
 
-                        <option value="P2P" {{ $typeSelection === 'P2P' ? 'selected' : '' }}>P2P</option>
+                        <option value="P2P" <?php echo e($typeSelection === 'P2P' ? 'selected' : ''); ?>>P2P</option>
 
                     </select>
 
@@ -285,11 +288,11 @@
 
                         <option value="">Select Company</option>
 
-                        @foreach($companies as $company)
+                        <?php $__currentLoopData = $companies; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $company): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 
-                            <option value="{{ $company->id }}" {{ (string) old('company_id', $importRow['company_id'] ?? '') === (string) $company->id ? 'selected' : '' }}>{{ $company->company_name }}</option>
+                            <option value="<?php echo e($company->id); ?>" <?php echo e((string) old('company_id', $importRow['company_id'] ?? '') === (string) $company->id ? 'selected' : ''); ?>><?php echo e($company->company_name); ?></option>
 
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
                     </select>
 
@@ -304,11 +307,11 @@
 
                         <option value="">Select Client</option>
 
-                        @foreach($clients as $client)
+                        <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 
-                            <option value="{{ $client->id }}" {{ (string) old('client_id', $importRow['client_id'] ?? '') === (string) $client->id ? 'selected' : '' }}>{{ $client->business_name ?: $client->client_name }}</option>
+                            <option value="<?php echo e($client->id); ?>" <?php echo e((string) old('client_id', $importRow['client_id'] ?? '') === (string) $client->id ? 'selected' : ''); ?>><?php echo e($client->business_name ?: $client->client_name); ?></option>
 
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
                     </select>
 
@@ -317,25 +320,25 @@
                 <!-- Delivery Company Name -->
                 <div class="col-md-3">
                     <label for="form-label fw-semibold">Delivery Company Name</label>
-                    <input type="text" name="delivery_company_name" class="form-control" value="{{ old('delivery_company_name', $importRow['delivery_company_name'] ?? '') }}">
+                    <input type="text" name="delivery_company_name" class="form-control" value="<?php echo e(old('delivery_company_name', $importRow['delivery_company_name'] ?? '')); ?>">
                 </div>
 
                 <!-- Story ID -->
                 <div class="col-md-3">
                     <label for="form-label fw-semibold">Location ID</label>
-                    <input type="text" name="location_id" class="form-control" value="{{ old('location_id', $importRow['location_id'] ?? '') }}">
+                    <input type="text" name="location_id" class="form-control" value="<?php echo e(old('location_id', $importRow['location_id'] ?? '')); ?>">
                 </div>
 
                 <!-- Longitude Name -->
                 <div class="col-md-3">
                     <label for="form-label fw-semibold">Longitude </label>
-                    <input type="text" name="longitude" class="form-control" value="{{ old('longitude', $importRow['longitude'] ?? '') }}">
+                    <input type="text" name="longitude" class="form-control" value="<?php echo e(old('longitude', $importRow['longitude'] ?? '')); ?>">
                 </div>
 
                 <!-- Delivery Company Name -->
                 <div class="col-md-3">
                     <label for="form-label fw-semibold">Latitude</label>
-                    <input type="text" name="latitude" class="form-control" value="{{ old('latitude', $importRow['latitude'] ?? '') }}">
+                    <input type="text" name="latitude" class="form-control" value="<?php echo e(old('latitude', $importRow['latitude'] ?? '')); ?>">
                 </div>
 
                 <!-- pincode -->
@@ -343,7 +346,7 @@
 
                     <label class="form-label fw-semibold">Pincode <span class="text-danger">*</span></label>
 
-                    <input type="text" name="pincode" id="pincode" maxlength="6" class="form-control" required value="{{ old('pincode', $importRow['pincode'] ?? '') }}">
+                    <input type="text" name="pincode" id="pincode" maxlength="6" class="form-control" required value="<?php echo e(old('pincode', $importRow['pincode'] ?? '')); ?>">
 
            <!-- <button type="button" id="pincodeVerifyBtn" class="btn btn-primary">Verify</button> -->
 
@@ -354,16 +357,16 @@
 
                     <label class="form-label fw-semibold">State <span class="text-danger">*</span></label>
 
-                    @php $stateValue = old('state', $importRow['state'] ?? ''); @endphp
+                    <?php $stateValue = old('state', $importRow['state'] ?? ''); ?>
                     <select name="state" id="state" class="form-select select2-tags">
 
-                        <option value="" {{ $stateValue === '' ? 'selected' : '' }}>Select or Type State</option>
+                        <option value="" <?php echo e($stateValue === '' ? 'selected' : ''); ?>>Select or Type State</option>
 
-                        <option value="Karnataka" {{ $stateValue === 'Karnataka' ? 'selected' : '' }}>Karnataka</option>
+                        <option value="Karnataka" <?php echo e($stateValue === 'Karnataka' ? 'selected' : ''); ?>>Karnataka</option>
 
-                        <option value="Tamil Nadu" {{ $stateValue === 'Tamil Nadu' ? 'selected' : '' }}>Tamil Nadu</option>
+                        <option value="Tamil Nadu" <?php echo e($stateValue === 'Tamil Nadu' ? 'selected' : ''); ?>>Tamil Nadu</option>
 
-                        <option value="Telangana" {{ $stateValue === 'Telangana' ? 'selected' : '' }}>Telangana</option>
+                        <option value="Telangana" <?php echo e($stateValue === 'Telangana' ? 'selected' : ''); ?>>Telangana</option>
 
                     </select>
 
@@ -374,16 +377,16 @@
 
                     <label class="form-label fw-semibold">District <span class="text-danger">*</span></label>
 
-                   @php $districtValue = old('district', $importRow['district'] ?? ''); @endphp
+                   <?php $districtValue = old('district', $importRow['district'] ?? ''); ?>
                    <select name="district" id="district" class="form-select select2-tags">
 
-                        <option value="" {{ $districtValue === '' ? 'selected' : '' }}>Select or Type District</option>
+                        <option value="" <?php echo e($districtValue === '' ? 'selected' : ''); ?>>Select or Type District</option>
 
-                        <option value="Salem" {{ $districtValue === 'Salem' ? 'selected' : '' }}>Salem</option>
+                        <option value="Salem" <?php echo e($districtValue === 'Salem' ? 'selected' : ''); ?>>Salem</option>
 
-                        <option value="Dharmapuri" {{ $districtValue === 'Dharmapuri' ? 'selected' : '' }}>Dharmapuri</option>
+                        <option value="Dharmapuri" <?php echo e($districtValue === 'Dharmapuri' ? 'selected' : ''); ?>>Dharmapuri</option>
 
-                        <option value="Erode" {{ $districtValue === 'Erode' ? 'selected' : '' }}>Erode</option>
+                        <option value="Erode" <?php echo e($districtValue === 'Erode' ? 'selected' : ''); ?>>Erode</option>
 
                     </select>
 
@@ -392,17 +395,17 @@
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Area <span class="text-danger">*</span></label>
-                    @php $areaValue = old('area', $importRow['area'] ?? ''); @endphp
+                    <?php $areaValue = old('area', $importRow['area'] ?? ''); ?>
                       
                     <select name="area" id="post_office" class="form-select select2-tags">
 
                         <option value="">Select or Type Area</option>
 
-                        <option value="Uthagarai" {{ $areaValue === 'Uthagarai' ? 'selected' : '' }}>Uthagarai</option>
+                        <option value="Uthagarai" <?php echo e($areaValue === 'Uthagarai' ? 'selected' : ''); ?>>Uthagarai</option>
 
-                        <option value="Harur" {{ $areaValue === 'Harur' ? 'selected' : '' }}>Harur</option>
+                        <option value="Harur" <?php echo e($areaValue === 'Harur' ? 'selected' : ''); ?>>Harur</option>
 
-                        <option value="Kottaiyur" {{ $areaValue === 'Kottaiyur' ? 'selected' : '' }}>Kottaiyur</option>
+                        <option value="Kottaiyur" <?php echo e($areaValue === 'Kottaiyur' ? 'selected' : ''); ?>>Kottaiyur</option>
                     </select>
 
                 </div>
@@ -411,7 +414,7 @@
 
                     <label class="form-label fw-semibold">Address <span class="text-danger">*</span></label>
 
-                    <textarea name="address" class="form-control" rows="1" required>{{ old('address', $importRow['address'] ?? '') }}</textarea>
+                    <textarea name="address" class="form-control" rows="1" required><?php echo e(old('address', $importRow['address'] ?? '')); ?></textarea>
 
                 </div>
                 <!-- SPOC Name -->
@@ -419,7 +422,7 @@
 
                     <label class="form-label fw-semibold">SPOC Name <span class="text-danger">*</span></label>
 
-                    <input type="text" name="spoc_name" class="form-control" value="{{ old('spoc_name', $importRow['spoc_name'] ?? '') }}" required>
+                    <input type="text" name="spoc_name" class="form-control" value="<?php echo e(old('spoc_name', $importRow['spoc_name'] ?? '')); ?>" required>
 
                 </div>
                 <!-- SPOC Contact 1-->
@@ -427,7 +430,7 @@
 
                     <label class="form-label fw-semibold">SPOC Contact 1 <span class="text-danger">*</span></label>
 
-                    <input type="text" name="spoc_contact1" class="form-control" value="{{ old('spoc_contact1', $importRow['spoc_contact1'] ?? '') }}" required>
+                    <input type="text" name="spoc_contact1" class="form-control" value="<?php echo e(old('spoc_contact1', $importRow['spoc_contact1'] ?? '')); ?>" required>
 
                 </div>
                 <!-- SPOC Contact2 -->
@@ -435,7 +438,7 @@
 
                     <label class="form-label fw-semibold">SPOC Contact 2</label>
 
-                    <input type="text" name="spoc_contact2" class="form-control" value="{{ old('spoc_contact2', $importRow['spoc_contact2'] ?? '') }}">
+                    <input type="text" name="spoc_contact2" class="form-control" value="<?php echo e(old('spoc_contact2', $importRow['spoc_contact2'] ?? '')); ?>">
 
                 </div>
                 <!-- SPOC Email -->
@@ -443,25 +446,25 @@
 
                     <label class="form-label fw-semibold">SPOC Email</label>
 
-                    <input type="email" name="spoc_email" class="form-control" value="{{ old('spoc_email', $importRow['spoc_email'] ?? '') }}" >
+                    <input type="email" name="spoc_email" class="form-control" value="<?php echo e(old('spoc_email', $importRow['spoc_email'] ?? '')); ?>" >
 
                 </div>
                 <!-- No Of Links -->
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">No. of Links <span class="text-danger">*</span></label>
-                    @php $linkValue = old('no_of_links', $importRow['no_of_links'] ?? ''); @endphp
+                    <?php $linkValue = old('no_of_links', $importRow['no_of_links'] ?? ''); ?>
                       
                     <select name="no_of_links" class="form-select" required>
 
-                        <option value="" {{ $linkValue === '' ? 'selected' : '' }}>Select</option>
+                        <option value="" <?php echo e($linkValue === '' ? 'selected' : ''); ?>>Select</option>
 
-                        <option value="1" {{ $linkValue === '1' ? 'selected' : '' }}>1</option>
+                        <option value="1" <?php echo e($linkValue === '1' ? 'selected' : ''); ?>>1</option>
 
-                        <option value="2" {{ $linkValue === '2' ? 'selected' : '' }}>2</option>
-                        <option value="3" {{ $linkValue === '3' ? 'selected' : '' }}>3</option>
+                        <option value="2" <?php echo e($linkValue === '2' ? 'selected' : ''); ?>>2</option>
+                        <option value="3" <?php echo e($linkValue === '3' ? 'selected' : ''); ?>>3</option>
 
-                        <option value="4" {{ $linkValue === '4' ? 'selected' : '' }}>4</option>
+                        <option value="4" <?php echo e($linkValue === '4' ? 'selected' : ''); ?>>4</option>
 
                     </select>
 
@@ -470,22 +473,22 @@
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Vendor Type <span class="text-danger">*</span></label>
-                    @php $vendorTypeValue = old('vendor_type', $importRow['vendor_type'] ?? ''); @endphp
+                    <?php $vendorTypeValue = old('vendor_type', $importRow['vendor_type'] ?? ''); ?>
                       
                     <select name="vendor_type" class="form-select" required>
 
-                        <option value="" {{ $vendorTypeValue === '' ? 'selected' : '' }}>Select</option>
+                        <option value="" <?php echo e($vendorTypeValue === '' ? 'selected' : ''); ?>>Select</option>
 
-                        <option {{ $vendorTypeValue === 'Same Vendor' ? 'selected' : '' }}>Same Vendor</option>
+                        <option <?php echo e($vendorTypeValue === 'Same Vendor' ? 'selected' : ''); ?>>Same Vendor</option>
 
-                        <option {{ $vendorTypeValue === 'Different Vendor' ? 'selected' : '' }}>Different Vendor</option>
-                        <option {{ $vendorTypeValue === 'UBN' ? 'selected' : '' }}>UBN</option>
+                        <option <?php echo e($vendorTypeValue === 'Different Vendor' ? 'selected' : ''); ?>>Different Vendor</option>
+                        <option <?php echo e($vendorTypeValue === 'UBN' ? 'selected' : ''); ?>>UBN</option>
 
-                        <option {{ $vendorTypeValue === 'UBS' ? 'selected' : '' }}>UBS</option>
+                        <option <?php echo e($vendorTypeValue === 'UBS' ? 'selected' : ''); ?>>UBS</option>
 
-                        <option {{ $vendorTypeValue === 'UBL' ? 'selected' : '' }}>UBL</option>
+                        <option <?php echo e($vendorTypeValue === 'UBL' ? 'selected' : ''); ?>>UBL</option>
 
-                        <option {{ $vendorTypeValue === 'INF' ? 'selected' : '' }}>INF</option>
+                        <option <?php echo e($vendorTypeValue === 'INF' ? 'selected' : ''); ?>>INF</option>
 
                     </select>
 
@@ -494,33 +497,33 @@
                 <!-- Speed -->
                 <div class="col-md-3" id="speed_box">
                     <label class="form-label fw-semibold">Speed <span class="text-danger">*</span></label>
-                    <input type="text" name="speed" id="speed" placeholder="Mbps or Gbps" class="form-control" value="{{ old('speed', $importRow['speed'] ?? '') }}" required>
+                    <input type="text" name="speed" id="speed" placeholder="Mbps or Gbps" class="form-control" value="<?php echo e(old('speed', $importRow['speed'] ?? '')); ?>" required>
                 </div>
                 <!-- Static IP -->
                 <div class="col-md-3" id="static_ip_box">
                     <label class="form-label fw-semibold">Static IP <span class="text-danger">*</span></label>
-                    @php $staticIpValue = old('static_ip', $importRow['static_ip'] ?? ''); @endphp
+                    <?php $staticIpValue = old('static_ip', $importRow['static_ip'] ?? ''); ?>
                     <select name="static_ip" id="static_ip" class="form-select" required>
-                        <option value="" {{ $staticIpValue === '' ? 'selected' : '' }}>Select</option>
-                        <option value="Yes" {{ $staticIpValue === 'Yes' ? 'selected' : '' }}>Yes</option>
-                        <option value="No" {{ $staticIpValue === 'No' ? 'selected' : '' }}>No</option>
+                        <option value="" <?php echo e($staticIpValue === '' ? 'selected' : ''); ?>>Select</option>
+                        <option value="Yes" <?php echo e($staticIpValue === 'Yes' ? 'selected' : ''); ?>>Yes</option>
+                        <option value="No" <?php echo e($staticIpValue === 'No' ? 'selected' : ''); ?>>No</option>
                     </select>
                 </div>
                 <!-- Static IP Subnet -->
                 <div class="col-md-3" id="static_ip_subnet_box">
                     <label class="form-label fw-semibold">Static IP Subnet</label>
-                    @php $staticIpSubnetValue = old('static_ip_subnet', $importRow['static_ip_subnet'] ?? ''); @endphp
+                    <?php $staticIpSubnetValue = old('static_ip_subnet', $importRow['static_ip_subnet'] ?? ''); ?>
                     <select name="static_ip_subnet" id="static_ip_subnet" class="form-select" disabled>
-                        <option value="" {{ $staticIpSubnetValue === '' ? 'selected' : '' }}>Select Subnet</option>
-                        <option value="/32" {{ $staticIpSubnetValue === '/32' ? 'selected' : '' }}>/32</option>
-                        <option value="/31" {{ $staticIpSubnetValue === '/31' ? 'selected' : '' }}>/31</option>
-                        <option value="/30" {{ $staticIpSubnetValue === '/30' ? 'selected' : '' }}>/30</option>
-                        <option value="/29" {{ $staticIpSubnetValue === '/29' ? 'selected' : '' }}>/29</option>
-                        <option value="/28" {{ $staticIpSubnetValue === '/28' ? 'selected' : '' }}>/28</option>
-                        <option value="/27" {{ $staticIpSubnetValue === '/27' ? 'selected' : '' }}>/27</option>
-                        <option value="/26" {{ $staticIpSubnetValue === '/26' ? 'selected' : '' }}>/26</option>
-                        <option value="/25" {{ $staticIpSubnetValue === '/25' ? 'selected' : '' }}>/25</option>
-                        <option value="/24" {{ $staticIpSubnetValue === '/24' ? 'selected' : '' }}>/24</option>
+                        <option value="" <?php echo e($staticIpSubnetValue === '' ? 'selected' : ''); ?>>Select Subnet</option>
+                        <option value="/32" <?php echo e($staticIpSubnetValue === '/32' ? 'selected' : ''); ?>>/32</option>
+                        <option value="/31" <?php echo e($staticIpSubnetValue === '/31' ? 'selected' : ''); ?>>/31</option>
+                        <option value="/30" <?php echo e($staticIpSubnetValue === '/30' ? 'selected' : ''); ?>>/30</option>
+                        <option value="/29" <?php echo e($staticIpSubnetValue === '/29' ? 'selected' : ''); ?>>/29</option>
+                        <option value="/28" <?php echo e($staticIpSubnetValue === '/28' ? 'selected' : ''); ?>>/28</option>
+                        <option value="/27" <?php echo e($staticIpSubnetValue === '/27' ? 'selected' : ''); ?>>/27</option>
+                        <option value="/26" <?php echo e($staticIpSubnetValue === '/26' ? 'selected' : ''); ?>>/26</option>
+                        <option value="/25" <?php echo e($staticIpSubnetValue === '/25' ? 'selected' : ''); ?>>/25</option>
+                        <option value="/24" <?php echo e($staticIpSubnetValue === '/24' ? 'selected' : ''); ?>>/24</option>
                     </select>
                     <small class="text-muted">Select subnet only if Static IP is Yes</small>
                 </div>
@@ -660,7 +663,7 @@ if (f.hardware_details) {
 
                     <label class="form-label fw-semibold">Expected Delivery <span class="text-danger">*</span></label>
 
-                    <input type="date" name="expected_delivery" class="form-control" value="{{ old('expected_delivery', $importRow['expected_delivery'] ?? date('Y-m-d')) }}" required>
+                    <input type="date" name="expected_delivery" class="form-control" value="<?php echo e(old('expected_delivery', $importRow['expected_delivery'] ?? date('Y-m-d'))); ?>" required>
 
                 </div>
                 <!-- Expected Activation -->
@@ -668,21 +671,21 @@ if (f.hardware_details) {
 
                     <label class="form-label fw-semibold">Expected Activation <span class="text-danger">*</span></label>
 
-                    <input type="date" name="expected_activation" class="form-control" value="{{ old('expected_activation', $importRow['expected_activation'] ?? date('Y-m-d')) }}" required>
+                    <input type="date" name="expected_activation" class="form-control" value="<?php echo e(old('expected_activation', $importRow['expected_activation'] ?? date('Y-m-d'))); ?>" required>
 
                 </div>
                 <!-- Hardware Required -->
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Hardware Required <span class="text-danger">*</span></label>
-                    @php $hardwareRequiredValue = old('hardware_required', $importRow['hardware_required'] ?? ''); @endphp
+                    <?php $hardwareRequiredValue = old('hardware_required', $importRow['hardware_required'] ?? ''); ?>
                     <select name="hardware_required" id="hardware_required" class="form-select" required>
 
-                        <option value="" {{ $hardwareRequiredValue === '' ? 'selected' : '' }}>Select</option>
+                        <option value="" <?php echo e($hardwareRequiredValue === '' ? 'selected' : ''); ?>>Select</option>
 
-                        <option value="1" {{ $hardwareRequiredValue === '1' ? 'selected' : '' }}>Yes</option>
+                        <option value="1" <?php echo e($hardwareRequiredValue === '1' ? 'selected' : ''); ?>>Yes</option>
 
-                        <option value="0" {{ $hardwareRequiredValue === '0' ? 'selected' : '' }}>No</option>
+                        <option value="0" <?php echo e($hardwareRequiredValue === '0' ? 'selected' : ''); ?>>No</option>
 
                     </select>
 
@@ -695,9 +698,9 @@ if (f.hardware_details) {
             <label>Make</label>
             <select name="make_type_id[]" class="form-control" required>
                 <option value="">Select Make</option>
-                @foreach($makes as $m)
-                    <option value="{{ $m->id }}">{{ $m->make_name }}</option>
-                @endforeach
+                <?php $__currentLoopData = $makes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $m): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <option value="<?php echo e($m->id); ?>"><?php echo e($m->make_name); ?></option>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </select>
         </div>
         <div class="col-md-3 d-flex align-items-end">
@@ -705,9 +708,9 @@ if (f.hardware_details) {
                 <label>Model</label>
                 <select name="model_id[]" class="form-control" required>
                     <option value="">Select Model</option>
-                    @foreach($models as $m)
-                        <option value="{{ $m->id }}">{{ $m->model_name }}</option>
-                    @endforeach
+                    <?php $__currentLoopData = $models; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $m): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($m->id); ?>"><?php echo e($m->model_name); ?></option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
             </div>
             <button type="button" class="btn btn-danger btn-sm ms-2 mb-1 remove-hardware" style="height:38px;">X</button>
@@ -720,7 +723,7 @@ if (f.hardware_details) {
 </div>
                
 
-                    {{--  Status Dropdown --}}
+                    
 
             <input type="hidden" name="status" value="Active">
 
@@ -736,7 +739,7 @@ if (f.hardware_details) {
 
                 <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Save</button>
 
-                <!-- <a href="{{ route('feasibility.index') }}" class="btn btn-secondary">Cancel</a> -->
+                <!-- <a href="<?php echo e(route('feasibility.index')); ?>" class="btn btn-secondary">Cancel</a> -->
 
             </div>
 
@@ -1211,4 +1214,5 @@ function excelImport() {
 
 // });
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views/feasibility/create.blade.php ENDPATH**/ ?>

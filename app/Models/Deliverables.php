@@ -101,9 +101,9 @@ class Deliverables extends Model
 
     public function feasibility(): BelongsTo
     {
-        return $this->belongsTo(Feasibility::class);
+        return $this->belongsTo(Feasibility::class, 'feasibility_id');
     }
-
+   
     public static function generateDeliveryId()
     {
         $prefix = 'DEL';

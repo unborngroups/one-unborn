@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('type_of_service');
             $table->foreignId('client_id')->constrained()->onDelete('cascade');
             $table->string('delivery_company_name')->nullable();
+             $table->string('circuit_id')->nullable();
             $table->string('location_id')->nullable();
             $table->string('longitude')->nullable();
             $table->string('latitude')->nullable();

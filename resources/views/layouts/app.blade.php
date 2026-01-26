@@ -3,6 +3,8 @@
 <html lang="en">
 
 <head>
+    <!-- ✅ jQuery (required for select2 and any $ usage) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <meta charset="UTF-8">
 
@@ -324,9 +326,11 @@ details > ul {
 
             height: calc(100vh - 55px);
 
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.25); /* Changed from 0.5 to 0.25 for lighter overlay */
 
             z-index: 1040;
+
+            transition: background 0.3s;
 
         }
          #sidebar.active + #sidebarOverlay {
@@ -335,12 +339,14 @@ details > ul {
 
     }  
         #sidebarOverlay.show {
-    display: block;
+    display: block !important;
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.25); /* Ensure lighter overlay when active */
 }
-
+ 
         .arrow-icon {
     transition: transform 0.3s ease;
-}
+   }
 
 .nav-link[aria-expanded="true"] .arrow-icon {
     transform: rotate(180deg);
@@ -568,6 +574,9 @@ details > ul {
 <!-- ✅ Internal chat toggle (fallback if Vite chat bundle isn't loaded) -->
 <script src="{{ asset('js/internal-chat-toggle.js') }}"></script>
 
+<!-- ✅ Private chat script -->
+<script src="{{ asset('js/private-chat.js') }}"></script>
+
 <script>
 
 $(document).ready(function() {
@@ -580,19 +589,25 @@ $(document).ready(function() {
 
     console.log('Window width:', $(window).width());
 
-    // 📱 Ensure sidebar is hidden on mobile initially
-
-    if ($(window).width() <= 768) {
-
-        $('#sidebar').removeClass('active');
-
-        $('#sidebarOverlay').hide().removeClass('show');
-
-        console.log('📱 Mobile detected - sidebar hidden initially');
-
+    // 📱 Ensure sidebar is hidden on mobile initially and on resize/orientation change
+    function handleSidebarOnResize() {
+        const isMobile = window.matchMedia('(max-width: 767.98px)').matches;
+        if (isMobile) {
+            $('#sidebar').removeClass('active');
+            $('#sidebarOverlay').hide().removeClass('show');
+            console.log('📱 Mobile detected - sidebar hidden');
+        } else {
+            $('#sidebar').removeClass('active');
+            $('#sidebarOverlay').hide().removeClass('show');
+            $('body').removeClass('sidebar-collapsed');
+            $('#sidebarToggleIcon').removeClass('bi-chevron-right').addClass('bi-chevron-left');
+            console.log('💻 Desktop detected - sidebar reset');
+        }
     }
-
-    
+    // Initial check
+    handleSidebarOnResize();
+    // On resize and orientation change
+    $(window).on('resize orientationchange', handleSidebarOnResize);
 
     // ✅ Initialize Select2 for multiple company selection
 
@@ -756,4 +771,3 @@ window.addEventListener('beforeunload', function (e) {
 
 
 </html>
-

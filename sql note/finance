@@ -70,7 +70,7 @@ ADD COLUMN billing_sequence VARCHAR(225) NULL AFTER billing_spoc_email;
 ALTER TABLE terminations
 DROP COLUMN date_of_delivered;
 
-ALTER TABLE terminations MODIFY circuit_id VARCHAR(20);
+ALTER TABLE terminations MODIFY circuit_id VARCHAR(225);
 
 UPDATE terminations
 SET status = 
@@ -79,3 +79,29 @@ SET status =
         WHEN termination_request_date IS NOT NULL THEN 'Pending'
         ELSE NULL
     END;
+
+
+ALTER TABLE feasibilities
+ADD COLUMN circuit_id VARCHAR(255) NULL AFTER delivery_company_name;
+
+
+
+CREATE TABLE `private_messages` (
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `sender_id` BIGINT UNSIGNED NOT NULL,
+  `receiver_id` BIGINT UNSIGNED NOT NULL,
+  `message` TEXT NULL,
+  `file_path` VARCHAR(255) NULL,
+  `file_type` VARCHAR(100) NULL,
+  `original_name` VARCHAR(255) NULL,
+  `is_read` TINYINT(1) DEFAULT 0,
+  `created_at` TIMESTAMP NULL DEFAULT NULL,
+  `updated_at` TIMESTAMP NULL DEFAULT NULL,
+  FOREIGN KEY (`sender_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`receiver_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE private_messages
+ADD COLUMN `file_path` VARCHAR(255) NULL AFTER `message`,  
+ADD COLUMN `file_type` VARCHAR(100) NULL AFTER `file_path`,  
+ADD COLUMN `original_name` VARCHAR(255) NULL AFTER `file_type`;     

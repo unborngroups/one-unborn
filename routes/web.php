@@ -33,6 +33,7 @@ use App\Http\Controllers\MikrotikController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DeliverablesController;
 use App\Http\Controllers\ForgotPasswordController;
+use App\Http\Controllers\PrivateChatController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\hrController;
@@ -78,6 +79,15 @@ Route::prefix('chat')
         Route::get('/all-users', [App\Http\Controllers\ChatController::class, 'allOnlineUsers'])->name('chat.all-online-users');
         Route::post('/typing', [App\Http\Controllers\ChatController::class,'typing'])->name('chat.typing');
         Route::get('/bootstrap', [App\Http\Controllers\ChatController::class,'bootstrap'])->name('chat.bootstrap');
+    });
+
+    // Private chat APIs for one-to-one chat
+    Route::prefix('private-chat')
+    ->middleware(['auth', \App\Http\Middleware\CheckProfileCreated::class])
+    ->group(function () {
+        Route::get('/users/online', [PrivateChatController::class, 'onlineUsers'])->name('private-chat.online-users');
+        Route::get('/messages/{userId}', [PrivateChatController::class, 'fetchMessages'])->name('private-chat.messages');
+        Route::post('/send', [PrivateChatController::class, 'sendMessage'])->name('private-chat.send');
     });
 
 // Heartbeat route for user activity
@@ -336,6 +346,11 @@ Route::get('/operations/asset/{id}/print', [AssetController::class, 'print'])->n
     Route::get('/edit/{id}', [App\Http\Controllers\FeasibilityStatusController::class, 'edit'])->name('feasibility.status.edit');
     Route::post('feasibility/feasibility-status/edit-save/{id}', [FeasibilityStatusController::class, 'editSave'])->name('feasibility.status.editSave');
 });
+// AJAX route for autofill feasibility by circuit_id
+// Route::get('/feasibility/fetch-by-circuit/{circuit_id}', [App\Http\Controllers\FeasibilityController::class, 'fetchByCircuit'])->name('feasibility.fetchByCircuit');
+
+Route::get('/feasibility/by-circuit/{circuit_id}', [FeasibilityController::class, 'getFeasibilityByCircuit']);
+
 
     // ✅ Feasibility Module (Resource routes should come after specific routes)
     Route::resource('feasibility', FeasibilityController::class);

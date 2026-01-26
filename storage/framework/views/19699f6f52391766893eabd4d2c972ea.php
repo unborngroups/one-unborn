@@ -127,4 +127,4 @@
         updateDuration();
         setInterval(updateDuration, 1000);
     });
-</script><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\layouts\navbar.blade.php ENDPATH**/ ?>
+</script><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views/layouts/navbar.blade.php ENDPATH**/ ?>

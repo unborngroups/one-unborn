@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Models\MakeType;
+use App\Models\DeliverablePlan;
 use App\Models\ModelType;
 use App\Models\Asset;
 use Maatwebsite\Excel\Facades\Excel;
@@ -82,6 +83,7 @@ class FeasibilityController extends Controller
 
         $makes     = MakeType::all();
         $models    = ModelType::all();
+        // Use DeliverablePlan for circuit_id dropdown
         $deliverables_plans = \App\Models\DeliverablePlan::all();
         return view('feasibility.create', compact('clients', 'companies', 'makes', 'models', 'deliverables_plans'));
     }
@@ -93,6 +95,7 @@ class FeasibilityController extends Controller
             'company_id' => 'required|exists:companies,id',
             'client_id' => 'required',
             'delivery_company_name' => 'nullable|string',
+            'circuit_id' => 'nullable|string',
             'location_id' => 'nullable|string',
             'longitude' => 'nullable|string',
             'latitude' => 'nullable|string',
@@ -496,4 +499,70 @@ public function sendCompletedEmail($feasibility)
     Log::info('Completed mail sent');
 }
 
+    /**
+     * AJAX: Fetch feasibility data by circuit_id (from deliverable_plan)
+     */
+    // public function fetchByCircuit($circuit_id)
+    // {
+    //     // Find deliverable plan by circuit_id
+    //     $deliverable = \App\Models\DeliverablePlan::where('circuit_id', $circuit_id)->first();
+    //     if (!$deliverable) {
+    //         return response()->json(['success' => false, 'message' => 'No deliverable found.']);
+    //     }
+    //     // Traverse: DeliverablePlan -> Deliverables -> Feasibility
+    //     Log::info('[fetchByCircuit] circuit_id: ' . $circuit_id);
+    //     $feasibility = null;
+    //     if (!empty($deliverable->deliverable_id)) {
+    //         Log::info('[fetchByCircuit] deliverable_id: ' . $deliverable->deliverable_id);
+    //         $deliverableRecord = \App\Models\Deliverables::where('id', $deliverable->deliverable_id)->first();
+    //         Log::info('[fetchByCircuit] deliverableRecord: ', $deliverableRecord ? $deliverableRecord->toArray() : []);
+    //         if ($deliverableRecord && !empty($deliverableRecord->feasibility_id)) {
+    //             Log::info('[fetchByCircuit] deliverableRecord.feasibility_id: ' . $deliverableRecord->feasibility_id);
+    //             $feasibility = \App\Models\Feasibility::where('id', $deliverableRecord->feasibility_id)->first();
+    //         }
+    //     }
+    //     // Fallback: try by client_feasibility or client_id if above not found
+    //     if (!$feasibility && !empty($deliverable->client_feasibility)) {
+    //         Log::info('[fetchByCircuit] Trying client_feasibility: ' . $deliverable->client_feasibility);
+    //         $feasibility = \App\Models\Feasibility::where('feasibility_request_id', $deliverable->client_feasibility)->first();
+    //     }
+    //     if (!$feasibility && !empty($deliverable->client_circuit_id)) {
+    //         Log::info('[fetchByCircuit] Trying client_circuit_id: ' . $deliverable->client_circuit_id);
+    //         $feasibility = \App\Models\Feasibility::where('client_id', $deliverable->client_circuit_id)
+    //             ->orderByDesc('id')->first();
+    //     }
+    //     if (!$feasibility) {
+    //         Log::warning('[fetchByCircuit] No feasibility found for circuit_id: ' . $circuit_id);
+    //         return response()->json(['success' => false, 'message' => 'No feasibility found.']);
+    //     }
+    //     // Log::info('[fetchByCircuit] FeasibilgetFillableity found: ', $feasibility->toArray());
+    //     // // Return all fillable fields for autofill
+    //     // $fields = $feasibility->only($feasibility->getFillable());
+    //     // return response()->json(['success' => true, 'feasibility' => $fields]);
+    // }
+
+
+    // 
+
+    public function getFeasibilityByCircuit($circuit_id)
+{
+    $plan = DeliverablePlan::with([
+        'deliverable.feasibility.client',
+        'deliverable.feasibility.company',
+    ])->where('circuit_id', $circuit_id)->first();
+
+    if (!$plan || !$plan->deliverable || !$plan->deliverable->feasibility) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Feasibility not found'
+        ]);
+    }
+
+    return response()->json([
+        'success' => true,
+        'feasibility' => $plan->deliverable->feasibility
+    ]);
+}
+
+    
 }

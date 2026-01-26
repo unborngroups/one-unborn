@@ -1369,4 +1369,4 @@
 }
 </style>
 
-<?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\layouts\partials\fullmenu.blade.php ENDPATH**/ ?>
+<?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views/layouts/partials/fullmenu.blade.php ENDPATH**/ ?>

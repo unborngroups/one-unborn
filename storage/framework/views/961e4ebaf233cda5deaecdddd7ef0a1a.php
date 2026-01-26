@@ -238,12 +238,9 @@
                     <label class="form-label fw-semibold">Select Circuit ID</label>
                     <select id="circuit_id" name="circuit_id" class="form-select select2-tags">
                         <option value="">Select Circuit ID</option>
-                    <?php $__currentLoopData = $deliverables_plans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $d): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <option value="<?php echo e($d->deliverable_id); ?>">
-                            <?php echo e($d->circuit_id); ?>
-
-                        </option>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        <?php $__currentLoopData = $deliverables_plans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $d): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($d['circuit_id']); ?>"><?php echo e($d['circuit_id']); ?></option>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
             </div>
@@ -551,19 +548,106 @@
                                             newLinkFields.style.display = '';
                                         }
                                     });
-                                    // Autofill fields on circuit select
-                                    if (circuitSelect) {
-                                        circuitSelect.addEventListener('change', function() {
-                                            const selected = this.options[this.selectedIndex];
-                                            if (selected && selected.dataset.circuit) {
-                                                const data = JSON.parse(selected.dataset.circuit);
-                                                document.getElementById('speed').value = data.speed || '';
-                                                document.getElementById('static_ip').value = data.static_ip || '';
-                                                document.getElementById('static_ip_subnet').value = data.static_ip_subnet || '';
-                                            }
-                                        });
-                                    }
+
+                                    
                                 });
+
+                                // 
+
+
+                               
+$(document).ready(function () {
+
+    $('#circuit_id').on('change', function () {
+        const circuitId = $(this).val();
+
+        console.log('Circuit changed:', circuitId);
+
+        if (!circuitId) return;
+
+        $.ajax({
+            url: `/feasibility/by-circuit/${circuitId}`,
+            type: 'GET',
+            success: function (res) {
+                console.log('Response:', res);
+
+                if (res.success) {
+                    const f = res.feasibility;
+
+                    setSelectValue(document.getElementById('type_of_service'),f.type_of_service);
+
+                    setSelectValue(document.getElementById('company_id'), String(f.company_id));
+                    setSelectValue(document.getElementById('client_id'), String(f.client_id));
+
+                    $('input[name="delivery_company_name"]').val(f.delivery_company_name);
+                    $('input[name="location_id"]').val(f.location_id);
+                    $('input[name="longitude"]').val(f.longitude);
+                    $('input[name="latitude"]').val(f.latitude);
+
+                    $('input[name="pincode"]').val(f.pincode);
+                   setSelectValue(document.getElementById('state'), f.state);
+                   setSelectValue(document.getElementById('district'), f.district);
+                   setSelectValue(document.getElementById('post_office'), f.area);
+
+                    $('textarea[name="address"]').val(f.address);
+                    $('input[name="spoc_name"]').val(f.spoc_name);
+                    $('input[name="spoc_contact1"]').val(f.spoc_contact1);
+                    $('input[name="spoc_contact2"]').val(f.spoc_contact2);
+                    $('input[name="spoc_email"]').val(f.spoc_email);
+
+                    setSelectValue(document.querySelector('select[name="vendor_type"]'),f.vendor_type);
+                    $('input[name="speed"]').val(f.speed);
+                    $('select[name="no_of_links"]').val(f.no_of_links).trigger('change');
+                    setSelectValue(document.getElementById('static_ip'), f.static_ip);  
+                    setSelectValue(document.getElementById('static_ip_subnet'), f.static_ip_subnet);
+                    const hardwareSelect = document.getElementById('hardware_required');
+
+                   setSelectValue(hardwareSelect, f.hardware_required ? '1' : '0');
+
+                    // 🔥 FORCE change event so UI reacts
+                    hardwareSelect.dispatchEvent(new Event('change'));
+
+                    const firstHardwareRow = document.querySelector('.hardware_row');
+
+if (
+    firstHardwareRow &&
+    f.hardware_details
+) {
+    let hardwares = [];
+
+    try {
+        hardwares = JSON.parse(f.hardware_details);
+    } catch (e) {
+        console.error('Invalid hardware_details JSON', e);
+    }
+
+    if (hardwares.length > 0) {
+        const hw = hardwares[0];
+
+        const makeSelect  = firstHardwareRow.querySelector('select[name="make_type_id[]"]');
+        const modelSelect = firstHardwareRow.querySelector('select[name="model_id[]"]');
+
+        if (makeSelect && modelSelect) {
+            setSelectValue(makeSelect, String(hw.make_type_id));
+            setSelectValue(modelSelect, String(hw.model_id));
+        }
+    }
+}
+
+                    $('input[name="expected_delivery"]').val(f.expected_delivery);
+                    $('input[name="expected_activation"]').val(f.expected_activation);
+                } else {
+                    alert(res.message || 'No feasibility found');
+                }
+            },
+            error: function (err) {
+                console.error('AJAX error:', err);
+                alert('Failed to fetch feasibility');
+            }
+        });
+    });
+
+});
                             </script>
                 <!-- Expected Delivery -->
                 <div class="col-md-3">
@@ -1088,6 +1172,38 @@ function excelImport() {
 }
 
 
+// if the user select the circuit id from the dropdown, autofill the fields
+// $(document).ready(function() {
+//     $('#deliverable_id').on('change', function() {
+//         let selected = $(this).find(':selected');
+//         $('[name="type_of_service"]').val(selected.data('type_of_service') || '');
+//         $('[name="company_id"]').val(selected.data('company_id') || '');
+//         $('[name="client_id"]').val(selected.data('client_id') || '');
+//         $('[name="delivery_company_name"]').val(selected.data('delivery_company_name') || '');
+//         $('[name="location_id"]').val(selected.data('location_id') || '');
+//         $('[name="longitude"]').val(selected.data('longitude') || '');
+//         $('[name="latitude"]').val(selected.data('latideliverable_idtude') || '');
+//         $('[name="pincode"]').val(selected.data('pincode') || '');
+//         $('[name="state"]').val(selected.data('state') || '');
+//         $('[name="district"]').val(selected.data('district') || '');
+//         $('[name="area"]').val(selected.data('area') || '');
+//         $('[name="address"]').val(selected.data('address') || '');
+//         $('[name="spoc_name"]').val(selected.data('spoc_name') || '');
+//         $('[name="spoc_contact1"]').val(selected.data('spoc_contact1') || '');
+//         $('[name="spoc_contact2"]').val(selected.data('spoc_contact2') || '');
+//         $('[name="spoc_email"]').val(selected.data('spoc_email') || '');
+//         $('[name="speed"]').val(selected.data('speed') || '');
+//         $('[name="static_ip"]').val(selected.data('static_ip') || '');
+//         $('[name="static_ip_subnet"]').val(selected.data('static_ip_subnet') || '');
+//         $('[name="expected_delivery"]').val(selected.data('expected_delivery') || '');
+//         $('[name="expected_activation"]').val(selected.data('expected_activation') || '');
+//         $('[name="hardware_required"]').val(selected.data('hardware_required') || '');
+
+
+//     });
+//     $('#deliverable_id').trigger('change');
+
+// });
 </script>
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\feasibility\create.blade.php ENDPATH**/ ?>

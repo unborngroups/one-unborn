@@ -770,4 +770,4 @@ window.addEventListener('beforeunload', function (e) {
 
 
 
-</html><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\layouts\app.blade.php ENDPATH**/ ?>
+</html><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views/layouts/app.blade.php ENDPATH**/ ?>
