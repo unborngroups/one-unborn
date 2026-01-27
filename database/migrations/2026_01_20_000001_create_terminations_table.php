@@ -8,7 +8,7 @@ return new class extends Migration {
     {
         Schema::create('terminations', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('circuit_id');
+            $table->string('circuit_id')->nullable();
             $table->string('company_name');
             $table->string('address');
             $table->string('bandwidth')->nullable();

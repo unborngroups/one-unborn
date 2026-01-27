@@ -62,6 +62,8 @@
 
                                         <th>Name</th>
 
+                                        <th>Area / State</th>
+
                                         <th>Type of Service</th>
 
                                         <th>Speed</th>
@@ -115,23 +117,21 @@
                                             </td>
 
                                             <!-- Display company name -->
-
                                             <td>{{ $record->feasibility->company->company_name ?? 'N/A' }}</td>
 
                                             <!-- Display client name -->
-
                                             <td>{{ $record->feasibility->client->client_name ?? 'N/A' }}</td>
 
-                                            <!-- Display type of service -->
+                                            <!-- Display area and state -->
+                                            <td>{{ $record->feasibility->area ?? 'N/A' }} / {{ $record->feasibility->state ?? 'N/A' }}</td>
 
+                                            <!-- Display type of service -->
                                             <td>{{ $record->feasibility->type_of_service ?? 'N/A' }}</td>
 
                                             <!-- Display speed -->
-
                                             <td>{{ $record->feasibility->speed ?? 'N/A' }}</td>
 
                                             <!-- Display number of links -->
-
                                             <td>{{ $record->feasibility->no_of_links ?? 'N/A' }}</td>
 
                                         </tr>

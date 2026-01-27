@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('deliverable_id')
           ->constrained()
           ->cascadeOnDelete();
+            $table->string('circuit_id')->nullable();
 
         $table->date('date_of_renewal');          // user selected
     $table->integer('renewal_months');        // 1,3,6,12

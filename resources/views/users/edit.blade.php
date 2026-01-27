@@ -117,9 +117,15 @@
 
 </div>
 
-
-
-
+<!-- User want to enter the OTP requirement preference -->
+<div class="col-md-12 mb-3">
+    <div class="form-check">
+        <input type="checkbox" name="require_otp_always" value="1" class="form-check-input" id="requireOtpAlwaysCheckbox" {{ old('require_otp_always', $user->require_otp_always ?? false) ? 'checked' : '' }}>
+        <label for="requireOtpAlwaysCheckbox" class="form-check-label">
+            Require OTP on every login
+        </label>
+    </div>
+</div>
 
 {{-- 🔹 Personal Email --}}
 

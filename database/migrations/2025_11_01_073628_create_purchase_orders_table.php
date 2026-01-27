@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('po_number')->unique();
             $table->date('po_date');
             $table->unsignedBigInteger('feasibility_id');
+            $table->string('feasibility_request_id', 50)->nullable();
             $table->decimal('arc_per_link', 10, 2);
             $table->decimal('otc_per_link', 10, 2); 
             $table->decimal('static_ip_cost_per_link', 10, 2);

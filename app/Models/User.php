@@ -35,7 +35,9 @@ class User extends Authenticatable
         'status',
         'email_template',
         'password',
-    'profile_created'
+    'profile_created',
+            'require_otp_always'
+
     ];
 
     protected $hidden = [

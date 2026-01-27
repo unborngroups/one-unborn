@@ -78,6 +78,8 @@
 
                                         <th>Name</th>
 
+                                        <th>Area / State</th>
+
                                         <th>Type of Service</th>
 
                                         <th>Speed</th>
@@ -152,6 +154,9 @@
                                             <!-- Display client name -->
 
                                             <td>{{ $record->feasibility->client->client_name ?? 'N/A' }}</td>
+
+                                            <!-- Display area and state -->
+                                            <td>{{ $record->feasibility->area ?? 'N/A' }} / {{ $record->feasibility->state ?? 'N/A' }}</td>
 
                                             <!-- Display type of service -->
 

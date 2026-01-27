@@ -105,6 +105,7 @@ $doj = !empty($validated['Date_of_Joining'])
         'company_id'       => $validated['companies'][0] ?? null, 
         'status'          => $validated['status'],
         'password'        => Hash::make($password),
+            'require_otp_always' => $request->has('require_otp_always') ? 1 : 0,
     ]);
   
     // ✅ Attach selected companies
@@ -356,6 +357,7 @@ if (!empty(array_diff($validated['companies'], $user->companies->pluck('id')->to
                 'status'           => $validated['status'],
                 'email'            => $validated['official_email'],
                 'password'         => Hash::make($password),
+                    'require_otp_always' => $request->has('require_otp_always') ? 1 : 0,
             ]);
         } else {
             $user->update([
@@ -368,6 +370,7 @@ if (!empty(array_diff($validated['companies'], $user->companies->pluck('id')->to
                 'Date_of_Joining'  => $doj,
                 'status'           => $validated['status'],
                 'email'            => $validated['official_email'],
+                    'require_otp_always' => $request->has('require_otp_always') ? 1 : 0,
                 // Do not update password
             ]);
         }

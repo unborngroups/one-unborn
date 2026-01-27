@@ -16,7 +16,7 @@ return new class extends Migration
     $table->foreignId('vendor_invoice_id')->constrained();
     $table->string('debit_note_no');
     $table->date('date');
-    $table->decimal('amount', 12, 2);
+    $table->decimal('amount', 20, 2);
     $table->text('reason')->nullable();
     $table->timestamps();
 });

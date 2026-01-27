@@ -57,7 +57,6 @@
                                 <thead class="table-dark-primary">
 
                                     <tr>
-                                        <!-- <th width="50" class="text-center"><input type="checkbox" id="select_all" style="width: 18px; height: 18px; cursor: pointer;"></th> -->
 
                                         <th>S.No</th>
 
@@ -68,6 +67,8 @@
                                         <th>Company Name</th>
 
                                         <th>Name</th>
+
+                                        <th>Area / State</th>
 
                                         <th>Type of Service</th>
 
@@ -86,9 +87,7 @@
                                     @foreach($records as $index => $record)
 
                                         <tr>
-                                            <!-- <td class="text-center">
-                                    <input type="checkbox" class="row-checkbox" value="{{ $record->id }}" style="width: 18px; height: 18px; cursor: pointer;">
-                                </td> -->
+                                           
 
                                             {{-- Serial No --}}
 
@@ -131,6 +130,9 @@
                                             {{-- Client Name --}}
 
                                             <td>{{ $record->feasibility->client->client_name ?? 'N/A' }}</td>
+
+                                            {{-- Area / State --}}
+                                            <td>{{ $record->feasibility->area ?? 'N/A' }} / {{ $record->feasibility->state ?? 'N/A' }}</td>
 
                                             {{-- Type of Service --}}
 

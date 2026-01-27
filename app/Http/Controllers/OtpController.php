@@ -20,15 +20,21 @@ class OtpController extends Controller
             return response()->json(['status' => false, 'message' => 'Invalid email.'], 422);
         }
         $email = $request->email;
-        $otp = rand(100000, 999999);
-        // Store OTP in cache for 5 minutes
-        Cache::put('otp_' . $email, $otp, now()->addMinutes(5));
-        // Send OTP mail from company settings
-        $company = \App\Models\CompanySetting::first();
-        $fromEmail = $company->email ?? config('mail.from.address');
-        $fromName = $company->company_name ?? config('mail.from.name');
-        Mail::to($email)->send((new OtpMail($otp))->from($fromEmail, $fromName));
-        return response()->json(['status' => true, 'message' => 'OTP sent to your email.']);
+            $user = \App\Models\User::where('official_email', $email)->orWhere('email', $email)->first();
+            $requireOtpAlways = $user ? (bool)$user->require_otp_always : false;
+            if ($requireOtpAlways) {
+                $otp = rand(100000, 999999);
+                // Store OTP in cache for 5 minutes
+                Cache::put('otp_' . $email, $otp, now()->addMinutes(5));
+                // Send OTP mail from company settings
+                $company = \App\Models\CompanySetting::first();
+                $fromEmail = $company->email ?? config('mail.from.address');
+                $fromName = $company->company_name ?? config('mail.from.name');
+                Mail::to($email)->send((new OtpMail($otp))->from($fromEmail, $fromName));
+                return response()->json(['status' => true, 'message' => 'OTP sent to your email.', 'require_otp_always' => true]);
+            } else {
+                return response()->json(['status' => true, 'message' => 'OTP not required for this user.', 'require_otp_always' => false]);
+            }
     }
 
     public function verify(Request $request)
