@@ -206,7 +206,20 @@ public function sendCreatedEmail($feasibility)
             Log::info('[Feasibility Email] Picked recipient', ['recipient' => $recipient]);
             if ($recipient) {
                 $creator = $feasibility->createdByUser ? $feasibility->createdByUser->name : 'Unknown User';
-                $body = str_replace(['{{feasibility_id}}', '{{creator_name}}'], [$feasibility->feasibility_request_id, $creator], $template->body);
+                $body = str_replace(['{{feasibility_id}}',
+                 '{{creator_name}}',
+                 '{{company_name}}',
+                 '{{client_name}}',
+                 '{{address}}',
+                 '{{speed}}',
+                 '{{static_ip}}'
+                 ], [$feasibility->feasibility_request_id, $creator, 
+                 $feasibility->company->company_name ?? '',
+                  $feasibility->client->client_name ?? '',
+                  $feasibility->address ?? '',
+                    $feasibility->speed ?? '',
+                    $feasibility->static_ip ?? ''
+                  ], $template->body);
                 Log::info('[Feasibility Email] Triggering mail send', ['to' => $recipient, 'subject' => $template->subject]);
                 Mail::send([], [], function ($message) use ($recipient, $template, $body) {
                     $message->to($recipient)
@@ -226,55 +239,55 @@ public function sendCreatedEmail($feasibility)
     }
 }
 
-private function getEmailRecipients($feasibility, $newStatus, $previousStatus = null)
-{
-    $settings = \App\Models\CompanySetting::first();
-    $notifyConfig = $settings->feasibility_notifications ?? [];
+// private function getEmailRecipients($feasibility, $newStatus, $previousStatus = null)
+// {
+//     $settings = \App\Models\CompanySetting::first();
+//     $notifyConfig = $settings->feasibility_notifications ?? [];
 
-    // Open → Send to configured user type
-    if ($newStatus == 'Open' && !empty($notifyConfig['Open'])) {
-        return \App\Models\User::whereHas('userType', function ($q) use ($notifyConfig) {
-            $q->where('name', $notifyConfig['Open']);
-        })
-        ->whereNotNull('official_email')
-        ->pluck('official_email')
-        ->toArray();
-    }
+//     // Open → Send to configured user type
+//     if ($newStatus == 'Open' && !empty($notifyConfig['Open'])) {
+//         return \App\Models\User::whereHas('userType', function ($q) use ($notifyConfig) {
+//             $q->where('name', $notifyConfig['Open']);
+//         })
+//         ->whereNotNull('official_email')
+//         ->pluck('official_email')
+//         ->toArray();
+//     }
 
-    // Closed → Send ONLY to Creator (S&M)
-    if ($newStatus == 'Closed' && $feasibility->createdByUser) {
-        $creatorEmail = $feasibility->createdByUser->official_email ?? $feasibility->createdByUser->email;
-        return $creatorEmail ? [$creatorEmail] : [];
-    }
+//     // Closed → Send ONLY to Creator (S&M)
+//     if ($newStatus == 'Closed' && $feasibility->createdByUser) {
+//         $creatorEmail = $feasibility->createdByUser->official_email ?? $feasibility->createdByUser->email;
+//         return $creatorEmail ? [$creatorEmail] : [];
+//     }
 
-    return [];
-}
+//     return [];
+// }
 
-private function sendUpdatedEmail($feasibility)
-{
-    try {
-        $creatorEmail = optional($feasibility->createdByUser)->official_email;
+// private function sendUpdatedEmail($feasibility)
+// {
+//     try {
+//         $creatorEmail = optional($feasibility->createdByUser)->official_email;
 
-        if ($creatorEmail) {
-            Mail::to($creatorEmail)->send(
-                new \App\Mail\FeasibilityStatusMail(
-                    $feasibility,
-                    'Updated / Closed',
-                    null,
-                    Auth::user(),
-                    'updated'
-                )
-            );
-        } else {
-            Log::warning('Creator email missing', [
-                'feasibility_id' => $feasibility->id
-            ]);
-        }
+//         if ($creatorEmail) {
+//             Mail::to($creatorEmail)->send(
+//                 new \App\Mail\FeasibilityStatusMail(
+//                     $feasibility,
+//                     'Updated / Closed',
+//                     null,
+//                     Auth::user(),
+//                     'updated'
+//                 )
+//             );
+//         } else {
+//             Log::warning('Creator email missing', [
+//                 'feasibility_id' => $feasibility->id
+//             ]);
+//         }
 
-    } catch (\Exception $e) {
-        Log::error('Feasibility update email failed', ['error' => $e->getMessage()]);
-    }
-}
+//     } catch (\Exception $e) {
+//         Log::error('Feasibility update email failed', ['error' => $e->getMessage()]);
+//     }
+// }
 
      public function update(Request $request, $id)
     {

@@ -268,14 +268,20 @@
                         body: JSON.stringify({ email })
                     })
                     .then(res => res.json())
-                    .then(data => {
-                        if (data.status) {
-                            document.getElementById('otpSection').style.display = 'block';
-                            showAlert(data.message, 'success');
-                        } else {
-                            showAlert(data.message || 'Failed to send OTP.');
-                        }
-                    })
+                        .then(data => {
+                            if (data.status) {
+                                if (data.require_otp_always) {
+                                    document.getElementById('otpSection').style.display = 'block';
+                                } else {
+                                    document.getElementById('otpSection').style.display = 'none';
+                                    document.getElementById('passwordSection').style.display = 'block';
+                                    document.getElementById('loginBtn').style.display = 'block';
+                                }
+                                showAlert(data.message, 'success');
+                            } else {
+                                showAlert(data.message || 'Failed to send OTP.');
+                            }
+                        })
                     .catch(() => showAlert('Server error. Please try again.'))
                     .finally(() => {
                         btn.disabled = false;

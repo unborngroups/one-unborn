@@ -2,3 +2,77 @@
 php artisan sync:deliverables-from-pos
 
 
+SELECT
+    f.client_id,
+    f.location_id,
+    f.address,
+    dp.circuit_id,
+    dp.date_of_activation,
+    dp.static_ip_address,
+    dp.static_vlan,
+    dp.network_ip,
+    dp.static_subnet_mask,
+    dp.static_gateway,
+    dp.usable_ips,
+    dp.remarks
+FROM deliverable_plans dp
+JOIN feasibilities f ON dp.feasibility_id = f.id
+
+
+
+SELECT DISTINCT
+    f.client_id AS client_name,
+    f.location_id,
+    f.address,
+    dp.circuit_id,
+    dp.date_of_activation,
+    dp.mode_of_delivery,
+    dp.pppoe_username,
+    dp.pppoe_password,
+    dp.pppoe_vlan,
+    dp.dhcp_ip_address,
+    dp.dhcp_vlan,
+    dp.static_ip_address,
+    dp.static_vlan,
+    dp.network_ip,
+    dp.static_subnet_mask,
+    dp.static_gateway,
+    dp.usable_ips,
+    dp.remarks    
+FROM deliverables d
+JOIN feasibilities f
+    ON f.id = d.feasibility_id
+JOIN deliverable_plans dp
+    ON dp.deliverable_id = d.id
+WHERE d.status = 'Inprogress'
+LIMIT 25;
+
+
+
+
+
+SELECT DISTINCT
+    f.client_id AS client_name,
+    f.location_id,
+    f.address,
+    dp.circuit_id,
+    dp.date_of_activation,
+    dp.mode_of_delivery,
+    dp.pppoe_username,
+    dp.pppoe_password,
+    dp.pppoe_vlan,
+    dp.dhcp_ip_address,
+    dp.dhcp_vlan,
+    dp.static_ip_address,
+    dp.static_vlan,
+    dp.network_ip,
+    dp.static_subnet_mask,
+    dp.static_gateway,
+    dp.usable_ips,
+    dp.remarks    
+FROM deliverables d
+JOIN feasibilities f
+    ON f.id = d.feasibility_id
+JOIN deliverable_plans dp
+    ON dp.deliverable_id = d.id
+WHERE d.status = 'Delivery';

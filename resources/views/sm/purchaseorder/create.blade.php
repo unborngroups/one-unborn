@@ -8,6 +8,27 @@
                 <div class="card-header text-dark">
                     <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Create Purchase Order</h4>
                 </div>
+
+                {{-- Show validation errors --}}
+
+    @if ($errors->any())
+
+        <div class="alert alert-danger">
+
+            <ul class="mb-0">
+
+                @foreach ($errors->all() as $error)
+
+                    <li>{{ $error }}</li>
+
+                @endforeach
+
+            </ul>
+
+        </div>
+
+    @endif
+    
                 <div class="card-body position-relative">
                     <form method="POST" action="{{ route('sm.purchaseorder.store') }}" id="purchaseOrderForm" enctype="multipart/form-data">
                         <div id="poDuplicateAlert" class="alert alert-white mt-3 d-none" role="alert">
@@ -40,7 +61,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="feasibility_id" class="form-label"><strong>Feasibility Request ID <span class="text-danger">*</span></strong></label>
-                                <select class="form-select select2-tags" id="feasibility_id" name="feasibility_id" required onchange="loadFeasibilityDetails()">
+                                <select class="form-select select2" id="feasibility_id" name="feasibility_id" required onchange="loadFeasibilityDetails()">
                                     <option value="">Select Available Feasibility</option>
                                     @foreach($closedFeasibilities as $feas)
                                         <option value="{{ $feas->feasibility->id }}"
@@ -89,7 +110,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-semibold">No. of Links *</label>
-                                <select name="no_of_links" id="no_of_links_dropdown" class="form-select" required onchange="showDynamicPricing()">
+                                <select id="no_of_links_dropdown" class="form-select" required onchange="showDynamicPricing()">
                                     <option value="">Select</option>
                                     <option value="1">1</option>
                                     <option value="2">2</option>
@@ -97,6 +118,7 @@
                                     <option value="4">4</option>
                                 </select>
                             </div>
+                            <input type="hidden" name="no_of_links" id="no_of_links_hidden">
                             <input type="hidden" id="static_ip_required" name="static_ip_required" value="0">
                         </div>
 
@@ -133,6 +155,21 @@
                             </div>
                         </div>
 
+                        <!-- already po import file -->
+                         {{-- Existing file --}}
+                        <div class="mb-3 d-none" id="existingFileContainer">
+                            <label class="form-label">Existing PO Document</label><br>
+                            <a href="#"
+                               id="existingFileLink"
+                               target="_blank"
+                               class="btn btn-sm btn-outline-primary">
+                                View Existing File
+                            </a>
+                            <small class="text-muted d-block">
+                                (Uploading a new file will replace this)
+                            </small>
+                        </div>
+
                         <div class="row">
                             <div class="col-12 text-end">
                                 <a href="{{ route('sm.purchaseorder.index') }}" class="btn btn-secondary me-2">Cancel</a>
@@ -148,67 +185,96 @@
 </div>
 
 
+
+<!--  -->
+{{-- ================= JS ================= --}}
+<script>
+document.getElementById('import_file')?.addEventListener('change', () => {
+    document.getElementById('existingFileContainer').classList.add('d-none');
+});
+
+document.getElementById('poDuplicateReuse')?.addEventListener('click', () => {
+    const po = document.getElementById('po_number').value;
+    fetch(`/sm/purchaseorder/fetch-by-number/${po}`)
+        .then(r => r.json())
+        .then(res => {
+            if (res.success && res.data?.import_file) {
+                document.getElementById('existing_import_file').value = res.data.import_file;
+                document.getElementById('existingFileLink').href = '/' + res.data.import_file;
+                document.getElementById('existingFileContainer').classList.remove('d-none');
+            }
+        });
+});
+
+// function checkPoNumber() {
+//     const po = document.getElementById('po_number').value;
+//     if (!po) return;
+
+//     fetch(`{{ route('sm.purchaseorder.check-po-number') }}?po_number=${po}`)
+//         .then(r => r.json())
+//         .then(d => {
+//             if (d.exists) {
+//                 document.getElementById('poDuplicateAlert').classList.remove('d-none');
+//                 document.getElementById('poDuplicateMessage').innerText =
+//                     `PO number ${po} already exists`;
+//             }
+//         });
+// }
+</script>
+
+
+
+
+
 <script>
 // --- Autofill PO fields when 'Use this PO' is clicked ---
 document.addEventListener('DOMContentLoaded', function () {
+        // Ensure disabled no_of_links is submitted
+        const purchaseOrderForm = document.getElementById('purchaseOrderForm');
+        if (purchaseOrderForm) {
+            // purchaseOrderForm.addEventListener('submit', function () {
+            //     const linksDropdown = document.getElementById('no_of_links_dropdown');
+            //     if (linksDropdown && linksDropdown.disabled) {
+            //         linksDropdown.disabled = false;
+            //         setTimeout(() => { linksDropdown.disabled = true; }, 100);
+            //     }
+            // });
+        }
     const reuseButton = document.getElementById('poDuplicateReuse');
     if (reuseButton) {
         reuseButton.addEventListener('click', function () {
-            const poNumber = document.getElementById('po_number').value.trim();
-            if (!poNumber) return;
-            fetch(`/sm/purchaseorder/fetch-by-number/${encodeURIComponent(poNumber)}`)
-                .then(r => r.json())
-                .then(res => {
-                    if (res.success && res.data) {
-                        // Fill main fields
-                        if (res.data.feasibility_id) document.getElementById('feasibility_id').value = res.data.feasibility_id;
-                        if (res.data.po_date) document.getElementById('po_date').value = res.data.po_date;
-                        if (res.data.no_of_links) {
-                            const linksDropdown = document.getElementById('no_of_links_dropdown');
-                            linksDropdown.value = res.data.no_of_links;
-                            // Manually trigger change event so dynamic fields/buttons are rendered
-                            linksDropdown.dispatchEvent(new Event('change'));
-                        }
-                        if (res.data.contract_period) document.getElementById('contract_period').value = res.data.contract_period;
-                        if (res.data.total_cost !== undefined) document.getElementById('totalCost').value = '₹' + parseFloat(res.data.total_cost).toFixed(2);
-                        if (res.data.import_file) document.getElementById('import_file').value = res.data.import_file;
+    const poNumber = document.getElementById('po_number').value.trim();
+    if (!poNumber) return;
 
-                        // Fill per-link pricing fields after dynamic fields are rendered
-                        setTimeout(function() {
-                            for (let i = 1; i <= 4; i++) {
-                                if (res.data[`arc_link_${i}`] !== undefined && document.getElementById(`arc_link_${i}`)) {
-                                    document.getElementById(`arc_link_${i}`).value = res.data[`arc_link_${i}`];
-                                }
-                                if (res.data[`otc_link_${i}`] !== undefined && document.getElementById(`otc_link_${i}`)) {
-                                    document.getElementById(`otc_link_${i}`).value = res.data[`otc_link_${i}`];
-                                }
-                                if (res.data[`static_ip_link_${i}`] !== undefined && document.getElementById(`static_ip_link_${i}`)) {
-                                    document.getElementById(`static_ip_link_${i}`).value = res.data[`static_ip_link_${i}`];
-                                }
-                            }
-                            // Show previously uploaded file info if available
-                            const importFileInfo = document.getElementById('importFileInfo');
-                            if (importFileInfo) {
-                                if (res.data.import_file) {
-                                    // Adjust the file path as per your storage/public path
-                                    const fileUrl = `/storage/purchaseorders/${res.data.import_file}`;
-                                    importFileInfo.innerHTML = `<a href="${fileUrl}" target="_blank">Previously uploaded: ${res.data.import_file}</a>`;
-                                } else {
-                                    importFileInfo.innerHTML = '';
-                                }
-                            }
-                            // Recalculate total after filling
-                            if (typeof calculateTotal === 'function') calculateTotal();
-                            // Remove focus from any input to ensure info button is clickable
-                            if (document.activeElement && document.activeElement.blur) {
-                                document.activeElement.blur();
-                            }
-                        }, 400);
-                    } else {
-                        alert('PO not found!');
-                    }
-                });
+    fetch(`/sm/purchaseorder/fetch-by-number/${encodeURIComponent(poNumber)}`)
+        .then(r => r.json())
+        .then(res => {
+            const importFileInfo = document.getElementById('importFileInfo');
+
+            if (res.success && res.data && res.data.import_file) {
+
+    // 🔥 STORE old file path for backend reuse
+    document.getElementById('existing_import_file').value = res.data.import_file;
+
+    const fileUrl = `/${res.data.import_file}`;
+
+    importFileInfo.innerHTML = `
+        <div class="alert alert-info p-2">
+            <strong>Previously uploaded document:</strong><br>
+            <a href="${fileUrl}" target="_blank">
+                ${res.data.import_file.split('/').pop()}
+            </a>
+            <p class="mb-0 small text-muted">
+                This document will be reused if you don’t upload a new file.
+            </p>
+        </div>
+    `;
+} else {
+                importFileInfo.innerHTML = '';
+            }
         });
+      });
+
     }
 });
 let poDuplicateAlert = null;
@@ -373,8 +439,16 @@ let feasibilityAmounts = {};
 let staticIpRequiredForFeasibility = false;
 
 function showDynamicPricing() {
-    const links = parseInt(document.getElementById('no_of_links_dropdown').value);
+
+
+        const dropdown = document.getElementById('no_of_links_dropdown');
+    const hidden = document.getElementById('no_of_links_hidden');
+
+    hidden.value = dropdown.value; // 🔥 KEY LINE
+
+    const links = parseInt(dropdown.value);
     const c = document.getElementById('pricingFieldsContainer');
+    
 
     if (!links) {
         c.innerHTML = '';
@@ -510,6 +584,8 @@ function loadFeasibilityDetails() {
             addrField.value = '';
             addrBox.classList.add('d-none');
         }
+        const linksDropdown = document.getElementById('no_of_links_dropdown');
+        if (linksDropdown) linksDropdown.disabled = false;
         return;
     }
 
@@ -549,12 +625,22 @@ function loadFeasibilityDetails() {
                 }
             }
 
-            const links = document.getElementById('no_of_links_dropdown').value;
-
-            if (links) {
-                showDynamicPricing(); // redraw + static ip handled
+            // Auto-select No. of Links from feasibility and make it read-only
+            const linksDropdown = document.getElementById('no_of_links_dropdown');
+            if (d.no_of_links) {
+                linksDropdown.value = d.no_of_links;
+                document.getElementById('no_of_links_hidden').value = d.no_of_links; // hidden field to submit
+                linksDropdown.disabled = true;
+                linksDropdown.dispatchEvent(new Event('change'));
             } else {
-                updateStaticIpFieldVisibility();
+                // fallback: keep previous logic and make editable
+                linksDropdown.disabled = false;
+                const links = linksDropdown.value;
+                if (links) {
+                    showDynamicPricing(); // redraw + static ip handled
+                } else {
+                    updateStaticIpFieldVisibility();
+                }
             }
         })
         .catch(err => {
@@ -562,7 +648,25 @@ function loadFeasibilityDetails() {
         });
 }
 
+// 
 
+$(document).ready(function () {
+
+    $('.select2').select2({
+
+        theme: 'bootstrap-5',
+
+        tags: false, // ✅ allows typing new values
+
+        placeholder: 'Select or Type',
+
+        allowClear: true,
+
+        width: '100%'
+
+    });
+
+});
 
 </script>
 <style>

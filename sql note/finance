@@ -17,6 +17,10 @@ JOIN feasibility_statuses fs ON fs.feasibility_id = f.id
 WHERE fs.status = 'Closed'
 AND f.id NOT IN (SELECT feasibility_id FROM purchase_orders);
 
+SELECT d.*
+FROM deliverable_plans d
+JOIN deliverable_plans_statuses ds ON ds.deliverable_plan_id = d.id
+WHERE ds.status = 'Closed';
 
 SELECT f.id, f.feasibility_request_id, f.address
 FROM feasibilities f

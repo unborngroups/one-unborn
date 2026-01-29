@@ -20,6 +20,24 @@ return new class extends Migration
             $table->decimal('arc_per_link', 10, 2);
             $table->decimal('otc_per_link', 10, 2); 
             $table->decimal('static_ip_cost_per_link', 10, 2);
+
+            $table->decimal('arc_link_1', 12, 2)->nullable();
+            $table->decimal('arc_link_2', 12, 2)->nullable();
+            $table->decimal('arc_link_3', 12, 2)->nullable();
+            $table->decimal('arc_link_4', 12, 2)->nullable();
+            
+            // OTC (One Time Charges) per link
+            $table->decimal('otc_link_1', 12, 2)->nullable();
+            $table->decimal('otc_link_2', 12, 2)->nullable();
+            $table->decimal('otc_link_3', 12, 2)->nullable();
+            $table->decimal('otc_link_4', 12, 2)->nullable();
+            
+            // Static IP Cost per link
+            $table->decimal('static_ip_link_1', 12, 2)->nullable();
+            $table->decimal('static_ip_link_2', 12, 2)->nullable();
+            $table->decimal('static_ip_link_3', 12, 2)->nullable();
+            $table->decimal('static_ip_link_4', 12, 2)->nullable();
+
             $table->integer('no_of_links');
             $table->string('import_file')->nullable();
             $table->integer('contract_period'); // in months
@@ -29,7 +47,7 @@ return new class extends Migration
 
             $table->foreign('feasibility_id')->references('id')->on('feasibilities')->onDelete('cascade');
             $table->index('po_number');
-            $table->index('status');
+            $table->enum('status', ['Active', 'Inactive'])->default('Active')->after('contract_period');
         });
     }
 

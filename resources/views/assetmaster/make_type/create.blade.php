@@ -4,6 +4,25 @@
 <div class="container py-4">
     <h3 class="mb-3 text-primary">Add Make Type</h3>
     <div class="card p-4 shadow">
+
+    @if ($errors->any())
+
+            <div class="alert alert-danger">
+
+                <ul class="mb-0">
+
+                    @foreach ($errors->all() as $error)
+
+                        <li>{{ $error }}</li>
+
+                    @endforeach
+
+                </ul>
+
+            </div>
+
+        @endif
+        
         <form action="{{ route('assetmaster.make_type.store') }}" method="POST">
             @csrf
 

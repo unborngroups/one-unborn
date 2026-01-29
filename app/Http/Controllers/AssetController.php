@@ -379,110 +379,179 @@ private function normalizePurchaseDate(mixed $value): ?string
 
     private function resolveCompany(array $data, int $rowNumber, array &$errors): ?Company
     {
-        if (!empty($data['company_id'])) {
-            return Company::find($data['company_id']);
+        $possibleKeys = ['company_id', 'company_name', 'company'];
+        foreach ($possibleKeys as $key) {
+            if (!empty($data[$key])) {
+                // Try by ID
+                if ($key === 'company_id' && is_numeric($data[$key])) {
+                    $company = Company::find($data[$key]);
+                    if ($company) return $company;
+                }
+                // Try by name (case-insensitive, trimmed)
+                $name = trim($data[$key]);
+                $company = Company::whereRaw('LOWER(TRIM(company_name)) = ?', [strtolower($name)])->first();
+                if ($company) return $company;
+            }
         }
-
-        if (!empty($data['company_name'])) {
-            return Company::where('company_name', $data['company_name'])->first();
+        // Suggest closest match
+        $allNames = Company::pluck('company_name')->toArray();
+        $input = '';
+        foreach ($possibleKeys as $key) {
+            if (!empty($data[$key])) $input = $data[$key];
         }
-
-        if (!empty($data['company'])) {
-            return Company::where('company_name', $data['company'])->first();
+        $suggestion = '';
+        $minDistance = 5;
+        foreach ($allNames as $name) {
+            $distance = levenshtein(strtolower(trim($input)), strtolower(trim($name)));
+            if ($distance < $minDistance) {
+                $minDistance = $distance;
+                $suggestion = $name;
+            }
         }
-
-        $errors[] = "Row $rowNumber: company_id/company_name is required";
+        $msg = "Row $rowNumber: company_id/company_name is required";
+        if ($suggestion) $msg .= ". Did you mean: $suggestion?";
+        $errors[] = $msg;
         return null;
     }
 
     private function resolveAssetType(array $data, int $rowNumber, array &$errors): ?AssetType
     {
-        if (!empty($data['asset_type_id'])) {
-            return AssetType::find($data['asset_type_id']);
+        $possibleKeys = ['asset_type_id', 'asset_type', 'asset_type_name'];
+        foreach ($possibleKeys as $key) {
+            if (!empty($data[$key])) {
+                if ($key === 'asset_type_id' && is_numeric($data[$key])) {
+                    $type = AssetType::find($data[$key]);
+                    if ($type) return $type;
+                }
+                $name = trim($data[$key]);
+                $type = AssetType::whereRaw('LOWER(TRIM(type_name)) = ?', [strtolower($name)])->first();
+                if ($type) return $type;
+            }
         }
-
-        if (!empty($data['asset_type'])) {
-            return AssetType::where('type_name', $data['asset_type'])->first();
+        $allNames = AssetType::pluck('type_name')->toArray();
+        $input = '';
+        foreach ($possibleKeys as $key) {
+            if (!empty($data[$key])) $input = $data[$key];
         }
-
-        if (!empty($data['asset_type_name'])) {
-            return AssetType::where('type_name', $data['asset_type_name'])->first();
+        $suggestion = '';
+        $minDistance = 5;
+        foreach ($allNames as $name) {
+            $distance = levenshtein(strtolower(trim($input)), strtolower(trim($name)));
+            if ($distance < $minDistance) {
+                $minDistance = $distance;
+                $suggestion = $name;
+            }
         }
-
-        $errors[] = "Row $rowNumber: asset_type_id/asset_type is required";
+        $msg = "Row $rowNumber: asset_type_id/asset_type is required";
+        if ($suggestion) $msg .= ". Did you mean: $suggestion?";
+        $errors[] = $msg;
         return null;
     }
 
     private function resolveMakeType(array $data, int $rowNumber, array &$errors): ?MakeType
     {
-        if (!empty($data['make_type_id'])) {
-            return MakeType::find($data['make_type_id']);
+        $possibleKeys = ['make_type_id', 'make_name', 'make_type', 'make'];
+        foreach ($possibleKeys as $key) {
+            if (!empty($data[$key])) {
+                if ($key === 'make_type_id' && is_numeric($data[$key])) {
+                    $make = MakeType::find($data[$key]);
+                    if ($make) return $make;
+                }
+                $name = trim($data[$key]);
+                $make = MakeType::whereRaw('LOWER(TRIM(make_name)) = ?', [strtolower($name)])->first();
+                if ($make) return $make;
+            }
         }
-
-        if (!empty($data['make_name'])) {
-            return MakeType::where('make_name', $data['make_name'])->first();
-        }
-
-        if (!empty($data['make_type'])) {
-            return MakeType::where('make_name', $data['make_type'])->first();
-        }
-
-        if (!empty($data['make'])) {
-            return MakeType::where('make_name', $data['make'])->first();
-        }
-
         if (!empty($data['model_type_id'])) {
             return ModelType::find($data['model_type_id'])?->makeType;
         }
-        $errors[] = "Row $rowNumber: make_type_id/make_name is required";
+        $allNames = MakeType::pluck('make_name')->toArray();
+        $input = '';
+        foreach ($possibleKeys as $key) {
+            if (!empty($data[$key])) $input = $data[$key];
+        }
+        $suggestion = '';
+        $minDistance = 5;
+        foreach ($allNames as $name) {
+            $distance = levenshtein(strtolower(trim($input)), strtolower(trim($name)));
+            if ($distance < $minDistance) {
+                $minDistance = $distance;
+                $suggestion = $name;
+            }
+        }
+        $msg = "Row $rowNumber: make_type_id/make_name is required";
+        if ($suggestion) $msg .= ". Did you mean: $suggestion?";
+        $errors[] = $msg;
         return null;
     }
 
     // 
     private function resolveModelType(array $data, int $rowNumber, array &$errors): ?ModelType
     {
-        if (!empty($data['model_type_id'])) {
-            return ModelType::find($data['model_type_id']);
+        $possibleKeys = ['model_type_id', 'model_name', 'model_type', 'model'];
+        foreach ($possibleKeys as $key) {
+            if (!empty($data[$key])) {
+                if ($key === 'model_type_id' && is_numeric($data[$key])) {
+                    $model = ModelType::find($data[$key]);
+                    if ($model) return $model;
+                }
+                $name = trim($data[$key]);
+                $model = ModelType::whereRaw('LOWER(TRIM(model_name)) = ?', [strtolower($name)])->first();
+                if ($model) return $model;
+            }
         }
-
-        if (!empty($data['model_name'])) {
-            return ModelType::where('model_name', $data['model_name'])->first();
+        $allNames = ModelType::pluck('model_name')->toArray();
+        $input = '';
+        foreach ($possibleKeys as $key) {
+            if (!empty($data[$key])) $input = $data[$key];
         }
-
-        if (!empty($data['model_type'])) {
-            return ModelType::where('model_name', $data['model_type'])->first();
+        $suggestion = '';
+        $minDistance = 5;
+        foreach ($allNames as $name) {
+            $distance = levenshtein(strtolower(trim($input)), strtolower(trim($name)));
+            if ($distance < $minDistance) {
+                $minDistance = $distance;
+                $suggestion = $name;
+            }
         }
-
-        if (!empty($data['model'])) {
-            return ModelType::where('model_name', $data['model'])->first();
-        }
-        $errors[] = "Row $rowNumber: model_type_id/model_name is required";
+        $msg = "Row $rowNumber: model_type_id/model_name is required";
+        if ($suggestion) $msg .= ". Did you mean: $suggestion?";
+        $errors[] = $msg;
         return null;
     }
 
     // 
     private function resolveVendor(array $data, int $rowNumber, array &$errors): ?Vendor
     {
-        if (!empty($data['vendor_id'])) {
-            return Vendor::find($data['vendor_id']);
+        $possibleKeys = ['vendor_id', 'vendor_name', 'vendor_type', 'vendor'];
+        foreach ($possibleKeys as $key) {
+            if (!empty($data[$key])) {
+                if ($key === 'vendor_id' && is_numeric($data[$key])) {
+                    $vendor = Vendor::find($data[$key]);
+                    if ($vendor) return $vendor;
+                }
+                $name = trim($data[$key]);
+                $vendor = Vendor::whereRaw('LOWER(TRIM(vendor_name)) = ?', [strtolower($name)])->first();
+                if ($vendor) return $vendor;
+            }
         }
-
-        if (!empty($data['vendor_name'])) {
-            return Vendor::where('vendor_name', $data['vendor_name'])->first();
+        $allNames = Vendor::pluck('vendor_name')->toArray();
+        $input = '';
+        foreach ($possibleKeys as $key) {
+            if (!empty($data[$key])) $input = $data[$key];
         }
-
-        if (!empty($data['vendor_type'])) {
-            return Vendor::where('vendor_name', $data['vendor_type'])->first();
+        $suggestion = '';
+        $minDistance = 5;
+        foreach ($allNames as $name) {
+            $distance = levenshtein(strtolower(trim($input)), strtolower(trim($name)));
+            if ($distance < $minDistance) {
+                $minDistance = $distance;
+                $suggestion = $name;
+            }
         }
-
-        if (!empty($data['vendor'])) {
-            return Vendor::where('vendor_name', $data['vendor'])->first();
-        }
-
-        if (!empty($data['vendor_id'])) {
-            return Vendor::find($data['vendor_id']) ;
-        }
-        $errors[] = "Row $rowNumber: vendor_id/vendor_name is required";
+        $msg = "Row $rowNumber: vendor_id/vendor_name is required";
+        if ($suggestion) $msg .= ". Did you mean: $suggestion?";
+        $errors[] = $msg;
         return null;
     }
 

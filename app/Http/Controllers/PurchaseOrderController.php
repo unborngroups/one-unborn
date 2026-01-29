@@ -10,6 +10,8 @@ use App\Models\Deliverables;
 use App\Helpers\TemplateHelper;
 use App\Helpers\CircuitIdHelper;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Shuchkin\SimpleXLSX;
 require_once app_path('Libraries/SimpleXLSX.php');
@@ -66,6 +68,10 @@ class PurchaseOrderController extends Controller
 
     public function store(Request $request)
     {
+
+
+
+
         // Basic validation for main fields
         $rules = [
             'feasibility_id' => 'required|exists:feasibilities,id',
@@ -199,16 +205,29 @@ class PurchaseOrderController extends Controller
         // Handle file upload if provided
         $importFilePath = null;
 
-            if ($request->hasFile('import_file')) {
-                $file = $request->file('import_file');
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $destinationPath = public_path('images/purchaseorder');
-                if (!file_exists($destinationPath)) {
-                    mkdir($destinationPath, 0777, true);
-                }
-                $file->move($destinationPath, $filename);
-                $importFilePath = 'images/purchaseorder/' . $filename;
-            }
+// ✅ REUSE old file if PO reused & no new upload
+if (
+    $allowReuse &&
+    $request->filled('existing_import_file') &&
+    !$request->hasFile('import_file')
+) {
+    $importFilePath = $request->existing_import_file;
+}
+
+// ✅ New upload overrides old file
+if ($request->hasFile('import_file')) {
+    $file = $request->file('import_file');
+    $filename = time() . '_' . $file->getClientOriginalName();
+    $destinationPath = public_path('images/purchaseorder');
+
+    if (!file_exists($destinationPath)) {
+        mkdir($destinationPath, 0777, true);
+    }
+
+    $file->move($destinationPath, $filename);
+    $importFilePath = 'images/purchaseorder/' . $filename;
+}
+
         // Prepare data for storage
         $feasibility = Feasibility::find($validated['feasibility_id']);
         $poData = [

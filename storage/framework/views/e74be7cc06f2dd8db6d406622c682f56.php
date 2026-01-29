@@ -4,6 +4,25 @@
 <div class="container py-4">
     <h3 class="mb-3 text-primary">Add Make Type</h3>
     <div class="card p-4 shadow">
+
+    <?php if($errors->any()): ?>
+
+            <div class="alert alert-danger">
+
+                <ul class="mb-0">
+
+                    <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+
+                        <li><?php echo e($error); ?></li>
+
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
+                </ul>
+
+            </div>
+
+        <?php endif; ?>
+        
         <form action="<?php echo e(route('assetmaster.make_type.store')); ?>" method="POST">
             <?php echo csrf_field(); ?>
 

@@ -4,7 +4,7 @@
 
     <div class="col-md-4 mb-3">
 
-        <label class="form-label">User Name</label>
+        <label class="form-label">User Name <span class="text-danger">*</span></label>
 
         <input type="text" name="user_name" class="form-control"
 
@@ -15,7 +15,7 @@
 
     <div class="col-md-4 mb-3">
 
-        <label class="form-label">Trade / Brand Name</label>
+        <label class="form-label">Trade / Brand Name <span class="text-danger">*</span></label>
 
         <input type="text" name="trade_name" class="form-control"
 
@@ -29,7 +29,7 @@
 
     <div class="col-md-4 mb-3">
 
-        <label class="form-label">Company Name</label>
+        <label class="form-label">Company Name <span class="text-danger">*</span></label>
 
         <input type="text" name="company_name" id="company_name" class="form-control"
 
@@ -71,7 +71,7 @@
 
     <div class="col-md-4 mb-3">
 
-    <label class="form-label">Company Email (Primary)</label>
+    <label class="form-label">Company Email (Primary) <span class="text-danger">*</span></label>
 
     <input type="email" name="company_email" id="email_1" class="form-control"
 

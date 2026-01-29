@@ -55,7 +55,6 @@
                                 <thead class="table-dark-primary">
 
                                     <tr>
-                                        <th width="50" class="text-center"><input type="checkbox" id="select_all" style="width: 18px; height: 18px; cursor: pointer;"></th>
 
                                         <th>S.No</th>
 
@@ -66,6 +65,8 @@
                                         <th>Company Name</th>
 
                                         <th>Name</th>
+
+                                        <th>Area / State</th>
 
                                         <th>Type of Service</th>
 
@@ -84,10 +85,6 @@
                                     <?php $__currentLoopData = $records; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $record): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 
                                         <tr>
-
-                                        <td class="text-center">
-                                    <input type="checkbox" class="row-checkbox" value="<?php echo e($record->id); ?>" style="width: 18px; height: 18px; cursor: pointer;">
-                                </td>
 
                                             
 
@@ -130,6 +127,9 @@
                                             
 
                                             <td><?php echo e($record->feasibility->client->client_name ?? 'N/A'); ?></td>
+
+                                            
+                                            <td><?php echo e($record->feasibility->area ?? 'N/A'); ?> / <?php echo e($record->feasibility->state ?? 'N/A'); ?></td>
 
                                             
 

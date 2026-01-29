@@ -62,6 +62,8 @@
 
                                         <th>Name</th>
 
+                                        <th>Area / State</th>
+
                                         <th>Type of Service</th>
 
                                         <th>Speed</th>
@@ -115,23 +117,21 @@
                                             </td>
 
                                             <!-- Display company name -->
-
                                             <td><?php echo e($record->feasibility->company->company_name ?? 'N/A'); ?></td>
 
                                             <!-- Display client name -->
-
                                             <td><?php echo e($record->feasibility->client->client_name ?? 'N/A'); ?></td>
 
-                                            <!-- Display type of service -->
+                                            <!-- Display area and state -->
+                                            <td><?php echo e($record->feasibility->area ?? 'N/A'); ?> / <?php echo e($record->feasibility->state ?? 'N/A'); ?></td>
 
+                                            <!-- Display type of service -->
                                             <td><?php echo e($record->feasibility->type_of_service ?? 'N/A'); ?></td>
 
                                             <!-- Display speed -->
-
                                             <td><?php echo e($record->feasibility->speed ?? 'N/A'); ?></td>
 
                                             <!-- Display number of links -->
-
                                             <td><?php echo e($record->feasibility->no_of_links ?? 'N/A'); ?></td>
 
                                         </tr>

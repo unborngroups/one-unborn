@@ -495,6 +495,18 @@ class DeliverablesController extends Controller
                 ]
             );
 
+                // Send email notification using TemplateHelper
+                $templateKey = 'deliverable_delivered'; // Use your event_key from Template Master
+                $templateData = [
+                    'client_name' => $deliverable->feasibility->client->client_name ?? '',
+                    'company' => $deliverable->feasibility->company->company_name ?? '',
+                    'circuit_id' => $deliverable->circuit_id ?? '',
+                    'address' => $deliverable->feasibility->address ?? '',
+                    'speed' => $firstPlan->speed_in_mbps_plan ?? '',
+                    // Add more fields as needed for your template
+                ];
+                \App\Helpers\EmailHelper::sendDynamicEmail($templateKey, $templateData);
+
             // Auto-create renewal entry if not exists
             // Create a renewal for each deliverable plan (link) if not exists
             foreach ($deliverable->deliverablePlans as $plan) {

@@ -609,28 +609,37 @@ $(document).ready(function () {
 
                     const firstHardwareRow = document.querySelector('.hardware_row');
 
-if (
-    firstHardwareRow &&
-    f.hardware_details
-) {
+if (f.hardware_details) {
     let hardwares = [];
 
     try {
         hardwares = JSON.parse(f.hardware_details);
     } catch (e) {
-        console.error('Invalid hardware_details JSON', e);
+        console.error(e);
     }
 
     if (hardwares.length > 0) {
+        setSelectValue(hardwareSelect, '1');
+        hardwareSelect.dispatchEvent(new Event('change'));
+
         const hw = hardwares[0];
+        const row = document.querySelector('.hardware_row');
 
-        const makeSelect  = firstHardwareRow.querySelector('select[name="make_type_id[]"]');
-        const modelSelect = firstHardwareRow.querySelector('select[name="model_id[]"]');
+        const makeSelect  = row.querySelector('select[name="make_type_id[]"]');
+        const modelSelect = row.querySelector('select[name="model_id[]"]');
 
-        if (makeSelect && modelSelect) {
+        // ⏳ WAIT FOR MAKE OPTIONS
+        setTimeout(() => {
             setSelectValue(makeSelect, String(hw.make_type_id));
-            setSelectValue(modelSelect, String(hw.model_id));
-        }
+            $(makeSelect).trigger('change');
+
+            // ⏳ WAIT FOR MODEL OPTIONS (after make change)
+            setTimeout(() => {
+                setSelectValue(modelSelect, String(hw.model_id));
+                $(modelSelect).trigger('change');
+            }, 500);
+
+        }, 500);
     }
 }
 
