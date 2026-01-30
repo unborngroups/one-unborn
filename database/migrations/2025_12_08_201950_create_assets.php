@@ -25,7 +25,7 @@ return new class extends Migration
     $table->string('brand')->nullable();
     $table->string('serial_no')->nullable();
     $table->string('mac_no')->nullable();
-    $table->string('procured_from')->nullable();
+    $table->string('vendor_id')->nullable();
     $table->date('purchase_date')->nullable();
     $table->string('warranty')->nullable();
     $table->string('po_no')->nullable();

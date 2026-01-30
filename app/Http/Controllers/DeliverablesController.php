@@ -300,7 +300,8 @@ class DeliverablesController extends Controller
                 'lan_ip_1','lan_ip_2','lan_ip_3','lan_ip_4',
                 'asset_id','asset_serial_no','asset_mac_no','otc_extra_charges','payment_login_url',
                 'payment_quick_url','payment_account','payment_username','payment_password','ipsec',
-                'phase_1','phase_2','ipsec_interface','export_file'
+                'phase_1','phase_2','ipsec_interface','export_file','otc_bill_file','static_ip_file',
+                'onu_ont_device_file','ping_report_gateway_file','ping_report_dns_file','speed_test_file'
             ]);
             // Ensure ipsec is never null
             $data['ipsec'] = $request->input('ipsec', 'No');
@@ -352,15 +353,26 @@ class DeliverablesController extends Controller
 
         /* ---- FILES ---- */
 
-        if ($request->hasFile('otc_bill_file')) {
-            $data['otc_bill_file'] = $request->file('otc_bill_file')
-                ->store('images/deliverableotcbill', 'public');
-        }
-
-        if ($request->hasFile('export_file')) {
-            $folder = $request->action === 'save' ? 'temp' : '';
-            $data['export_file'] = $request->file('export_file')
-                ->store("images/exportdeliverables/$folder", 'public');
+        $fileFields = [
+            'speed_test_file' => 'images/deliverable_speed_test',
+            'ping_report_dns_file' => 'images/deliverable_pingreportdns',
+            'ping_report_gateway_file' => 'images/deliverable_pingreportgateway',
+            'onu_ont_device_file' => 'images/deliverable_onu_ontdevice',
+            'static_ip_file' => 'images/deliverable_staticip',
+            'otc_bill_file' => 'images/deliverableotcbill',
+            'export_file' => 'images/exportdeliverables',
+        ];
+        foreach ($fileFields as $field => $folder) {
+            if ($request->hasFile($field)) {
+                $file = $request->file($field);
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $destination = public_path($folder);
+                if (!file_exists($destination)) {
+                    mkdir($destination, 0777, true);
+                }
+                $file->move($destination, $filename);
+                $data[$field] = $folder . '/' . $filename;
+            }
         }
 
         /* ---- STATUS ---- */
@@ -390,16 +402,16 @@ class DeliverablesController extends Controller
                         ];
             // Find the current max sequence for this prefix in deliverable_plans
 
-            // $prefix = substr($year, -2)
-            //     . strtoupper(substr($companyName, 0, 3))
-            //     . strtoupper(substr($clientShortName, 0, 3))
-            //     . (isset($stateAbbr[$state]) ? $stateAbbr[$state] : strtoupper(substr($state, 0, 2)));
-            // $maxSeq = DeliverablePlan::where('circuit_id', 'like', $prefix . '%')
-            //     ->selectRaw('MAX(CAST(SUBSTRING(circuit_id, LENGTH(?) + 1) AS UNSIGNED)) as max_seq', [$prefix])
-            //     ->value('max_seq');
-      $maxSeq = DeliverablePlan::whereYear('created_at', $year)
+           
+    //   $maxSeq = DeliverablePlan::whereYear('created_at', $year)
+    // ->selectRaw("MAX(CAST(RIGHT(circuit_id, 4) AS UNSIGNED)) as max_seq")
+    // ->value('max_seq');
+
+$maxSeq = DeliverablePlan::whereYear('created_at', $year)
+    ->where('circuit_id', 'like', substr($year, -2).'%')
     ->selectRaw("MAX(CAST(RIGHT(circuit_id, 4) AS UNSIGNED)) as max_seq")
     ->value('max_seq');
+
 
     $serial = $maxSeq ? intval($maxSeq) : 0;
 
@@ -465,7 +477,7 @@ class DeliverablesController extends Controller
                     'static_vlan_tag' => $request->input('static_vlan_tag_' . $i),
                     'network_ip' => $request->input('network_ip_' . $i),
                     'static_subnet_mask' => $request->input('static_subnet_mask_' . $i),
-                    'static_gateway' => $request->input('static_gateway_' . $i),
+                    'static_gateway' => $request->input('gateway_' . $i),
                     'usable_ips' => $request->input('usable_ips_' . $i),
                     'remarks' => $request->input('remarks_' . $i),
                 ];
@@ -473,6 +485,8 @@ class DeliverablesController extends Controller
             }
 
         /* ---- CLIENT LINK ---- */
+
+        $serviceType = $feasibility->type_of_service ?? null;
 
         if ($data['status'] === 'Delivery') {
             // Use first plan's speed as bandwidth summary for ClientLink
@@ -495,25 +509,29 @@ class DeliverablesController extends Controller
                 ]
             );
 
-                // Send email notification using TemplateHelper
-                $templateKey = 'deliverable_delivered'; // Use your event_key from Template Master
-                $templateData = [
-                    'client_name' => $deliverable->feasibility->client->client_name ?? '',
-                    'company' => $deliverable->feasibility->company->company_name ?? '',
-                    'circuit_id' => $deliverable->circuit_id ?? '',
-                    'address' => $deliverable->feasibility->address ?? '',
-                    'speed' => $firstPlan->speed_in_mbps_plan ?? '',
-                    // Add more fields as needed for your template
-                ];
-                \App\Helpers\EmailHelper::sendDynamicEmail($templateKey, $templateData);
+            // Send email notification using TemplateHelper
+            $templateKey = 'deliverable_delivered'; // Use your event_key from Template Master
+            $client = $deliverable->feasibility->client;
+            $company = $deliverable->feasibility->company;
+            $companySetting = $company->settings;
+            $to = $client->delivered_email;
+            $cc = $client->delivered_cc;
+            $from = $companySetting->delivery_mail_from_address ?? config('mail.from.address');
+            $templateData = [
+                'client_name' => $client->client_name ?? '',
+                'company' => $company->company_name ?? '',
+                'circuit_id' => $deliverable->circuit_id ?? '',
+                'address' => $deliverable->feasibility->address ?? '',
+                'speed' => $firstPlan->speed_in_mbps_plan ?? '',
+                // Add more fields as needed for your template
+            ];
+            $emailSent = \App\Helpers\EmailHelper::sendDynamicEmail($to, $templateKey, $templateData, $cc, $from);
 
             // Auto-create renewal entry if not exists
-            // Create a renewal for each deliverable plan (link) if not exists
             foreach ($deliverable->deliverablePlans as $plan) {
                 $activation = $plan->date_of_activation;
                 $months = $plan->no_of_months_renewal;
                 $circuitId = $plan->circuit_id;
-                // Check if a renewal already exists for this deliverable and circuit_id
                 $existingRenewal = \App\Models\Renewal::where('deliverable_id', $deliverable->id)
                     ->where('circuit_id', $circuitId)
                     ->first();
@@ -531,28 +549,27 @@ class DeliverablesController extends Controller
                     ]);
                 }
             }
-        }
 
-        // Redirect logic:
-        //  - If submitted (status = Delivery) AND feasibility service type is ILL,
-        //    go to the Acceptance page for this deliverable.
-        //  - Otherwise keep existing behaviour: Delivery list or InProgress list.
+            // Redirect logic for Delivery
+            if ($serviceType === 'ILL') {
+                $msg = $emailSent
+                    ? 'Deliverable saved successfully and email is sent to the client successfully'
+                    : 'Deliverable saved successfully but email is not sent to the client successfully';
+                return redirect()
+                    ->route('operations.deliverables.acceptance.show', $deliverable->id)
+                    ->with('success', $msg);
+            }
 
-        $serviceType = $feasibility->type_of_service ?? null;
-
-        if ($data['status'] === 'Delivery' && $serviceType === 'ILL') {
-            return redirect()
-                ->route('operations.deliverables.acceptance.show', $deliverable->id)
+            $msg = $emailSent
+                ? 'Deliverable saved successfully and email is sent to the client successfully'
+                : 'Deliverable saved successfully but email is not sent to the client successfully';
+            return redirect()->route('operations.deliverables.delivery')
+                ->with('success', $msg);
+        } else {
+            // For InProgress, no email, simple message
+            return redirect()->route('operations.deliverables.inprogress')
                 ->with('success', 'Deliverable saved successfully');
         }
-
-        $route = $data['status'] === 'Delivery'
-            ? 'operations.deliverables.delivery'
-            : 'operations.deliverables.inprogress';
-
-        return redirect()->route($route)
-            ->with('success', 'Deliverable saved successfully');
-
     }
 
     // Acceptance list page (show all ILL deliverables that reached Delivery)

@@ -41,6 +41,39 @@ class CompanySettingsController extends Controller
             'exception_permission_email' => 'nullable|email',
             // Add validation for feasibility_notifications
             'feasibility_notifications.Open' => 'nullable|string|max:255',
+
+            // General Notification SMTP
+            'general_mail_host' => 'nullable|string|max:100',
+            'general_mail_port' => 'nullable|string|max:10',
+            'general_mail_username' => 'nullable|string|max:100',
+            'general_mail_password' => 'nullable|string|max:100',
+            'general_mail_encryption' => 'nullable|string|max:10',
+            'general_mail_from_address' => 'nullable|email',
+            'general_mail_from_name' => 'nullable|string|max:100',
+            'general_mail_footer' => 'nullable|string|max:500',
+            'general_mail_signature' => 'nullable|string|max:500',
+
+            // Delivery Notification SMTP
+            'delivery_mail_host' => 'nullable|string|max:100',
+            'delivery_mail_port' => 'nullable|string|max:10',
+            'delivery_mail_username' => 'nullable|string|max:100',
+            'delivery_mail_password' => 'nullable|string|max:100',
+            'delivery_mail_encryption' => 'nullable|string|max:10',
+            'delivery_mail_from_address' => 'nullable|email',
+            'delivery_mail_from_name' => 'nullable|string|max:100',
+            'delivery_mail_footer' => 'nullable|string|max:500',
+            'delivery_mail_signature' => 'nullable|string|max:500',
+
+            // Invoice Sending SMTP
+            'invoice_mail_host' => 'nullable|string|max:100',
+            'invoice_mail_port' => 'nullable|string|max:10',
+            'invoice_mail_username' => 'nullable|string|max:100',
+            'invoice_mail_password' => 'nullable|string|max:100',
+            'invoice_mail_encryption' => 'nullable|string|max:10',
+            'invoice_mail_from_address' => 'nullable|email',
+            'invoice_mail_from_name' => 'nullable|string|max:100',
+            'invoice_mail_footer' => 'nullable|string|max:500',
+            'invoice_mail_signature' => 'nullable|string|max:500',
         ]);
         
 

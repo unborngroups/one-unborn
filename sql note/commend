@@ -44,9 +44,7 @@ JOIN feasibilities f
     ON f.id = d.feasibility_id
 JOIN deliverable_plans dp
     ON dp.deliverable_id = d.id
-WHERE d.status = 'Inprogress'
-LIMIT 25;
-
+WHERE d.status = 'Inprogress';
 
 
 

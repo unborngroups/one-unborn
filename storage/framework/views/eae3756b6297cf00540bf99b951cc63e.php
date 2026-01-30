@@ -176,6 +176,22 @@
 
             </tr>
 
+             <tr>
+
+                <th>Delivered Email</th>
+
+                <td style="text-align: left;"><?php echo e($client->delivered_email ?? '-'); ?></td>
+
+            </tr>
+
+            <tr>
+
+                <th>Delivered CC</th>
+
+                <td style="text-align: left;"><?php echo e($client->delivered_cc ?? '-'); ?></td>
+
+            </tr>
+
             <tr>
 
                 <th>SPOC Name</th>

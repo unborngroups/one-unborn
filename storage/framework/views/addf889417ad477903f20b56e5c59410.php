@@ -600,11 +600,12 @@
                         </div>
                     </div>
                 </div>
+                 </div>
 
 
 
                 
-                <div class="card mb-1 mx-3">
+                <div class="card mb-3">
                     <div class="card-header bg-secondary text-white">
                         <h6 class="mb-0">OTC Information</h6>
                     </div>
@@ -630,6 +631,73 @@
                         </div>
                     </div>
                 </div>
+
+                
+                <div class="card mb-3">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0">Import Files</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Speed Test File <span class="text-danger">*</span></label>
+                                <?php if($record->speed_test_file): ?>
+                                    <a href="<?php echo e(asset($record->speed_test_file)); ?>" target="_blank">View Speed Test</a>
+                                <?php endif; ?>
+                                <input type="file" class="form-control" name="speed_test_file" accept=".pdf,.jpg,.jpeg,.png">
+                                <?php if($record->speed_test_file): ?>
+                                    <small class="text-muted">Current: <?php echo e(basename($record->speed_test_file)); ?></small>
+                                <?php endif; ?>
+                            </div>
+
+                               <!-- Upload OTC Bill -->
+                            <div class="col-md-4 mb-3">  
+                                <label class="form-label">Ping Report (DNS) <span class="text-danger">*</span></label>
+                                <?php if($record->ping_report_dns_file): ?>
+                                    <a href="<?php echo e(asset($record->ping_report_dns_file)); ?>" target="_blank">View Ping Report (DNS)</a>
+                                <?php endif; ?>
+                                <input type="file" class="form-control" name="ping_report_dns_file" accept=".pdf,.jpg,.jpeg,.png">
+                                <?php if($record->ping_report_dns_file): ?>
+                                    <small class="text-muted">Current: <?php echo e(basename($record->ping_report_dns_file)); ?></small>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Ping Report (GateWay)</label>
+                                <?php if($record->ping_report_gateway_file): ?>
+                                    <a href="<?php echo e(asset($record->ping_report_gateway_file)); ?>" target="_blank">View Ping Report (GateWay)</a>
+                                <?php endif; ?>
+                                <input type="file" class="form-control" name="ping_report_gateway_file" accept=".pdf,.jpg,.jpeg,.png">
+                                <?php if($record->ping_report_gateway_file): ?>
+                                    <small class="text-muted">Current: <?php echo e(basename($record->ping_report_gateway_file)); ?></small>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">ONU / ONT Device <span class="text-danger">*</span></label>
+                                <?php if($record->onu_ont_device_file): ?>
+                                    <a href="<?php echo e(asset($record->onu_ont_device_file)); ?>" target="_blank">View ONU / ONT Device</a>
+                                <?php endif; ?>
+                                <input type="file" class="form-control" name="onu_ont_device_file" accept=".pdf,.jpg,.jpeg,.png">
+                                <?php if($record->onu_ont_device_file): ?>
+                                    <small class="text-muted">Current: <?php echo e(basename($record->onu_ont_device_file)); ?></small>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Static IP</label>
+                                <?php if($record->static_ip_file): ?>
+                                    <a href="<?php echo e(asset($record->static_ip_file)); ?>" target="_blank">View Static IP</a>
+                                <?php endif; ?>
+                                <input type="file" class="form-control" name="static_ip_file" accept=".pdf,.jpg,.jpeg,.png">
+                                <?php if($record->static_ip_file): ?>
+                                    <small class="text-muted">Current: <?php echo e(basename($record->static_ip_file)); ?></small>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!--  -->
                 <div class="col-md-4 mb-3 mx-3">
     <label class="form-label">Upload Export File</label>

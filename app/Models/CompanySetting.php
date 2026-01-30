@@ -33,6 +33,39 @@ class CompanySetting extends Model
         'mail_from_name',
         'mail_footer',
         'mail_signature',
+
+        // General Notification SMTP
+        'general_mail_host',
+        'general_mail_port',
+        'general_mail_username',
+        'general_mail_password',
+        'general_mail_encryption',
+        'general_mail_from_address',
+        'general_mail_from_name',
+        'general_mail_footer',
+        'general_mail_signature',
+
+        // Delivery Notification SMTP
+        'delivery_mail_host',
+        'delivery_mail_port',
+        'delivery_mail_username',
+        'delivery_mail_password',
+        'delivery_mail_encryption',
+        'delivery_mail_from_address',
+        'delivery_mail_from_name',
+        'delivery_mail_footer',
+        'delivery_mail_signature',
+
+        // Invoice Sending SMTP
+        'invoice_mail_host',
+        'invoice_mail_port',
+        'invoice_mail_username',
+        'invoice_mail_password',
+        'invoice_mail_encryption',
+        'invoice_mail_from_address',
+        'invoice_mail_from_name',
+        'invoice_mail_footer',
+        'invoice_mail_signature',
         
     ];
 

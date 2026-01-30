@@ -71,10 +71,17 @@
                                     @endforeach
                                 </select>
                                 <!-- Feasibility Address Preview -->
-                                <div id="feasibility_address_box" class="mt-2 d-none">
+                                 <div class="row">
+                                    <div id="feasibility_address_box" class="col-md-12 d-none">
                                     <label class="form-label mb-1"><strong>Feasibility Address</strong></label>
                                     <textarea id="feasibility_address" class="form-control bg-light" rows="2" readonly></textarea>
                                 </div>
+                                <!-- Feasibility Speed Preview -->
+                                <div id="feasibility_speed_box" class="col-md-3 d-none">
+                                    <label class="form-label mb-1"> Speed</label>
+                                    <input id="feasibility_speed" class="form-control bg-light" type="text" readonly />
+                                </div>
+                                 </div>
                             </div>
 
                             <div class="col-md-6 mb-3">
@@ -101,11 +108,14 @@
 
                             </div>
 
+                            
+
                             <div class="col-md-6 mb-3">
                                 <label class="form-label"><strong>PO Date *</strong></label>
                                 <input type="date" class="form-control" id="po_date" name="po_date" required value="{{ date('Y-m-d') }}">
                             </div>
                         </div>
+                        
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -622,6 +632,25 @@ function loadFeasibilityDetails() {
                 } else {
                     addrField.value = '';
                     addrBox.classList.add('d-none');
+                }
+            }
+
+            // Populate feasibility speed preview
+            const speedBox = document.getElementById('feasibility_speed_box');
+            const speedField = document.getElementById('feasibility_speed');
+            let speedValue = '';
+            if (d.feasibility && d.feasibility.speed) {
+                speedValue = d.feasibility.speed;
+            } else if (d.speed) {
+                speedValue = d.speed;
+            }
+            if (speedBox && speedField) {
+                if (speedValue) {
+                    speedField.value = speedValue;
+                    speedBox.classList.remove('d-none');
+                } else {
+                    speedField.value = '';
+                    speedBox.classList.add('d-none');
                 }
             }
 

@@ -488,17 +488,31 @@ public function sendCompletedEmail($feasibility)
     $recipient = optional($feasibility->createdByUser)->email;
     if (!$recipient) return;
 
-    $companyName = optional($feasibility->company)->name ?? '';
+    $companyName = optional($feasibility->company)->company_name ?? '';
     $closedBy = optional($feasibility->updatedByUser)->name ?? '';
     $closedOn = $feasibility->updated_at ? $feasibility->updated_at->format('d-m-Y H:i') : '';
 
+    // Debug logging
+    Log::info('Template body: ' . $template->body);
+    Log::info('Feasibility ID: ' . $feasibility->feasibility_request_id);
+    Log::info('Company Name: ' . $companyName);
+    Log::info('Closed By: ' . $closedBy);
+    Log::info('Closed On: ' . $closedOn);
+
     $body = str_replace(
-        ['{{feasibility_id}}', '{{company_name}}', '{{closed_by}}', '{{date}}'],
+        [
+            '{{feasibility_id}}', '{{ feasibility_id }}',
+            '{{company_name}}', '{{ company_name }}',
+            '{{closed_by}}', '{{ closed_by }}',
+            '{{date}}', '{{ date }}'
+        ],
         [
             $feasibility->feasibility_request_id,
-            $companyName,
-            $closedBy,
-            $closedOn
+            $feasibility->company->company_name ?? '',
+            $feasibility->client->client_name ?? '',
+            // $companyName, $companyName,
+            $closedBy, $closedBy,
+            $closedOn, $closedOn
         ],
         $template->body
     );

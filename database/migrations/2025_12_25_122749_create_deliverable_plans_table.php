@@ -41,7 +41,8 @@ return new class extends Migration
 
             $table->string('payment_login_url')->nullable();
             $table->string('payment_quick_url')->nullable();
-            $table->string('payment_account_or_username')->nullable();
+            $table->string('payment_account')->nullable();
+            $table->string('payment_username')->nullable();
             $table->string('payment_password')->nullable();
 
             $table->string('pppoe_username')->nullable();

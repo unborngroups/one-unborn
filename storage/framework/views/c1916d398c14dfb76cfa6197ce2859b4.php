@@ -268,11 +268,12 @@
 
             
 
-            <h5 class="text-secondary mt-3">Invoice Details</h5>
+            <h5 class="text-secondary mt-3">Email Details</h5>
 
             <div class="row mb-3">
+                
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <label class="form-label">Invoice Email</label>
 
@@ -280,11 +281,32 @@
 
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-3">
 
                     <label class="form-label">Invoice CC</label>
 
                     <input type="text" name="invoice_cc" class="form-control" 
+
+                           placeholder="email1@example.com; email2@example.com">
+
+                    <small class="text-muted">Use semicolon (;) to separate multiple emails</small>
+
+                </div>
+                
+
+                <div class="col-md-3">
+
+                    <label class="form-label">Delivered Email</label>
+
+                    <input type="email" name="delivered_email" class="form-control">
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <label class="form-label">Delivered CC</label>
+
+                    <input type="text" name="delivered_cc" class="form-control" 
 
                            placeholder="email1@example.com; email2@example.com">
 

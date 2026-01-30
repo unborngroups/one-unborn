@@ -1147,6 +1147,56 @@
 
             @endif
 
+            <!--  -->
+
+            @php
+    $reportDeliverable = \App\Helpers\TemplateHelper::getUserMenuPermissions('Deliverable Report');
+    $reportDeliverableOpen = \App\Helpers\TemplateHelper::getUserMenuPermissions('Deliverable Report', 'Open');
+    $reportDeliverableInProgress = \App\Helpers\TemplateHelper::getUserMenuPermissions('Deliverable Report', 'In Progress');
+    $reportDeliverableDelivery = \App\Helpers\TemplateHelper::getUserMenuPermissions('Deliverable Report', 'Delivery');
+    $isReportDeliverableOpenActive = request()->is('report/deliverable/open');
+    $isReportDeliverableInProgressActive = request()->is('report/deliverable/inprogress');
+    $isReportDeliverableDeliveryActive = request()->is('report/deliverable/delivery');
+@endphp
+
+@if(($reportDeliverable && $reportDeliverable->can_menu) || ($reportDeliverableOpen && $reportDeliverableOpen->can_menu) || ($reportDeliverableInProgress && $reportDeliverableInProgress->can_menu) || ($reportDeliverableDelivery && $reportDeliverableDelivery->can_menu))
+<li class="nav-item">
+    <details class="report sidebar-dropdown" {{ request()->is('report/deliverable*') ? 'open' : '' }}>
+        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-bar-chart"></i> Deliverables Report</span>
+            <i class="bi bi-chevron-down arrow-icon"></i>
+        </summary>
+        <ul class="nav flex-column ms-3 mt-1">
+            @if($reportDeliverableOpen && $reportDeliverableOpen->can_menu)
+            <li>
+                <a class="nav-link text-white menu-item {{ $isReportDeliverableOpenActive ? 'active' : '' }}" href="{{ route('report.deliverable.open') }}">
+                    <i class="bi bi-hourglass-split me-2"></i> Open
+                </a>
+            </li>
+            @endif
+            @if($reportDeliverableInProgress && $reportDeliverableInProgress->can_menu)
+            <li>
+                <a class="nav-link text-white menu-item {{ $isReportDeliverableInProgressActive ? 'active' : '' }}" href="{{ route('report.deliverable.inprogress') }}">
+                    <i class="bi bi-clock-history me-2"></i> In Progress
+                </a>
+            </li>
+            @endif
+            @if($reportDeliverableDelivery && $reportDeliverableDelivery->can_menu)
+            <li>
+                <a class="nav-link text-white menu-item {{ $isReportDeliverableDeliveryActive ? 'active' : '' }}" href="{{ route('report.deliverable.delivery') }}">
+                    <i class="bi bi-truck-flatbed me-2"></i> Delivery
+                </a>
+            </li>
+            @endif
+        </ul>
+    </details>
+</li>
+@endif
+
+
+
+            <!--  -->
+
             
 
             {{-- System Settings Dropdown --}}
@@ -1342,6 +1392,11 @@
     }
     .master{
         border: #f83003!important;
+        border-width: 4px!important;
+        border-style: solid!important;
+    }
+    .report{
+        border: #f8af03!important;
         border-width: 4px!important;
         border-style: solid!important;
     }

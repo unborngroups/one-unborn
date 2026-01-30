@@ -42,7 +42,40 @@ return new class extends Migration
         $table->string('mail_from_address')->nullable();
         $table->string('mail_from_name')->nullable();
         $table->string('mail_footer')->nullable();
-            $table->string('mail_signature')->nullable();
+        $table->string('mail_signature')->nullable();
+
+        // General Notification
+            $table->string('general_mail_host')->nullable();
+            $table->string('general_mail_port')->nullable();
+            $table->string('general_mail_username')->nullable();
+            $table->string('general_mail_password')->nullable();
+            $table->string('general_mail_encryption')->nullable();
+            $table->string('general_mail_from_address')->nullable();
+            $table->string('general_mail_from_name')->nullable();
+            $table->string('general_mail_footer')->nullable();
+            $table->string('general_mail_signature')->nullable();
+
+            // Delivery Notification
+            $table->string('delivery_mail_host')->nullable();
+            $table->string('delivery_mail_port')->nullable();
+            $table->string('delivery_mail_username')->nullable();
+            $table->string('delivery_mail_password')->nullable();
+            $table->string('delivery_mail_encryption')->nullable();
+            $table->string('delivery_mail_from_address')->nullable();
+            $table->string('delivery_mail_from_name')->nullable();
+            $table->string('delivery_mail_footer')->nullable();
+            $table->string('delivery_mail_signature')->nullable();
+
+            // Invoice Sending
+            $table->string('invoice_mail_host')->nullable();
+            $table->string('invoice_mail_port')->nullable();
+            $table->string('invoice_mail_username')->nullable();
+            $table->string('invoice_mail_password')->nullable();
+            $table->string('invoice_mail_encryption')->nullable();
+            $table->string('invoice_mail_from_address')->nullable();
+            $table->string('invoice_mail_from_name')->nullable();
+            $table->string('invoice_mail_footer')->nullable();
+            $table->string('invoice_mail_signature')->nullable();
 
             $table->timestamps();
         });

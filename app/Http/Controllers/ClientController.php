@@ -55,6 +55,8 @@ class ClientController extends Controller
                                     ->orWhere('gstin', 'like', "%{$search}%")
                                     ->orWhere('invoice_email', 'like', "%{$search}%")
                                     ->orWhere('invoice_cc', 'like', "%{$search}%")
+                                    ->orWhere('delivered_email', 'like', "%{$search}%")
+                                    ->orWhere('delivered_cc', 'like', "%{$search}%")
                                     ->orWhere('billing_sequence', 'like', "%{$search}%")
                                     ->orWhere('support_spoc_name', 'like', "%{$search}%")
                                     ->orWhere('support_spoc_email', 'like', "%{$search}%")
@@ -123,6 +125,8 @@ class ClientController extends Controller
             //New Invoice Emails
             'invoice_email'        => 'nullable|email|max:255',
             'invoice_cc'           => 'nullable|string|max:500',  // Multiple emails with semicolon
+            'delivered_email'      => 'nullable|string|max:500',  // Multiple emails with semicolon
+            'delivered_cc'        => 'nullable|string|max:500',  // Multiple emails with semicolon
 
             // Technical Support
             'support_spoc_name'    => 'nullable|string|max:255',
@@ -241,6 +245,8 @@ $validated['portal_active'] = 1;
         // Invoice
         'invoice_email'        => 'nullable|email|max:255',
         'invoice_cc'           => 'nullable|string|max:500',  // Multiple emails with semicolon
+        'delivered_email'      => 'nullable|string|max:500',  // Multiple emails with semicolon
+        'delivered_cc'        => 'nullable|string|max:500',  // Multiple emails with semicolon
 
         // Technical Support
         'support_spoc_name'    => 'nullable|string|max:255',

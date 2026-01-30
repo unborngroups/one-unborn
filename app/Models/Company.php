@@ -100,5 +100,12 @@ public function feasibilities() {
 public function clients() {
     return $this->hasMany(Client::class);
 }
+
+   // Relationship to company settings (for SMTP etc)
+    public function settings()
+    {
+        return $this->hasOne(\App\Models\CompanySetting::class, 'company_id', 'id');
+    }
+
 }
 

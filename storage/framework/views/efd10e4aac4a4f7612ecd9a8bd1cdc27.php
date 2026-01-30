@@ -200,22 +200,118 @@
 
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <strong>OTC Bill</strong><br>
                             <?php if($record->otc_bill_file): ?>
-                                <a href="<?php echo e(asset($record->otc_bill_file)); ?>" target="_blank">View File</a>
+                                <?php
+                                    $otcPath = $record->otc_bill_file;
+                                ?>
+                                <?php if($otcPath && file_exists(public_path($otcPath))): ?>
+                                    <a href="<?php echo e(asset($otcPath)); ?>" target="_blank">View File</a>
+                                <?php else: ?>
+                                    <span class="text-danger">File not found</span>
+                                <?php endif; ?>
                             <?php else: ?>
                                 -
                             <?php endif; ?>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <strong>Export File</strong><br>
                             <?php if($record->export_file): ?>
-                                <a href="<?php echo e(asset($record->export_file)); ?>" target="_blank">View File</a>
+                                <?php
+                                    $exportPath = $record->export_file;
+                                ?>
+                                <?php if($exportPath && file_exists(public_path($exportPath))): ?>
+                                    <a href="<?php echo e(asset($exportPath)); ?>" target="_blank">View File</a>
+                                <?php else: ?>
+                                    <span class="text-danger">File not found</span>
+                                <?php endif; ?>
                             <?php else: ?>
                                 -
                             <?php endif; ?>
+                        </div>
+
+                        <div class="col-md-3">
+                            <strong>Speed Test</strong><br>
+                            <?php if($record->speed_test_file): ?>
+                                <?php
+                                    $speedTestPath = $record->speed_test_file;
+                                ?>
+                                <?php if($speedTestPath && file_exists(public_path($speedTestPath))): ?>
+                                    <a href="<?php echo e(asset($speedTestPath)); ?>" target="_blank">View File</a>
+                                <?php else: ?>
+                                    <span class="text-danger">File not found</span>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                -
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="col-md-3">
+                            <strong>Ping Report (DNS)</strong><br>
+                            <?php if($record->ping_report_dns_file): ?>
+                                <?php
+                                    $pingDnsPath = $record->ping_report_dns_file;
+                                ?>
+                                <?php if($pingDnsPath && file_exists(public_path($pingDnsPath))): ?>
+                                    <a href="<?php echo e(asset($pingDnsPath)); ?>" target="_blank">View File</a>
+                                <?php else: ?>
+                                    <span class="text-danger">File not found</span>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                -
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="col-md-3">
+                            <strong>Ping Report (GateWay)</strong><br>
+                            <?php if($record->ping_report_gateway_file): ?>
+                                <?php
+                                    $pingGatewayPath = $record->ping_report_gateway_file;
+                                ?>
+                                <?php if($pingGatewayPath && file_exists(public_path($pingGatewayPath))): ?>
+                                    <a href="<?php echo e(asset($pingGatewayPath)); ?>" target="_blank">View File</a>
+                                <?php else: ?>
+                                    <span class="text-danger">File not found</span>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                -
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="col-md-3">
+                            <strong>ONU / ONT Device </strong><br>
+                            <?php if($record->onu_ont_device_file): ?>
+                                <?php
+                                    $onuOntPath = $record->onu_ont_device_file;
+                                ?>
+                                <?php if($onuOntPath && file_exists(public_path($onuOntPath))): ?>
+                                    <a href="<?php echo e(asset($onuOntPath)); ?>" target="_blank">View File</a>
+                                <?php else: ?>
+                                    <span class="text-danger">File not found</span>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                -
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="col-md-3">
+                            <strong>Static IP</strong><br>
+                            <?php if($record->static_ip_file): ?>
+                                <?php
+                                    $staticIpPath = $record->static_ip_file;
+                                ?>
+                                <?php if($staticIpPath && file_exists(public_path($staticIpPath))): ?>
+                                    <a href="<?php echo e(asset($staticIpPath)); ?>" target="_blank">View File</a>
+                                <?php else: ?>
+                                    <span class="text-danger">File not found</span>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                -
+                            <?php endif; ?>
+                        </div>
+
                         </div>
                     </div>
                 </div>

@@ -16,6 +16,7 @@ use App\Http\Controllers\CompanySettingsController;
 use App\Http\Controllers\TaxInvoiceSettingsController;
 use App\Http\Controllers\FeasibilityStatusController;
 use App\Http\Controllers\Finance\VendorInvoiceController;
+use App\Http\Controllers\Report\DeliverableController;
 use App\Http\Controllers\Finance\ExpenseController;
 use App\Http\Controllers\Finance\DebitNoteController; 
 use App\Http\Controllers\TerminationController;
@@ -492,6 +493,13 @@ Route::prefix('finance/settings')->middleware(['auth'])->name('finance.settings.
     Route::post('/gst', [FinanceGstController::class, 'update'])->name('gst.update');
     Route::get('/tds', [FinanceTdsController::class, 'index'])->name('tds');
     Route::post('/tds', [FinanceTdsController::class, 'update'])->name('tds.update');
+});
+
+Route::prefix('report/deliverable')->name('report.deliverable.')->group(function () {
+    Route::get('open', [DeliverableController::class, 'open'])->name('open');
+    Route::get('inprogress', [DeliverableController::class, 'inprogress'])->name('inprogress');
+    Route::get('delivery', [DeliverableController::class, 'delivery'])->name('delivery');
+    Route::post('download-excel', [DeliverableController::class, 'downloadExcel'])->name('downloadExcel');
 });
 
 //time log report 

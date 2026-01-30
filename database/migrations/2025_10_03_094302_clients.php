@@ -40,6 +40,8 @@ return new class extends Migration
     $table->string('gstin', 20)->nullable();
     $table->string('invoice_email')->nullable();
     $table->string('invoice_cc', 1000)->nullable();
+    $table->string('delivered_email')->nullable();
+    $table->string('delivered_cc', 1000)->nullable();
 
     // Technical Support
     $table->string('support_spoc_name')->nullable();

@@ -46,6 +46,8 @@ class Client extends Authenticatable
          'gstin',
          'invoice_email',
         'invoice_cc',
+        'delivered_email',
+        'delivered_cc',
         'support_spoc_name', 
         'support_spoc_mobile',
          'support_spoc_email',

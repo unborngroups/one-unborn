@@ -168,6 +168,7 @@
 
         <h5 class="text-secondary mt-3">Invoice Details</h5>
         <div class="row mb-3">
+            
             <div class="col-md-6">
                 <label class="form-label">Invoice Email</label>
                 <input type="email" name="invoice_email" class="form-control"
@@ -177,6 +178,18 @@
                 <label class="form-label">Invoice CC</label>
                 <input type="text" name="invoice_cc" class="form-control"
                        value="<?php echo e(old('invoice_cc', $client->invoice_cc)); ?>"
+                       placeholder="email1@example.com; email2@example.com">
+            </div>
+            
+            <div class="col-md-6">
+                <label class="form-label">Delivered Email</label>
+                <input type="email" name="delivered_email" class="form-control"
+                       value="<?php echo e(old('delivered_email', $client->delivered_email)); ?>">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Delivered CC</label>
+                <input type="text" name="delivered_cc" class="form-control"
+                       value="<?php echo e(old('delivered_cc', $client->delivered_cc)); ?>"
                        placeholder="email1@example.com; email2@example.com">
             </div>
         </div>

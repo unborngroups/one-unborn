@@ -53,6 +53,9 @@ ALTER TABLE deliverable_plans
 CHANGE payment_account_or_username payment_account TEXT NULL,
 ADD COLUMN payment_username TEXT NULL AFTER payment_account;
 
+ALTER TABLE deliverable_plans
+CHANGE payment_account_or_username payment_account TEXT NULL,
+ADD COLUMN payment_username TEXT NULL AFTER payment_account;
 
 ALTER TABLE email_templates
 ADD event_key VARCHAR(255) NULL AFTER company_id;
@@ -100,3 +103,46 @@ ALTER TABLE users ADD COLUMN require_otp_always TINYINT(1) NOT NULL DEFAULT 0 AF
 
 -- To remove the column
 ALTER TABLE users DROP COLUMN require_otp_always;
+-- ------------------------------------------update pannanum-----------------------------
+--TO add the column
+ALTER TABLE clients 
+ADD COLUMN delivered_email VARCHAR(500) NULL AFTER invoice_cc,
+ADD COLUMN delivered_cc VARCHAR(1000) NULL AFTER delivered_email;
+
+ALTER TABLE deliverables
+ADD COLUMN speed_test_file VARCHAR(255) NULL AFTER export_file,
+ADD COLUMN ping_report_dns_file VARCHAR(255) NULL AFTER speed_test_file,
+ADD COLUMN ping_report_gateway_file VARCHAR(255) NULL AFTER ping_report_dns_file,
+ADD COLUMN onu_ont_device_file VARCHAR(255) NULL AFTER ping_report_gateway_file,
+ADD COLUMN static_ip_file VARCHAR(255) NULL AFTER onu_ont_device_file;
+
+ALTER TABLE company_settings
+ADD COLUMN general_mail_host VARCHAR(255) NULL AFTER mail_signature,
+ADD COLUMN general_mail_port VARCHAR(255) NULL AFTER general_mail_host,
+ADD COLUMN general_mail_username VARCHAR(255) NULL AFTER general_mail_port,
+ADD COLUMN general_mail_password VARCHAR(255) NULL AFTER general_mail_username,
+ADD COLUMN general_mail_encryption VARCHAR(255) NULL AFTER general_mail_password,
+ADD COLUMN general_mail_from_address VARCHAR(255) NULL AFTER general_mail_encryption,
+ADD COLUMN general_mail_from_name VARCHAR(255) NULL AFTER general_mail_from_address,
+ADD COLUMN general_mail_footer VARCHAR(255) NULL AFTER general_mail_from_name,
+ADD COLUMN general_mail_signature VARCHAR(255) NULL AFTER general_mail_footer,
+
+ADD COLUMN delivery_mail_host VARCHAR(255) NULL AFTER general_mail_signature,
+ADD COLUMN delivery_mail_port VARCHAR(255) NULL AFTER delivery_mail_host,
+ADD COLUMN delivery_mail_username VARCHAR(255) NULL AFTER delivery_mail_port,
+ADD COLUMN delivery_mail_password VARCHAR(255) NULL AFTER delivery_mail_username,   
+ADD COLUMN delivery_mail_encryption VARCHAR(255) NULL AFTER delivery_mail_password,
+ADD COLUMN delivery_mail_from_address VARCHAR(255) NULL AFTER delivery_mail_encryption,
+ADD COLUMN delivery_mail_from_name VARCHAR(255) NULL AFTER delivery_mail_from_address,
+ADD COLUMN delivery_mail_footer VARCHAR(255) NULL AFTER delivery_mail_from_name,
+ADD COLUMN delivery_mail_signature VARCHAR(255) NULL AFTER delivery_mail_footer,
+
+ADD COLUMN invoice_mail_host VARCHAR(255) NULL AFTER delivery_mail_signature,
+ADD COLUMN invoice_mail_port VARCHAR(255) NULL AFTER invoice_mail_host,
+ADD COLUMN invoice_mail_username VARCHAR(255) NULL AFTER invoice_mail_port,
+ADD COLUMN invoice_mail_password VARCHAR(255) NULL AFTER invoice_mail_username,
+ADD COLUMN invoice_mail_encryption VARCHAR(255) NULL AFTER invoice_mail_password,
+ADD COLUMN invoice_mail_from_address VARCHAR(255) NULL AFTER invoice_mail_encryption,
+ADD COLUMN invoice_mail_from_name VARCHAR(255) NULL AFTER invoice_mail_from_address,
+ADD COLUMN invoice_mail_footer VARCHAR(255) NULL AFTER invoice_mail_from_name;
+ADD COLUMN invoice_mail_signature VARCHAR(255) NULL AFTER invoice_mail_footer;

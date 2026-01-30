@@ -200,22 +200,118 @@
 
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <strong>OTC Bill</strong><br>
                             @if($record->otc_bill_file)
-                                <a href="{{ asset($record->otc_bill_file) }}" target="_blank">View File</a>
+                                @php
+                                    $otcPath = $record->otc_bill_file;
+                                @endphp
+                                @if($otcPath && file_exists(public_path($otcPath)))
+                                    <a href="{{ asset($otcPath) }}" target="_blank">View File</a>
+                                @else
+                                    <span class="text-danger">File not found</span>
+                                @endif
                             @else
                                 -
                             @endif
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <strong>Export File</strong><br>
                             @if($record->export_file)
-                                <a href="{{ asset($record->export_file) }}" target="_blank">View File</a>
+                                @php
+                                    $exportPath = $record->export_file;
+                                @endphp
+                                @if($exportPath && file_exists(public_path($exportPath)))
+                                    <a href="{{ asset($exportPath) }}" target="_blank">View File</a>
+                                @else
+                                    <span class="text-danger">File not found</span>
+                                @endif
                             @else
                                 -
                             @endif
+                        </div>
+
+                        <div class="col-md-3">
+                            <strong>Speed Test</strong><br>
+                            @if($record->speed_test_file)
+                                @php
+                                    $speedTestPath = $record->speed_test_file;
+                                @endphp
+                                @if($speedTestPath && file_exists(public_path($speedTestPath)))
+                                    <a href="{{ asset($speedTestPath) }}" target="_blank">View File</a>
+                                @else
+                                    <span class="text-danger">File not found</span>
+                                @endif
+                            @else
+                                -
+                            @endif
+                        </div>
+
+                        <div class="col-md-3">
+                            <strong>Ping Report (DNS)</strong><br>
+                            @if($record->ping_report_dns_file)
+                                @php
+                                    $pingDnsPath = $record->ping_report_dns_file;
+                                @endphp
+                                @if($pingDnsPath && file_exists(public_path($pingDnsPath)))
+                                    <a href="{{ asset($pingDnsPath) }}" target="_blank">View File</a>
+                                @else
+                                    <span class="text-danger">File not found</span>
+                                @endif
+                            @else
+                                -
+                            @endif
+                        </div>
+
+                        <div class="col-md-3">
+                            <strong>Ping Report (GateWay)</strong><br>
+                            @if($record->ping_report_gateway_file)
+                                @php
+                                    $pingGatewayPath = $record->ping_report_gateway_file;
+                                @endphp
+                                @if($pingGatewayPath && file_exists(public_path($pingGatewayPath)))
+                                    <a href="{{ asset($pingGatewayPath) }}" target="_blank">View File</a>
+                                @else
+                                    <span class="text-danger">File not found</span>
+                                @endif
+                            @else
+                                -
+                            @endif
+                        </div>
+
+                        <div class="col-md-3">
+                            <strong>ONU / ONT Device </strong><br>
+                            @if($record->onu_ont_device_file)
+                                @php
+                                    $onuOntPath = $record->onu_ont_device_file;
+                                @endphp
+                                @if($onuOntPath && file_exists(public_path($onuOntPath)))
+                                    <a href="{{ asset($onuOntPath) }}" target="_blank">View File</a>
+                                @else
+                                    <span class="text-danger">File not found</span>
+                                @endif
+                            @else
+                                -
+                            @endif
+                        </div>
+
+                        <div class="col-md-3">
+                            <strong>Static IP</strong><br>
+                            @if($record->static_ip_file)
+                                @php
+                                    $staticIpPath = $record->static_ip_file;
+                                @endphp
+                                @if($staticIpPath && file_exists(public_path($staticIpPath)))
+                                    <a href="{{ asset($staticIpPath) }}" target="_blank">View File</a>
+                                @else
+                                    <span class="text-danger">File not found</span>
+                                @endif
+                            @else
+                                -
+                            @endif
+                        </div>
+
                         </div>
                     </div>
                 </div>

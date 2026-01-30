@@ -88,6 +88,20 @@ class MenuSeeder extends Seeder
             // Strategy Module
             ['module_name' => 'Strategy', 'user_type' => 'superadmin', 'name' => 'Strategy', 'sub_section' => null , 'route' => 'strategy.index', 'icon' => 'bi bi-lightbulb-fill', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             
+            // 📊 Reports - Deliverable Report
+            ['module_name' => 'Reports','user_type' => 'superadmin','name' => 'Deliverable Report','sub_section' => null,'route' => null,'icon' => 'bi bi-bar-chart','can_add' => 0,'can_edit' => 0,'can_delete' => 0,'can_view' => 1,],
+            ['module_name' => 'Reports','user_type' => 'superadmin','name' => 'Deliverable Report','sub_section' => 'Open','route' => 'report.deliverable.open','icon' => 'bi bi-hourglass-split','can_add' => 0,'can_edit' => 0,'can_delete' => 0,'can_view' => 1,],
+            [
+                                        'module_name' => 'Reports',
+                                        'user_type' => 'superadmin',
+                                        'name' => 'Deliverable Report',
+                                        'sub_section' => 'In Progress',
+                                        'route' => 'report.deliverable.inprogress',
+                                        'icon' => 'bi bi-clock-history','can_add' => 0,'can_edit' => 0,'can_delete' => 0,'can_view' => 1,
+                                    ],
+                                    [
+                                        'module_name' => 'Reports','user_type' => 'superadmin','name' => 'Deliverable Report','sub_section' => 'Delivery','route' => 'report.deliverable.delivery','icon' => 'bi bi-truck-flatbed','can_add' => 0,'can_edit' => 0,'can_delete' => 0,'can_view' => 1,
+                                    ],
             // ⚙️ Settings
             ['module_name' => 'Settings', 'user_type' => 'superadmin', 'name' => 'Company Settings', 'sub_section' => null , 'route' => 'settings.company', 'icon' => 'bi bi-building', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             ['module_name' => 'Settings', 'user_type' => 'superadmin', 'name' => 'System Settings', 'sub_section' => null , 'route' => 'settings.system', 'icon' => 'bi bi-sliders', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
