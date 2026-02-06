@@ -215,6 +215,13 @@
     @endif
 
 <!-- 
+
+            <tr>
+                <th>Static IP Duration</th>
+
+                <td>{{ $feasibility->static_ip_duration ?? '-' }}</td>
+
+            </tr>
     <label class="form-label fw-semibold">Hardware Details</label>
     @if(!empty($hardwareDetails))
         <table class="table table-bordered table-striped">

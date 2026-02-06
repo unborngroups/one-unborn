@@ -5,7 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\DeliverablePlan;
+use App\Models\CompanySetting;
+use App\Helpers\EmailHelper;
+use App\Models\Company;     
+use App\Models\Client;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Crypt;
 
 use App\Models\{
@@ -145,11 +150,13 @@ class DeliverablesController extends Controller
                   ->orWhere('circuit_id', 'like', "%$search%") // Search main deliverables.circuit_id
                   ->orWhereHas('feasibility', function ($fq) use ($search) {
                       $fq->where('feasibility_request_id', 'like', "%$search%")
+                         ->orWhere('address', 'like', "%$search%")
                          ->orWhereHas('client', function ($cq) use ($search) {
                              $cq->where('client_name', 'like', "%$search%")
                                  //  ->orWhere('mobile', 'like', "%$search%")
                                  //  ->orWhere('email', 'like', "%$search%")
                                  ->orWhere('gstin', 'like', "%$search%")
+                                 ->orWhere('location_id', 'like', "%$search%")
                                  ->orWhere('status_of_link', 'like', "%$search%")
                                  //  ->orWhere('mode_of_delivery', 'like', "%$search%")
                                  ->orWhere('circuit_id', 'like', "%$search%")
@@ -218,11 +225,15 @@ class DeliverablesController extends Controller
     /* ===================== VIEW / EDIT ===================== */
 
     public function operationsView($id)
-    {
-        return view('operations.deliverables.view', [
-            'record' => Deliverables::with('feasibility.client')->findOrFail($id)
-        ]);
-    }
+{
+    return view('operations.deliverables.view', [
+        'record' => Deliverables::with([
+            'feasibility.client',
+            'feasibility.company',
+            'deliverablePlans'
+        ])->findOrFail($id)
+    ]);
+}
 
     public function operationsEdit($id)
     {
@@ -276,7 +287,6 @@ class DeliverablesController extends Controller
 
     public function operationsSave(Request $request, $id)
     {
-
         $deliverable = Deliverables::findOrFail($id);
         $linkCount = $deliverable->feasibility->no_of_links ?? 1;
         $rules = [
@@ -288,99 +298,54 @@ class DeliverablesController extends Controller
         }
         $request->validate($rules);
 
+        // Only update the main deliverable record once
+        $data = $request->only([
+            'status_of_link','mode_of_delivery','circuit_id',
+            'client_circuit_id','client_feasibility','vendor_code',
+            'mtu','wifi_username','wifi_password',
+            'router_username','router_password',
+            'lan_ip_1','lan_ip_2','lan_ip_3','lan_ip_4',
+            'asset_id','asset_serial_no','asset_mac_no','otc_extra_charges','payment_login_url',
+            'payment_quick_url','payment_account','payment_username','payment_password','ipsec',
+            'phase_1','phase_2','ipsec_interface'
+        ]);
 
+        /* ===================== FILE UPLOADS ===================== */
 
-            // Handle multiple plan information fields for each link
-            $linkCount = $deliverable->feasibility->no_of_links ?? 1;
-            $data = $request->only([
-                'status_of_link','mode_of_delivery','circuit_id',
-                'client_circuit_id','client_feasibility','vendor_code',
-                'mtu','wifi_username','wifi_password',
-                'router_username','router_password',
-                'lan_ip_1','lan_ip_2','lan_ip_3','lan_ip_4',
-                'asset_id','asset_serial_no','asset_mac_no','otc_extra_charges','payment_login_url',
-                'payment_quick_url','payment_account','payment_username','payment_password','ipsec',
-                'phase_1','phase_2','ipsec_interface','export_file','otc_bill_file','static_ip_file',
-                'onu_ont_device_file','ping_report_gateway_file','ping_report_dns_file','speed_test_file'
-            ]);
-            // Ensure ipsec is never null
-            $data['ipsec'] = $request->input('ipsec', 'No');
+$uploadMap = [
+    'speed_test_file' => 'images/deliverable_speed_test',
+    'ping_report_dns_file' => 'images/deliverable_pingreportdns',
+    'ping_report_gateway_file' => 'images/deliverable_pingreportgateway',
+    'onu_ont_device_file' => 'images/deliverable_onu_ontdevice',
+    'static_ip_file' => 'images/deliverable_staticip',
+    'export_file' => 'images/deliverable_export',
+    'otc_bill_file' => 'images/deliverable_otcbill',
+];
 
-            // Main summary plan columns were removed from deliverables table,
-            // so we now store per-link details only in deliverable_plans.
+foreach ($uploadMap as $field => $folder) {
+    if ($request->hasFile($field)) {
+        $file = $request->file($field);
+        $filename = time() . '_' . $file->getClientOriginalName();
+        $destination = public_path($folder);
 
-        /* ---- MODE HANDLING ---- */
+        if (!file_exists($destination)) {
+            mkdir($destination, 0755, true);
+        }
 
-        for ($i = 1; $i <= $linkCount; $i++) {
+        $file->move($destination, $filename);
 
-    $mode = $request->input("mode_of_delivery_$i");
-
-    if ($mode === 'PPPoE') {
-        $data["pppoe_username_$i"] = $request->input("pppoe_username_$i");
-        $data["pppoe_password_$i"] = $request->input("pppoe_password_$i");
-        $data["pppoe_vlan_$i"]     = $request->input("pppoe_vlan_$i");
+        // ✅ store RELATIVE path
+        $data[$field] = $folder . '/' . $filename;
     }
-
-    if ($mode === 'DHCP') {
-        $data["dhcp_ip_address_$i"] = $request->input("dhcp_ip_address_$i");
-        $data["dhcp_vlan_$i"]       = $request->input("dhcp_vlan_$i");
-    }
-
-    // if (in_array($mode, ['Static IP', 'Static'])) {
-    //     $data["static_ip_address_$i"]   = $request->input("static_ip_address_$i");
-    //     $data["static_subnet_mask_$i"]  = $request->input("static_subnet_mask_$i");
-    //     $data["static_vlan_tag_$i"]     = $request->input("static_vlan_tag_$i");
-    //     $data["network_ip_$i"]          = $request->input("network_ip_$i");
-    //     $data["gateway_$i"]             = $request->input("gateway_$i");
-    //     $data["usable_ips_$i"]          = $request->input("usable_ips_$i");
-    // }
-
-    // if ($mode === 'PAYMENTS') {
-    //     $data["payment_login_url_$i"] = $request->input("payment_login_url_$i");
-    //     $data["payment_quick_url_$i"] = $request->input("payment_quick_url_$i");
-    //     $data["payment_account_or_username_$i"] = $request->input("payment_account_or_username_$i");
-    //     $data["payment_password_$i"] = $request->input("payment_password_$i");
-    // }
 }
 
-        if ($request->ipsec === 'Yes') {
-            $data['phase_1'] = $request->phase_1;
-            $data['phase_2'] = $request->phase_2;
-            $data['ipsec_interface'] = $request->ipsec_interface;
-        } else {
-            $data['phase_1'] = $data['phase_2'] = $data['ipsec_interface'] = null;
-        }
 
-        /* ---- FILES ---- */
-
-        $fileFields = [
-            'speed_test_file' => 'images/deliverable_speed_test',
-            'ping_report_dns_file' => 'images/deliverable_pingreportdns',
-            'ping_report_gateway_file' => 'images/deliverable_pingreportgateway',
-            'onu_ont_device_file' => 'images/deliverable_onu_ontdevice',
-            'static_ip_file' => 'images/deliverable_staticip',
-            'otc_bill_file' => 'images/deliverableotcbill',
-            'export_file' => 'images/exportdeliverables',
-        ];
-        foreach ($fileFields as $field => $folder) {
-            if ($request->hasFile($field)) {
-                $file = $request->file($field);
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $destination = public_path($folder);
-                if (!file_exists($destination)) {
-                    mkdir($destination, 0777, true);
-                }
-                $file->move($destination, $filename);
-                $data[$field] = $folder . '/' . $filename;
-            }
-        }
-
-        /* ---- STATUS ---- */
-
+        $data['ipsec'] = $request->input('ipsec', 'No');
         $data['status'] = $request->action === 'submit' ? 'Delivery' : 'InProgress';
-
         $deliverable->update($data);
             // Save per-link plan info in deliverable_plans table
+            // Fetch existing plans before delete to preserve circuit_id
+            $existingPlansMap = $deliverable->deliverablePlans->keyBy('link_number');
             DeliverablePlan::where('deliverable_id', $deliverable->id)->delete();
 
             // Define variables needed for circuit_id generation
@@ -389,31 +354,21 @@ class DeliverablesController extends Controller
             $clientShortName = $feasibility->client->short_name ?? $feasibility->client->client_name ?? '';
             $state = $feasibility->state ?? '';
             $year = date('Y');
-                        // State abbreviation mapping (reuse from CircuitIdHelper or define here)
-                        $stateAbbr = [
-                            'Andhra Pradesh' => 'AP', 'Arunachal Pradesh' => 'AR', 'Assam' => 'AS', 'Bihar' => 'BR',
-                            'Chhattisgarh' => 'CG', 'Goa' => 'GA', 'Gujarat' => 'GJ', 'Haryana' => 'HR', 'Himachal Pradesh' => 'HP',
-                            'Jammu and Kashmir' => 'JK', 'Jharkhand' => 'JH', 'Karnataka' => 'KA', 'Kerala' => 'KL', 'Madhya Pradesh' => 'MP',
-                            'Maharashtra' => 'MH', 'Manipur' => 'MN', 'Meghalaya' => 'ML', 'Mizoram' => 'MZ', 'Nagaland' => 'NL',
-                            'Orissa' => 'OR', 'Punjab' => 'PB', 'Rajasthan' => 'RJ', 'Sikkim' => 'SK', 'Tamil Nadu' => 'TN', 'Tripura' => 'TR',
-                            'Uttarakhand' => 'UK', 'Uttar Pradesh' => 'UP', 'West Bengal' => 'WB', 'Telangana' => 'TS',
-                            'Andaman and Nicobar Islands' => 'AN', 'Chandigarh' => 'CH', 'Dadra and Nagar Haveli' => 'DH', 'Daman and Diu' => 'DD',
-                            'Delhi' => 'DL', 'Lakshadweep' => 'LD', 'Pondicherry' => 'PY',
-                        ];
-            // Find the current max sequence for this prefix in deliverable_plans
-
-           
-    //   $maxSeq = DeliverablePlan::whereYear('created_at', $year)
-    // ->selectRaw("MAX(CAST(RIGHT(circuit_id, 4) AS UNSIGNED)) as max_seq")
-    // ->value('max_seq');
-
-$maxSeq = DeliverablePlan::whereYear('created_at', $year)
-    ->where('circuit_id', 'like', substr($year, -2).'%')
-    ->selectRaw("MAX(CAST(RIGHT(circuit_id, 4) AS UNSIGNED)) as max_seq")
-    ->value('max_seq');
-
-
-    $serial = $maxSeq ? intval($maxSeq) : 0;
+            $stateAbbr = [
+                'Andhra Pradesh' => 'AP', 'Arunachal Pradesh' => 'AR', 'Assam' => 'AS', 'Bihar' => 'BR',
+                'Chhattisgarh' => 'CG', 'Goa' => 'GA', 'Gujarat' => 'GJ', 'Haryana' => 'HR', 'Himachal Pradesh' => 'HP',
+                'Jammu and Kashmir' => 'JK', 'Jharkhand' => 'JH', 'Karnataka' => 'KA', 'Kerala' => 'KL', 'Madhya Pradesh' => 'MP',
+                'Maharashtra' => 'MH', 'Manipur' => 'MN', 'Meghalaya' => 'ML', 'Mizoram' => 'MZ', 'Nagaland' => 'NL',
+                'Orissa' => 'OR', 'Punjab' => 'PB', 'Rajasthan' => 'RJ', 'Sikkim' => 'SK', 'Tamil Nadu' => 'TN', 'Tripura' => 'TR',
+                'Uttarakhand' => 'UK', 'Uttar Pradesh' => 'UP', 'West Bengal' => 'WB', 'Telangana' => 'TS',
+                'Andaman and Nicobar Islands' => 'AN', 'Chandigarh' => 'CH', 'Dadra and Nagar Haveli' => 'DH', 'Daman and Diu' => 'DD',
+                'Delhi' => 'DL', 'Lakshadweep' => 'LD', 'Pondicherry' => 'PY',
+            ];
+            $maxSeq = DeliverablePlan::whereYear('created_at', $year)
+                ->where('circuit_id', 'like', substr($year, -2).'%')
+                ->selectRaw("MAX(CAST(RIGHT(circuit_id, 4) AS UNSIGNED)) as max_seq")
+                ->value('max_seq');
+            $serial = $maxSeq ? intval($maxSeq) : 0;
 
             // Build a map of per-link vendor snapshots from feasibility status
             $linkVendorsForSave = [];
@@ -430,7 +385,6 @@ $maxSeq = DeliverablePlan::whereYear('created_at', $year)
                         $linkVendorsForSave[$i] = null;
                         continue;
                     }
-
                     $linkVendorsForSave[$i] = Vendor::where('vendor_name', $vendorName)->first();
                 }
             }
@@ -438,13 +392,15 @@ $maxSeq = DeliverablePlan::whereYear('created_at', $year)
             for ($i = 1; $i <= $linkCount; $i++) {
                 $serial++;
                 $vendorSnapshot = $linkVendorsForSave[$i] ?? null;
+                // Preserve circuit_id if editing, only generate if missing
+                $existingPlan = $existingPlansMap->get($i);
                 $planData = [
                     'deliverable_id' => $deliverable->id,
                     'link_number' => $i,
                     'vendor_name' => $vendorSnapshot->vendor_name ?? null,
                     'vendor_email' => $vendorSnapshot->contact_person_email ?? null,
                     'vendor_contact' => $vendorSnapshot->contact_person_mobile ?? null,
-                    'circuit_id' => $this->generateCircuitId($companyName, $clientShortName, $state, $year, $serial),
+                    'circuit_id' => $existingPlan ? $existingPlan->circuit_id : $this->generateCircuitId($companyName, $clientShortName, $state, $year, $serial),
                     'plans_name' => $request->input('plans_name_' . $i),
                     'speed_in_mbps_plan' => $request->input('speed_in_mbps_plan_' . $i),
                     'no_of_months_renewal' => $request->input('no_of_months_renewal_' . $i),
@@ -489,6 +445,14 @@ $maxSeq = DeliverablePlan::whereYear('created_at', $year)
         $serviceType = $feasibility->type_of_service ?? null;
 
         if ($data['status'] === 'Delivery') {
+
+        $companySetting = CompanySetting::first();
+
+if (!$companySetting) {
+    Log::error('Company settings not found');
+}
+
+
             // Use first plan's speed as bandwidth summary for ClientLink
             $firstPlan = $deliverable->deliverablePlans()->orderBy('link_number')->first();
             $bandwidth = $firstPlan->speed_in_mbps_plan ?? null;
@@ -509,24 +473,91 @@ $maxSeq = DeliverablePlan::whereYear('created_at', $year)
                 ]
             );
 
-            // Send email notification using TemplateHelper
-            $templateKey = 'deliverable_delivered'; // Use your event_key from Template Master
-            $client = $deliverable->feasibility->client;
-            $company = $deliverable->feasibility->company;
-            $companySetting = $company->settings;
+
+            $feasibility = $deliverable->feasibility ?? null;
+            $client = $feasibility ? $feasibility->client : null;
+            if (!$client) {
+                Log::error('No client found for deliverable ID: ' . $deliverable->id);
+                return back()->with('error', 'Client not found for this deliverable.');
+            }
             $to = $client->delivered_email;
             $cc = $client->delivered_cc;
-            $from = $companySetting->delivery_mail_from_address ?? config('mail.from.address');
+       // $templateKey = 'deliverable_delivered'; // Use your event_key from Template Master
+            // $client = $deliverable->feasibility->client_i;
+            $company = $deliverable->feasibility->company_name;
+
+            $to = is_string($to)
+    ? array_map('trim', preg_split('/[;,]/', $to))
+    : $to;
+
+$cc = is_string($cc)
+    ? array_map('trim', preg_split('/[;,]/', $cc))
+    : $cc;
+
+    $templateKey = 'deliverable_delivered';
+
+            // $from = $companySetting->delivery_mail_from_address ?? config('mail.from.address');
+            // Log::info('DEBUG: ping_report_gateway_file value', ['value' => $firstPlan->ping_report_gateway_file]);
+            $mediaFields = [
+                'speed_test_file',
+                'ping_report_gateway_file',
+                'ping_report_dns_file',
+                'onu_ont_device_file',
+                'static_ip_file',
+            ];
+            $inlineAttachments = [];
+            $mediaUrls = [];
+            foreach ($mediaFields as $fieldName) {
+                $media = $this->preparePublicAsset($deliverable->{$fieldName});
+                $mediaUrls[$fieldName] = $media['asset'];
+                if ($media['path'] && file_exists($media['path'])) {
+                    $inlineAttachments[] = [
+                        'field' => $fieldName,
+                        'path' => $media['path'],
+                    ];
+                }
+            }
+
             $templateData = [
-                'client_name' => $client->client_name ?? '',
-                'company' => $company->company_name ?? '',
-                'circuit_id' => $deliverable->circuit_id ?? '',
+                'client_id' => $deliverable->feasibility->client->client_name ?? '',
+                'company_id' => $deliverable->feasibility->company->company_name ?? '',
+                'circuit_id' => $firstPlan->circuit_id ?? '',
+                'location_id' => $deliverable->feasibility->location_id ?? '',
                 'address' => $deliverable->feasibility->address ?? '',
                 'speed' => $firstPlan->speed_in_mbps_plan ?? '',
                 // Add more fields as needed for your template
-            ];
-            $emailSent = \App\Helpers\EmailHelper::sendDynamicEmail($to, $templateKey, $templateData, $cc, $from);
 
+                'pppoe_username'     => $firstPlan->pppoe_username ?? '',
+                'pppoe_password'     => $firstPlan->pppoe_password ?? '',
+                'static_ip_address'  => $firstPlan->static_ip_address ?? '',
+                'speed_test_file' => $mediaUrls['speed_test_file'] ?? '',
+                'ping_report_gateway_file' => $mediaUrls['ping_report_gateway_file'] ?? '',
+                'ping_report_dns_file' => $mediaUrls['ping_report_dns_file'] ?? '',
+                'onu_ont_device_file' => $mediaUrls['onu_ont_device_file'] ?? '',
+                'static_ip_file' => $mediaUrls['static_ip_file'] ?? '',
+            ];
+
+            if (!empty($inlineAttachments)) {
+                $templateData['_inline_attachments'] = $inlineAttachments;
+            }
+
+            // Log::info('Email template data', $templateData);
+            $emailSent = false;
+
+if ($companySetting && $companySetting->delivery_email_check) {
+
+    Log::info('Delivery email enabled, sending mail');
+            $emailSent = EmailHelper::sendDynamicEmail(
+    $to,
+    $templateKey,
+    $templateData,
+    $cc,
+    null,
+    'delivery'
+);
+} else {
+    Log::info('Delivery email disabled via settings');
+}
             // Auto-create renewal entry if not exists
             foreach ($deliverable->deliverablePlans as $plan) {
                 $activation = $plan->date_of_activation;
@@ -549,7 +580,6 @@ $maxSeq = DeliverablePlan::whereYear('created_at', $year)
                     ]);
                 }
             }
-
             // Redirect logic for Delivery
             if ($serviceType === 'ILL') {
                 $msg = $emailSent
@@ -565,7 +595,8 @@ $maxSeq = DeliverablePlan::whereYear('created_at', $year)
                 : 'Deliverable saved successfully but email is not sent to the client successfully';
             return redirect()->route('operations.deliverables.delivery')
                 ->with('success', $msg);
-        } else {
+        }
+         else {
             // For InProgress, no email, simple message
             return redirect()->route('operations.deliverables.inprogress')
                 ->with('success', 'Deliverable saved successfully');
@@ -672,6 +703,31 @@ $maxSeq = DeliverablePlan::whereYear('created_at', $year)
     }
    
     /* ===================== HELPERS ===================== */
+
+    private function preparePublicAsset(?string $relativePath): array
+    {
+        if (!$relativePath) {
+            return ['asset' => '', 'path' => ''];
+        }
+
+        // If the path is already an absolute filesystem path, use it directly.
+        if (preg_match('#^[A-Za-z]:\\\\#', $relativePath) || str_starts_with($relativePath, '\\')) {
+            return [
+                'asset' => '',
+                'path' => $relativePath,
+            ];
+        }
+
+        $cleanPath = ltrim($relativePath, '/');
+        if (str_starts_with($cleanPath, 'public/')) {
+            $cleanPath = substr($cleanPath, 7);
+        }
+
+        return [
+            'asset' => asset($cleanPath),
+            'path' => public_path($cleanPath),
+        ];
+    }
 
     private function date($v) {
         return $v ? Carbon::parse(str_replace('/','-',$v))->format('Y-m-d') : null;

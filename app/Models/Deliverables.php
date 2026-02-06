@@ -108,6 +108,18 @@ class Deliverables extends Model
     {
         return $this->belongsTo(Feasibility::class, 'feasibility_id');
     }
+
+    public function normalizePublicPath(?string $path): ?string
+    {
+        if (!$path) {
+            return null;
+        }
+        $normalized = str_replace('\\', '/', $path);
+        if (str_starts_with($normalized, 'public/')) {
+            $normalized = substr($normalized, 7);
+        }
+        return ltrim($normalized, '/');
+    }
    
     public static function generateDeliveryId()
     {

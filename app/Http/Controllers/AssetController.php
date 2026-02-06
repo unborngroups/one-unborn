@@ -377,42 +377,56 @@ private function normalizePurchaseDate(mixed $value): ?string
     }
 }
 
+    // private function resolveCompany(array $data, int $rowNumber, array &$errors): ?Company
+    // {
+    //     $possibleKeys = ['company_id', 'company_name', 'company'];
+    //     foreach ($possibleKeys as $key) {
+    //         if (!empty($data[$key])) {
+    //             // Try by ID
+    //             if ($key === 'company_id' && is_numeric($data[$key])) {
+    //                 $company = Company::find($data[$key]);
+    //                 if ($company) return $company;
+    //             }
+    //             // Try by name (case-insensitive, trimmed)
+    //             $name = trim($data[$key]);
+    //             $company = Company::whereRaw('LOWER(TRIM(company_name)) = ?', [strtolower($name)])->first();
+    //             if ($company) return $company;
+    //         }
+    //     }
+    //     // Suggest closest match
+    //     $allNames = Company::pluck('company_name')->toArray();
+    //     $input = '';
+    //     foreach ($possibleKeys as $key) {
+    //         if (!empty($data[$key])) $input = $data[$key];
+    //     }
+    //     $suggestion = '';
+    //     $minDistance = 5;
+    //     foreach ($allNames as $name) {
+    //         $distance = levenshtein(strtolower(trim($input)), strtolower(trim($name)));
+    //         if ($distance < $minDistance) {
+    //             $minDistance = $distance;
+    //             $suggestion = $name;
+    //         }
+    //     }
+    //     $msg = "Row $rowNumber: company_id/company_name is required";
+    //     if ($suggestion) $msg .= ". Did you mean: $suggestion?";
+    //     $errors[] = $msg;
+    //     return null;
+    // }
+
     private function resolveCompany(array $data, int $rowNumber, array &$errors): ?Company
-    {
-        $possibleKeys = ['company_id', 'company_name', 'company'];
-        foreach ($possibleKeys as $key) {
-            if (!empty($data[$key])) {
-                // Try by ID
-                if ($key === 'company_id' && is_numeric($data[$key])) {
-                    $company = Company::find($data[$key]);
-                    if ($company) return $company;
-                }
-                // Try by name (case-insensitive, trimmed)
-                $name = trim($data[$key]);
-                $company = Company::whereRaw('LOWER(TRIM(company_name)) = ?', [strtolower($name)])->first();
-                if ($company) return $company;
-            }
-        }
-        // Suggest closest match
-        $allNames = Company::pluck('company_name')->toArray();
-        $input = '';
-        foreach ($possibleKeys as $key) {
-            if (!empty($data[$key])) $input = $data[$key];
-        }
-        $suggestion = '';
-        $minDistance = 5;
-        foreach ($allNames as $name) {
-            $distance = levenshtein(strtolower(trim($input)), strtolower(trim($name)));
-            if ($distance < $minDistance) {
-                $minDistance = $distance;
-                $suggestion = $name;
-            }
-        }
-        $msg = "Row $rowNumber: company_id/company_name is required";
-        if ($suggestion) $msg .= ". Did you mean: $suggestion?";
-        $errors[] = $msg;
+{
+    $name = $data['company_name'] ?? $data['company'] ?? null;
+
+    if (!$name) {
         return null;
     }
+
+    return Company::firstOrCreate(
+        ['company_name' => trim($name)]
+    );
+}
+
 
     private function resolveAssetType(array $data, int $rowNumber, array &$errors): ?AssetType
     {
@@ -521,39 +535,71 @@ private function normalizePurchaseDate(mixed $value): ?string
     }
 
     // 
+    // private function resolveVendor(array $data, int $rowNumber, array &$errors): ?Vendor
+    // {
+    //     $possibleKeys = ['vendor_id', 'vendor_name', 'vendor_type', 'vendor'];
+    //     foreach ($possibleKeys as $key) {
+    //         if (!empty($data[$key])) {
+    //             if ($key === 'vendor_id' && is_numeric($data[$key])) {
+    //                 $vendor = Vendor::find($data[$key]);
+    //                 if ($vendor) return $vendor;
+    //             }
+    //             $name = trim($data[$key]);
+    //             $vendor = Vendor::whereRaw('LOWER(TRIM(vendor_name)) = ?', [strtolower($name)])->first();
+    //             if ($vendor) return $vendor;
+    //         }
+    //     }
+    //     $allNames = Vendor::pluck('vendor_name')->toArray();
+    //     $input = '';
+    //     foreach ($possibleKeys as $key) {
+    //         if (!empty($data[$key])) $input = $data[$key];
+    //     }
+    //     $suggestion = '';
+    //     $minDistance = 5;
+    //     foreach ($allNames as $name) {
+    //         $distance = levenshtein(strtolower(trim($input)), strtolower(trim($name)));
+    //         if ($distance < $minDistance) {
+    //             $minDistance = $distance;
+    //             $suggestion = $name;
+    //         }
+    //     }
+    //     $msg = "Row $rowNumber: vendor_id/vendor_name is required";
+    //     if ($suggestion) $msg .= ". Did you mean: $suggestion?";
+    //     $errors[] = $msg;
+    //     return null;
+    // }
+
     private function resolveVendor(array $data, int $rowNumber, array &$errors): ?Vendor
-    {
-        $possibleKeys = ['vendor_id', 'vendor_name', 'vendor_type', 'vendor'];
-        foreach ($possibleKeys as $key) {
-            if (!empty($data[$key])) {
-                if ($key === 'vendor_id' && is_numeric($data[$key])) {
-                    $vendor = Vendor::find($data[$key]);
-                    if ($vendor) return $vendor;
-                }
-                $name = trim($data[$key]);
-                $vendor = Vendor::whereRaw('LOWER(TRIM(vendor_name)) = ?', [strtolower($name)])->first();
+{
+    $possibleKeys = [
+        'vendor_id',
+        'vendor_name',
+        'vendor',
+        'procured_from'   // ✅ THIS IS THE FIX
+    ];
+
+    foreach ($possibleKeys as $key) {
+        if (!empty($data[$key])) {
+            // If ID provided
+            if ($key === 'vendor_id' && is_numeric($data[$key])) {
+                $vendor = Vendor::find($data[$key]);
                 if ($vendor) return $vendor;
             }
+
+            // Match by name
+            $name = trim($data[$key]);
+            $vendor = Vendor::whereRaw(
+                'LOWER(TRIM(vendor_name)) = ?',
+                [strtolower($name)]
+            )->first();
+
+            if ($vendor) return $vendor;
         }
-        $allNames = Vendor::pluck('vendor_name')->toArray();
-        $input = '';
-        foreach ($possibleKeys as $key) {
-            if (!empty($data[$key])) $input = $data[$key];
-        }
-        $suggestion = '';
-        $minDistance = 5;
-        foreach ($allNames as $name) {
-            $distance = levenshtein(strtolower(trim($input)), strtolower(trim($name)));
-            if ($distance < $minDistance) {
-                $minDistance = $distance;
-                $suggestion = $name;
-            }
-        }
-        $msg = "Row $rowNumber: vendor_id/vendor_name is required";
-        if ($suggestion) $msg .= ". Did you mean: $suggestion?";
-        $errors[] = $msg;
-        return null;
     }
+
+    return null;
+}
+
 
     private function normalizeImportRow(array $row): array
     {

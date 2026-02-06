@@ -274,6 +274,18 @@
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-header bg-info text-white">
         <h5 class="mb-0"><i class="bi bi-truck me-2"></i>Delivery Notification</h5>
+        <input type="hidden" name="delivery_email_check" value="0">
+
+<input type="checkbox"
+       name="delivery_email_check"
+       value="1"
+       class="form-check-input"
+       id="deliveryCheckbox"
+       <?php echo e(old('delivery_email_check', $company->delivery_email_check ?? false) ? 'checked' : ''); ?>>
+<label for="deliveryCheckbox" class="form-check-label">
+    Enable Delivery Notification Emails
+</label>
+
     </div>
     <div class="card-body bg-light">
         <div class="row g-3">

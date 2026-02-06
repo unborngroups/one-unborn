@@ -15,7 +15,11 @@ class TemplateHelper
     public static function renderTemplate($content, $data = [])
     {
         foreach ($data as $key => $value) {
-            $content = str_replace('{{'.$key.'}}', $value, $content);
+            $escapedKey = preg_quote($key, '/');
+            $pattern = '/{{\s*' . $escapedKey . '\s*}}/';
+            $content = preg_replace_callback($pattern, function () use ($value) {
+                return (string)$value;
+            }, $content);
         }
         return $content;
     }

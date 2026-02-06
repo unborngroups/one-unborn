@@ -524,6 +524,16 @@
                     </select>
                     <small class="text-muted">Select subnet only if Static IP is Yes</small>
                 </div>
+                <div class="col-md-3" id="static_ip_duration_box">
+                    <label class="form-label fw-semibold">Static IP Duration</label>
+                    @php $staticIpDurationValue = old('static_ip_duration', $importRow['static_ip_duration'] ?? ''); @endphp
+                    <select name="static_ip_duration" id="static_ip_duration" class="form-select" {{ $staticIpValue === 'Yes' ? '' : 'disabled' }} {{ $staticIpValue === 'Yes' ? 'required' : '' }}>
+                        <option value="" {{ $staticIpDurationValue === '' ? 'selected' : '' }}>Select Duration</option>
+                        <option value="Monthly" {{ $staticIpDurationValue === 'Monthly' ? 'selected' : '' }}>Monthly</option>
+                        <option value="Yearly" {{ $staticIpDurationValue === 'Yearly' ? 'selected' : '' }}>Yearly</option>
+                    </select>
+                    <small class="text-muted">Applicable only when Static IP is Yes</small>
+                </div>
                             <script>
                                 document.addEventListener('DOMContentLoaded', function() {
                                     const linkType = document.getElementById('link_type');
@@ -597,6 +607,7 @@ $(document).ready(function () {
                     $('select[name="no_of_links"]').val(f.no_of_links).trigger('change');
                     setSelectValue(document.getElementById('static_ip'), f.static_ip);  
                     setSelectValue(document.getElementById('static_ip_subnet'), f.static_ip_subnet);
+                    setSelectValue(document.getElementById('static_ip_duration'), f.static_ip_duration);
                     const hardwareSelect = document.getElementById('hardware_required');
 
                    setSelectValue(hardwareSelect, f.hardware_required ? '1' : '0');
@@ -1134,39 +1145,42 @@ pincodeInput.addEventListener('blur', lookupPincode);
 // Trigger on Enter key press
 
 document.addEventListener('DOMContentLoaded', function () {
-
-    const staticIpSelect   = document.getElementById('static_ip');
-    const subnetSelect     = document.getElementById('static_ip_subnet');
+    const staticIpSelect    = document.getElementById('static_ip');
+    const subnetSelect      = document.getElementById('static_ip_subnet');
+    const durationSelect    = document.getElementById('static_ip_duration');
     const typeServiceSelect = document.getElementById('type_of_service');
 
-    function updateStaticIpSubnetState() {
-        if (!staticIpSelect || !subnetSelect) return;
-
-        if (staticIpSelect.value === 'Yes') {
-            subnetSelect.disabled = false;
-            subnetSelect.required = true;
-        } else {
-            subnetSelect.disabled = true;
-            subnetSelect.required = false;
-            subnetSelect.value = '';
-        }
+    function updateStaticIpDependentFields() {
+        if (!staticIpSelect) return;
+        const isStaticEnabled = staticIpSelect.value === 'Yes';
+        [subnetSelect, durationSelect].forEach(select => {
+            if (!select) return;
+            select.disabled = !isStaticEnabled;
+            select.required = isStaticEnabled;
+            if (!isStaticEnabled) {
+                select.value = '';
+            }
+        });
     }
 
     function enforceStaticIpForILL() {
         if (!typeServiceSelect || !staticIpSelect) return;
 
-        if (typeServiceSelect.value === 'ILL') {
+        if (typeServiceSelect.value === 'ILL' && staticIpSelect.value !== 'Yes') {
             staticIpSelect.value = 'Yes';
-            updateStaticIpSubnetState();
         }
+        updateStaticIpDependentFields();
     }
 
-    // Events
-    staticIpSelect.addEventListener('change', updateStaticIpSubnetState);
-    typeServiceSelect.addEventListener('change', enforceStaticIpForILL);
+    if (staticIpSelect) {
+        staticIpSelect.addEventListener('change', updateStaticIpDependentFields);
+    }
+    if (typeServiceSelect) {
+        typeServiceSelect.addEventListener('change', enforceStaticIpForILL);
+    }
 
     // Initial load (IMPORTANT for edit/import)
-    updateStaticIpSubnetState();
+    updateStaticIpDependentFields();
     enforceStaticIpForILL();
 });
 // document.getElementById('importexcel').

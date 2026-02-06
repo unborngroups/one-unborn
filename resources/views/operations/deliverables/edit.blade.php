@@ -295,9 +295,15 @@
                                 <label class="form-label">Status of Link <span class="text-danger">*</span></label>
                                 <select class="form-select" name="status_of_link_{{ $i }}" required>
                                     <option value="">Select Status</option>
-                                    <option value="Delivered and Activated" {{ old('status_of_link_'.$i, $plan->status_of_link ?? '') == 'Delivered and Activated' ? 'selected' : '' }}>Delivered and Activated</option>
+                                    <option value="Delivered / Awaiting for IP" {{ old('status_of_link_'.$i, $plan->status_of_link ?? '') == 'Delivered / Awaiting for IP' ? 'selected' : '' }}>Delivered / Awaiting for IP</option>
                                     <option value="Delivered" {{ old('status_of_link_'.$i, $plan->status_of_link ?? '') == 'Delivered' ? 'selected' : '' }}>Delivered</option>
                                     <option value="Inprogress" {{ old('status_of_link_'.$i, $plan->status_of_link ?? '') == 'Inprogress' ? 'selected' : '' }}>Inprogress</option>
+                                    <option value="Initiated" {{ old('status_of_link_'.$i, $plan->status_of_link ?? '') == 'Initiated' ? 'selected' : '' }}>Initiated</option>
+                                    <option value="Not Initated" {{ old('status_of_link_'.$i, $plan->status_of_link ?? '') == 'Not Initated' ? 'selected' : '' }}>Not Initated</option>
+                                    <option value="ON HOLD" {{ old('status_of_link_'.$i, $plan->status_of_link ?? '') == 'ON HOLD' ? 'selected' : '' }}>ON HOLD</option>
+                                    <option value="Pending" {{ old('status_of_link_'.$i, $plan->status_of_link ?? '') == 'Pending' ? 'selected' : '' }}>Pending</option>
+                                    <option value="Rejected / Not in our Scope" {{ old('status_of_link_'.$i, $plan->status_of_link ?? '') == 'Rejected / Not in our Scope' ? 'selected' : '' }}>Rejected / Not in our Scope</option>
+
                                 </select>
                             </div>
 
@@ -625,8 +631,11 @@
                                     <a href="{{ asset($record->speed_test_file) }}" target="_blank">View Speed Test</a>
                                 @endif
                                 <input type="file" class="form-control" name="speed_test_file" accept=".pdf,.jpg,.jpeg,.png">
-                                @if($record->speed_test_file)
-                                    <small class="text-muted">Current: {{ basename($record->speed_test_file) }}</small>
+                                @php
+                                    $speedTestFilePath = $record->normalizePublicPath($record->speed_test_file);
+                                @endphp
+                                @if($speedTestFilePath && !str_contains($speedTestFilePath, '.tmp'))
+                                    <small class="text-muted">Current: {{ basename($speedTestFilePath) }}</small>
                                 @endif
                             </div>
 
@@ -637,8 +646,11 @@
                                     <a href="{{ asset($record->ping_report_dns_file) }}" target="_blank">View Ping Report (DNS)</a>
                                 @endif
                                 <input type="file" class="form-control" name="ping_report_dns_file" accept=".pdf,.jpg,.jpeg,.png">
-                                @if($record->ping_report_dns_file)
-                                    <small class="text-muted">Current: {{ basename($record->ping_report_dns_file) }}</small>
+                                @php
+                                    $pingDnsFilePath = $record->normalizePublicPath($record->ping_report_dns_file);
+                                @endphp
+                                @if($pingDnsFilePath && !str_contains($pingDnsFilePath, '.tmp'))
+                                    <small class="text-muted">Current: {{ basename($pingDnsFilePath) }}</small>
                                 @endif
                             </div>
 
@@ -648,8 +660,11 @@
                                     <a href="{{ asset($record->ping_report_gateway_file) }}" target="_blank">View Ping Report (GateWay)</a>
                                 @endif
                                 <input type="file" class="form-control" name="ping_report_gateway_file" accept=".pdf,.jpg,.jpeg,.png">
-                                @if($record->ping_report_gateway_file)
-                                    <small class="text-muted">Current: {{ basename($record->ping_report_gateway_file) }}</small>
+                                @php
+                                    $pingGatewayFilePath = $record->normalizePublicPath($record->ping_report_gateway_file);
+                                @endphp
+                                @if($pingGatewayFilePath && !str_contains($pingGatewayFilePath, '.tmp'))
+                                    <small class="text-muted">Current: {{ basename($pingGatewayFilePath) }}</small>
                                 @endif
                             </div>
 
@@ -659,8 +674,11 @@
                                     <a href="{{ asset($record->onu_ont_device_file) }}" target="_blank">View ONU / ONT Device</a>
                                 @endif
                                 <input type="file" class="form-control" name="onu_ont_device_file" accept=".pdf,.jpg,.jpeg,.png">
-                                @if($record->onu_ont_device_file)
-                                    <small class="text-muted">Current: {{ basename($record->onu_ont_device_file) }}</small>
+                                @php
+                                    $onuOntFilePath = $record->normalizePublicPath($record->onu_ont_device_file);
+                                @endphp
+                                @if($onuOntFilePath && !str_contains($onuOntFilePath, '.tmp'))
+                                    <small class="text-muted">Current: {{ basename($onuOntFilePath) }}</small>
                                 @endif
                             </div>
 
@@ -670,8 +688,11 @@
                                     <a href="{{ asset($record->static_ip_file) }}" target="_blank">View Static IP</a>
                                 @endif
                                 <input type="file" class="form-control" name="static_ip_file" accept=".pdf,.jpg,.jpeg,.png">
-                                @if($record->static_ip_file)
-                                    <small class="text-muted">Current: {{ basename($record->static_ip_file) }}</small>
+                                @php
+                                    $staticIpFilePath = $record->normalizePublicPath($record->static_ip_file);
+                                @endphp
+                                @if($staticIpFilePath && !str_contains($staticIpFilePath, '.tmp'))
+                                    <small class="text-muted">Current: {{ basename($staticIpFilePath) }}</small>
                                 @endif
                             </div>
                         </div>

@@ -1,7 +1,9 @@
 <?php
 $columns = [
     'client_name' => 'Client Name',
+    'status_of_link' => 'Status of Link',
     'location_id' => 'Location ID',
+    'area' => 'Area',
     'address' => 'Address',
     'circuit_id' => 'Circuit ID',
     'date_of_activation' => 'Date of Activation',
@@ -19,9 +21,7 @@ $columns = [
 <div class="container-fluid py-4">
     <div class="card shadow border-0">
 
-        
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">
+<h5 class="mb-0 mt-2 bg-primary text-white py-2 px-3">
                 <i class="bi bi-table me-2"></i>
 
                 <?php if($type === 'open'): ?>
@@ -34,7 +34,23 @@ $columns = [
                     Deliverables
                 <?php endif; ?>
             </h5>
-
+            
+        
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <div class="d-flex align-items-center gap-2">
+                <label for="entriesSelect" class="mb-0 fw-semibold">Show</label>
+                <form id="filterForm" method="GET" class="d-flex align-items-center gap-2">
+                    <select id="entriesSelect" name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                        <option value="10" <?php echo e(request('per_page', 10) == 10 ? 'selected' : ''); ?>>10</option>
+                        <option value="25" <?php echo e(request('per_page') == 25 ? 'selected' : ''); ?>>25</option>
+                        <option value="50" <?php echo e(request('per_page') == 50 ? 'selected' : ''); ?>>50</option>
+                        <option value="100" <?php echo e(request('per_page') == 100 ? 'selected' : ''); ?>>100</option>
+                    </select>
+                </form>
+            </div>
+            <form id="searchForm" method="GET" class="ms-auto">
+                <input type="text" name="search" value="<?php echo e(request('search')); ?>" class="form-control form-control-lg rounded-pill px-4" style="min-width: 250px;" placeholder="Search..." id="searchBox">
+            </form>
             <button id="downloadExcelBtn"
                     class="btn btn-success d-none"
                     onclick="downloadSelectedExcel()">
@@ -76,7 +92,16 @@ $columns = [
                                     </td>
 
                                     <td><?php echo e($record->feasibility->client->client_name ?? 'N/A'); ?></td>
+                                    <td>
+                                        <?php if($record->deliverablePlans->count()): ?>
+                                            <?php echo e($record->deliverablePlans->pluck('status_of_link')->implode(', ')); ?>
+
+                                        <?php else: ?>
+                                            N/A
+                                        <?php endif; ?>
+                                    </td>
                                     <td><?php echo e($record->feasibility->location_id ?? 'N/A'); ?></td>
+                                    <td><?php echo e($record->feasibility->area ?? 'N/A'); ?></td>
                                     <td><?php echo e($record->feasibility->address ?? 'N/A'); ?></td>
                                     <td>
                                         <?php if($record->deliverablePlans->count()): ?>
@@ -275,5 +300,4 @@ function downloadSelectedExcel() {
     form.submit();
     document.body.removeChild(form);
 }
-</script>
-<?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views/report/deliverable/partials/table.blade.php ENDPATH**/ ?>
+</script><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views/report/deliverable/partials/table.blade.php ENDPATH**/ ?>

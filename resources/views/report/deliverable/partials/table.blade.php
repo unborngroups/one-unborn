@@ -1,7 +1,9 @@
 @php
 $columns = [
     'client_name' => 'Client Name',
+    'status_of_link' => 'Status of Link',
     'location_id' => 'Location ID',
+    'area' => 'Area',
     'address' => 'Address',
     'circuit_id' => 'Circuit ID',
     'date_of_activation' => 'Date of Activation',
@@ -19,9 +21,7 @@ $columns = [
 <div class="container-fluid py-4">
     <div class="card shadow border-0">
 
-        {{-- HEADER --}}
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">
+<h5 class="mb-0 mt-2 bg-primary text-white py-2 px-3">
                 <i class="bi bi-table me-2"></i>
 
                 @if($type === 'open')
@@ -34,7 +34,23 @@ $columns = [
                     Deliverables
                 @endif
             </h5>
-
+            
+        {{-- HEADER --}}
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <div class="d-flex align-items-center gap-2">
+                <label for="entriesSelect" class="mb-0 fw-semibold">Show</label>
+                <form id="filterForm" method="GET" class="d-flex align-items-center gap-2">
+                    <select id="entriesSelect" name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                        <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
+                        <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                    </select>
+                </form>
+            </div>
+            <form id="searchForm" method="GET" class="ms-auto">
+                <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-lg rounded-pill px-4" style="min-width: 250px;" placeholder="Search..." id="searchBox">
+            </form>
             <button id="downloadExcelBtn"
                     class="btn btn-success d-none"
                     onclick="downloadSelectedExcel()">
@@ -75,7 +91,15 @@ $columns = [
                                     </td>
 
                                     <td>{{ $record->feasibility->client->client_name ?? 'N/A' }}</td>
+                                    <td>
+                                        @if($record->deliverablePlans->count())
+                                            {{ $record->deliverablePlans->pluck('status_of_link')->implode(', ') }}
+                                        @else
+                                            N/A
+                                        @endif
+                                    </td>
                                     <td>{{ $record->feasibility->location_id ?? 'N/A' }}</td>
+                                    <td>{{ $record->feasibility->area ?? 'N/A' }}</td>
                                     <td>{{ $record->feasibility->address ?? 'N/A' }}</td>
                                     <td>
                                         @if($record->deliverablePlans->count())

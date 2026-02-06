@@ -66,6 +66,7 @@ return new class extends Migration
             $table->string('delivery_mail_footer')->nullable();
             $table->string('delivery_mail_signature')->nullable();
 
+            $table->boolean('delivery_email_check')->default(0);
             // Invoice Sending
             $table->string('invoice_mail_host')->nullable();
             $table->string('invoice_mail_port')->nullable();

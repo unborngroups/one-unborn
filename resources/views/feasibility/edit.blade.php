@@ -250,6 +250,15 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Static IP Duration</label>
+                    @php $staticIpDurationValue = old('static_ip_duration', $feasibility->static_ip_duration); @endphp
+                    <select name="static_ip_duration" id="static_ip_duration" class="form-select" {{ $staticIpValue === 'Yes' ? '' : 'disabled' }} {{ $staticIpValue === 'Yes' ? 'required' : '' }}>
+                        <option value="" {{ $staticIpDurationValue === '' ? 'selected' : '' }}>Select Duration</option>
+                        <option value="Monthly" {{ $staticIpDurationValue === 'Monthly' ? 'selected' : '' }}>Monthly</option>
+                        <option value="Yearly" {{ $staticIpDurationValue === 'Yearly' ? 'selected' : '' }}>Yearly</option>
+                    </select>
+                </div>
 
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">Expected Delivery <span class="text-danger">*</span></label>
@@ -515,41 +524,57 @@ pincodeInput.addEventListener('input', function() {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-        const noOfLinksSelect = document.querySelector('select[name="no_of_links"]');
-        const vendorTypeSelect = document.querySelector('select[name="vendor_type"]');
-        if (noOfLinksSelect.value) {
-                noOfLinksSelect.dispatchEvent(new Event('change'));
-        }
-        const staticIPSelect = document.getElementById('static_ip');
-        const subnetSelect = document.getElementById('static_ip_subnet');
-        const typeOfServiceSelect = document.getElementById('type_of_service');
-        typeOfServiceSelect.addEventListener('change', function() {
-                if (this.value === 'ILL') {
-                        staticIPSelect.value = 'Yes';
-                        staticIPSelect.required = true;
-                        staticIPSelect.dispatchEvent(new Event('change'));
-                } else {
-                        staticIPSelect.required = true;
-                }
+    const noOfLinksSelect = document.querySelector('select[name="no_of_links"]');
+    if (noOfLinksSelect && noOfLinksSelect.value) {
+        noOfLinksSelect.dispatchEvent(new Event('change'));
+    }
+    const staticIPSelect = document.getElementById('static_ip');
+    const subnetSelect = document.getElementById('static_ip_subnet');
+    const durationSelect = document.getElementById('static_ip_duration');
+    const typeOfServiceSelect = document.getElementById('type_of_service');
+
+    function updateStaticIpDependentFields() {
+        if (!staticIPSelect) return;
+        const isStaticYes = staticIPSelect.value === 'Yes';
+        [subnetSelect, durationSelect].forEach(select => {
+            if (!select) return;
+            select.disabled = !isStaticYes;
+            select.required = isStaticYes;
+            if (!isStaticYes) {
+                select.value = '';
+            }
         });
-        const staticIp = document.getElementById('static_ip');
-        function checkStaticIP() {
-                if (typeOfServiceSelect.value === 'ILL' && staticIp.value === 'No') {
-                        alert("For ILL service, Static IP is mandatory. Please select Yes.");
-                        staticIp.value = "Yes";
-                }
+    }
+
+    function enforceStaticIpForILL() {
+        if (!typeOfServiceSelect || !staticIPSelect) return;
+        if (typeOfServiceSelect.value === 'ILL') {
+            staticIPSelect.value = 'Yes';
         }
-        staticIp.addEventListener('change', checkStaticIP);
+        staticIPSelect.required = true;
+        updateStaticIpDependentFields();
+    }
+
+    function checkStaticIP() {
+        if (typeOfServiceSelect && typeOfServiceSelect.value === 'ILL' && staticIPSelect && staticIPSelect.value === 'No') {
+            alert("For ILL service, Static IP is mandatory. Please select Yes.");
+            staticIPSelect.value = 'Yes';
+            updateStaticIpDependentFields();
+        }
+    }
+
+    if (staticIPSelect) {
         staticIPSelect.addEventListener('change', function() {
-                if (this.value === 'Yes') {
-                        subnetSelect.disabled = false;
-                        subnetSelect.required = true;
-                } else {
-                        subnetSelect.disabled = true;
-                        subnetSelect.required = false;
-                        subnetSelect.value = '';
-                }
+            checkStaticIP();
+            updateStaticIpDependentFields();
         });
+    }
+    if (typeOfServiceSelect) {
+        typeOfServiceSelect.addEventListener('change', enforceStaticIpForILL);
+    }
+
+    updateStaticIpDependentFields();
+    enforceStaticIpForILL();
 });
 </script>
 @endsection

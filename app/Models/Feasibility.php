@@ -54,6 +54,7 @@ class Feasibility extends Model
         'speed',
         'static_ip',
         'static_ip_subnet',
+        'static_ip_duration',
         'expected_delivery',
         'expected_activation',
         'hardware_required',

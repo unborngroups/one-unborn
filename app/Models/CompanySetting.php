@@ -55,6 +55,8 @@ class CompanySetting extends Model
         'delivery_mail_from_name',
         'delivery_mail_footer',
         'delivery_mail_signature',
+        
+        'delivery_email_check',
 
         // Invoice Sending SMTP
         'invoice_mail_host',

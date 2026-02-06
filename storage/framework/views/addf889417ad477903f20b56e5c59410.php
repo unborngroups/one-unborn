@@ -315,9 +315,15 @@
                                 <label class="form-label">Status of Link <span class="text-danger">*</span></label>
                                 <select class="form-select" name="status_of_link_<?php echo e($i); ?>" required>
                                     <option value="">Select Status</option>
-                                    <option value="Delivered and Activated" <?php echo e(old('status_of_link_'.$i, $plan->status_of_link ?? '') == 'Delivered and Activated' ? 'selected' : ''); ?>>Delivered and Activated</option>
+                                    <option value="Delivered / Awaiting for IP" <?php echo e(old('status_of_link_'.$i, $plan->status_of_link ?? '') == 'Delivered / Awaiting for IP' ? 'selected' : ''); ?>>Delivered / Awaiting for IP</option>
                                     <option value="Delivered" <?php echo e(old('status_of_link_'.$i, $plan->status_of_link ?? '') == 'Delivered' ? 'selected' : ''); ?>>Delivered</option>
                                     <option value="Inprogress" <?php echo e(old('status_of_link_'.$i, $plan->status_of_link ?? '') == 'Inprogress' ? 'selected' : ''); ?>>Inprogress</option>
+                                    <option value="Initiated" <?php echo e(old('status_of_link_'.$i, $plan->status_of_link ?? '') == 'Initiated' ? 'selected' : ''); ?>>Initiated</option>
+                                    <option value="Not Initated" <?php echo e(old('status_of_link_'.$i, $plan->status_of_link ?? '') == 'Not Initated' ? 'selected' : ''); ?>>Not Initated</option>
+                                    <option value="ON HOLD" <?php echo e(old('status_of_link_'.$i, $plan->status_of_link ?? '') == 'ON HOLD' ? 'selected' : ''); ?>>ON HOLD</option>
+                                    <option value="Pending" <?php echo e(old('status_of_link_'.$i, $plan->status_of_link ?? '') == 'Pending' ? 'selected' : ''); ?>>Pending</option>
+                                    <option value="Rejected / Not in our Scope" <?php echo e(old('status_of_link_'.$i, $plan->status_of_link ?? '') == 'Rejected / Not in our Scope' ? 'selected' : ''); ?>>Rejected / Not in our Scope</option>
+
                                 </select>
                             </div>
 
@@ -645,8 +651,11 @@
                                     <a href="<?php echo e(asset($record->speed_test_file)); ?>" target="_blank">View Speed Test</a>
                                 <?php endif; ?>
                                 <input type="file" class="form-control" name="speed_test_file" accept=".pdf,.jpg,.jpeg,.png">
-                                <?php if($record->speed_test_file): ?>
-                                    <small class="text-muted">Current: <?php echo e(basename($record->speed_test_file)); ?></small>
+                                <?php
+                                    $speedTestFilePath = $record->normalizePublicPath($record->speed_test_file);
+                                ?>
+                                <?php if($speedTestFilePath && !str_contains($speedTestFilePath, '.tmp')): ?>
+                                    <small class="text-muted">Current: <?php echo e(basename($speedTestFilePath)); ?></small>
                                 <?php endif; ?>
                             </div>
 
@@ -657,8 +666,11 @@
                                     <a href="<?php echo e(asset($record->ping_report_dns_file)); ?>" target="_blank">View Ping Report (DNS)</a>
                                 <?php endif; ?>
                                 <input type="file" class="form-control" name="ping_report_dns_file" accept=".pdf,.jpg,.jpeg,.png">
-                                <?php if($record->ping_report_dns_file): ?>
-                                    <small class="text-muted">Current: <?php echo e(basename($record->ping_report_dns_file)); ?></small>
+                                <?php
+                                    $pingDnsFilePath = $record->normalizePublicPath($record->ping_report_dns_file);
+                                ?>
+                                <?php if($pingDnsFilePath && !str_contains($pingDnsFilePath, '.tmp')): ?>
+                                    <small class="text-muted">Current: <?php echo e(basename($pingDnsFilePath)); ?></small>
                                 <?php endif; ?>
                             </div>
 
@@ -668,8 +680,11 @@
                                     <a href="<?php echo e(asset($record->ping_report_gateway_file)); ?>" target="_blank">View Ping Report (GateWay)</a>
                                 <?php endif; ?>
                                 <input type="file" class="form-control" name="ping_report_gateway_file" accept=".pdf,.jpg,.jpeg,.png">
-                                <?php if($record->ping_report_gateway_file): ?>
-                                    <small class="text-muted">Current: <?php echo e(basename($record->ping_report_gateway_file)); ?></small>
+                                <?php
+                                    $pingGatewayFilePath = $record->normalizePublicPath($record->ping_report_gateway_file);
+                                ?>
+                                <?php if($pingGatewayFilePath && !str_contains($pingGatewayFilePath, '.tmp')): ?>
+                                    <small class="text-muted">Current: <?php echo e(basename($pingGatewayFilePath)); ?></small>
                                 <?php endif; ?>
                             </div>
 
@@ -679,8 +694,11 @@
                                     <a href="<?php echo e(asset($record->onu_ont_device_file)); ?>" target="_blank">View ONU / ONT Device</a>
                                 <?php endif; ?>
                                 <input type="file" class="form-control" name="onu_ont_device_file" accept=".pdf,.jpg,.jpeg,.png">
-                                <?php if($record->onu_ont_device_file): ?>
-                                    <small class="text-muted">Current: <?php echo e(basename($record->onu_ont_device_file)); ?></small>
+                                <?php
+                                    $onuOntFilePath = $record->normalizePublicPath($record->onu_ont_device_file);
+                                ?>
+                                <?php if($onuOntFilePath && !str_contains($onuOntFilePath, '.tmp')): ?>
+                                    <small class="text-muted">Current: <?php echo e(basename($onuOntFilePath)); ?></small>
                                 <?php endif; ?>
                             </div>
 
@@ -690,8 +708,11 @@
                                     <a href="<?php echo e(asset($record->static_ip_file)); ?>" target="_blank">View Static IP</a>
                                 <?php endif; ?>
                                 <input type="file" class="form-control" name="static_ip_file" accept=".pdf,.jpg,.jpeg,.png">
-                                <?php if($record->static_ip_file): ?>
-                                    <small class="text-muted">Current: <?php echo e(basename($record->static_ip_file)); ?></small>
+                                <?php
+                                    $staticIpFilePath = $record->normalizePublicPath($record->static_ip_file);
+                                ?>
+                                <?php if($staticIpFilePath && !str_contains($staticIpFilePath, '.tmp')): ?>
+                                    <small class="text-muted">Current: <?php echo e(basename($staticIpFilePath)); ?></small>
                                 <?php endif; ?>
                             </div>
                         </div>

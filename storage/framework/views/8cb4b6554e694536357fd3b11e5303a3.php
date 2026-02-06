@@ -1396,7 +1396,7 @@
         border-style: solid!important;
     }
     .report{
-        border: #f8af03!important;
+        border: #aa03f8!important;
         border-width: 4px!important;
         border-style: solid!important;
     }

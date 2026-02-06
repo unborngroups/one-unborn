@@ -147,7 +147,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function generateAssetID() {
         let company = document.querySelector('select[name="company_id"] option:checked')?.text || '';
         let brand = document.querySelector('input[name="brand"]').value;
-        let model = document.querySelector('input[name="model"]').value;
+        // let model = document.querySelector('input[name="model"]').value;
+        let model = document.querySelector('select[name="model"] option:checked')?.text || '';
 
         if (company && brand) {
             fetch("<?php echo e(url('/assets/next-asset-id')); ?>?company=" + encodeURIComponent(company) + "&brand=" + encodeURIComponent(brand) + "&model=" + encodeURIComponent(model))

@@ -111,8 +111,9 @@ class FeasibilityController extends Controller
             'no_of_links' => 'required',
             'speed' => 'required',
             'vendor_type' => 'required',
-            // 'static_ip' => 'required',
-            'static_ip_subnet' => 'nullable',
+            'static_ip' => 'required|in:Yes,No',
+            'static_ip_subnet' => $request->static_ip == 'Yes' ? 'required' : 'nullable',
+            'static_ip_duration' => $request->static_ip == 'Yes' ? 'required|in:Monthly,Yearly' : 'nullable',
             'expected_delivery' => 'required|date',
             'expected_activation' => 'required|date',
             'hardware_required' => 'required|in:0,1',
@@ -120,11 +121,6 @@ class FeasibilityController extends Controller
             'hardware_make' => 'array|nullable',
             'hardware_model' => 'array|nullable',
             'status' => 'required|in:Active,Inactive',
-
-            'static_ip' => 'required|in:Yes,No',
-
-            // 'static_ip' => $request->type_of_service == 'ILL' ? 'required|in:Yes' : 'required',
-    'static_ip_subnet' => $request->static_ip == 'Yes' ? 'required' : 'nullable',
         ]);
 
          // 🧠 Convert DD-MM-YYYY to YYYY-MM-DD before saving
@@ -134,8 +130,13 @@ class FeasibilityController extends Controller
     // 🧠 Convert hardware_required to proper boolean
     $validated['hardware_required'] = (bool) $validated['hardware_required'];
     
-    // Add created_by
-    $validated['created_by'] = Auth::user()->id;
+        // Add created_by
+        $validated['created_by'] = Auth::user()->id;
+
+        if ($validated['static_ip'] !== 'Yes') {
+            $validated['static_ip_subnet'] = null;
+            $validated['static_ip_duration'] = null;
+        }
     // Build hardware JSON
    $hardwareData = [];
 
@@ -313,8 +314,9 @@ public function sendCreatedEmail($feasibility)
             'no_of_links' => 'required',
             'speed' => 'required',
             'vendor_type' => 'required',
-            'static_ip' => 'required',
-            'static_ip_subnet' => 'nullable',
+            'static_ip' => 'required|in:Yes,No',
+            'static_ip_subnet' => $request->static_ip == 'Yes' ? 'required' : 'nullable',
+            'static_ip_duration' => $request->static_ip == 'Yes' ? 'required|in:Monthly,Yearly' : 'nullable',
             'expected_delivery' => 'required|date',
             'expected_activation' => 'required|date',
             'hardware_required' => 'required|in:0,1',
@@ -351,6 +353,11 @@ public function sendCreatedEmail($feasibility)
 
     // Add JSON to validated array
     $validated['hardware_details'] = json_encode($hardwareData);
+
+    if ($validated['static_ip'] !== 'Yes') {
+        $validated['static_ip_subnet'] = null;
+        $validated['static_ip_duration'] = null;
+    }
 
     // find old record
     $feasibility = Feasibility::findOrFail($id);
@@ -461,18 +468,6 @@ $status = FeasibilityStatus::where('feasibility_id', $feasibility->id)->first();
         return view('feasibility.view', compact('feasibility'));
     }
 
-
-
-//  public function import(Request $request)
-//  {
-//     $request->validate([
-//         'file' => 'required|file|mimes:xlsx,csv'
-//     ]);
-//     Excel::import(new FeasibilityImport, $request->file('file'));
-        
-//     dd($request->all());
-//  }
-
 public function sendCompletedEmail($feasibility)
 {
     $template = \App\Models\EmailTemplate::where([
@@ -480,50 +475,36 @@ public function sendCompletedEmail($feasibility)
         ['status', '=', 'Active'],
     ])->first();
 
-    if (!$template) {
-        Log::warning('Completed mail skipped - template missing/inactive');
-        return;
-    }
+    if (!$template) return;
 
-    $recipient = optional($feasibility->createdByUser)->email;
+    $recipient =
+        optional($feasibility->createdByUser)->official_email
+        ?? optional($feasibility->createdByUser)->email;
+
     if (!$recipient) return;
 
-    $companyName = optional($feasibility->company)->company_name ?? '';
-    $closedBy = optional($feasibility->updatedByUser)->name ?? '';
-    $closedOn = $feasibility->updated_at ? $feasibility->updated_at->format('d-m-Y H:i') : '';
+    $map = [
+        'feasibility_id' => $feasibility->feasibility_request_id ?? '',
+        'company_name'   => optional($feasibility->company)->company_name ?? '',
+        'client_name'    => optional($feasibility->client)->client_name ?? '',
+        'address'        => $feasibility->address ?? '',
+        'speed'          => $feasibility->speed ?? '',
+        'static_ip'      => $feasibility->static_ip ?? '',
+        'closed_by'      => optional($feasibility->updatedByUser)->name ?? '',
+        'date'           => $feasibility->updated_at
+                                ? $feasibility->updated_at->format('d-m-Y H:i')
+                                : '',
+    ];
 
-    // Debug logging
-    Log::info('Template body: ' . $template->body);
-    Log::info('Feasibility ID: ' . $feasibility->feasibility_request_id);
-    Log::info('Company Name: ' . $companyName);
-    Log::info('Closed By: ' . $closedBy);
-    Log::info('Closed On: ' . $closedOn);
-
-    $body = str_replace(
-        [
-            '{{feasibility_id}}', '{{ feasibility_id }}',
-            '{{company_name}}', '{{ company_name }}',
-            '{{closed_by}}', '{{ closed_by }}',
-            '{{date}}', '{{ date }}'
-        ],
-        [
-            $feasibility->feasibility_request_id,
-            $feasibility->company->company_name ?? '',
-            $feasibility->client->client_name ?? '',
-            // $companyName, $companyName,
-            $closedBy, $closedBy,
-            $closedOn, $closedOn
-        ],
-        $template->body
-    );
+    // 🔥 CRITICAL FIX
+    $body = TemplateHelper::renderTemplate(html_entity_decode($template->body), $map);
 
     Mail::send([], [], function ($message) use ($recipient, $template, $body) {
         $message->to($recipient)
             ->subject($template->subject)
             ->html($body);
     });
-
-    Log::info('Completed mail sent');
+    Log::info('✅ Completed mail sent with placeholders replaced');
 }
 
     /**
@@ -531,7 +512,7 @@ public function sendCompletedEmail($feasibility)
      */
     // public function fetchByCircuit($circuit_id)
     // {
-    //     // Find deliverable plan by circuit_id
+    //    0 // Find deliverable plan by circuit_id
     //     $deliverable = \App\Models\DeliverablePlan::where('circuit_id', $circuit_id)->first();
     //     if (!$deliverable) {
     //         return response()->json(['success' => false, 'message' => 'No deliverable found.']);

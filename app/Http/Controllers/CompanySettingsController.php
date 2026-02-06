@@ -64,6 +64,8 @@ class CompanySettingsController extends Controller
             'delivery_mail_footer' => 'nullable|string|max:500',
             'delivery_mail_signature' => 'nullable|string|max:500',
 
+            'delivery_email_check' => 'nullable|boolean',
+
             // Invoice Sending SMTP
             'invoice_mail_host' => 'nullable|string|max:100',
             'invoice_mail_port' => 'nullable|string|max:10',
@@ -76,6 +78,9 @@ class CompanySettingsController extends Controller
             'invoice_mail_signature' => 'nullable|string|max:500',
         ]);
         
+        // ✅ FORCE boolean (this is key)
+$data['delivery_email_check'] = $request->boolean('delivery_email_check');
+
 
         // Handle logo upload
         if ($request->hasFile('company_logo')) {

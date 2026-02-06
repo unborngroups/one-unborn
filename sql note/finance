@@ -103,7 +103,7 @@ ALTER TABLE users ADD COLUMN require_otp_always TINYINT(1) NOT NULL DEFAULT 0 AF
 
 -- To remove the column
 ALTER TABLE users DROP COLUMN require_otp_always;
--- ------------------------------------------update pannanum-----------------------------
+-- -----------------------------------------------------------------------
 --TO add the column
 ALTER TABLE clients 
 ADD COLUMN delivered_email VARCHAR(500) NULL AFTER invoice_cc,
@@ -146,3 +146,9 @@ ADD COLUMN invoice_mail_from_address VARCHAR(255) NULL AFTER invoice_mail_encryp
 ADD COLUMN invoice_mail_from_name VARCHAR(255) NULL AFTER invoice_mail_from_address,
 ADD COLUMN invoice_mail_footer VARCHAR(255) NULL AFTER invoice_mail_from_name;
 ADD COLUMN invoice_mail_signature VARCHAR(255) NULL AFTER invoice_mail_footer;
+
+
+---------------------update pannanu-------
+
+ALTER TABLE company_settings
+ADD COLUMN delivery_email_check TINYINT(1) NOT NULL DEFAULT 0 AFTER delivery_mail_signature;

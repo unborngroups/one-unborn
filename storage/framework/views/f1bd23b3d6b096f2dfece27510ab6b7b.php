@@ -215,6 +215,13 @@
     <?php endif; ?>
 
 <!-- 
+
+            <tr>
+                <th>Static IP Duration</th>
+
+                <td><?php echo e($feasibility->static_ip_duration ?? '-'); ?></td>
+
+            </tr>
     <label class="form-label fw-semibold">Hardware Details</label>
     <?php if(!empty($hardwareDetails)): ?>
         <table class="table table-bordered table-striped">

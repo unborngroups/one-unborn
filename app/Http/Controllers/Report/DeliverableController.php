@@ -27,6 +27,7 @@ class DeliverableController extends Controller
                   ->orWhere('circuit_id', 'like', "%$search%")
                   ->orWhereHas('feasibility', function ($fq) use ($search) {
                       $fq->where('feasibility_request_id', 'like', "%$search%")
+                         ->orWhere('address', 'like', "%$search%")
                          ->orWhereHas('client', function ($cq) use ($search) {
                              $cq->where('client_name', 'like', "%$search%")
                                  ->orWhere('gstin', 'like', "%$search%")
@@ -110,6 +111,7 @@ class DeliverableController extends Controller
                   ->orWhere('circuit_id', 'like', "%$search%")
                   ->orWhereHas('feasibility', function ($fq) use ($search) {
                       $fq->where('feasibility_request_id', 'like', "%$search%")
+                         ->orWhere('address', 'like', "%$search%")
                          ->orWhereHas('client', function ($cq) use ($search) {
                              $cq->where('client_name', 'like', "%$search%")
                                  ->orWhere('gstin', 'like', "%$search%")
@@ -192,6 +194,7 @@ class DeliverableController extends Controller
                   ->orWhere('circuit_id', 'like', "%$search%")
                   ->orWhereHas('feasibility', function ($fq) use ($search) {
                       $fq->where('feasibility_request_id', 'like', "%$search%")
+                         ->orWhere('address', 'like', "%$search%")
                          ->orWhereHas('client', function ($cq) use ($search) {
                              $cq->where('client_name', 'like', "%$search%")
                                  ->orWhere('gstin', 'like', "%$search%")
@@ -261,7 +264,9 @@ class DeliverableController extends Controller
         $ids = $request->input('ids', []);
         $columns = [
             'client_name' => 'Client Name',
+            'status_of_link' => 'Status of Link',
             'location_id' => 'Location ID',
+            'area' => 'Area',
             'address' => 'Address',
             'circuit_id' => 'Circuit ID',
             'date_of_activation' => 'Date of Activation',
@@ -287,7 +292,9 @@ class DeliverableController extends Controller
                 $plan = $record->deliverablePlans->first();
                 fputcsv($file, [
                     $record->feasibility->client->client_name ?? 'N/A',
+                    $plan->status_of_link ?? 'N/A',
                     $record->feasibility->location_id ?? 'N/A',
+                    $record->feasibility->area ?? 'N/A',
                     $record->feasibility->address ?? 'N/A',
                     $plan->circuit_id ?? 'N/A',
                     $plan && $plan->date_of_activation ? \Carbon\Carbon::parse($plan->date_of_activation)->format('Y-m-d') : 'N/A',

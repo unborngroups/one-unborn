@@ -5,6 +5,8 @@ namespace App\Helpers;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Models\EmailTemplate;
+use Illuminate\Support\Facades\Config;
+use App\Models\Company;
 
 class EmailHelper
 {
@@ -37,8 +39,9 @@ class EmailHelper
      * @param string|null $from
      * @return bool
      */
-    public static function sendDynamicEmail($to, $templateKey, $data = [], $cc = null, $from = null)
+    public static function sendDynamicEmail($to, $templateKey, $data = [], $cc = null, $from = null, $mailType = 'main')
     {
+        self::setMailConfig($mailType);
         // Fetch template from DB or config
         $template = self::getTemplate($templateKey);
         if (!$template) {
@@ -46,20 +49,34 @@ class EmailHelper
             return false;
         }
 
-        $subject = self::parseTemplate($template->subject, $data);
-        $body = self::parseTemplate($template->body, $data);
+        $dataForTemplate = $data;
+        $inlineAttachments = $dataForTemplate['_inline_attachments'] ?? [];
+        unset($dataForTemplate['_inline_attachments']);
+        $subject = self::parseTemplate($template->subject, $dataForTemplate);
 
         try {
-            Mail::send([], [], function ($message) use ($to, $cc, $from, $subject, $body) {
+            Mail::send([], [], function ($message) use ($to, $cc, $from, $subject, $dataForTemplate, $template, $inlineAttachments) {
                 $message->to($to)
                     ->subject($subject)
-                    ->html($body);
+                    ->html('');
                 if ($cc) {
                     $message->cc($cc);
                 }
                 if ($from) {
                     $message->from($from);
                 }
+                $inlineCids = [];
+                foreach ($inlineAttachments as $attachment) {
+                    $path = $attachment['path'] ?? null;
+                    if ($path && file_exists($path)) {
+                        $cid = $message->embed($path);
+                        $placeholder = $attachment['field'] ?? basename($path);
+                        $inlineCids[$placeholder] = $cid;
+                    }
+                }
+                $bodyData = array_merge($dataForTemplate, $inlineCids);
+                $body = self::parseTemplate($template->body, $bodyData);
+                $message->setBody(new \Symfony\Component\Mime\Part\TextPart($body, 'utf-8', 'html'));
             });
             return true;
         } catch (\Exception $e) {
@@ -67,4 +84,83 @@ class EmailHelper
             return false;
         }
     }
+
+  private static function setMailConfig($type = 'main')
+{
+    $company = Company::with('settings')->first();
+    if (!$company || !$company->settings) {
+        Log::error('Company or Company settings missing');
+        return false;
+    }
+
+    $s = $company->settings;
+
+    switch ($type) {
+        case 'delivery':
+            $host = $s->delivery_mail_host;
+            $username = $s->delivery_mail_username;
+            $password = $s->delivery_mail_password;
+            $port = $s->delivery_mail_port;
+            $encryption = $s->delivery_mail_encryption;
+            $fromAddress = $s->delivery_mail_from_address;
+            $fromName = $s->delivery_mail_from_name ?? 'Unborn';
+            break;
+
+        case 'invoice':
+            $host = $s->invoice_mail_host;
+            $username = $s->invoice_mail_username;
+            $password = $s->invoice_mail_password;
+            $port = $s->invoice_mail_port;
+            $encryption = $s->invoice_mail_encryption;
+            $fromAddress = $s->invoice_mail_from_address;
+            $fromName = $s->invoice_mail_from_name ?? 'Unborn';
+            break;
+
+        default:
+            $host = $s->mail_host;
+            $username = $s->mail_username;
+            $password = $s->mail_password;
+            $port = $s->mail_port;
+            $encryption = $s->mail_encryption;
+            $fromAddress = $s->mail_from_address;
+            $fromName = $s->mail_from_name ?? 'Unborn';
+    }
+
+    if (!$host || !$username || !$password || !$port || !$fromAddress) {
+        Log::error('Mail config missing required fields', compact(
+            'host','username','password','port','fromAddress'
+        ));
+        return false;
+    }
+
+    config([
+        'mail.default' => 'smtp',
+        'mail.mailers.smtp.transport' => 'smtp',
+        'mail.mailers.smtp.host' => $host,
+        'mail.mailers.smtp.port' => (int)$port,
+        'mail.mailers.smtp.encryption' => strtolower($encryption),
+        'mail.mailers.smtp.username' => $username,
+        'mail.mailers.smtp.password' => $password,
+        'mail.from.address' => $fromAddress,
+        'mail.from.name' => $fromName,
+    ]);
+
+    app()->forgetInstance('mail.manager');
+    app()->forgetInstance('mailer');
+    Mail::purge('smtp');
+
+    return true;
+}
+
+private static function normalizeEmails($emails)
+{
+    if (!$emails) return [];
+
+    if (is_array($emails)) return $emails;
+
+    return array_values(array_filter(
+        array_map('trim', preg_split('/[,;]/', $emails))
+    ));
+}
+
 }

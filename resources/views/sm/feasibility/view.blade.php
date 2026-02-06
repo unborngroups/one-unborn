@@ -255,7 +255,12 @@
                 <p class="form-control-plaintext">{{ $record->feasibility->static_ip_subnet ?? 'N/A' }}</p>
 
             </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Static IP Duration</label>
 
+                <p class="form-control-plaintext">{{ $record->feasibility->static_ip_duration ?? 'N/A' }}</p>
+
+            </div>
 
 
             {{-- Expected Delivery --}}
@@ -410,6 +415,8 @@
 
                     <h6 class="fw-bold text-secondary mb-3">Vendor {{ $i }}</h6>
 
+
+            
                     <div class="row">
 
                         <div class="col-md-2">

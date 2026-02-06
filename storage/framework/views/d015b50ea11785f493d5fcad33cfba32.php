@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('content'); ?>
 <div class="container-fluid">
     <div class="row">
@@ -59,8 +57,8 @@
 
 </style>
                         <?php echo csrf_field(); ?>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                        <div class="row gy-3">
+                            <div class="col-md-5 mb-3">
                                 <label for="feasibility_id" class="form-label"><strong>Feasibility Request ID <span class="text-danger">*</span></strong></label>
                                 <select class="form-select select2" id="feasibility_id" name="feasibility_id" required onchange="loadFeasibilityDetails()">
                                     <option value="">Select Available Feasibility</option>
@@ -72,21 +70,20 @@
                                         </option>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
-                                <!-- Feasibility Address Preview -->
-                                 <div class="row">
-                                    <div id="feasibility_address_box" class="col-md-12 d-none">
-                                    <label class="form-label mb-1"><strong>Feasibility Address</strong></label>
-                                    <textarea id="feasibility_address" class="form-control bg-light" rows="2" readonly></textarea>
+
+                                <div class="row g-2 mt-2">
+                                    <div id="feasibility_address_box" class="col-12 col-md-8 d-none">
+                                        <label class="form-label mb-1"><strong>Feasibility Address</strong></label>
+                                        <textarea id="feasibility_address" class="form-control bg-light" rows="2" readonly></textarea>
+                                    </div>
+                                    <div id="feasibility_speed_box" class="col-12 col-md-4 d-none">
+                                        <label class="form-label mb-1">Speed</label>
+                                        <input id="feasibility_speed" class="form-control bg-light" type="text" readonly />
+                                    </div>
                                 </div>
-                                <!-- Feasibility Speed Preview -->
-                                <div id="feasibility_speed_box" class="col-md-3 d-none">
-                                    <label class="form-label mb-1"> Speed</label>
-                                    <input id="feasibility_speed" class="form-control bg-light" type="text" readonly />
-                                </div>
-                                 </div>
                             </div>
 
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label class="form-label"><strong>PO Number *</strong></label>
                                 <input type="text" class="form-control" id="po_number" name="po_number" onblur="checkPoNumber()" required>
                                 <input type="hidden" id="allow_reuse" name="allow_reuse" value="0">
@@ -101,25 +98,9 @@ $message = $__bag->first($__errorArgs[0]); ?>
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
-
-                                <!-- <div id="poDuplicateAlert" class="alert alert-warning mt-3 d-none" role="alert">
-                                    <div class="d-flex align-items-start justify-content-between">
-                                        <div>
-                                            <strong id="poDuplicateMessage">PO number already exists.</strong>
-                                            <p class="mb-2 small text-muted">You can either reuse the existing PO or enter a new number.</p>
-                                        </div>
-                                        <div>
-                                            <button type="button" class="btn btn-warning btn-sm me-2" id="poDuplicateReuse">Use this PO</button>
-                                            <button type="button" class="btn btn-outline-danger btn-sm" id="poDuplicateNew">Create new</button>
-                                        </div>
-                                    </div>
-                                </div> -->
-
                             </div>
 
-                            
-
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-3 mb-3">
                                 <label class="form-label"><strong>PO Date *</strong></label>
                                 <input type="date" class="form-control" id="po_date" name="po_date" required value="<?php echo e(date('Y-m-d')); ?>">
                             </div>
