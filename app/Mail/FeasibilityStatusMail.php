@@ -33,22 +33,39 @@ class FeasibilityStatusMail extends Mailable
      */
     public function build()
     {
-        // Use Template Master content for feasibility_completed
+        $templateContent = null;
         if ($this->status === 'Closed') {
             $template = \App\Models\EmailTemplate::where('event_key', 'feasibility_completed')->where('status', 1)->first();
             if ($template) {
-                return $this->subject($this->getEmailSubject())
-                    ->html($template->body);
+                // Prepare data for placeholder replacement
+                $data = [
+                    'feasibility_id' => $this->feasibility->feasibility_request_id ?? '',
+                    'client_name' => $this->feasibility->client->client_name ?? '',
+                    'company_name' => $this->feasibility->company->company_name ?? '',
+                    'type_of_service' => $this->feasibility->type_of_service ?? '',
+                    'address' => $this->feasibility->address ?? '',
+                    'speed' => $this->feasibility->speed ?? '',
+                    'static_ip' => $this->feasibility->static_ip ?? '',
+                    'pincode' => $this->feasibility->pincode ?? '',
+                    'spoc_name' => $this->feasibility->spoc_name ?? '',
+                    'spoc_email' => $this->feasibility->spoc_email ?? '',
+                    'status' => $this->status,
+                    'action_by' => $this->actionBy->name ?? '',
+                    'previous_status' => $this->previousStatus ?? '',
+                    'creator_name' => $this->feasibility->creator->name ?? '',
+                ];
+                $templateContent = \App\Helpers\TemplateHelper::renderTemplate($template->body, $data);
             }
         }
-
-        // Fallback: send basic info if not closed or no template
-        $body = '<p>Feasibility Status: '.e($this->status).'</p>';
-        $body .= '<p>Feasibility ID: '.e($this->feasibility->feasibility_request_id ?? '').'</p>';
-        $body .= '<p>Action By: '.e($this->actionBy->name ?? '').'</p>';
-        $body .= '<p>Previous Status: '.e($this->previousStatus ?? '-').'</p>';
         return $this->subject($this->getEmailSubject())
-            ->html($body);
+            ->view('emails.feasibility.status')
+            ->with([
+                'feasibility' => $this->feasibility,
+                'status' => $this->status,
+                'previousStatus' => $this->previousStatus,
+                'actionBy' => $this->actionBy,
+                'templateContent' => $templateContent,
+            ]);
     }
 
     /**

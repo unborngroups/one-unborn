@@ -562,11 +562,10 @@ if ($request->hasFile('import_file')) {
     try {
         Log::info('Attempting to create deliverable for PO', ['po_id' => $purchaseOrder->id, 'po_number' => $purchaseOrder->po_number]);
 
-        $existingCount = Deliverables::where('purchase_order_id', $purchaseOrder->id)->count();
-        $requiredCount = $purchaseOrder->no_of_links ?? 1;
-
-        if ($existingCount >= $requiredCount) {
-            Log::info("All deliverables already created for PO ID {$purchaseOrder->id}");
+        // Only create one deliverable per PO
+        $existing = Deliverables::where('purchase_order_id', $purchaseOrder->id)->first();
+        if ($existing) {
+            Log::info("Deliverable already created for PO ID {$purchaseOrder->id}");
             return;
         }
 
@@ -581,45 +580,43 @@ if ($request->hasFile('import_file')) {
             return;
         }
 
-        for ($i = $existingCount + 1; $i <= $requiredCount; $i++) {
-            // Generate circuit id
-            $deliverablesController = new \App\Http\Controllers\DeliverablesController();
-            $sequence = $deliverablesController->getCircuitSequence(
-                $feasibility->company->company_name ?? '',
-                $feasibility->client->short_name ?? '',
-                $feasibility->state ?? '',
-                date('Y')
-            );
+        // Generate circuit id
+        $deliverablesController = new \App\Http\Controllers\DeliverablesController();
+        $sequence = $deliverablesController->getCircuitSequence(
+            $feasibility->company->company_name ?? '',
+            $feasibility->client->short_name ?? '',
+            $feasibility->state ?? '',
+            date('Y')
+        );
 
-            $circuit_id = $deliverablesController->generateCircuitId(
-                $feasibility->company->company_name ?? '',
-                $feasibility->client->short_name ?? '',
-                $feasibility->state ?? '',
-                date('Y'),
-                $sequence
-            );
+        $circuit_id = $deliverablesController->generateCircuitId(
+            $feasibility->company->company_name ?? '',
+            $feasibility->client->short_name ?? '',
+            $feasibility->state ?? '',
+            date('Y'),
+            $sequence
+        );
 
-            $deliverable = Deliverables::create([
-                'feasibility_id' => $feasibility->id,
-                'purchase_order_id' => $purchaseOrder->id,
-                'status' => 'Open',
-                'circuit_id' => $circuit_id,
-                'site_address' => $feasibility->site_address,
-                'local_contact' => $feasibility->contact_person,
-                'state' => $feasibility->state,
-                'gst_number' => $feasibility->gst_number,
-                'link_type' => $feasibility->connection_type,
-                'speed_in_mbps' => $feasibility->bandwidth,
-                'no_of_links' => 1,
-                'vendor' => $feasibilityStatus->vendor1_name ?? '',
-                'arc_cost' => $purchaseOrder->arc_per_link,
-                'otc_cost' => $purchaseOrder->otc_per_link,
-                'static_ip_cost' => $purchaseOrder->static_ip_cost_per_link,
-                'po_number' => $purchaseOrder->po_number,
-                'po_date' => $purchaseOrder->po_date,
-            ]);
-            Log::info('Deliverable created', ['deliverable_id' => $deliverable->id, 'po_id' => $purchaseOrder->id]);
-        }
+        $deliverable = Deliverables::create([
+            'feasibility_id' => $feasibility->id,
+            'purchase_order_id' => $purchaseOrder->id,
+            'status' => 'Open',
+            'circuit_id' => $circuit_id,
+            'site_address' => $feasibility->site_address,
+            'local_contact' => $feasibility->contact_person,
+            'state' => $feasibility->state,
+            'gst_number' => $feasibility->gst_number,
+            'link_type' => $feasibility->connection_type,
+            'speed_in_mbps' => $feasibility->bandwidth,
+            'no_of_links' => $purchaseOrder->no_of_links ?? 1,
+            'vendor' => $feasibilityStatus->vendor1_name ?? '',
+            'arc_cost' => $purchaseOrder->arc_per_link,
+            'otc_cost' => $purchaseOrder->otc_per_link,
+            'static_ip_cost' => $purchaseOrder->static_ip_cost_per_link,
+            'po_number' => $purchaseOrder->po_number,
+            'po_date' => $purchaseOrder->po_date,
+        ]);
+        Log::info('Deliverable created', ['deliverable_id' => $deliverable->id, 'po_id' => $purchaseOrder->id]);
 
     } catch (\Exception $e) {
         Log::error("Deliverable creation failed: " . $e->getMessage(), ['po_id' => $purchaseOrder->id]);

@@ -82,6 +82,11 @@
 
                         </div>
                         <div class="col-md-3">
+                            <strong>Location:</strong><br>
+                            <?php echo e($record->feasibility->location_id ?? 'N/A'); ?>
+
+                        </div>
+                        <div class="col-md-3">
                             <strong>Speed:</strong><br>
                             <?php echo e($record->feasibility->speed ?? 'N/A'); ?> 
                         </div>

@@ -24,7 +24,6 @@ use App\Models\{
 use App\Helpers\TemplateHelper;
 use Carbon\Carbon;
 
-
 class DeliverablesController extends Controller
 {
     /**
@@ -112,7 +111,6 @@ class DeliverablesController extends Controller
             ->where('state', $state)
             ->count() + 1;
     }
-
 
     // Operations Deliverables Views
     public function operationsOpen()
@@ -226,12 +224,15 @@ class DeliverablesController extends Controller
 
     public function operationsView($id)
 {
+    $deliverable = Deliverables::with([
+        'feasibility.client',
+        'feasibility.company',
+        'deliverablePlans',
+        'invoice'
+    ])->findOrFail($id);
     return view('operations.deliverables.view', [
-        'record' => Deliverables::with([
-            'feasibility.client',
-            'feasibility.company',
-            'deliverablePlans'
-        ])->findOrFail($id)
+        'record' => $deliverable,
+        'deliverable' => $deliverable
     ]);
 }
 
@@ -303,7 +304,7 @@ class DeliverablesController extends Controller
             'status_of_link','mode_of_delivery','circuit_id',
             'client_circuit_id','client_feasibility','vendor_code',
             'mtu','wifi_username','wifi_password',
-            'router_username','router_password',
+            'router_username','router_password','invoice_no',
             'lan_ip_1','lan_ip_2','lan_ip_3','lan_ip_4',
             'asset_id','asset_serial_no','asset_mac_no','otc_extra_charges','payment_login_url',
             'payment_quick_url','payment_account','payment_username','payment_password','ipsec',
@@ -338,7 +339,6 @@ foreach ($uploadMap as $field => $folder) {
         $data[$field] = $folder . '/' . $filename;
     }
 }
-
 
         $data['ipsec'] = $request->input('ipsec', 'No');
         $data['status'] = $request->action === 'submit' ? 'Delivery' : 'InProgress';
@@ -452,7 +452,6 @@ if (!$companySetting) {
     Log::error('Company settings not found');
 }
 
-
             // Use first plan's speed as bandwidth summary for ClientLink
             $firstPlan = $deliverable->deliverablePlans()->orderBy('link_number')->first();
             $bandwidth = $firstPlan->speed_in_mbps_plan ?? null;
@@ -472,7 +471,6 @@ if (!$companySetting) {
                     'status'         => 'active',
                 ]
             );
-
 
             $feasibility = $deliverable->feasibility ?? null;
             $client = $feasibility ? $feasibility->client : null;

@@ -29,6 +29,7 @@
                         <div class="col-md-3"><strong>District</strong><br>{{ $record->feasibility->district ?? '-' }}</div>
                         <div class="col-md-3"><strong>Area</strong><br>{{ $record->feasibility->area ?? '-' }}</div>
                         <div class="col-md-3"><strong>Address</strong><br>{{ $record->feasibility->address ?? '-' }}</div>
+                        <div class="col-md-3"><strong>Location</strong><br>{{ $record->feasibility->location_id ?? '-' }}</div>
                         <div class="col-md-3"><strong>Pincode</strong><br>{{ $record->feasibility->pincode ?? '-' }}</div>
 
                         <div class="col-md-3"><strong>SPOC Name</strong><br>{{ $record->feasibility->spoc_name ?? '-' }}</div>
@@ -338,6 +339,19 @@
                     <i class="bi bi-arrow-left"></i> Back
                 </a>
             </div>
+
+           @if(isset($deliverable) && !$deliverable->invoice_id)
+    <a href="{{ route('finance.invoices.create', ['deliverable_id' => $deliverable->id]) }}"
+       class="btn btn-primary">
+        Send Invoice
+    </a>
+@elseif(isset($deliverable) && $deliverable->invoice_id)
+    <a href="{{ route('finance.invoices.view', $deliverable->invoice_id) }}"
+       class="btn btn-success">
+        View Invoice
+    </a>
+@endif
+
 
         </div>
     </div>

@@ -43,7 +43,7 @@ class FeasibilityStatus extends Model
         'vendor4_delivery_timeline',
         'vendor4_remarks',
 
-        'status', // Open, InProgress, Closed
+        'status', // Open, InProgress, Closed, Not-Feasible
     ];
 
     // 🧩 Relationship — Each FeasibilityStatus belongs to one Feasibility

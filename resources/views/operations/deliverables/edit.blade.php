@@ -73,6 +73,10 @@
                             {{ $record->feasibility->address ?? 'N/A' }}
                         </div>
                         <div class="col-md-3">
+                            <strong>Location:</strong><br>
+                            {{ $record->feasibility->location_id ?? 'N/A' }}
+                        </div>
+                        <div class="col-md-3">
                             <strong>Speed:</strong><br>
                             {{ $record->feasibility->speed ?? 'N/A' }} 
                         </div>

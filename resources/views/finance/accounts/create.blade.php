@@ -2,52 +2,62 @@
 
 @section('content')
 <div class="container">
-<h4>Create Account</h4>
+    <h4>Create Account</h4>
 
+    {{-- Validation Errors --}}
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
-        @if ($errors->any())
+    <form method="POST" action="{{ route('finance.accounts.store') }}">
+        @csrf
 
-            <div class="alert alert-danger">
+        {{-- Account Group --}}
+        <select name="account_group_id" class="form-control mb-2" required>
+            <option value="">Select Account Group</option>
+            @foreach($groups as $g)
+                <option value="{{ $g->id }}" {{ old('account_group_id') == $g->id ? 'selected' : '' }}>
+                    {{ $g->name }}
+                </option>
+            @endforeach
+        </select>
 
-                <ul class="mb-0">
+        {{-- Account Name --}}
+        <input type="text"
+               name="account_name"
+               class="form-control mb-2"
+               placeholder="Account Name"
+               value="{{ old('account_name') }}"
+               required>
 
-                    @foreach ($errors->all() as $error)
+        {{-- Account Code (optional) --}}
+        <input type="text"
+               name="account_code"
+               class="form-control mb-2"
+               placeholder="Account Code (optional)"
+               value="{{ old('account_code') }}">
 
-                        <li>{{ $error }}</li>
+        {{-- Opening Balance --}}
+        <input type="number"
+               step="0.01"
+               name="opening_balance"
+               class="form-control mb-2"
+               placeholder="Opening Balance"
+               value="{{ old('opening_balance', 0) }}">
 
-                    @endforeach
+        {{-- Balance Type --}}
+        <select name="balance_type" class="form-control mb-2" required>
+            <option value="Debit" {{ old('balance_type') == 'Debit' ? 'selected' : '' }}>Debit</option>
+            <option value="Credit" {{ old('balance_type') == 'Credit' ? 'selected' : '' }}>Credit</option>
+        </select>
 
-                </ul>
-
-            </div>
-
-        @endif
-
-
-<form method="POST" action="{{ route('finance.accounts.store') }}">
-@csrf
-
-
-<select name="account_group_id" class="form-control mb-2" required>
-    <option value="">Select Account Group</option>
-    @foreach($groups as $g)
-        <option value="{{ $g->id }}">{{ $g->name }}</option>
-        <option value="">Asset</option>
-    @endforeach
-</select>
-
-<input type="text" name="account_name" class="form-control mb-2" placeholder="Account Name">
-
-<input type="text" name="account_code" class="form-control mb-2" placeholder="Account Code">
-
-<input type="number" step="0.01" name="opening_balance" class="form-control mb-2" placeholder="Opening Balance">
-
-<select name="balance_type" class="form-control mb-2">
-    <option value="Debit">Debit</option>
-    <option value="Credit">Credit</option>
-</select>
-
-<button class="btn btn-success">Save</button>
-</form>
+        <button class="btn btn-success">Save</button>
+    </form>
 </div>
 @endsection

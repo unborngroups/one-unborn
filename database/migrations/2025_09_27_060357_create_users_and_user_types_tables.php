@@ -23,7 +23,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable(); 
             $table->string('password');
             $table->string('mobile')->nullable();
-         
+            // $table->tinyInteger('require_otp_always')->default(0);
             $table->date('Date_of_Birth')->nullable();
             $table->date('Date_of_Joining')->nullable();
             // 

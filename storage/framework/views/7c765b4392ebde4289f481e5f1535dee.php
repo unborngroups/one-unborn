@@ -126,22 +126,33 @@
 
                                                        class="btn btn-info btn-sm" title="View">
 
-                                                        <i class="bi bi-eye"></i> View
+                                                        <i class="bi bi-eye"></i>
 
                                                     </a>
                                                     <?php endif; ?>
+
 
                                                     <!-- Update button with route to the edit page -->
-                                                     <?php if($permissions->can_edit): ?>
-
-                                                    <a href="<?php echo e(route('operations.feasibility.edit', $record->id)); ?>" 
-
-                                                       class="btn btn-warning btn-sm" title="Update">
-
-                                                        <i class="bi bi-pencil"></i> Update
-
-                                                    </a>
-                                                    <?php endif; ?>
+                                                    <?php if($permissions->can_edit): ?>
+                                                        <a href="<?php echo e(route('operations.feasibility.edit', $record->id)); ?>" 
+                                                           class="btn btn-warning btn-sm" title="Update">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </a>
+                                                        <?php endif; ?>
+                                                        <!-- Not-Feasible button -->
+                                                        <?php if($record->status === 'Open'): ?>
+                                                            <form action="<?php echo e(route('operations.feasibility.notfeasible', $record->id)); ?>" method="POST" style="display:inline;">
+                                                                <?php echo csrf_field(); ?>
+                                                                <button type="submit" class="btn btn-success btn-sm" title="Mark as Not-Feasible" onclick="return confirm('Mark this feasibility as Not-Feasible?');">
+                                                                    <i class="bi bi-check-circle"></i> Feasible
+                                                                </button>
+                                                            </form>
+                                                        <?php elseif($record->status === 'Not-Feasible'): ?>
+                                                            <button type="button" class="btn btn-danger btn-sm" disabled>
+                                                                <i class="bi bi-x-octagon"></i> Not-Feasible
+                                                            </button>
+                                                        <?php endif; ?>
+                                                    
 
                                                 </div>
 

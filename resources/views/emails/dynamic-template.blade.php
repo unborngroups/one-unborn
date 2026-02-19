@@ -216,20 +216,29 @@
 
 
 
+
         <!-- ✅ TEMPLATE MASTER CONTENT (only if exists) -->
-
         @if($templateExists)
-
-            <div style="margin-top: 25px; padding: 20px; 
-
-                        background-color: #f8f9fa; 
-
-                        border-left: 4px solid #6a1b9a; border-radius: 4px;">
-
-                {!! $templateBody !!}
-
+            <div style="margin-top: 25px; padding: 20px; background-color: #f8f9fa; border-left: 4px solid #6a1b9a; border-radius: 4px;">
+                {!!
+                    // Replace image URLs with CIDs if available
+                    preg_replace_callback(
+                        '/<img[^>]+src=("|\')([^"\']+)("|\')[^>]*>/i',
+                        function($matches) use ($emailData) {
+                            $src = $matches[2];
+                            if (!empty($emailData) && is_array($emailData)) {
+                                foreach ($emailData as $key => $val) {
+                                    if (strpos($src, $key) !== false && strpos($val, 'cid:') === 0) {
+                                        return str_replace($src, $val, $matches[0]);
+                                    }
+                                }
+                            }
+                            return $matches[0];
+                        },
+                        $templateBody
+                    )
+                !!}
             </div>
-
         @endif
 
 

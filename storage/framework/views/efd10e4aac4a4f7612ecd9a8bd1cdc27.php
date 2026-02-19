@@ -29,6 +29,7 @@
                         <div class="col-md-3"><strong>District</strong><br><?php echo e($record->feasibility->district ?? '-'); ?></div>
                         <div class="col-md-3"><strong>Area</strong><br><?php echo e($record->feasibility->area ?? '-'); ?></div>
                         <div class="col-md-3"><strong>Address</strong><br><?php echo e($record->feasibility->address ?? '-'); ?></div>
+                        <div class="col-md-3"><strong>Location</strong><br><?php echo e($record->feasibility->location_id ?? '-'); ?></div>
                         <div class="col-md-3"><strong>Pincode</strong><br><?php echo e($record->feasibility->pincode ?? '-'); ?></div>
 
                         <div class="col-md-3"><strong>SPOC Name</strong><br><?php echo e($record->feasibility->spoc_name ?? '-'); ?></div>
@@ -338,6 +339,19 @@
                     <i class="bi bi-arrow-left"></i> Back
                 </a>
             </div>
+
+           <?php if(isset($deliverable) && !$deliverable->invoice_id): ?>
+    <a href="<?php echo e(route('finance.invoices.create', ['deliverable_id' => $deliverable->id])); ?>"
+       class="btn btn-primary">
+        Send Invoice
+    </a>
+<?php elseif(isset($deliverable) && $deliverable->invoice_id): ?>
+    <a href="<?php echo e(route('finance.invoices.view', $deliverable->invoice_id)); ?>"
+       class="btn btn-success">
+        View Invoice
+    </a>
+<?php endif; ?>
+
 
         </div>
     </div>

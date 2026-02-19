@@ -101,9 +101,7 @@ ADD COLUMN `original_name` VARCHAR(255) NULL AFTER `file_type`;
 -- To add the column
 ALTER TABLE users ADD COLUMN require_otp_always TINYINT(1) NOT NULL DEFAULT 0 AFTER email;
 
--- To remove the column
-ALTER TABLE users DROP COLUMN require_otp_always;
--- -----------------------------------------------------------------------
+- -----------------------------------------------------------------------
 --TO add the column
 ALTER TABLE clients 
 ADD COLUMN delivered_email VARCHAR(500) NULL AFTER invoice_cc,
@@ -148,7 +146,13 @@ ADD COLUMN invoice_mail_footer VARCHAR(255) NULL AFTER invoice_mail_from_name;
 ADD COLUMN invoice_mail_signature VARCHAR(255) NULL AFTER invoice_mail_footer;
 
 
----------------------update pannanu-------
+----------------------------
 
 ALTER TABLE company_settings
 ADD COLUMN delivery_email_check TINYINT(1) NOT NULL DEFAULT 0 AFTER delivery_mail_signature;
+
+ALTER TABLE deliverables
+ADD COLUMN invoice_id BIGINT UNSIGNED NULL AFTER delivery_notes;
+  
+
+  --------------------------------------------

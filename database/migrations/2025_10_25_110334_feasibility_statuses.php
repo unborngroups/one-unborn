@@ -44,7 +44,7 @@ return new class extends Migration
     $table->string('vendor4_remarks')->nullable();
 
     // Status management
-    $table->enum('status', ['Open', 'InProgress', 'Closed'])->default('Open');
+    $table->enum('status', ['Open', 'InProgress', 'Closed', 'Feasible', 'Not-Feasible'])->default('Open');
     $table->timestamps();
 });
 

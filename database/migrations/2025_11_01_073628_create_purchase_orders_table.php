@@ -41,13 +41,15 @@ return new class extends Migration
             $table->integer('no_of_links');
             $table->string('import_file')->nullable();
             $table->integer('contract_period'); // in months
-            $table->enum('status', ['Draft', 'Submitted', 'Approved', 'Cancelled'])->default('Draft');
             // $table->text('remarks')->nullable();
+             // ✅ Workflow status
+    $table->enum('approval_status', ['Draft', 'Submitted', 'Approved', 'Cancelled'])->default('Draft');
+    // ✅ Record status
+    $table->enum('status', ['Active', 'Inactive'])->default('Active');
             $table->timestamps();
 
             $table->foreign('feasibility_id')->references('id')->on('feasibilities')->onDelete('cascade');
             $table->index('po_number');
-            $table->enum('status', ['Active', 'Inactive'])->default('Active')->after('contract_period');
         });
     }
 

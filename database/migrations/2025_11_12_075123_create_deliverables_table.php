@@ -48,6 +48,7 @@ return new class extends Migration
             $table->decimal('otc_cost', 12, 2)->nullable();
             $table->decimal('static_ip_cost', 12, 2)->nullable();
 
+
             // 🔥 PLAN INFO (1–4 links)
             for ($i = 1; $i <= 4; $i++) {
                 $table->text("plans_name_{$i}")->nullable();
@@ -103,6 +104,8 @@ return new class extends Migration
             $table->timestamp('delivered_at')->nullable();
             $table->string('delivered_by')->nullable();
             $table->text('delivery_notes')->nullable();
+            
+            $table->unsignedBigInteger('invoice_id')->nullable();  // Link to Invoice if created
 
             $table->timestamps();
 

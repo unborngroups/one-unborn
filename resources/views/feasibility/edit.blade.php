@@ -287,30 +287,39 @@
 @endphp
 
 <!-- container for all hardware rows -->
-<div id="hardware_container">
-    <div class="row hardware_row" style="display:none;">
-        <div class="col-md-3">
-            <label>Make</label>
-            <select name="make_type_id[]" class="form-control">
-                <option value="">Select Make</option>
-                @foreach($makes as $m)
-                    <option value="{{ $m->id }}">{{ $m->make_name }}</option>
+@foreach($hardwareDetails as $index => $hardware)
+<div class="row hardware_row mb-2">
+    <div class="col-md-3">
+        <label>Make</label>
+        <select name="make_type_id[]" class="form-control" required>
+            <option value="">Select Make</option>
+            @foreach($makes as $make)
+                <option value="{{ $make->id }}"
+                    {{ $make->id == $hardware['make_type_id'] ? 'selected' : '' }}>
+                    {{ $make->make_name }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+
+        <div class="col-md-3 d-flex align-items-end">
+        <div class="flex-grow-1">
+            <label>Model</label>
+            <select name="model_id[]" class="form-control" required>
+                <option value="">Select Model</option>
+                @foreach($models as $model)
+                    <option value="{{ $model->id }}"
+                        {{ $model->id == $hardware['model_id'] ? 'selected' : '' }}>
+                        {{ $model->model_name }}
+                    </option>
                 @endforeach
             </select>
         </div>
-        <div class="col-md-3 d-flex align-items-end">
-            <div class="flex-grow-1">
-                <label>Model</label>
-                <select name="model_id[]" class="form-control">
-                    <option value="">Select Model</option>
-                    @foreach($models as $m)
-                        <option value="{{ $m->id }}">{{ $m->model_name }}</option>
-                    @endforeach
-                </select>
-            </div>
+
             <button type="button" class="btn btn-danger btn-sm ms-2 mb-1 remove-hardware" style="height:38px;">X</button>
         </div>
     </div>
+    @endforeach
 </div>
 
 <div class="col-md-3 mt-3" id="add_btn_div" >
@@ -341,33 +350,37 @@ document.addEventListener('DOMContentLoaded', function() {
     const addHardwareBtn = document.getElementById('add_hardware_btn');
 
     // Function to toggle visibility based on hardware required
-    function toggleHardwareRows() {
-        if (hardwareRequiredSelect.value === '1') {
-            // Show first row and Add button
-            const firstRow = hardwareContainer.querySelector('.hardware_row');
-            if (firstRow) {
-                firstRow.style.display = 'flex';
-                firstRow.querySelectorAll('input, select, textarea').forEach(el => {
-                    el.disabled = false;
-                    if (el.name === 'make_type_id[]' || el.name === 'model_id[]') {
-                        el.required = true;
-                    }
-                });
-            }
-            addBtnDiv.style.display = 'block';
-        } else {
-            // Hide all rows and Add button
-            hardwareContainer.querySelectorAll('.hardware_row').forEach(row => {
-                row.style.display = 'none';
-                row.querySelectorAll('input, select, textarea').forEach(el => {
-                    el.value = '';
-                    el.disabled = true;
-                    el.required = false;
-                });
+   function toggleHardwareRows() {
+    if (!hardwareContainer) return;
+
+    if (hardwareRequiredSelect.value === '1') {
+
+        hardwareContainer.querySelectorAll('.hardware_row').forEach(row => {
+            row.style.display = 'flex';
+            row.querySelectorAll('input, select, textarea').forEach(el => {
+                el.disabled = false;
+                if (el.name === 'make_type_id[]' || el.name === 'model_id[]') {
+                    el.required = true;
+                }
             });
-            addBtnDiv.style.display = 'none';
-        }
+        });
+
+        addBtnDiv.style.display = 'block';
+
+    } else {
+
+        hardwareContainer.querySelectorAll('.hardware_row').forEach(row => {
+            row.style.display = 'none';
+            row.querySelectorAll('input, select, textarea').forEach(el => {
+                el.value = '';
+                el.disabled = true;
+                el.required = false;
+            });
+        });
+
+        addBtnDiv.style.display = 'none';
     }
+}
 
     // Initial toggle on page load
     toggleHardwareRows();

@@ -1,6 +1,13 @@
 <!-- purchase order ra db la import panna itha terminal la run pannanum -->
 php artisan sync:deliverables-from-pos
 
+# invoice pdf generate panna itha terminal la run pannanum
+composer require barryvdh/laravel-dompdf
+
+F:\xampp\php\php.ini
+;extension=sockets  --> extension=sockets  #update pannanu
+;extension=gd   --> extension=gd  #update pannanu
+;extension=zip  --> extension=zip  #update pannanu
 
 SELECT
     f.client_id,

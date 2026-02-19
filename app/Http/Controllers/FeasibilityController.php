@@ -481,23 +481,52 @@ public function sendCompletedEmail($feasibility)
         optional($feasibility->createdByUser)->official_email
         ?? optional($feasibility->createdByUser)->email;
 
-    if (!$recipient) return;
+    // if (!$recipient) return;
 
-    $map = [
-        'feasibility_id' => $feasibility->feasibility_request_id ?? '',
-        'company_name'   => optional($feasibility->company)->company_name ?? '',
-        'client_name'    => optional($feasibility->client)->client_name ?? '',
-        'address'        => $feasibility->address ?? '',
-        'speed'          => $feasibility->speed ?? '',
-        'static_ip'      => $feasibility->static_ip ?? '',
-        'closed_by'      => optional($feasibility->updatedByUser)->name ?? '',
-        'date'           => $feasibility->updated_at
-                                ? $feasibility->updated_at->format('d-m-Y H:i')
-                                : '',
-    ];
+    // $map = [
+    //     'feasibility_id' => $feasibility->feasibility_request_id ?? '',
+    //     'company_name'   => optional($feasibility->company)->company_name ?? '',
+    //     'client_name'    => optional($feasibility->client)->client_name ?? '',
+    //     'address'        => $feasibility->address ?? '',
+    //     'speed'          => $feasibility->speed ?? '',
+    //     'static_ip'      => $feasibility->static_ip ?? '',
+    //     'closed_by'      => optional($feasibility->updatedByUser)->name ?? '',
+    //     'date'           => $feasibility->updated_at
+    //                             ? $feasibility->updated_at->format('d-m-Y H:i')
+    //                             : '',
+    // ];
 
-    // 🔥 CRITICAL FIX
-    $body = TemplateHelper::renderTemplate(html_entity_decode($template->body), $map);
+    // // 🔥 CRITICAL FIX
+    // $body = TemplateHelper::renderTemplate(html_entity_decode($template->body), $map);
+
+    if ($recipient) {
+                $creator = $feasibility->createdByUser ? $feasibility->createdByUser->name : 'Unknown User';
+                $body = str_replace(['{{feasibility_id}}',
+                 '{{creator_name}}',
+                 '{{company_name}}',
+                 '{{client_name}}',
+                 '{{address}}',
+                 '{{speed}}',
+                 '{{static_ip}}',
+                 '{{closed_by}}',
+                 '{{date}}'
+                 ], [$feasibility->feasibility_request_id, $creator, 
+                 $feasibility->company->company_name ?? '',
+                  $feasibility->client->client_name ?? '',
+                  $feasibility->address ?? '',
+                    $feasibility->speed ?? '',
+                    $feasibility->static_ip ?? '',
+                    optional($feasibility->updatedByUser)->name ?? '',
+                    $feasibility->updated_at ? $feasibility->updated_at->format('d-m-Y H:i') : ''
+                  ], $template->body);
+                Log::info('[Feasibility Email] Triggering mail send', ['to' => $recipient, 'subject' => $template->subject]);
+                Mail::send([], [], function ($message) use ($recipient, $template, $body) {
+                    $message->to($recipient)
+                        ->subject($template->subject)
+                        ->html($body);
+                });
+            }
+
 
     Mail::send([], [], function ($message) use ($recipient, $template, $body) {
         $message->to($recipient)

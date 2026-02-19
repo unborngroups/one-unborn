@@ -766,6 +766,19 @@
             </li>
             <?php endif; ?>  
 
+                <!-- operations feasibility Not-Feasible menu -->
+                <?php
+                    $operationsFeasibilityNotFeasible = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Feasibility', 'Operations Feasibility Not-Feasible');
+                    $isFeasibilityNotFeasibleActive = request()->is('operations/feasibility/notfeasible');
+                ?>
+                <?php if($operationsFeasibilityNotFeasible && $operationsFeasibilityNotFeasible->can_menu): ?>
+                <li>
+                    <a class="nav-link text-white menu-item <?php echo e($isFeasibilityNotFeasibleActive ? 'active' : ''); ?>" href="<?php echo e(route('operations.feasibility.notfeasible.list')); ?>">
+                       <i class="bi bi-x-octagon me-2"></i> Not-Feasible
+                    </a>
+                </li>
+                <?php endif; ?>
+
         </ul>
 
                 </details>
@@ -895,6 +908,7 @@
             <?php
 
                 $finance = \App\Helpers\TemplateHelper::getUserMenuPermissions('Accounts');
+                $invoice = \App\Helpers\TemplateHelper::getUserMenuPermissions('Invoice');
                 $banking = \App\Helpers\TemplateHelper::getUserMenuPermissions('Banking');
                 $gst = \App\Helpers\TemplateHelper::getUserMenuPermissions('GST');
                 $purchase = \App\Helpers\TemplateHelper::getUserMenuPermissions('Purchases');
@@ -919,6 +933,13 @@
                                 <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/accounts*') ? 'active' : ''); ?>"
                                    href="<?php echo e(route('finance.accounts.index')); ?>">
                                     <span><i class="bi bi-receipt me-2"></i> Accounts</span>
+                                </a>
+                            </li>
+
+                            <li>
+                                <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/invoice*') ? 'active' : ''); ?>"
+                                href="<?php echo e(route('finance.invoices.index')); ?>">
+                                <i class="bi bi-receipt me-2"></i> Invoice
                                 </a>
                             </li>
 

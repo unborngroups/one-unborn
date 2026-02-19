@@ -1121,4 +1121,101 @@ public function editSave(Request $request, $id)
         return redirect()->route('operations.feasibility.open')
             ->with('success', count($request->input('ids')) . ' feasibility(s) deleted successfully.');
     }
-}
+
+   /**
+     * Mark a feasibility as Not-Feasible (Operations action)
+     */
+    public function operationsNotFeasible(Request $request, $id)
+    {
+        $record = FeasibilityStatus::findOrFail($id);
+        if ($record->status === 'Open') {
+            $record->status = 'Not-Feasible';
+            $record->save();
+        }
+        return redirect()->route('operations.feasibility.open')
+            ->with('success', 'Feasibility marked as Not-Feasible successfully.');
+    }
+
+
+
+        /**
+     * Show Not-Feasible feasibilities in operations section
+     */
+    public function operationsNotFeasibleList(Request $request)
+    {
+        $permissions = TemplateHelper::getUserMenuPermissions('operations Feasibility', 'Operations Feasibility Not-Feasible') ?? (object)[
+            'can_menu' => true,
+            'can_add' => true,
+            'can_edit' => true,
+            'can_delete' => true,
+            'can_view' => true,
+        ];
+
+        $perPage = (int) $request->get('per_page', 10);
+        $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+        $search = $request->get('search');
+
+        $records = FeasibilityStatus::with(['feasibility', 'feasibility.client', 'feasibility.company'])
+            ->where('status', 'Not-Feasible')
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('feasibility', function ($fq) use ($search) {
+                        $fq->where('feasibility_request_id', 'like', "%$search%")
+                            ->orWhere('type_of_service', 'like', "%$search%")
+                            ->orWhere('company_id', 'like', "%$search%")
+                            ->orWhere('client_id', 'like', "%$search%")
+                            ->orWhere('delivery_company_name', 'like', "%$search%")
+                            ->orWhere('location_id', 'like', "%$search%")
+                            ->orWhere('longitude', 'like', "%$search%")
+                            ->orWhere('latitude', 'like', "%$search%")
+                            ->orWhere('pincode', 'like', "%$search%")
+                            ->orWhere('state', 'like', "%$search%")
+                            ->orWhere('district', 'like', "%$search%")
+                            ->orWhere('area', 'like', "%$search%")
+                            ->orWhere('address', 'like', "%$search%")
+                            ->orWhere('spoc_name', 'like', "%$search%")
+                            ->orWhere('spoc_contact1', 'like', "%$search%")
+                            ->orWhere('spoc_contact2', 'like', "%$search%")
+                            ->orWhere('spoc_email', 'like', "%$search%")
+                            ->orWhere('no_of_links', 'like', "%$search%")
+                            ->orWhere('speed', 'like', "%$search%")
+                            ->orWhere('vendor_type', 'like', "%$search%")
+                            ->orWhere('static_ip', 'like', "%$search%")
+                            ->orWhere('static_ip_subnet', 'like', "%$search%")
+                            ->orWhere('expected_delivery', 'like', "%$search%")
+                            ->orWhere('expected_activation', 'like', "%$search%")
+                            ->orWhere('hardware_required', 'like', "%$search%")
+                            ->orWhereHas('company', function ($cq) use ($search) {
+                                $cq->where('company_name', 'like', "%$search%")
+                                    ;
+                            })
+                            ->orWhereHas('client', function ($cq) use ($search) {
+                                $cq->where('client_name', 'like', "%$search%")
+                                    ;
+                            });
+                    });
+                });
+            })
+            ->orderBy('id', 'desc')
+            ->paginate($perPage)
+            ->appends(request()->except('page'));
+
+        return view('operations.feasibility.notfeasible', compact('records', 'permissions', 'search'));
+    }
+
+    
+       /**
+     * Mark a Not-Feasible feasibility as Feasible (Open) (Operations action)
+     */
+    public function operationsMakeFeasible(Request $request, $id)
+    {
+        $record = FeasibilityStatus::findOrFail($id);
+        if ($record->status === 'Not-Feasible') {
+            $record->status = 'Open';
+            $record->save();
+        }
+        return redirect()->route('operations.feasibility.open')
+            ->with('success', 'Feasibility marked as Feasible and moved to Open successfully.');
+    }
+
+    }

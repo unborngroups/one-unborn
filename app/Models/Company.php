@@ -4,6 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\EmailTemplate;
+use App\Models\User;
+use App\Models\Feasibility;
+use App\Models\Client;
+use App\Models\Invoice; 
 
 class Company extends Model
 {
@@ -107,5 +112,8 @@ public function clients() {
         return $this->hasOne(\App\Models\CompanySetting::class, 'company_id', 'id');
     }
 
+    public function invoices() {
+        return $this->hasMany(Invoice::class);
+    }   
 }
 

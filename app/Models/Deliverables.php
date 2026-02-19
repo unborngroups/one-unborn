@@ -164,4 +164,18 @@ class Deliverables extends Model
     return $this->belongsTo(PurchaseOrder::class);
 }
 
+public function deliverablePlan()
+{
+    return $this->belongsTo(DeliverablePlan::class);
+}
+
+public function invoice()
+{
+    return $this->hasOne(Invoice::class,'deliverable_id');
+}
+
+  public function purchase_order()
+    {
+        return $this->belongsTo(\App\Models\PurchaseOrder::class, 'purchase_order_id');
+    }
 }

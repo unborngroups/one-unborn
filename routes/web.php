@@ -16,12 +16,13 @@ use App\Http\Controllers\CompanySettingsController;
 use App\Http\Controllers\TaxInvoiceSettingsController;
 use App\Http\Controllers\FeasibilityStatusController;
 use App\Http\Controllers\Finance\VendorInvoiceController;
+use App\Http\Controllers\Finance\InvoiceController;
 use App\Http\Controllers\Report\DeliverableController;
 use App\Http\Controllers\Finance\ExpenseController;
 use App\Http\Controllers\Finance\DebitNoteController; 
 use App\Http\Controllers\TerminationController;
 use App\Http\Controllers\RenewalController;
-use App\Http\Controllers\InvoiceController;
+// use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PincodeLookupController;
 use App\Http\Controllers\SystemSettingsController;
 use App\Http\Controllers\FeasibilityController;
@@ -272,6 +273,9 @@ Route::get('/test-email', function () {
 
     // ✅ operations Feasibility Routes (Full functionality like S&M)
     Route::get('/operations/feasibility/open', [FeasibilityStatusController::class, 'operationsOpen'])->name('operations.feasibility.open');
+    Route::post('/operations/feasibility/{id}/notfeasible', [FeasibilityStatusController::class, 'operationsNotFeasible'])->name('operations.feasibility.notfeasible');
+    Route::post('/operations/feasibility/{id}/makefeasible', [FeasibilityStatusController::class, 'operationsMakeFeasible'])->name('operations.feasibility.makefeasible');
+    Route::get('/operations/feasibility/notfeasible', [FeasibilityStatusController::class, 'operationsNotFeasibleList'])->name('operations.feasibility.notfeasible.list');
     Route::get('/operations/feasibility/inprogress', [FeasibilityStatusController::class, 'operationsInProgress'])->name('operations.feasibility.inprogress');
     Route::get('/operations/feasibility/closed', [FeasibilityStatusController::class, 'operationsClosed'])->name('operations.feasibility.closed');
     Route::get('/operations/feasibility/{id}/view', [FeasibilityStatusController::class, 'operationsView'])->name('operations.feasibility.view');
@@ -279,7 +283,7 @@ Route::get('/test-email', function () {
     Route::post('/operations/feasibility/{id}/save', [FeasibilityStatusController::class, 'operationsSave'])->name('operations.feasibility.save');
     Route::post('/operations/feasibility/{id}/submit', [FeasibilityStatusController::class, 'operationsSubmit'])->name('operations.feasibility.submit');
     Route::post('/operations/feasibility/{id}/exception', [FeasibilityStatusController::class, 'operationsSendException'])->name('operations.feasibility.exception');
-    
+
 
     // ✅ operations Feasibility Routes (Full functionality like S&M)
     Route::get('/operations/deliverables/open', [DeliverablesController::class, 'operationsOpen'])->name('operations.deliverables.open');
@@ -335,7 +339,6 @@ Route::get('/operations/asset/{id}/print', [AssetController::class, 'print'])->n
     Route::get('/sm/deliverables/delivery', [DeliverablesController::class, 'smDelivery'])->name('sm.deliverables.delivery');
     Route::get('/sm/deliverables/acceptance', [DeliverablesController::class, 'operationsAcceptance'])->name('sm.deliverables.acceptance');
 
-
     // ✅ Legacy operations Feasibility Status Routes (Keep for backward compatibility)
     Route::get('/feasibility/status/{status}', [FeasibilityStatusController::class, 'index'])->name('feasibility.status');
     
@@ -348,11 +351,9 @@ Route::get('/operations/asset/{id}/print', [AssetController::class, 'print'])->n
     Route::post('feasibility/feasibility-status/edit-save/{id}', [FeasibilityStatusController::class, 'editSave'])->name('feasibility.status.editSave');
 });
 // AJAX route for autofill feasibility by circuit_id
-// Route::get('/feasibility/fetch-by-circuit/{circuit_id}', [App\Http\Controllers\FeasibilityController::class, 'fetchByCircuit'])->name('feasibility.fetchByCircuit');
 
-Route::get('/feasibility/by-circuit/{circuit_id}', [FeasibilityController::class, 'getFeasibilityByCircuit']);
-
-
+    Route::get('/feasibility/by-circuit/{circuit_id}', [FeasibilityController::class, 'getFeasibilityByCircuit']);
+    Route::get('/feasibility/mark/{id}/{status}', [FeasibilityController::class, 'mark'])->name('feasibility.mark');
     // ✅ Feasibility Module (Resource routes should come after specific routes)
     Route::resource('feasibility', FeasibilityController::class);
    // Export all users to Excel
@@ -361,7 +362,6 @@ Route::get('/feasibility/by-circuit/{circuit_id}', [FeasibilityController::class
     Route::post('/feasibility/import/failed-rows', [App\Http\Controllers\FeasibilityExcelController::class, 'downloadFailedRows'])->name('feasibility.downloadFailedRows');
     Route::post('/import-feasibility', [FeasibilityExcelController::class, 'import'])->name('feasibility.import');
     Route::get('/get-client-details/{id}', [ClientController::class, 'getDetails']);
-
 
     // ✅ Purchase Order Routes (SM Section)
     Route::prefix('sm/purchaseorder')->name('sm.purchaseorder.')->group(function () {
@@ -464,7 +464,27 @@ Route::prefix('finance')->name('finance.')->group(function () {
     Route::post('accounts/{account}/submit',[AccountController::class,'submitForApproval'])->name('accounts.submit');
     Route::post('accounts/{account}/approve',[AccountController::class,'approve'])->name('accounts.approve');
     Route::post('accounts/{account}/reject',[AccountController::class,'reject'])->name('accounts.reject');
-// banking
+
+    // Invoice
+    Route::get('/invoices', [InvoiceController::class,'index'])->name('invoices.index');
+    Route::get('/invoices/create', [InvoiceController::class,'create'])->name('invoices.create');
+    Route::post('/invoices', [InvoiceController::class,'store'])->name('invoices.store');
+    Route::get('/invoices/{id}', [InvoiceController::class,'view'])->name('invoices.view');
+    // Alias for Blade template compatibility
+    // Route::get('/invoices/{id}', [InvoiceController::class,'view'])->name('finance.invoices.view');
+    // Alias for Blade template compatibility
+    // Route::get('/invoices/{id}', [InvoiceController::class,'view'])->name('invoices.show');
+    Route::get('/invoices/{id}/edit', [InvoiceController::class,'edit'])->name('invoices.edit');
+    Route::put('/invoices/{id}', [InvoiceController::class,'update'])->name('invoices.update');
+    // Route::delete('/invoices/{id}', [InvoiceController::class,'destroy'])->name('invoices.destroy');
+    // Route::get('/invoices/{id}/pdf', [InvoiceController::class,'pdf'])->name('invoices.downloadPdf');
+    // Alias for Blade template compatibility
+    Route::delete('/invoices/{id}', [InvoiceController::class,'destroy'])->name('invoices.delete');
+
+    Route::get('/invoices/{id}/pdf', [InvoiceController::class,'pdf'])->name('invoices.pdf');
+    Route::get('/invoices/{id}/send-email', [InvoiceController::class,'sendEmail'])->name('invoices.sendEmail');
+
+    // banking
     Route::get('banking',[BankingController::class,'index'])->name('banking.index');
     Route::get('banking/create',[BankingController::class,'create'])->name('banking.create');
     Route::post('banking/store',[BankingController::class,'store'])->name('banking.store');

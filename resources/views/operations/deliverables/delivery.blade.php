@@ -54,6 +54,8 @@
                                 <th width="150">Action</th>
                                 <th class="col">Feasibility ID</th>
                                 <th class="col">Client Name</th>
+                                <th class="col">Circuit Id</th>
+                                <th class="col">Location</th>
                                 <th class="col">Area</th>
                                 <th class="col">No. of Links</th>
                                
@@ -86,11 +88,13 @@
                                     @endif
                                 </td>
 
-                               
-
                                 <td>{{ $record->feasibility->feasibility_request_id ?? 'N/A' }}</td>
 
                                 <td>{{ $record->feasibility->client->client_name ?? 'N/A' }}</td>
+                                <td>
+                                {{ $record->deliverablePlans->pluck('circuit_id')->filter()->implode(', ') ?: 'N/A' }}
+                                </td>
+                                <td>{{ $record->feasibility->location_id ?? 'N/A' }}</td>
                                 <td>{{ $record->feasibility->area ?? 'N/A' }}</td>
                                 <td>{{ $record->no_of_links ?? 'N/A' }}</td>
 <!-- 

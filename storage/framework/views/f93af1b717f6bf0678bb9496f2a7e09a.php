@@ -55,6 +55,8 @@
                                 <th width="150">Action</th>
                                 <th class="col">Feasibility ID</th>
                                 <th class="col">Client Name</th>
+                                <th class="col">Circuit Id</th>
+                                <th class="col">Location</th>
                                 <th class="col">Area</th>
                                 <th class="col">No. of Links</th>
                                
@@ -87,11 +89,14 @@
                                     <?php endif; ?>
                                 </td>
 
-                               
-
                                 <td><?php echo e($record->feasibility->feasibility_request_id ?? 'N/A'); ?></td>
 
                                 <td><?php echo e($record->feasibility->client->client_name ?? 'N/A'); ?></td>
+                                <td>
+                                <?php echo e($record->deliverablePlans->pluck('circuit_id')->filter()->implode(', ') ?: 'N/A'); ?>
+
+                                </td>
+                                <td><?php echo e($record->feasibility->location_id ?? 'N/A'); ?></td>
                                 <td><?php echo e($record->feasibility->area ?? 'N/A'); ?></td>
                                 <td><?php echo e($record->no_of_links ?? 'N/A'); ?></td>
 <!-- 

@@ -112,6 +112,19 @@
                                                     </a>
                                                     @endif
 
+                                                     <!-- Update button with route to the edit page -->
+                                                    @if($permissions->can_edit)
+
+                                                    <a href="{{ route('operations.feasibility.edit', $record->id) }}" 
+
+                                                       class="btn btn-warning btn-sm" title="Update">
+
+                                                        <i class="bi bi-pencil"></i> Update
+
+                                                    </a>
+                                                    @endif
+
+
                                                 </div>
 
                                             </td>

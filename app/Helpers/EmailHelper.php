@@ -74,8 +74,15 @@ class EmailHelper
                         $inlineCids[$placeholder] = $cid;
                     }
                 }
+                // Replace image URLs in template body with CIDs if present
                 $bodyData = array_merge($dataForTemplate, $inlineCids);
                 $body = self::parseTemplate($template->body, $bodyData);
+                if (!empty($inlineCids)) {
+                    foreach ($inlineCids as $field => $cid) {
+                        // Replace src="...field..." with src="cid:..."
+                        $body = preg_replace('/src=("|\')([^"\']*'.preg_quote($field, '/').'.*?)("|\')/i', 'src="cid:'.$cid.'"', $body);
+                    }
+                }
                 $message->setBody(new \Symfony\Component\Mime\Part\TextPart($body, 'utf-8', 'html'));
             });
             return true;
