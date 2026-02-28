@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\DeliverablePlan;
 use App\Models\CompanySetting;
 use App\Helpers\EmailHelper;
+use App\Models\Items;
 use App\Models\Company;     
 use App\Models\Client;
 use Illuminate\Support\Facades\Log;
@@ -313,6 +314,82 @@ class DeliverablesController extends Controller
 
         /* ===================== FILE UPLOADS ===================== */
 
+        $uploadMap = [
+            'speed_test_file' => 'images/deliverable_speed_test',
+            'ping_report_dns_file' => 'images/deliverable_pingreportdns',
+            'ping_report_gateway_file' => 'images/deliverable_pingreportgateway',
+            'onu_ont_device_file' => 'images/deliverable_onu_ontdevice',
+            'static_ip_file' => 'images/deliverable_staticip',
+            'export_file' => 'images/deliverable_export',
+            'otc_bill_file' => 'images/deliverable_otcbill',
+        ];
+
+        foreach ($uploadMap as $field => $folder) {
+            if ($request->hasFile($field)) {
+                $file = $request->file($field);
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $destination = public_path($folder);
+
+                if (!file_exists($destination)) {
+                    mkdir($destination, 0755, true);
+                }
+
+                $file->move($destination, $filename);
+
+                // ✅ store RELATIVE path
+                $data[$field] = $folder . '/' . $filename;
+            }
+        }
+
+        $data['ipsec'] = $request->input('ipsec', 'No');
+        $data['status'] = $request->action === 'submit' ? 'Delivery' : 'InProgress';
+        $deliverable->update($data);
+
+        // Simple auto-invoice creation when moved to Delivery
+        if ($data['status'] === 'Delivery' && !$deliverable->invoice_id) {
+            $deliverable->refresh();
+            $feasibility = $deliverable->feasibility;
+            $company = $feasibility->company;
+            $client = $feasibility->client;
+            $firstPlan = $deliverable->deliverablePlans()->orderBy('link_number')->first();
+            $items = Items::first();
+            $invoice = new \App\Models\Invoice();
+            $invoice->deliverable_id = $deliverable->id;
+            $invoice->items_id = $items ? $items->id : null;
+            $invoice->invoice_no = 'INV-' . $deliverable->id;
+            $invoice->invoice_date = $firstPlan && $firstPlan->date_of_activation ? $firstPlan->date_of_activation : now()->format('Y-m-d');
+            $invoice->due_date = $firstPlan && $firstPlan->date_of_expiry ? $firstPlan->date_of_expiry : now()->addDays(15)->format('Y-m-d');
+            $invoice->customer_name = $client->client_name ?? '';
+            $invoice->save();
+            $deliverable->invoice_id = $invoice->id;
+            $deliverable->save();
+        }
+    {
+        $deliverable = Deliverables::findOrFail($id);
+        $linkCount = $deliverable->feasibility->no_of_links ?? 1;
+        $rules = [
+            'lan_ip_1' => 'required'
+        ];
+        for ($i = 1; $i <= $linkCount; $i++) {
+            $rules["mode_of_delivery_$i"] = 'required|string';
+            $rules["mtu_$i"] = 'required';
+        }
+        $request->validate($rules);
+
+        // Only update the main deliverable record once
+        $data = $request->only([
+            'status_of_link','mode_of_delivery','circuit_id',
+            'client_circuit_id','client_feasibility','vendor_code',
+            'mtu','wifi_username','wifi_password',
+            'router_username','router_password','invoice_no',
+            'lan_ip_1','lan_ip_2','lan_ip_3','lan_ip_4',
+            'asset_id','asset_serial_no','asset_mac_no','otc_extra_charges','payment_login_url',
+            'payment_quick_url','payment_account','payment_username','payment_password','ipsec',
+            'phase_1','phase_2','ipsec_interface'
+        ]);
+
+        /* ===================== FILE UPLOADS ===================== */
+
 $uploadMap = [
     'speed_test_file' => 'images/deliverable_speed_test',
     'ping_report_dns_file' => 'images/deliverable_pingreportdns',
@@ -545,14 +622,24 @@ $cc = is_string($cc)
 if ($companySetting && $companySetting->delivery_email_check) {
 
     Log::info('Delivery email enabled, sending mail');
-            $emailSent = EmailHelper::sendDynamicEmail(
-    $to,
-    $templateKey,
-    $templateData,
-    $cc,
-    null,
-    'delivery'
-);
+            try {
+                try {
+                    dispatch(function () use ($to, $templateKey, $templateData, $cc) {
+                        EmailHelper::sendDynamicEmail(
+                            $to,
+                            $templateKey,
+                            $templateData,
+                            $cc,
+                            null,
+                            'delivery'
+                        );
+                    });
+                } catch (\Exception $e) {
+                    Log::error('Delivery email queue failed: ' . $e->getMessage());
+                }
+            } catch (\Exception $e) {
+                Log::error('Delivery email failed: ' . $e->getMessage());
+            }
 } else {
     Log::info('Delivery email disabled via settings');
 }
@@ -600,7 +687,8 @@ if ($companySetting && $companySetting->delivery_email_check) {
                 ->with('success', 'Deliverable saved successfully');
         }
     }
-
+    }
+    
     // Acceptance list page (show all ILL deliverables that reached Delivery)
     public function operationsAcceptance()
     {

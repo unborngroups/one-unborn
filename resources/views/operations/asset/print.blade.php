@@ -13,55 +13,29 @@
         }
         body {
             margin: 0;
-            padding: 4mm;
+            text-align: center;
+            /* padding: 4mm; */
             font-family: 'Inter', 'Segoe UI', sans-serif;
             background: #fff;
+            /* margin-left: 2mm; */
         }
-        .print-wrapper {
-            width: 4cm;
-            border-radius: 6px;
-            background: #fff;
-            border: 1px solid #e1e7ec;
-            padding: 4mm;
-            box-shadow: none;
-            margin: 0 auto;
-        }
+        
         .company {
             font-size: 10px;
             text-transform: uppercase;
             color: #0f172a;
-            margin-bottom: 5px;
+            /* margin-bottom: 2px; */
             font-weight: 600;
         }
         .label-title {
-            font-size: 10                                                                                          px;
-            font-weight: 600;
+            font-size: 10px;
+            font-weight: 500;
             color: #0f172a;
             /* margin: 6px 0 12px; */
-            margin-left: 40px;
+            /* margin-left: 40px;   */
         }
-        .meta-row {
-            padding: 6px 0;
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: #475467;
-            border-bottom: 1px dashed #e4e7ec;
-        }
-        .meta-row:last-child {
-            border-bottom: none;
-        }
-        .barcode-box {
-            margin-top: 10px;
-            padding: 5px;
-            background: #fff;
-            text-align: left;
-        }
-        .footer-note {
-            margin-top: 10px;
-            font-size: 11px;
-            color: #94a3b8;
-        }
+      
+        
         @media print {
             body {
                 background: #fff;
@@ -81,12 +55,9 @@
     {{ $asset->model_no }}<br>
     <div class="company">  {{$asset->company->company_name ?? ''}} </div>
   
- <img src="/barcode.php?code={{ $asset->asset_id }}" alt="Barcode" style="height:40px; width:200px">
+ <img src="/barcode.php?code={{ $asset->asset_id }}" alt="Barcode" style="height:20mm; width:50mm">
         <div class="label-title">{{ $asset->asset_id }}</div>
 
-        
-     
-      
 
 </div>
         <!--  -->

@@ -13,8 +13,8 @@
     <h4 class="mb-3">Invoice List</h4>
 
     <table class="table table-bordered">
-        <thead>
-            <tr class="bg-dark">
+        <thead class="table-dark-primary">
+            <tr>
                 <th>S.No</th>
                 <th>Invoice No</th>
                 <th>Client</th>
@@ -28,15 +28,14 @@
             <tr>
                 <td><?php echo e($key + 1); ?></td>
                 <td><?php echo e($invoice->invoice_no); ?></td>
-                <td><?php echo e($feasibility->client->client_name); ?></td>
+                <td><?php echo e($invoice->deliverable->feasibility->client->client_name); ?></td>
                 <td><?php echo e(\Carbon\Carbon::parse($invoice->invoice_date)->format('d-m-Y')); ?></td>
                 <td><?php echo e(number_format($invoice->total_amount,2)); ?></td>
                 <td>
                     <a href="<?php echo e(route('finance.invoices.view',$invoice->id)); ?>"
                        class="btn btn-info btn-sm">View</a>
 
-                    <a href="<?php echo e(route('finance.invoices.edit',$invoice->id)); ?>"
-                       class="btn btn-warning btn-sm">Edit</a>
+                    
 
                     <a href="<?php echo e(route('finance.invoices.pdf',$invoice->id)); ?>"
                        class="btn btn-secondary btn-sm">PDF</a>

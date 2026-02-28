@@ -56,6 +56,8 @@
 
                         <input type="hidden" name="allow_reuse" value="0">
 
+                        <input type="hidden" name="total_cost" id="total_cost_hidden" value="{{ $purchaseOrder->total_cost }}">
+
                         @csrf
 
                         @method('PUT')
@@ -322,7 +324,7 @@
 
                                 <label class="form-label"><strong>Total Cost (Auto-calculated)</strong></label>
 
-                                <div class="form-control bg-light" id="totalCost">
+                                <div class="form-control bg-light" name="total_cost" id="totalCost">
 
                                     ₹{{ number_format($purchaseOrder->total_cost, 2) }}
 
@@ -946,8 +948,12 @@ function calculateTotal() {
     
 
     // ✅ Format for Indian currency display
-
     document.getElementById('totalCost').textContent = `₹${total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+    // ✅ Set hidden input for backend
+    const hiddenInput = document.getElementById('total_cost_hidden');
+    if (hiddenInput) {
+        hiddenInput.value = total;
+    }
 
 }
 

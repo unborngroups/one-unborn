@@ -40,6 +40,7 @@ return new class extends Migration
 
             $table->integer('no_of_links');
             $table->string('import_file')->nullable();
+            $table->decimal('total_cost', 15, 2)->nullable();
             $table->integer('contract_period'); // in months
             // $table->text('remarks')->nullable();
              // ✅ Workflow status

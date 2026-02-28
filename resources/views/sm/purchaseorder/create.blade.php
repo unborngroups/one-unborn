@@ -130,7 +130,7 @@
 
                             <div class="col-md-6 mb-3">
                                 <label class="form-label"><strong>Total Cost</strong></label>
-                                <input type="text" id="totalCost" class="form-control bg-light" readonly value="₹0.00">
+                                <input type="text" name="total_cost" id="totalCost" class="form-control bg-light" readonly value="₹0.00">
                             </div>
 
                             <!-- <div class="col-md-4 mb-3">
@@ -142,8 +142,8 @@
                         <div class="row">
                             <!-- Import Document Upload -->
                             <div class="col-md-4 mb-3">
-                                <label for="import_file">Import Document</label>
-                                <input type="file" class="form-control" name="import_file" id="import_file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx">
+                                <label for="import_file">Import Document <span class="text-danger">*</span></label>
+                                <input type="file" class="form-control" name="import_file" id="import_file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" required>
                                 <div id="importFileInfo" class="mt-2"></div>
                             </div>
                         </div>
@@ -553,7 +553,18 @@ function calculateTotal() {
         t += (parseFloat(document.getElementById(`static_ip_link_${i}`)?.value) || 0);
     }
 
+    // Set display value
     document.getElementById('totalCost').value = '₹' + t.toFixed(2);
+    // Set hidden numeric value for backend
+    let hiddenInput = document.getElementById('total_cost_hidden');
+    if (!hiddenInput) {
+        hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'total_cost';
+        hiddenInput.id = 'total_cost_hidden';
+        document.getElementById('purchaseOrderForm').appendChild(hiddenInput);
+    }
+    hiddenInput.value = t.toFixed(2);
 }
 function redirectToFeasibilityView() {
     const select = document.getElementById('feasibility_id');

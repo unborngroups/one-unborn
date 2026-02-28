@@ -48,6 +48,7 @@ public function index(Request $request)
     public function store(Request $request)
     {
        $validated = $request->validate([
+        'company_logo' => 'nullable|image|max:2048',
         'user_name' => 'nullable|string|max:255',
     'trade_name' => 'nullable|string|max:255',
     'company_name' => 'required|string|max:255',
@@ -81,6 +82,8 @@ public function index(Request $request)
 ]);
 
 // ✅ Upload images to public/images/...
+
+        $validated['company_logo'] = $this->uploadImage($request, 'company_logo', 'companylogos');
         $validated['billing_logo'] = $this->uploadImage($request, 'billing_logo', 'logos');
         $validated['billing_sign_normal'] = $this->uploadImage($request, 'billing_sign_normal', 'n_signs');
         $validated['billing_sign_digital'] = $this->uploadImage($request, 'billing_sign_digital', 'd_signs');
@@ -107,6 +110,7 @@ public function index(Request $request)
     {
         try {
             $validated = $request->validate([
+                'company_logo' => 'nullable|image|max:2048',
                 'user_name' => 'nullable|string|max:255',
                 'trade_name' => 'nullable|string|max:255',
                 'company_name' => 'required|string|max:255',
@@ -142,6 +146,7 @@ public function index(Request $request)
             Log::info('Company Update - ID: ' . $company->id . ', Data: ' . json_encode($validated));
             
             // ✅ Replace images if new uploaded
+            $validated['company_logo'] = $this->updateImage($request, $company->company_logo, 'company_logo', 'companylogos');
         $validated['billing_logo'] = $this->updateImage($request, $company->billing_logo, 'billing_logo', 'logos');
         $validated['billing_sign_normal'] = $this->updateImage($request, $company->billing_sign_normal, 'billing_sign_normal', 'n_signs');
         $validated['billing_sign_digital'] = $this->updateImage($request, $company->billing_sign_digital, 'billing_sign_digital', 'd_signs');
@@ -167,6 +172,7 @@ public function index(Request $request)
         $company = Company::findOrFail($id);
         
         // Delete images before deleting company record
+        $this->deleteImage('images/companylogos/' . $company->company_logo);
         $this->deleteImage('images/logos/' . $company->billing_logo);
         $this->deleteImage('images/n_signs/' . $company->billing_sign_normal);
         $this->deleteImage('images/d_signs/' . $company->billing_sign_digital);

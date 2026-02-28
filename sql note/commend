@@ -4,6 +4,9 @@ php artisan sync:deliverables-from-pos
 # invoice pdf generate panna itha terminal la run pannanum
 composer require barryvdh/laravel-dompdf
 
+# queue work panna itha terminal la run pannanum
+php artisan queue:work
+
 F:\xampp\php\php.ini
 ;extension=sockets  --> extension=sockets  #update pannanu
 ;extension=gd   --> extension=gd  #update pannanu
@@ -81,3 +84,15 @@ JOIN feasibilities f
 JOIN deliverable_plans dp
     ON dp.deliverable_id = d.id
 WHERE d.status = 'Delivery';
+
+
+SELECT DISTINCT
+    f.feasibility_request_id,
+    dp.id,
+    dp.remarks    
+FROM deliverables d
+JOIN feasibilities f
+    ON f.id = d.feasibility_id
+JOIN deliverable_plans dp
+    ON dp.deliverable_id = d.id
+

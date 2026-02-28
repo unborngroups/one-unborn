@@ -2,236 +2,257 @@
 
 <?php $__env->startSection('content'); ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Invoice</title>
-    <style>
-        body {
-            background-color: #f2f2f2;
-            font-family: DejaVu Sans, sans-serif;
-            font-size: 12px;
-            color: #000;
-        }
-        .header {
-            width: 100%;
-            margin-bottom: 20px;
-        }
-        .header table {
-            width: 100%;
-        }
-        .invoice-title {
-            font-size: 18px;
-            font-weight: bold;
-            text-align: right;
-        }
-        .section {
-            margin-top: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid #000;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        th, td {
-            padding: 6px;
-            text-align: left;
-        }
-        .text-right {
-            text-align: right;
-        }
-        .no-border {
-            border: none !important;
-        }
-        img {
-            max-width: 250px;
-        }
-        .card{
-            width: 70%;
-            margin: 20px auto;
-            background-color: #fff;
-            border: 1px solid #000;
-        }
-    </style>
-</head>
+<div class="container mt-4">
+    <div class="card shadow p-1">
+        <div class="card-body">
 
-<body>
-<div class="card">
-<table width="100%" cellpadding="5">
+            
+            <div class="row">
+                <div class="col-md-2">
+                    <?php
+                        $logo = $feasibility->company->company_logo ?? $company->company_logo ?? null;
+                    ?>
+                    <?php if($logo && file_exists(public_path('images/companylogos/' . $logo))): ?>
+                        <img src="<?php echo e(asset('images/companylogos/' . $logo)); ?>" alt="Company Logo" style="max-width: 100px; max-height: 100px;">
+                    <?php else: ?>
+                        <div style="width:100px; height:100px; background:#ccc; display:flex; align-items:center; justify-content:center;">No Logo</div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="col-md-7 text-center" style="width: 350px;">
+                    <h5 class="mb-1"><strong><?php echo e($feasibility->company->company_name ?? ''); ?></strong></h5>
+                    Company ID: <?php echo e($feasibility->company->company_id ?? ''); ?> <br>
+                    <?php echo e($feasibility->company->address ?? ''); ?> <br>
+                    GSTIN: <?php echo e($feasibility->company->gstin ?? ''); ?> <br>
+                    Phone: 04341222226 / 9688862676 <br>
+                    Email: <?php echo e($feasibility->company->company_email ?? ''); ?>
+
+                </div>
+
+                <div class="col-md-3 text-end">
+                    <h3 class="fw-bold">TAX INVOICE</h3>
+                </div>
+            </div>
+
+            <hr>
+
+            
+            <table class="table table-bordered">
     <tr>
-        <td width="15%" style="border:none;">
-                            <img src="<?php echo e(asset('images/logo1.png')); ?>" alt="Logo" class="h-16">
 
+    
+        <!-- LEFT SIDE -->
+        <td style="width:50%; text-align: left;" >
+            
+            <strong>Invoice #</strong> : <span><?php echo e($invoice->invoice_no); ?></span> <br>
+            <strong>Invoice Date</strong> : <span><?php echo e($invoice->invoice_date); ?> </span> <br>
+            <strong>Terms</strong> : <span>Net 30</span><br>
+            <strong>Due Date</strong> : <span><?php echo e($invoice->due_date); ?></span> <br>
+            <strong>P.O #</strong> : <span><?php echo e($deliverables->purchaseOrder->po_number ?? ''); ?></span>
         </td>
 
-        <td width="55%" style="border:none;">
-            <strong><?php echo e($feasibility->company->company_name ?? ''); ?></strong><br>
-            Company ID: <?php echo e($feasibility->company->company_id ?? ''); ?><br>
-            <?php echo e($feasibility->company->address ?? ''); ?><br>
-            GSTIN: <?php echo e($feasibility->company->gstin ?? ''); ?><br>
-            Phone: <?php echo e($feasibility->company->alternative_contact_number ?? ''); ?><br>
-            Email: <?php echo e($feasibility->company->company_email ?? ''); ?>
-
-        </td>
-
-        <td width="30%" align="right" style="border:none;">
-            <h2>TAX INVOICE</h2>
-        </td>
-    </tr>
-</table>
-
-<hr>
-
-
-<table width="100%" cellpadding="5">
-    <tr>
-        <td width="50%">
-            <strong>Invoice #:</strong> <?php echo e($invoice->invoice_no); ?><br>
-            <strong>Invoice Date:</strong> <?php echo e($invoice->invoice_date); ?><br>
-            <strong>Terms:</strong> Net 30<br>
-            <strong>Due Date:</strong> <?php echo e($invoice->due_date); ?><br>
-            <strong>PO #:</strong> <?php echo e($deliverables->purchaseOrder->po_number ?? ''); ?>
-
-        </td>
-
-        <td width="50%">
-            <strong>Place Of Supply:</strong> <?php echo e($invoice->place_of_supply ?? ''); ?><br>
-            <strong>Service ID:</strong> <?php echo e($invoice->service_id ?? ''); ?><br>
-            <strong>UNBORN Service ID:</strong> <?php echo e($invoice->unborn_service_id ?? ''); ?><br>
-            <strong>Feasibility ID:</strong> <?php echo e($deliverables->feasibility->feasibility_request_id ?? ''); ?><br>
-            <strong>Vendor ID:</strong> <?php echo e($deliverablePlan->vendor_code ?? ''); ?>
+        <!-- RIGHT SIDE -->
+        <td style="width:50%; text-align: left;">
+            <strong>Place Of Supply</strong> : <?php echo e($feasibility->client->state ?? ''); ?> <br>
+            <strong>Service ID</strong> : <?php echo e($invoice->service_id ?? ''); ?> <br>
+            <strong>UNBORN Service ID/Circuit_id</strong> : <?php echo e($invoice->service_id ?? ''); ?> | <?php echo e($deliverablePlan->circuit_id ?? ''); ?> <br>
+            <strong>Feasibility ID</strong> : <?php echo e($deliverables->feasibility->feasibility_request_id ?? ''); ?> <br>
+            <strong>Vendor ID</strong> : <?php echo e($deliverablePlan->vendor_code ?? ''); ?>
 
         </td>
     </tr>
-</table>
 
-<br>
-
-
-<table width="100%" cellpadding="5">
-    <tr>
-        <th width="50%">Bill To</th>
-        <th width="50%">Ship To</th>
+    <!-- BILL TO / SHIP TO HEADER -->
+    <tr class="table-secondary">
+        <td><strong>Bill To</strong></td>
+        <td><strong>Ship To</strong></td>
     </tr>
+
+    <!-- BILL TO / SHIP TO DATA -->
     <tr>
         <td>
             <strong><?php echo e($feasibility->client->client_name ?? ''); ?></strong><br>
+            <?php echo e($feasibility->client->client_name ?? ''); ?><br>
             <?php echo e($feasibility->client->address1 ?? ''); ?><br>
             <?php echo e($feasibility->client->city ?? ''); ?>,
-            <?php echo e($feasibility->client->state ?? ''); ?>
-
-            - <?php echo e($feasibility->client->pincode ?? ''); ?><br>
+            <?php echo e($feasibility->client->state ?? ''); ?> -
+            <?php echo e($feasibility->client->pincode ?? ''); ?><br>
             GSTIN: <?php echo e($feasibility->client->gstin ?? ''); ?>
 
         </td>
 
-        <td>
-            <strong><?php echo e($client->ship_to_name ?? $client->client_name ?? ''); ?></strong><br>
-            <?php echo e($client->ship_to_address ?? $client->address ?? ''); ?><br>
-            <?php echo e($client->ship_to_city ?? $client->city ?? ''); ?>,
-            <?php echo e($client->ship_to_state ?? $client->state ?? ''); ?>
-
-            - <?php echo e($client->ship_to_pincode ?? $client->pincode ?? ''); ?><br>
-            GSTIN: <?php echo e($client->ship_to_gst_number ?? $client->gst_number ?? ''); ?>
+        <td class="Ship">
+            <?php echo e($feasibility->client->client_name ?? ''); ?><br>
+            <?php echo e($feasibility->address ?? ''); ?><br>
+            <?php echo e($feasibility->city ?? ''); ?>,
+            <?php echo e($feasibility->district ?? ''); ?>,
+            <?php echo e($feasibility->state ?? ''); ?> -
+            <?php echo e($feasibility->pincode ?? ''); ?><br>
+            GSTIN: <?php echo e($feasibility->client->gstin ?? ''); ?>
 
         </td>
     </tr>
 </table>
+            <br>
 
-<br>
-<strong>Subject:</strong>
-            Invoice for Order ID: <?php echo e($invoice->order_id ?? ''); ?>
+            
+            <p>
+                <strong>Subject:</strong>
+                Invoice for Order ID: <?php echo e($invoice->order_id ?? ''); ?>
 
-            | Vendor Code: <?php echo e($deliverablePlan->vendor_code ?? ''); ?>
+                | Vendor Code: <?php echo e($deliverables->deliverablePlan->vendor_code ?? ''); ?>
 
+            </p>
 
+            
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th rowspan="2">#</th>
+                            <th rowspan="2">Item & Description</th>
+                            <th rowspan="2">HSN/SAC</th>
+                            <th rowspan="2">Qty</th>
+                            <th rowspan="2">Rate</th>
+                            <th rowspan="2">Amount</th>
+                            <th rowspan="2">Taxable Amount</th>
+                            <th colspan="2">CGST</th>
+                            <th colspan="2">SGST</th>
+                        </tr>
+                        <tr>
+                            <th>%</th>
+                            <th>Amt</th>
+                            <th>%</th>
+                            <th>Amt</th>
+                        </tr>
+                    </thead>
 
-<br>
+                    <?php
+    $taxable = $deliverables->purchaseOrder->arc_per_link ?? 0;
+    $cgstPercent = 9;
+    $sgstPercent = 9;
 
+    $cgstAmount = ($taxable * $cgstPercent) / 100;
+    $sgstAmount = ($taxable * $sgstPercent) / 100;
+?>
+<!-- 995423 -->
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td><?php echo e($item ? $item->item_name : 'N/A'); ?></td>
+                            <td><?php echo e($item ? $item->hsn_sac_code : 'N/A'); ?></td>
+                            <td></td>
+                            <td><?php echo e($deliverables->purchaseOrder->arc_per_link); ?></td>
+                            <td><?php echo e($deliverables->purchaseOrder->arc_per_link); ?></td>
+                            <td><?php echo e($deliverables->purchaseOrder->arc_per_link); ?></td>
+                            <td><?php echo e($cgstPercent); ?>%</td>
+                            <td><?php echo e(number_format($cgstAmount,2)); ?></td>
+                            <td><?php echo e($sgstPercent); ?>%</td>
+                            <td><?php echo e(number_format($sgstAmount,2)); ?></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-<table width="100%" cellpadding="5">
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Description</th>
-            <th>HSN/SAC</th>
-            <th>Qty</th>
-            <th>Rate</th>
-            <th>Amount</th>
-            <th>Taxable</th>
-            <th>CGST</th>
-            <th>SGST</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php $__currentLoopData = $invoice->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-        <tr>
-            <td><?php echo e($key+1); ?></td>
-            <td><?php echo e($item->description); ?></td>
-            <td><?php echo e($item->hsn_sac ?? ''); ?></td>
-            <td><?php echo e($item->quantity); ?></td>
-            <td align="right"><?php echo e(number_format($item->rate,2)); ?></td>
-            <td align="right"><?php echo e(number_format($item->amount,2)); ?></td>
-            <td align="right"><?php echo e(number_format($item->taxable_amount ?? 0,2)); ?></td>
-            <td align="right"><?php echo e(number_format($item->cgst_amount ?? 0,2)); ?></td>
-            <td align="right"><?php echo e(number_format($item->sgst_amount ?? 0,2)); ?></td>
-        </tr>
-        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-    </tbody>
-</table>
+            
+            <div class="invoice-bottom">
 
-<br>
+                <!-- LEFT -->
+                <div class="left-box">
+                    <p><strong>Total in Words</strong><br>
+                    <?php echo e($invoice->total_in_words ?? '---'); ?></p>
 
+                    <p><strong>Notes</strong><br>
+                    Thanks for your business.</p>
 
-<table width="100%">
-    <tr>
-        <td width="60%" style="border:none;"></td>
+                    <p><strong>Terms & Conditions</strong><br>
+                        Payment Details: <?php echo e($feasibility->company->company_name); ?><br>
+                        Account Number : <?php echo e($feasibility->company->account_number ?? ''); ?><br>
+                        IFSC Code : <?php echo e($feasibility->company->ifsc_code ?? ''); ?><br>
+                        Branch & Bank : <?php echo e($feasibility->company->branch_name ?? ''); ?>,
+                        <?php echo e($feasibility->company->bank_name ?? ''); ?>
 
-        <td width="40%">
-            <table width="100%" cellpadding="5">
+                    </p>
+                </div>
+
+                <!-- RIGHT -->
+                <!-- RIGHT SIDE -->
+       <!-- RIGHT SIDE -->
+        <div style="width:35%; padding:0;">
+            <table style="width:100%;">
                 <tr>
-                    <td>Sub Total</td>
-                    <td align="right"><?php echo e(number_format($invoice->subtotal,2)); ?></td>
+                    <td>Total</td>
+                    <td class="text-end"><strong><?php echo e(number_format($invoice->total_amount,2)); ?></strong></td>
                 </tr>
                 <tr>
-                    <td>CGST</td>
-                    <td align="right"><?php echo e(number_format($invoice->cgst_total ?? 0,2)); ?></td>
+                    <td><strong>Balance Due</strong></td>
+                    <td class="text-end"><strong><?php echo e(number_format($invoice->total_amount,2)); ?></strong></td>
                 </tr>
                 <tr>
-                    <td>SGST</td>
-                    <td align="right"><?php echo e(number_format($invoice->sgst_total ?? 0,2)); ?></td>
-                </tr>
-                <tr>
-                    <td><strong>Total</strong></td>
-                    <td align="right"><strong><?php echo e(number_format($invoice->total_amount,2)); ?></strong></td>
+                    <td colspan="2" style="height:80px; text-align:center; vertical-align:bottom;">
+                        Authorized Signature
+                    </td>
                 </tr>
             </table>
-        </td>
-    </tr>
-</table>
+        </div>
 
-<br><br>
-
-<div style="text-align:right;">
-    Authorized Signature
-</div>
-
-
-</div>
-
-            <div class="d-flex justify-content-center gap-2">
-                <a href="<?php echo e(route('finance.invoices.index')); ?>" class="btn btn-secondary"><--Back</a>
             </div>
-</body> 
-</html>
 
+        </div>
+    </div>
+
+    <div class="text-center mt-3">
+        <a href="<?php echo e(route('finance.invoices.index')); ?>" class="btn btn-secondary">← Back</a>
+    </div>
+</div>
+
+<style>
+.card {
+    font-size: 14px;
+}
+
+.table th, .table td {
+    vertical-align: middle;
+    font-size: 13px;
+}
+
+span{
+    text-align: right;
+}
+
+.invoice-bottom {
+    display: flex;
+    margin-top: 20px;
+}
+
+.left-box {
+    width: 60%;
+}
+
+.right-box {
+    width: 40%;
+    border: 1px solid #000;
+    padding: 10px;
+}
+
+.right-box table td {
+    border: none;
+    padding: 5px;
+}
+
+.signature {
+    margin-top: 40px;
+    text-align: center;
+}
+
+.card{
+    border-color: #000;
+    border-radius: 1px;
+    border-style: solid;
+    width: 70%;
+    margin-left: 15%;
+}
+</style>
 
 <?php $__env->stopSection(); ?>
-
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\finance\invoices\view.blade.php ENDPATH**/ ?>

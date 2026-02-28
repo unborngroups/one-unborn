@@ -1,5 +1,24 @@
 <div class="row">
 
+    
+
+    <div class="col-md-4 mb-3">
+
+        <label class="form-label">Company Logo</label>
+
+        <input type="file" name="company_logo" class="form-control">
+
+        <?php if(!empty($company->company_logo)): ?>
+
+            <img src="<?php echo e(asset('images/companylogos/' . $company->company_logo)); ?>" class="mt-2 border rounded" width="80">
+
+        <?php endif; ?>
+
+    </div>
+
+
+
+
 
 
     <div class="col-md-4 mb-3">
@@ -67,8 +86,6 @@
 
 
 
-
-
     <div class="col-md-4 mb-3">
 
     <label class="form-label">Company Email (Primary) <span class="text-danger">*</span></label>
@@ -115,13 +132,13 @@
 
             value="<?php echo e(old('gstin', $company->gstin ?? '')); ?>">
 
-        <small class="text-muted">Fetch details from GST API automatically</small>
+        <!-- <small class="text-muted">Fetch details from GST API automatically</small>
 
         <button type="button" id="fetch_gst_btn" class="btn btn-sm btn-primary mt-2">
 
   Fetch details from GST
 
-</button>
+</button> -->
 
 
 

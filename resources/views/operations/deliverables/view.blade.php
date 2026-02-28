@@ -335,22 +335,10 @@
             @endphp
 
             <div class="text-end">
+
                 <a href="{{ route($backRoute) }}" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Back
                 </a>
-            </div>
-
-           @if(isset($deliverable) && !$deliverable->invoice_id)
-    <a href="{{ route('finance.invoices.create', ['deliverable_id' => $deliverable->id]) }}"
-       class="btn btn-primary">
-        Send Invoice
-    </a>
-@elseif(isset($deliverable) && $deliverable->invoice_id)
-    <a href="{{ route('finance.invoices.view', $deliverable->invoice_id) }}"
-       class="btn btn-success">
-        View Invoice
-    </a>
-@endif
 
 
         </div>

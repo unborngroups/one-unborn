@@ -155,4 +155,16 @@ ALTER TABLE deliverables
 ADD COLUMN invoice_id BIGINT UNSIGNED NULL AFTER delivery_notes;
   
 
-  --------------------------------------------
+  ----------------------------update pannanu----------------
+  ALTER TABLE companies
+  ADD COLUMN company_logo VARCHAR(255) NULL AFTER billing_logo;
+
+  ALTER TABLE purchase_orders
+    ADD COLUMN total_cost  DECIMAL(15,2) NULL AFTER import_file;
+
+    
+ALTER TABLE items
+ADD COLUMN invoice_id BIGINT UNSIGNED NULL AFTER id;
+  
+ALTER TABLE `invoices` ADD `items_id` BIGINT(20) UNSIGNED NULL AFTER `terms`;
+

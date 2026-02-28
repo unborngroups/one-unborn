@@ -12,6 +12,19 @@
                         <input type="hidden" name="per_page" value="<?php echo e(request('per_page', 10)); ?>">
                     </form>
                 </div>
+
+                <form id="filterForm" method="GET" class="d-flex align-items-center gap-2 w-100">
+            <label for="entriesSelect" class="mb-0">Show</label>
+            <select id="entriesSelect" name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                <option value="10" <?php echo e(request('per_page', 10) == 10 ? 'selected' : ''); ?>>10</option>
+                <option value="25" <?php echo e(request('per_page') == 25 ? 'selected' : ''); ?>>25</option>
+                <option value="50" <?php echo e(request('per_page') == 50 ? 'selected' : ''); ?>>50</option>
+                <option value="100" <?php echo e(request('per_page') == 100 ? 'selected' : ''); ?>>100</option>
+            </select>
+            <!-- <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search..."> -->
+
+        </form>
+        
                 <div class="card-body">
                     <?php if($records->count() > 0): ?>
                         <div class="table-responsive">
@@ -41,7 +54,7 @@
 
                                                        class="btn btn-info btn-sm" title="View">
 
-                                                        <i class="bi bi-eye"></i> View
+                                                        <i class="bi bi-eye"></i> 
 
                                                     </a>
                                                     <?php endif; ?>  
@@ -50,12 +63,10 @@
                                                         <form action="<?php echo e(route('operations.feasibility.makefeasible', $record->id)); ?>" method="POST" style="display:inline;">
                                                             <?php echo csrf_field(); ?>
                                                             <button type="submit" class="btn btn-success btn-sm" title="Mark as Feasible" onclick="return confirm('Mark this feasibility as Feasible?');">
-                                                                <i class="bi bi-check-circle"></i> Feasible
+                                                                <i class="bi bi-check-circle"></i> <!-- Feasible -->
                                                             </button>
                                                         </form>
-                                                        <button type="button" class="btn btn-danger btn-sm" disabled>
-                                                            <i class="bi bi-x-octagon"></i> Not-Feasible
-                                                        </button>
+                                                        
                                                     <?php endif; ?>
                                             </td>
                                             <td><?php echo e($record->feasibility->feasibility_request_id ?? 'N/A'); ?></td>

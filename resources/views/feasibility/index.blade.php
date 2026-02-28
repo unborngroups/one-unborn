@@ -40,8 +40,9 @@
                 </select>
                 <!-- <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search..."> -->
             </form>
+                <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-sm w-25" placeholder="Search..." onkeyup="this.form.submit();">
 
-            <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search...">
+            <!-- <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search..."> -->
 
         </div>
 
@@ -217,7 +218,7 @@
 
 <script>
 
-document.getElementById('tableSearch').addEventListener('keyup', function() {
+document.getElementById('search').addEventListener('keyup', function() {
 
     let value = this.value.toLowerCase();
 

@@ -58,26 +58,28 @@ class InvoiceController extends Controller
     public function view($id)
     {
         $invoice = Invoice::with([
-            'items',
+        
             'company',
             'client',
             'deliverable.feasibility.company',
             'deliverable.feasibility.client',
             'deliverable.purchaseOrder',
+            'item',
          
         ])->findOrFail($id);
         $company = $invoice->company;
         $client = $invoice->client;
+        $item = $invoice->item;
         $deliverables = $invoice->deliverable;
         $feasibility = $deliverables->feasibility ?? null;
-        return view('finance.invoices.view', compact('invoice', 'company', 'client', 'deliverables', 'feasibility'));
+        return view('finance.invoices.view', compact('invoice', 'company', 'client', 'deliverables', 'feasibility', 'item'));
     }
 
-    public function edit($id)
-    {
-        $invoice = Invoice::findOrFail($id);
-        return view('finance.invoices.edit', compact('invoice'));
-    }
+    // public function edit($id)
+    // {
+    //     $invoice = Invoice::findOrFail($id);
+    //     return view('finance.invoices.edit', compact('invoice'));
+    // }
 
     public function update(Request $request, $id)
     {
@@ -93,10 +95,27 @@ class InvoiceController extends Controller
                  ->with('success','Invoice Updated');
     }
 
+    // Update item_id for an invoice (superadmin/admin only)
+    public function updateInvoiceItem(Request $request, $id)
+    {
+        $user = auth()->user();
+        if (!in_array($user->user_type_id, [1, 2])) {
+            abort(403, 'Unauthorized');
+        }
+        $invoice = \App\Models\Invoice::find($id);
+        $itemId = $request->input('item_id');
+        if ($invoice && $itemId) {
+            $invoice->item_id = $itemId;
+            $invoice->save();
+            return redirect()->back()->with('success', 'Invoice item updated successfully.');
+        }
+        return redirect()->back()->with('error', 'Invoice or item not found.');
+    }
+
     public function pdf($id)
     {
         $invoice = Invoice::with([
-            'items',
+            
             'company',
             'client',
             'deliverable.feasibility.company',
@@ -105,15 +124,16 @@ class InvoiceController extends Controller
         ])->findOrFail($id);
         $company = $invoice->company;
         $client = $invoice->client;
+        $item = $invoice->item;
         $deliverables = $invoice->deliverable;
         $feasibility = $deliverables->feasibility ?? null;
-        $pdf = PDF::loadView('finance.invoices.view', compact('invoice', 'company', 'client', 'deliverables', 'feasibility'));
+        $pdf = PDF::loadView('finance.invoices.pdf', compact('invoice', 'company', 'client', 'deliverables', 'feasibility', 'item'));
         return $pdf->download('Invoice_' . $invoice->invoice_no . '.pdf');
     }
 
     public function sendEmail($id)
     {
-        $invoice = Invoice::with(['items', 'company', 'client', 'deliverable'])->findOrFail($id);
+        $invoice = Invoice::with(['company', 'client', 'deliverable'])->findOrFail($id);
         $company = $invoice->company;
         $client = $invoice->client;
         $pdf = PDF::loadView('finance.invoices.view', compact('invoice', 'company', 'client'));

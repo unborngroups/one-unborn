@@ -18,6 +18,7 @@ class PurchaseOrder extends Model
         'static_ip_cost_per_link',
         'no_of_links',
         'contract_period',
+        'total_cost',
         'import_file',
         'status',
         // Individual link pricing fields

@@ -15,6 +15,7 @@ return new class extends Migration
         Schema::create('companies', function (Blueprint $table) {
             $table->id();
              // 🏷️ Basic Details
+            $table->string('company_logo')->nullable();
             $table->string('trade_name')->nullable();              // Trade/Brand Name
             $table->string('company_name');                        // Company Name
             $table->string('business_number')->nullable();               // Business Number (CIN / LLPIN)
@@ -53,6 +54,7 @@ return new class extends Migration
             $table->decimal('opening_balance', 15, 2)->nullable();
 
             // 🧾 Branding (Logos / Signatures)
+
             $table->string('billing_logo')->nullable();
             $table->string('billing_sign_normal')->nullable();
             $table->string('billing_sign_digital')->nullable();

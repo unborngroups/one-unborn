@@ -19,6 +19,7 @@ use App\Http\Controllers\Finance\VendorInvoiceController;
 use App\Http\Controllers\Finance\InvoiceController;
 use App\Http\Controllers\Report\DeliverableController;
 use App\Http\Controllers\Finance\ExpenseController;
+use App\Http\Controllers\Finance\ItemsController;
 use App\Http\Controllers\Finance\DebitNoteController; 
 use App\Http\Controllers\TerminationController;
 use App\Http\Controllers\RenewalController;
@@ -75,12 +76,12 @@ Route::post('/otp/verify', [OtpController::class, 'verify'])->name('otp.verify')
 Route::prefix('chat')
     ->middleware(['auth', \App\Http\Middleware\CheckProfileCreated::class])
     ->group(function () {
-        Route::get('/group/{id}/messages', [App\Http\Controllers\ChatController::class,'fetchMessages'])->name('chat.messages');
-        Route::post('/send', [App\Http\Controllers\ChatController::class,'send'])->name('chat.send');
-        Route::get('/group/{id}/online-users', [App\Http\Controllers\ChatController::class,'onlineUsers'])->name('chat.online-users');
-        Route::get('/all-users', [App\Http\Controllers\ChatController::class, 'allOnlineUsers'])->name('chat.all-online-users');
-        Route::post('/typing', [App\Http\Controllers\ChatController::class,'typing'])->name('chat.typing');
-        Route::get('/bootstrap', [App\Http\Controllers\ChatController::class,'bootstrap'])->name('chat.bootstrap');
+                // Route::get('/group/{id}/messages', [App\Http\Controllers\ChatController::class,'fetchMessages'])->name('chat.messages');
+                // Route::post('/send', [App\Http\Controllers\ChatController::class,'send'])->name('chat.send');
+                // Route::get('/group/{id}/online-users', [App\Http\Controllers\ChatController::class,'onlineUsers'])->name('chat.online-users');
+                // Route::get('/all-users', [App\Http\Controllers\ChatController::class, 'allOnlineUsers'])->name('chat.all-online-users');
+                // Route::post('/typing', [App\Http\Controllers\ChatController::class,'typing'])->name('chat.typing');
+                // Route::get('/bootstrap', [App\Http\Controllers\ChatController::class,'bootstrap'])->name('chat.bootstrap');
     });
 
     // Private chat APIs for one-to-one chat
@@ -172,7 +173,7 @@ Route::patch('/users/{id}/toggle-status', [UserController::class, 'toggleStatus'
     Route::post('/hr/leavetype/bulk-delete', [LeaveTypeController::class, 'bulkDelete'])->name('hr.leavetype.bulk-delete');
     Route::post('/operations/termination/bulk-delete', [TerminationController::class, 'bulkDestroy'])->name('operations.termination.bulk-delete');
     Route::post('/operations/feasibility/bulk-delete', [FeasibilityStatusController::class, 'bulkDestroy'])->name('operations.feasibility.bulk-delete');
-
+    Route::post('/finance/items/bulk-delete', [ItemsController::class, 'bulkDestroy'])->name('finance.items.bulk-delete');
     
     //view path
     Route::get('/users/{id}/view', [UserController::class, 'view'])->name('users.view');
@@ -470,19 +471,26 @@ Route::prefix('finance')->name('finance.')->group(function () {
     Route::get('/invoices/create', [InvoiceController::class,'create'])->name('invoices.create');
     Route::post('/invoices', [InvoiceController::class,'store'])->name('invoices.store');
     Route::get('/invoices/{id}', [InvoiceController::class,'view'])->name('invoices.view');
-    // Alias for Blade template compatibility
-    // Route::get('/invoices/{id}', [InvoiceController::class,'view'])->name('finance.invoices.view');
-    // Alias for Blade template compatibility
-    // Route::get('/invoices/{id}', [InvoiceController::class,'view'])->name('invoices.show');
     Route::get('/invoices/{id}/edit', [InvoiceController::class,'edit'])->name('invoices.edit');
     Route::put('/invoices/{id}', [InvoiceController::class,'update'])->name('invoices.update');
-    // Route::delete('/invoices/{id}', [InvoiceController::class,'destroy'])->name('invoices.destroy');
-    // Route::get('/invoices/{id}/pdf', [InvoiceController::class,'pdf'])->name('invoices.downloadPdf');
-    // Alias for Blade template compatibility
     Route::delete('/invoices/{id}', [InvoiceController::class,'destroy'])->name('invoices.delete');
-
     Route::get('/invoices/{id}/pdf', [InvoiceController::class,'pdf'])->name('invoices.pdf');
     Route::get('/invoices/{id}/send-email', [InvoiceController::class,'sendEmail'])->name('invoices.sendEmail');
+
+        // State-wise Invoice Report
+        Route::get('/invoices/state-report', [\App\Http\Controllers\InvoiceReportController::class, 'stateReport'])
+            ->name('invoices.state_report')
+            ->middleware(['auth', \App\Http\Middleware\CheckProfileCreated::class, \App\Http\Middleware\CheckPrivilege::class . ':view']);
+
+    Route::get('/items', [ItemsController::class,'index'])->name('items.index');
+    Route::get('/items/create', [ItemsController::class,'create'])->name('items.create');
+    Route::post('/items', [ItemsController::class,'store'])->name('items.store');
+    Route::get('/items/{id}', [ItemsController::class,'view'])->name('items.view');
+    Route::get('/items/{id}/edit', [ItemsController::class,'edit'])->name('items.edit');
+    Route::put('/items/{id}', [ItemsController::class,'update'])->name('items.update');
+    Route::delete('/items/{id}', [ItemsController::class,'destroy'])->name('items.destroy');
+    Route::patch('/items/{id}/toggle-status', [ItemsController::class, 'toggleStatus'])->name('items.toggle-status');
+
 
     // banking
     Route::get('banking',[BankingController::class,'index'])->name('banking.index');
@@ -577,6 +585,28 @@ Route::prefix('report/deliverable')->name('report.deliverable.')->group(function
 
 );
 
+
+
+// ...existing code...
+// OTP routes for login (must be above fallback and client portal)
+Route::post('/otp/send', [OtpController::class, 'send'])->name('otp.send');
+Route::post('/otp/verify', [OtpController::class, 'verify'])->name('otp.verify');
+// Internal chat APIs used by the floating widget
+Route::prefix('chat')
+    ->middleware(['auth', \App\Http\Middleware\CheckProfileCreated::class])
+    ->group(function () {
+        Route::get('/group/{id}/messages', [App\Http\Controllers\ChatController::class,'fetchMessages'])->name('chat.messages');
+        Route::post('/send', [App\Http\Controllers\ChatController::class,'send'])->name('chat.send');
+        Route::get('/group/{id}/online-users', [App\Http\Controllers\ChatController::class,'onlineUsers'])->name('chat.online-users');
+        Route::get('/all-users', [App\Http\Controllers\ChatController::class, 'allOnlineUsers'])->name('chat.all-online-users');
+        Route::post('/typing', [App\Http\Controllers\ChatController::class,'typing'])->name('chat.typing');
+        Route::get('/bootstrap', [App\Http\Controllers\ChatController::class,'bootstrap'])->name('chat.bootstrap');
+    });
+// ...existing code...
+Route::post('/finance/invoices/{id}/update-item', [\App\Http\Controllers\Finance\InvoiceController::class, 'updateInvoiceItem'])
+    ->name('finance.invoices.updateItem')
+    ->middleware(['auth', App\Http\Middleware\CheckProfileCreated::class]);
+    
 
 /*
 |--------------------------------------------------------------------------

@@ -40,13 +40,34 @@ $columns = [
             <div class="d-flex align-items-center gap-2">
                 <label for="entriesSelect" class="mb-0 fw-semibold">Show</label>
                 <form id="filterForm" method="GET" class="d-flex align-items-center gap-2">
-                    <select id="entriesSelect" name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
-                        <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
-                        <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
-                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
-                        <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
-                    </select>
-                </form>
+
+    {{-- Per Page --}}
+    <select name="per_page"
+            class="form-select form-select-sm w-auto"
+            onchange="this.form.submit()">
+        <option value="10" {{ request('per_page',10) == 10 ? 'selected' : '' }}>10</option>
+        <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+        <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+    </select>
+
+    {{-- Date Filter --}}
+    <select name="date_filter"
+            class="form-select form-select-sm w-auto"
+            onchange="this.form.submit()">
+        <option value="">All</option>
+        <option value="month" {{ request('date_filter') == 'month' ? 'selected' : '' }}>
+            This Month
+        </option>
+        <option value="quarter" {{ request('date_filter') == 'quarter' ? 'selected' : '' }}>
+            This Quarter
+        </option>
+        <option value="half" {{ request('date_filter') == 'half' ? 'selected' : '' }}>
+            Half Yearly
+        </option>
+    </select>
+
+</form>
             </div>
             <form id="searchForm" method="GET" class="ms-auto">
                 <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-lg rounded-pill px-4" style="min-width: 250px;" placeholder="Search..." id="searchBox">

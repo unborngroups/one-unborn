@@ -65,6 +65,7 @@ class MenuSeeder extends Seeder
             ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Reports', 'sub_section' => null , 'route' => 'finance.reports.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Settings', 'sub_section' => null , 'route' => 'finance.settings.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Invoice', 'sub_section' => null , 'route' => 'finance.invoice.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
+            ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Items', 'sub_section' => null , 'route' => 'finance.items.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             
             // compliance Module
             ['module_name' => 'Compliance', 'user_type' => 'superadmin', 'name' => 'Compliance', 'sub_section' => null , 'route' => 'compliance.index', 'icon' => 'bi bi-file-shield', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
@@ -114,6 +115,9 @@ class MenuSeeder extends Seeder
                 // ['module_name' => 'Deliverable', 'user_type' => 'superadmin', 'name' => 'Deliverable - In Progress', 'sub_section' => null , 'route' => 'deliverable.inprogress', 'icon' => 'bi bi-hourglass-split', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
                 // ['module_name' => 'Deliverable', 'user_type' => 'superadmin', 'name' => 'Deliverable - Closed', 'sub_section' => null , 'route' => 'deliverable.closed', 'icon' => 'bi bi-check2-circle', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
                 // ['module_name' => 'Deliverable', 'user_type' => 'superadmin', 'name' => 'Deliverable - Delivery', 'sub_section' => null , 'route' => 'deliverable.delivery', 'icon' => 'bi bi-box-seam', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
+
+            // Finance Module - State-wise Invoice Report
+            ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'State-wise Invoice Report', 'sub_section' => null , 'route' => 'finance.invoices.state_report', 'icon' => 'bi bi-map', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
 
         ];
 

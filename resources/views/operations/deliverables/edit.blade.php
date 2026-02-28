@@ -630,7 +630,7 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">Speed Test File <span class="text-danger">*</span></label>
+                                <label class="form-label">Speed Test File </label>
                                 @if($record->speed_test_file)
                                     <a href="{{ asset($record->speed_test_file) }}" target="_blank">View Speed Test</a>
                                 @endif
@@ -645,7 +645,7 @@
 
                                <!-- Upload OTC Bill -->
                             <div class="col-md-4 mb-3">  
-                                <label class="form-label">Ping Report (DNS) <span class="text-danger">*</span></label>
+                                <label class="form-label">Ping Report (DNS) </label>
                                 @if($record->ping_report_dns_file)
                                     <a href="{{ asset($record->ping_report_dns_file) }}" target="_blank">View Ping Report (DNS)</a>
                                 @endif
@@ -673,7 +673,7 @@
                             </div>
 
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">ONU / ONT Device <span class="text-danger">*</span></label>
+                                <label class="form-label">ONU / ONT Device </label>
                                 @if($record->onu_ont_device_file)
                                     <a href="{{ asset($record->onu_ont_device_file) }}" target="_blank">View ONU / ONT Device</a>
                                 @endif
@@ -705,13 +705,12 @@
 
                 <!--  -->
                 <div class="col-md-4 mb-3 mx-3">
-    <label class="form-label">Upload Export File</label>
+    <label class="form-label">Upload File</label>
     @if($record->export_file)
-        <a href="{{ asset($record->export_file) }}" target="_blank">View Export File</a>
+        <a href="{{ asset($record->export_file) }}" target="_blank">View File</a>
     @endif
     <input type="file" name="export_file" class="form-control" accept=".pdf,.xlsx,.xls,.csv,.jpg,.jpeg,.png">
 </div>
-
 
                 {{-- Action Buttons --}}
                 @php

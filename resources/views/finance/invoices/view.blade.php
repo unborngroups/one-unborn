@@ -2,225 +2,249 @@
 
 @section('content')
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Invoice</title>
-    <style>
-        body {
-            background-color: #f2f2f2;
-            font-family: DejaVu Sans, sans-serif;
-            font-size: 12px;
-            color: #000;
-        }
-        .header {
-            width: 100%;
-            margin-bottom: 20px;
-        }
-        .header table {
-            width: 100%;
-        }
-        .invoice-title {
-            font-size: 18px;
-            font-weight: bold;
-            text-align: right;
-        }
-        .section {
-            margin-top: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid #000;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        th, td {
-            padding: 6px;
-            text-align: left;
-        }
-        .text-right {
-            text-align: right;
-        }
-        .no-border {
-            border: none !important;
-        }
-        img {
-            max-width: 250px;
-        }
-        .card{
-            width: 70%;
-            margin: 20px auto;
-            background-color: #fff;
-            border: 1px solid #000;
-        }
-    </style>
-</head>
+<div class="container mt-4">
+    <div class="card shadow p-1">
+        <div class="card-body">
 
-<body>
-<div class="card">
-<table width="100%" cellpadding="5">
+            {{-- Header --}}
+            <div class="row">
+                <div class="col-md-2">
+                    @php
+                        $logo = $feasibility->company->company_logo ?? $company->company_logo ?? null;
+                    @endphp
+                    @if($logo && file_exists(public_path('images/companylogos/' . $logo)))
+                        <img src="{{ asset('images/companylogos/' . $logo) }}" alt="Company Logo" style="max-width: 100px; max-height: 100px;">
+                    @else
+                        <div style="width:100px; height:100px; background:#ccc; display:flex; align-items:center; justify-content:center;">No Logo</div>
+                    @endif
+                </div>
+
+                <div class="col-md-7 text-center" style="width: 350px;">
+                    <h5 class="mb-1"><strong>{{ $feasibility->company->company_name ?? '' }}</strong></h5>
+                    Company ID: {{ $feasibility->company->company_id ?? '' }} <br>
+                    {{ $feasibility->company->address ?? '' }} <br>
+                    GSTIN: {{ $feasibility->company->gstin ?? '' }} <br>
+                    Phone: 04341222226 / 9688862676 <br>
+                    Email: {{ $feasibility->company->company_email ?? '' }}
+                </div>
+
+                <div class="col-md-3 text-end">
+                    <h3 class="fw-bold">TAX INVOICE</h3>
+                </div>
+            </div>
+
+            <hr>
+
+            {{-- Invoice Details --}}
+            <table class="table table-bordered">
     <tr>
-        <td width="15%" style="border:none;">
-                            <img src="{{ asset('images/logo1.png') }}" alt="Logo" class="h-16">
 
+    
+        <!-- LEFT SIDE -->
+        <td style="width:50%; text-align: left;" >
+            
+            <strong>Invoice #</strong> : <span>{{ $invoice->invoice_no }}</span> <br>
+            <strong>Invoice Date</strong> : <span>{{ $invoice->invoice_date }} </span> <br>
+            <strong>Terms</strong> : <span>Net 30</span><br>
+            <strong>Due Date</strong> : <span>{{ $invoice->due_date }}</span> <br>
+            <strong>P.O #</strong> : <span>{{ $deliverables->purchaseOrder->po_number ?? '' }}</span>
         </td>
 
-        <td width="55%" style="border:none;">
-            <strong>{{ $feasibility->company->company_name ?? '' }}</strong><br>
-            Company ID: {{ $feasibility->company->company_id ?? '' }}<br>
-            {{ $feasibility->company->address ?? '' }}<br>
-            GSTIN: {{ $feasibility->company->gstin ?? '' }}<br>
-            Phone: {{ $feasibility->company->alternative_contact_number ?? '' }}<br>
-            Email: {{ $feasibility->company->company_email ?? '' }}
-        </td>
-
-        <td width="30%" align="right" style="border:none;">
-            <h2>TAX INVOICE</h2>
+        <!-- RIGHT SIDE -->
+        <td style="width:50%; text-align: left;">
+            <strong>Place Of Supply</strong> : {{ $feasibility->client->state ?? '' }} <br>
+            <strong>Service ID</strong> : {{ $invoice->service_id ?? '' }} <br>
+            <strong>UNBORN Service ID/Circuit_id</strong> : {{ $invoice->service_id ?? '' }} | {{ $deliverablePlan->circuit_id ?? '' }} <br>
+            <strong>Feasibility ID</strong> : {{ $deliverables->feasibility->feasibility_request_id ?? '' }} <br>
+            <strong>Vendor ID</strong> : {{ $deliverablePlan->vendor_code ?? '' }}
         </td>
     </tr>
-</table>
 
-<hr>
-
-{{-- Invoice Details --}}
-<table width="100%" cellpadding="5">
-    <tr>
-        <td width="50%">
-            <strong>Invoice #:</strong> {{ $invoice->invoice_no }}<br>
-            <strong>Invoice Date:</strong> {{ $invoice->invoice_date }}<br>
-            <strong>Terms:</strong> Net 30<br>
-            <strong>Due Date:</strong> {{ $invoice->due_date }}<br>
-            <strong>PO #:</strong> {{ $deliverables->purchaseOrder->po_number ?? '' }}
-        </td>
-
-        <td width="50%">
-            <strong>Place Of Supply:</strong> {{ $invoice->place_of_supply ?? '' }}<br>
-            <strong>Service ID:</strong> {{ $invoice->service_id ?? '' }}<br>
-            <strong>UNBORN Service ID:</strong> {{ $invoice->unborn_service_id ?? '' }}<br>
-            <strong>Feasibility ID:</strong> {{ $deliverables->feasibility->feasibility_request_id ?? '' }}<br>
-            <strong>Vendor ID:</strong> {{ $deliverablePlan->vendor_code ?? '' }}
-        </td>
+    <!-- BILL TO / SHIP TO HEADER -->
+    <tr class="table-secondary">
+        <td><strong>Bill To</strong></td>
+        <td><strong>Ship To</strong></td>
     </tr>
-</table>
 
-<br>
-
-{{-- Bill To / Ship To --}}
-<table width="100%" cellpadding="5">
-    <tr>
-        <th width="50%">Bill To</th>
-        <th width="50%">Ship To</th>
-    </tr>
+    <!-- BILL TO / SHIP TO DATA -->
     <tr>
         <td>
             <strong>{{ $feasibility->client->client_name ?? '' }}</strong><br>
+            {{ $feasibility->client->client_name ?? '' }}<br>
             {{ $feasibility->client->address1 ?? '' }}<br>
             {{ $feasibility->client->city ?? '' }},
-            {{ $feasibility->client->state ?? '' }}
-            - {{ $feasibility->client->pincode ?? '' }}<br>
+            {{ $feasibility->client->state ?? '' }} -
+            {{ $feasibility->client->pincode ?? '' }}<br>
             GSTIN: {{ $feasibility->client->gstin ?? '' }}
         </td>
 
-        <td>
-            <strong>{{ $client->ship_to_name ?? $client->client_name ?? '' }}</strong><br>
-            {{ $client->ship_to_address ?? $client->address ?? '' }}<br>
-            {{ $client->ship_to_city ?? $client->city ?? '' }},
-            {{ $client->ship_to_state ?? $client->state ?? '' }}
-            - {{ $client->ship_to_pincode ?? $client->pincode ?? '' }}<br>
-            GSTIN: {{ $client->ship_to_gst_number ?? $client->gst_number ?? '' }}
+        <td class="Ship">
+            {{ $feasibility->client->client_name ?? '' }}<br>
+            {{ $feasibility->address ?? '' }}<br>
+            {{ $feasibility->city ?? '' }},
+            {{ $feasibility->district ?? '' }},
+            {{ $feasibility->state ?? '' }} -
+            {{ $feasibility->pincode ?? '' }}<br>
+            GSTIN: {{ $feasibility->client->gstin ?? '' }}
         </td>
     </tr>
 </table>
+            <br>
 
-<br>
-<strong>Subject:</strong>
-            Invoice for Order ID: {{ $invoice->order_id ?? '' }}
-            | Vendor Code: {{ $deliverablePlan->vendor_code ?? '' }}
+            {{-- Subject --}}
+            <p>
+                <strong>Subject:</strong>
+                Invoice for Order ID: {{ $invoice->order_id ?? '' }}
+                | Vendor Code: {{ $deliverables->deliverablePlan->vendor_code ?? '' }}
+            </p>
 
+            {{-- Items Table --}}
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th rowspan="2">#</th>
+                            <th rowspan="2">Item & Description</th>
+                            <th rowspan="2">HSN/SAC</th>
+                            <th rowspan="2">Qty</th>
+                            <th rowspan="2">Rate</th>
+                            <th rowspan="2">Amount</th>
+                            <th rowspan="2">Taxable Amount</th>
+                            <th colspan="2">CGST</th>
+                            <th colspan="2">SGST</th>
+                        </tr>
+                        <tr>
+                            <th>%</th>
+                            <th>Amt</th>
+                            <th>%</th>
+                            <th>Amt</th>
+                        </tr>
+                    </thead>
 
-<br>
+                    @php
+    $taxable = $deliverables->purchaseOrder->arc_per_link ?? 0;
+    $cgstPercent = 9;
+    $sgstPercent = 9;
 
-{{-- Items Table --}}
-<table width="100%" cellpadding="5">
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Description</th>
-            <th>HSN/SAC</th>
-            <th>Qty</th>
-            <th>Rate</th>
-            <th>Amount</th>
-            <th>Taxable</th>
-            <th>CGST</th>
-            <th>SGST</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach($invoice->items as $key => $item)
-        <tr>
-            <td>{{ $key+1 }}</td>
-            <td>{{ $item->description }}</td>
-            <td>{{ $item->hsn_sac ?? '' }}</td>
-            <td>{{ $item->quantity }}</td>
-            <td align="right">{{ number_format($item->rate,2) }}</td>
-            <td align="right">{{ number_format($item->amount,2) }}</td>
-            <td align="right">{{ number_format($item->taxable_amount ?? 0,2) }}</td>
-            <td align="right">{{ number_format($item->cgst_amount ?? 0,2) }}</td>
-            <td align="right">{{ number_format($item->sgst_amount ?? 0,2) }}</td>
-        </tr>
-        @endforeach
-    </tbody>
-</table>
+    $cgstAmount = ($taxable * $cgstPercent) / 100;
+    $sgstAmount = ($taxable * $sgstPercent) / 100;
+@endphp
+<!-- 995423 -->
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>{{ $item ? $item->item_name : 'N/A' }}</td>
+                            <td>{{ $item ? $item->hsn_sac_code : 'N/A' }}</td>
+                            <td></td>
+                            <td>{{ $deliverables->purchaseOrder->arc_per_link }}</td>
+                            <td>{{ $deliverables->purchaseOrder->arc_per_link }}</td>
+                            <td>{{ $deliverables->purchaseOrder->arc_per_link }}</td>
+                            <td>{{ $cgstPercent }}%</td>
+                            <td>{{ number_format($cgstAmount,2) }}</td>
+                            <td>{{ $sgstPercent }}%</td>
+                            <td>{{ number_format($sgstAmount,2) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-<br>
+            {{-- Bottom Section --}}
+            <div class="invoice-bottom">
 
-{{-- Totals Right Box --}}
-<table width="100%">
-    <tr>
-        <td width="60%" style="border:none;"></td>
+                <!-- LEFT -->
+                <div class="left-box">
+                    <p><strong>Total in Words</strong><br>
+                    {{ $invoice->total_in_words ?? '---' }}</p>
 
-        <td width="40%">
-            <table width="100%" cellpadding="5">
+                    <p><strong>Notes</strong><br>
+                    Thanks for your business.</p>
+
+                    <p><strong>Terms & Conditions</strong><br>
+                        Payment Details: {{ $feasibility->company->company_name }}<br>
+                        Account Number : {{ $feasibility->company->account_number ?? '' }}<br>
+                        IFSC Code : {{ $feasibility->company->ifsc_code ?? '' }}<br>
+                        Branch & Bank : {{ $feasibility->company->branch_name ?? '' }},
+                        {{ $feasibility->company->bank_name ?? '' }}
+                    </p>
+                </div>
+
+                <!-- RIGHT -->
+                <!-- RIGHT SIDE -->
+       <!-- RIGHT SIDE -->
+        <div style="width:35%; padding:0;">
+            <table style="width:100%;">
                 <tr>
-                    <td>Sub Total</td>
-                    <td align="right">{{ number_format($invoice->subtotal,2) }}</td>
+                    <td>Total</td>
+                    <td class="text-end"><strong>{{ number_format($invoice->total_amount,2) }}</strong></td>
                 </tr>
                 <tr>
-                    <td>CGST</td>
-                    <td align="right">{{ number_format($invoice->cgst_total ?? 0,2) }}</td>
+                    <td><strong>Balance Due</strong></td>
+                    <td class="text-end"><strong>{{ number_format($invoice->total_amount,2) }}</strong></td>
                 </tr>
                 <tr>
-                    <td>SGST</td>
-                    <td align="right">{{ number_format($invoice->sgst_total ?? 0,2) }}</td>
-                </tr>
-                <tr>
-                    <td><strong>Total</strong></td>
-                    <td align="right"><strong>{{ number_format($invoice->total_amount,2) }}</strong></td>
+                    <td colspan="2" style="height:80px; text-align:center; vertical-align:bottom;">
+                        Authorized Signature
+                    </td>
                 </tr>
             </table>
-        </td>
-    </tr>
-</table>
+        </div>
 
-<br><br>
-
-<div style="text-align:right;">
-    Authorized Signature
-</div>
-
-
-</div>
-{{-- Buttons --}}
-            <div class="d-flex justify-content-center gap-2">
-                <a href="{{ route('finance.invoices.index') }}" class="btn btn-secondary"><--Back</a>
             </div>
-</body> 
-</html>
 
+        </div>
+    </div>
+
+    <div class="text-center mt-3">
+        <a href="{{ route('finance.invoices.index') }}" class="btn btn-secondary">← Back</a>
+    </div>
+</div>
+
+<style>
+.card {
+    font-size: 14px;
+}
+
+.table th, .table td {
+    vertical-align: middle;
+    font-size: 13px;
+}
+
+span{
+    text-align: right;
+}
+
+.invoice-bottom {
+    display: flex;
+    margin-top: 20px;
+}
+
+.left-box {
+    width: 60%;
+}
+
+.right-box {
+    width: 40%;
+    border: 1px solid #000;
+    padding: 10px;
+}
+
+.right-box table td {
+    border: none;
+    padding: 5px;
+}
+
+.signature {
+    margin-top: 40px;
+    text-align: center;
+}
+
+.card{
+    border-color: #000;
+    border-radius: 1px;
+    border-style: solid;
+    width: 70%;
+    margin-left: 15%;
+}
+</style>
 
 @endsection

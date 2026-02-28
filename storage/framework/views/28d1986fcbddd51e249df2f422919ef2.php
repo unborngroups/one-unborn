@@ -126,7 +126,7 @@
 
                                                        class="btn btn-info btn-sm" title="View">
 
-                                                        <i class="bi bi-eye"></i> View
+                                                        <i class="bi bi-eye"></i>
 
                                                     </a>
                                                     <?php endif; ?>
@@ -136,7 +136,7 @@
                                                     <?php if($permissions->can_edit): ?>
                                                         <a href="<?php echo e(route('operations.feasibility.edit', $record->id)); ?>" 
                                                            class="btn btn-warning btn-sm" title="Update">
-                                                            <i class="bi bi-pencil"></i> Update
+                                                            <i class="bi bi-pencil"></i>
                                                         </a>
                                                         <?php endif; ?>
                                                         <!-- Not-Feasible button -->

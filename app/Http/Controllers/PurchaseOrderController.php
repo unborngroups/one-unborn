@@ -80,7 +80,8 @@ class PurchaseOrderController extends Controller
             'po_date' => 'required|date',
             'no_of_links' => 'required|integer|min:1|max:4',
             'contract_period' => 'required|integer|min:1',
-            'import_file' => 'sometimes|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx|max:5120',
+            'total_cost' => 'required|numeric|min:0',
+            'import_file' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx|max:5120',
   
         ];
         $staticIpRequired = $request->input('static_ip_required') === '1';
@@ -238,6 +239,7 @@ if ($request->hasFile('import_file')) {
             'no_of_links' => $validated['no_of_links'],
             'contract_period' => $validated['contract_period'],
             'import_file' => $importFilePath,
+            'total_cost' => $validated['total_cost'],
             'arc_per_link' => $totalARC / $noOfLinks, // Average per link (backward compatibility)
             'otc_per_link' => $totalOTC / $noOfLinks, // Average per link (backward compatibility)
             'static_ip_cost_per_link' => $totalStaticIP / $noOfLinks, // Average per link (backward compatibility)
@@ -298,6 +300,7 @@ if ($request->hasFile('import_file')) {
             'po_date' => 'required|date',
             'no_of_links' => 'required|integer|min:1|max:4',
             'contract_period' => 'required|integer|min:1',
+            'total_cost' => 'required|numeric|min:0',
             'import_file' => 'sometimes|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx|max:5120',
         ];
         $staticIpRequired = $request->input('static_ip_required') === '1';
@@ -412,6 +415,7 @@ if ($request->hasFile('import_file')) {
             'arc_per_link' => $totalARC / $noOfLinks, // Average per link (backward compatibility)
             'otc_per_link' => $totalOTC / $noOfLinks, // Average per link (backward compatibility)
             'static_ip_cost_per_link' => $totalStaticIP / $noOfLinks, // Average per link (backward compatibility)
+            'total_cost' => $validated['total_cost'],
         ];
         
         // Add individual link data

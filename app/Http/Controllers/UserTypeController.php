@@ -23,7 +23,7 @@ class UserTypeController extends Controller
     'can_delete' => true,
     'can_view' => true,
 ];
-$perPage = (int) $request->get('per_page', 10);
+    $perPage = (int) $request->get('per_page', 10);
     $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
 
         $usertypetable = UserType::orderBy('id', 'desc')->paginate($perPage);

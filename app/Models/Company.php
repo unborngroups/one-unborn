@@ -16,10 +16,12 @@ class Company extends Model
 
     protected $fillable = [
         // 🏷️ Basic Details
+        'company_logo',
         'user_name',
         'trade_name',
         'company_name',
         'business_number',
+        
 
         // ☎️ Contact Details
         'company_phone',

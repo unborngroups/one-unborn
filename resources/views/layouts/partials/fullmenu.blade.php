@@ -1,17 +1,18 @@
 {{-- resources/views/layouts/sidebar.blade.php --}}
 @php
-    $dashboard = \App\Helpers\TemplateHelper::getUserMenuPermissions('Dashboard');
+    use App\Helpers\TemplateHelper;
+    $dashboard = TemplateHelper::getUserMenuPermissions('Dashboard');
 
     // Masters dropdown permissions
-    $company = \App\Helpers\TemplateHelper::getUserMenuPermissions('Company Details');
-    $users = \App\Helpers\TemplateHelper::getUserMenuPermissions('Manage User');
-    $userType = \App\Helpers\TemplateHelper::getUserMenuPermissions('User Type');
-    $client = \App\Helpers\TemplateHelper::getUserMenuPermissions('Client Master');
-    $vendor = \App\Helpers\TemplateHelper::getUserMenuPermissions('Vendor Master');
-    $Asset = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset Master');
-    $assetType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset Master', 'Asset Type');
-    $makeType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset Master', 'Make Type');
-    $modelType = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset Master', 'Model Type');
+    $company = TemplateHelper::getUserMenuPermissions('Company Details');
+    $users = TemplateHelper::getUserMenuPermissions('Manage User');
+    $userType = TemplateHelper::getUserMenuPermissions('User Type');
+    $client = TemplateHelper::getUserMenuPermissions('Client Master');
+    $vendor = TemplateHelper::getUserMenuPermissions('Vendor Master');
+    $Asset = TemplateHelper::getUserMenuPermissions('Asset Master');
+    $assetType = TemplateHelper::getUserMenuPermissions('Asset Master', 'Asset Type');
+    $makeType = TemplateHelper::getUserMenuPermissions('Asset Master', 'Make Type');
+    $modelType = TemplateHelper::getUserMenuPermissions('Asset Master', 'Model Type');
 
 @endphp
 
@@ -134,22 +135,22 @@
 
 @php
 
-    $feasibilityMaster = \App\Helpers\TemplateHelper::getUserMenuPermissions('Feasibility Master');
+    $feasibilityMaster = TemplateHelper::getUserMenuPermissions('Feasibility Master');
     // sub-section privileges for Sales & Marketing Feasibility
-    $feasibilityMasterOpen = \App\Helpers\TemplateHelper::getUserMenuPermissions('Feasibility Master', 'SM Feasibility Open');
-    $feasibilityMasterInProgress = \App\Helpers\TemplateHelper::getUserMenuPermissions('Feasibility Master', 'SM Feasibility In Progress');
-    $feasibilityMasterClosed = \App\Helpers\TemplateHelper::getUserMenuPermissions('Feasibility Master', 'SM Feasibility Closed');
+    $feasibilityMasterOpen = TemplateHelper::getUserMenuPermissions('Feasibility Master', 'SM Feasibility Open');
+    $feasibilityMasterInProgress = TemplateHelper::getUserMenuPermissions('Feasibility Master', 'SM Feasibility In Progress');
+    $feasibilityMasterClosed = TemplateHelper::getUserMenuPermissions('Feasibility Master', 'SM Feasibility Closed');
 
 
-    $purchaseOrder = \App\Helpers\TemplateHelper::getUserMenuPermissions('Purchase Order');
-    $proposal = \App\Helpers\TemplateHelper::getUserMenuPermissions('Proposal');
-    $smDeliverables = \App\Helpers\TemplateHelper::getUserMenuPermissions('sm Deliverables');
+    $purchaseOrder = TemplateHelper::getUserMenuPermissions('Purchase Order');
+    $proposal = TemplateHelper::getUserMenuPermissions('Proposal');
+    $smDeliverables = TemplateHelper::getUserMenuPermissions('sm Deliverables');
 
     // sub-section privileges for Sales & Marketing Deliverables
-    $smDeliverablesOpen = \App\Helpers\TemplateHelper::getUserMenuPermissions('sm Deliverables', 'SM Deliverables Open');
-    $smDeliverablesInProgress = \App\Helpers\TemplateHelper::getUserMenuPermissions('sm Deliverables', 'SM Deliverables In Progress');
-    $smDeliverablesDelivery = \App\Helpers\TemplateHelper::getUserMenuPermissions('sm Deliverables', 'SM Deliverables Delivery');
-    $smDeliverablesAcceptance = \App\Helpers\TemplateHelper::getUserMenuPermissions('sm Deliverables', 'SM Deliverables Acceptance');
+    $smDeliverablesOpen = TemplateHelper::getUserMenuPermissions('sm Deliverables', 'SM Deliverables Open');
+    $smDeliverablesInProgress = TemplateHelper::getUserMenuPermissions('sm Deliverables', 'SM Deliverables In Progress');
+    $smDeliverablesDelivery = TemplateHelper::getUserMenuPermissions('sm Deliverables', 'SM Deliverables Delivery');
+    $smDeliverablesAcceptance = TemplateHelper::getUserMenuPermissions('sm Deliverables', 'SM Deliverables Acceptance');
 @endphp
 
 @if(($feasibilityMaster && $feasibilityMaster->can_menu) || ($feasibilityMasterOpen && $feasibilityMasterOpen->can_menu) || ($feasibilityMasterInProgress && $feasibilityMasterInProgress->can_menu) || ($feasibilityMasterClosed && $feasibilityMasterClosed->can_menu) 
@@ -514,22 +515,22 @@
 
 @php
 
-    $operationsFeasibility = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Feasibility');
+    $operationsFeasibility = TemplateHelper::getUserMenuPermissions('operations Feasibility');
     //sub-section privilege  
-    $operationsFeasibilityOpen = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Feasibility', 'Operations Feasibility Open');
-    $operationsFeasibilityInProgress = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Feasibility', 'Operations Feasibility In Progress');
-    $operationsFeasibilityClosed = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Feasibility', 'Operations Feasibility Closed');
+    $operationsFeasibilityOpen = TemplateHelper::getUserMenuPermissions('operations Feasibility', 'Operations Feasibility Open');
+    $operationsFeasibilityInProgress = TemplateHelper::getUserMenuPermissions('operations Feasibility', 'Operations Feasibility In Progress');
+    $operationsFeasibilityClosed = TemplateHelper::getUserMenuPermissions('operations Feasibility', 'Operations Feasibility Closed');
     
-    $operationsDeliverables = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Deliverables');
+    $operationsDeliverables = TemplateHelper::getUserMenuPermissions('operations Deliverables');
     // sub-section privilege  
-    $operationsDeliverablesOpen = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Deliverables', 'Operations Deliverables Open');
-    $operationsDeliverablesInProgress = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Deliverables', 'Operations Deliverables In Progress');
-    $operationsDeliverablesDelivery = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Deliverables', 'Operations Deliverables Delivery');
-    $operationsDeliverablesAcceptance = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Deliverables', 'Operations Deliverables Acceptance');
+    $operationsDeliverablesOpen = TemplateHelper::getUserMenuPermissions('operations Deliverables', 'Operations Deliverables Open');
+    $operationsDeliverablesInProgress = TemplateHelper::getUserMenuPermissions('operations Deliverables', 'Operations Deliverables In Progress');
+    $operationsDeliverablesDelivery = TemplateHelper::getUserMenuPermissions('operations Deliverables', 'Operations Deliverables Delivery');
+    $operationsDeliverablesAcceptance = TemplateHelper::getUserMenuPermissions('operations Deliverables', 'Operations Deliverables Acceptance');
 
-    $operationsAsset = \App\Helpers\TemplateHelper::getUserMenuPermissions('Asset');
-    $operationsRenewals = \App\Helpers\TemplateHelper::getUserMenuPermissions('Renewals');
-    $operationsTermination = \App\Helpers\TemplateHelper::getUserMenuPermissions('Termination');
+    $operationsAsset = TemplateHelper::getUserMenuPermissions('Asset');
+    $operationsRenewals = TemplateHelper::getUserMenuPermissions('Renewals');
+    $operationsTermination = TemplateHelper::getUserMenuPermissions('Termination');
 
     // Determine which operations feasibility menu item should be active
 
@@ -768,7 +769,7 @@
 
                 <!-- operations feasibility Not-Feasible menu -->
                 @php
-                    $operationsFeasibilityNotFeasible = \App\Helpers\TemplateHelper::getUserMenuPermissions('operations Feasibility', 'Operations Feasibility Not-Feasible');
+                    $operationsFeasibilityNotFeasible = TemplateHelper::getUserMenuPermissions('operations Feasibility', 'Operations Feasibility Not-Feasible');
                     $isFeasibilityNotFeasibleActive = request()->is('operations/feasibility/notfeasible');
                 @endphp
                 @if($operationsFeasibilityNotFeasible && $operationsFeasibilityNotFeasible->can_menu)
@@ -907,15 +908,16 @@
 
             @php
 
-                $finance = \App\Helpers\TemplateHelper::getUserMenuPermissions('Accounts');
-                $invoice = \App\Helpers\TemplateHelper::getUserMenuPermissions('Invoice');
-                $banking = \App\Helpers\TemplateHelper::getUserMenuPermissions('Banking');
-                $gst = \App\Helpers\TemplateHelper::getUserMenuPermissions('GST');
-                $purchase = \App\Helpers\TemplateHelper::getUserMenuPermissions('Purchases');
-                $reports = \App\Helpers\TemplateHelper::getUserMenuPermissions('Reports');
-                $sales = \App\Helpers\TemplateHelper::getUserMenuPermissions('Sales');
-                $settings = \App\Helpers\TemplateHelper::getUserMenuPermissions('Settings');
-                $tds = \App\Helpers\TemplateHelper::getUserMenuPermissions('TDS');
+                $finance = TemplateHelper::getUserMenuPermissions('Accounts');
+                $invoice = TemplateHelper::getUserMenuPermissions('Invoice');
+                $items = TemplateHelper::getUserMenuPermissions('Items');
+                $banking = TemplateHelper::getUserMenuPermissions('Banking');
+                $gst = TemplateHelper::getUserMenuPermissions('GST');
+                $purchase = TemplateHelper::getUserMenuPermissions('Purchases');
+                $reports = TemplateHelper::getUserMenuPermissions('Reports');
+                $sales = TemplateHelper::getUserMenuPermissions('Sales');
+                $settings = TemplateHelper::getUserMenuPermissions('Settings');
+                $tds = TemplateHelper::getUserMenuPermissions('TDS');
                 
 
             @endphp
@@ -942,6 +944,21 @@
                                 <i class="bi bi-receipt me-2"></i> Invoice
                                 </a>
                             </li>
+
+                            <li>
+                                <a class="nav-link text-white menu-item {{ request()->is('finance/items*') ? 'active' : '' }}"
+                                   href="{{ route('finance.items.index') }}">
+                                   <i class="bi bi-receipt me-2"></i> Items 
+                                </a>
+                            </li>
+                                @if(Route::has('finance.invoices.state_report') && TemplateHelper::getUserMenuPermissions('Invoice')->can_view)
+                                <li>
+                                    <a class="nav-link text-white menu-item {{ request()->is('finance/invoices/state-report') ? 'active' : '' }}"
+                                       href="{{ route('finance.invoices.state_report') }}">
+                                       <i class="bi bi-map me-2"></i> State-wise Invoice Report
+                                    </a>
+                                </li>
+                                @endif
 
                             @if(Route::has('finance.sales.index'))
                             <li>
@@ -1014,7 +1031,7 @@
 
             @php
 
-                $compliance = \App\Helpers\TemplateHelper::getUserMenuPermissions('Compliance');
+                $compliance = TemplateHelper::getUserMenuPermissions('Compliance');
 
             @endphp
 
@@ -1035,7 +1052,7 @@
 
             @php
 
-                $assurance = \App\Helpers\TemplateHelper::getUserMenuPermissions('Assurance');
+                $assurance = TemplateHelper::getUserMenuPermissions('Assurance');
 
             @endphp
 
@@ -1058,10 +1075,10 @@
 
             @php
 
-                $hr = \App\Helpers\TemplateHelper::getUserMenuPermissions('HR');
-                $users = \App\Helpers\TemplateHelper::getUserMenuPermissions('Manage User');
-                $employees = \App\Helpers\TemplateHelper::getUserMenuPermissions('Employee');
-                $leavetype = \App\Helpers\TemplateHelper::getUserMenuPermissions('Leave Management');
+                $hr = TemplateHelper::getUserMenuPermissions('HR');
+                $users = TemplateHelper::getUserMenuPermissions('Manage User');
+                $employees = TemplateHelper::getUserMenuPermissions('Employee');
+                $leavetype = TemplateHelper::getUserMenuPermissions('Leave Management');
 
             @endphp
 
@@ -1109,7 +1126,7 @@
 
             @php
 
-                $training = \App\Helpers\TemplateHelper::getUserMenuPermissions('Training');
+                $training = TemplateHelper::getUserMenuPermissions('Training');
             @endphp
 
             @if($training && $training->can_menu)
@@ -1130,7 +1147,7 @@
 
             @php
 
-                $admin = \App\Helpers\TemplateHelper::getUserMenuPermissions('Admin');
+                $admin = TemplateHelper::getUserMenuPermissions('Admin');
             @endphp
 
             @if($admin && $admin->can_menu)
@@ -1152,7 +1169,7 @@
 
             @php
 
-                $strategy = \App\Helpers\TemplateHelper::getUserMenuPermissions('Strategy');
+                $strategy = TemplateHelper::getUserMenuPermissions('Strategy');
             @endphp
 
             @if($strategy && $strategy->can_menu)
@@ -1171,10 +1188,10 @@
             <!--  -->
 
             @php
-    $reportDeliverable = \App\Helpers\TemplateHelper::getUserMenuPermissions('Deliverable Report');
-    $reportDeliverableOpen = \App\Helpers\TemplateHelper::getUserMenuPermissions('Deliverable Report', 'Open');
-    $reportDeliverableInProgress = \App\Helpers\TemplateHelper::getUserMenuPermissions('Deliverable Report', 'In Progress');
-    $reportDeliverableDelivery = \App\Helpers\TemplateHelper::getUserMenuPermissions('Deliverable Report', 'Delivery');
+    $reportDeliverable = TemplateHelper::getUserMenuPermissions('Deliverable Report');
+    $reportDeliverableOpen = TemplateHelper::getUserMenuPermissions('Deliverable Report', 'Open');
+    $reportDeliverableInProgress = TemplateHelper::getUserMenuPermissions('Deliverable Report', 'In Progress');
+    $reportDeliverableDelivery = TemplateHelper::getUserMenuPermissions('Deliverable Report', 'Delivery');
     $isReportDeliverableOpenActive = request()->is('report/deliverable/open');
     $isReportDeliverableInProgressActive = request()->is('report/deliverable/inprogress');
     $isReportDeliverableDeliveryActive = request()->is('report/deliverable/delivery');
@@ -1224,15 +1241,15 @@
 
             @php
 
-                $template = \App\Helpers\TemplateHelper::getUserMenuPermissions('Template Masters');
+                $template = TemplateHelper::getUserMenuPermissions('Template Masters');
 
-                $menu = \App\Helpers\TemplateHelper::getUserMenuPermissions('Manage Menu');
+                $menu = TemplateHelper::getUserMenuPermissions('Manage Menu');
 
-                $companySettings = \App\Helpers\TemplateHelper::getUserMenuPermissions('Company Settings');
+                $companySettings = TemplateHelper::getUserMenuPermissions('Company Settings');
 
-                $SystemSettings = \App\Helpers\TemplateHelper::getUserMenuPermissions('System Settings');
+                $SystemSettings = TemplateHelper::getUserMenuPermissions('System Settings');
 
-                $whatsappSettings = \App\Helpers\TemplateHelper::getUserMenuPermissions('WhatsApp Settings');
+                $whatsappSettings = TemplateHelper::getUserMenuPermissions('WhatsApp Settings');
 
             @endphp
 

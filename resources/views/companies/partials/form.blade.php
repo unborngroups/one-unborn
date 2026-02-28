@@ -1,6 +1,25 @@
 <div class="row">
 
+    {{-- ✅ Company Logo --}}
+
+    <div class="col-md-4 mb-3">
+
+        <label class="form-label">Company Logo</label>
+
+        <input type="file" name="company_logo" class="form-control">
+
+        @if(!empty($company->company_logo))
+
+            <img src="{{ asset('images/companylogos/' . $company->company_logo) }}" class="mt-2 border rounded" width="80">
+
+        @endif
+
+    </div>
+
+
+
 {{-- ✅User Name --}}
+
 
     <div class="col-md-4 mb-3">
 
@@ -65,8 +84,6 @@
 
 </div>
 
-
-
 {{--Company Email 1--}}
 
     <div class="col-md-4 mb-3">
@@ -115,13 +132,13 @@
 
             value="{{ old('gstin', $company->gstin ?? '') }}">
 
-        <small class="text-muted">Fetch details from GST API automatically</small>
+        <!-- <small class="text-muted">Fetch details from GST API automatically</small>
 
         <button type="button" id="fetch_gst_btn" class="btn btn-sm btn-primary mt-2">
 
   Fetch details from GST
 
-</button>
+</button> -->
 
 
 

@@ -57,6 +57,7 @@
         .live-chat-root {
             position: fixed;
             right: 24px;
+            cursor: grab;
             bottom: 24px;
             z-index: 1600;
             font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -357,6 +358,69 @@
 
     </style>
 @endif
+
+
 @push('scripts')
 <script src="{{ asset('public/js/private-chat.js') }}"></script>
 @endpush
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const chatRoot = document.getElementById("live-chat-root");
+    const toggleBtn = chatRoot.querySelector("[data-role='toggle']");
+
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let offsetX = 0;
+    let offsetY = 0;
+    let moved = false;
+
+    toggleBtn.addEventListener("mousedown", function (e) {
+        isDragging = true;
+        moved = false;
+
+        startX = e.clientX;
+        startY = e.clientY;
+
+        const rect = chatRoot.getBoundingClientRect();
+        offsetX = startX - rect.left;
+        offsetY = startY - rect.top;
+
+        toggleBtn.style.cursor = "grabbing";
+    });
+
+    document.addEventListener("mousemove", function (e) {
+        if (!isDragging) return;
+
+        const dx = Math.abs(e.clientX - startX);
+        const dy = Math.abs(e.clientY - startY);
+
+        // Only treat as drag if moved more than 5px
+        if (dx > 5 || dy > 5) {
+            moved = true;
+
+            chatRoot.style.left = (e.clientX - offsetX) + "px";
+            chatRoot.style.top = (e.clientY - offsetY) + "px";
+            chatRoot.style.right = "auto";
+            chatRoot.style.bottom = "auto";
+        }
+    });
+
+    document.addEventListener("mouseup", function () {
+        if (isDragging && moved) {
+            // Prevent click if it was a drag
+            toggleBtn.onclick = function (e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                toggleBtn.onclick = null;
+            };
+        }
+
+        isDragging = false;
+        toggleBtn.style.cursor = "grab";
+    });
+
+});
+</script>

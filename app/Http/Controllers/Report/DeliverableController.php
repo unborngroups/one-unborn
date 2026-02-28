@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Report;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class DeliverableController extends Controller
 {
@@ -86,6 +87,8 @@ class DeliverableController extends Controller
         ->orderBy('id','desc')
         ->paginate($perPage)
         ->appends($request->except('page'));
+
+        $records = $this->getDeliverables($request, 'Open');
 
         return view('report.deliverable.open', compact('records'));
     }
@@ -171,6 +174,8 @@ class DeliverableController extends Controller
         ->paginate($perPage)
         ->appends($request->except('page'));
 
+         $records = $this->getDeliverables($request, 'InProgress');
+
         return view('report.deliverable.inprogress', compact('records'));
     }
 
@@ -254,6 +259,8 @@ class DeliverableController extends Controller
         ->paginate($perPage)
         ->appends($request->except('page'));
 
+        $records = $this->getDeliverables($request, 'Delivery');
+
         return view('report.deliverable.delivery', compact('records'));
     }
     /**
@@ -317,4 +324,57 @@ class DeliverableController extends Controller
             'Content-Disposition' => "attachment; filename=\"$filename\"",
         ]);
     }
+
+    private function getDeliverables(Request $request, $status)
+{
+    $perPage = $request->input('per_page', 10);
+    $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
+    $search = $request->input('search');
+
+    $query = \App\Models\Deliverables::with([
+        'feasibility.client',
+        'feasibility.company',
+        'feasibility.feasibilityStatus',
+        'deliverablePlans',
+    ])->where('status', $status);
+
+    // 🔍 Date Filter
+    if ($request->filled('date_filter')) {
+
+        $today = Carbon::now();
+
+        if ($request->date_filter == 'month') {
+            $startDate = $today->copy()->startOfMonth();
+            $endDate   = $today->copy()->endOfMonth();
+        }
+
+        elseif ($request->date_filter == 'quarter') {
+            $startDate = $today->copy()->startOfQuarter();
+            $endDate   = $today->copy()->endOfQuarter();
+        }
+
+        elseif ($request->date_filter == 'half') {
+            $startDate = $today->copy()->subMonths(6)->startOfMonth();
+            $endDate   = $today;
+        }
+
+        $query->whereHas('deliverablePlans', function ($q) use ($startDate, $endDate) {
+            $q->whereBetween('date_of_activation', [$startDate, $endDate]);
+        });
+    }
+
+    // 🔎 Search
+    if ($search) {
+        $query->where(function ($q) use ($search) {
+            $q->where('po_number', 'like', "%$search%")
+              ->orWhere('feasibility_id', 'like', "%$search%")
+              ->orWhere('circuit_id', 'like', "%$search%");
+        });
+    }
+
+    return $query->orderBy('id','desc')
+                 ->paginate($perPage)
+                 ->appends($request->except('page'));
 }
+
+    }

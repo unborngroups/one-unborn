@@ -35,8 +35,7 @@
                     <a href="<?php echo e(route('finance.invoices.view',$invoice->id)); ?>"
                        class="btn btn-info btn-sm">View</a>
 
-                    <a href="<?php echo e(route('finance.invoices.edit',$invoice->id)); ?>"
-                       class="btn btn-warning btn-sm">Edit</a>
+                    
 
                     <a href="<?php echo e(route('finance.invoices.pdf',$invoice->id)); ?>"
                        class="btn btn-secondary btn-sm">PDF</a>

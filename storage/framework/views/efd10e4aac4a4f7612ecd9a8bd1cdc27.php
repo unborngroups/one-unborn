@@ -335,22 +335,10 @@
             ?>
 
             <div class="text-end">
+
                 <a href="<?php echo e(route($backRoute)); ?>" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Back
                 </a>
-            </div>
-
-           <?php if(isset($deliverable) && !$deliverable->invoice_id): ?>
-    <a href="<?php echo e(route('finance.invoices.create', ['deliverable_id' => $deliverable->id])); ?>"
-       class="btn btn-primary">
-        Send Invoice
-    </a>
-<?php elseif(isset($deliverable) && $deliverable->invoice_id): ?>
-    <a href="<?php echo e(route('finance.invoices.view', $deliverable->invoice_id)); ?>"
-       class="btn btn-success">
-        View Invoice
-    </a>
-<?php endif; ?>
 
 
         </div>
