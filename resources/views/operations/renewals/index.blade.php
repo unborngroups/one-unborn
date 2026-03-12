@@ -68,8 +68,8 @@
                         <th>Client Name</th>
                         <th>Area State</th>
                         <th>Circuit_ID</th>
-                        <th>Date of Renewal</th>
-                        <th>New Date of Expiry</th>
+                        <th>Date of Renewal(Y-m-d)</th>
+                        <th>Date of Expiry(d-m-Y)</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -83,7 +83,7 @@
                             <td class="text-center">{{ $key+1 }}</td>
                             <td class="text-center d-flex justify-content-center gap-1">
                                 {{-- Edit --}}
-                                @if($permissions->can_edit)
+                                @if($permissions->can_edit && $renewal->id)
                                     <a href="{{ route('operations.renewals.edit', $renewal) }}" class="btn btn-sm btn-primary">
                                         <i class="bi bi-pencil"></i>
                                     </a>
@@ -93,7 +93,7 @@
                                     <i class="bi bi-arrow-repeat"></i> Renew
                                 </a>
                                 {{-- Delete --}}
-                                @if($permissions->can_delete)
+                                @if($permissions->can_delete && $renewal->id)
                                     <form action="{{ route('operations.renewals.destroy',$renewal) }}" method="POST" class="d-inline">
                                         @csrf
                                         @method('DELETE')
@@ -103,6 +103,7 @@
                                     </form>
                                 @endif
                                 {{-- Toggle Status --}}
+                                @if($renewal->id)
                                 <form action="{{ route('operations.renewals.toggle-status', $renewal->id) }}" method="POST" class="d-inline">
                                     @csrf
                                     @method('PATCH')
@@ -110,8 +111,9 @@
                                         {{ $renewal->status ?? 'Inactive' }}
                                     </button>
                                 </form>
+                                @endif
                                 {{-- View --}}
-                                @if($permissions->can_view)
+                                @if($permissions->can_view && $renewal->id)
                                     <a href="{{ route('operations.renewals.view', $renewal->id) }}" class="btn btn-sm btn-warning">
                                         <i class="bi bi-eye"></i>
                                     </a>
@@ -122,18 +124,32 @@
                             <td>{{ $renewal->deliverable->feasibility->area ?? '-' }}, {{ $renewal->deliverable->feasibility->state ?? '-' }}</td>
                             <td>{{ $renewal->circuit_id ?? (\App\Models\DeliverablePlan::where('deliverable_id', $renewal->deliverable_id)->value('circuit_id') ?? '-') }}</td>
                             <td>{{ $renewal->date_of_renewal ? \Carbon\Carbon::parse($renewal->date_of_renewal)->format('Y-m-d') : '-' }}</td>
-                            <td>
+                            <!-- <td>{{ $renewal->deliverable->date_of_expiry ? \Carbon\Carbon::parse($renewal->deliverable->date_of_expiry)->format('Y-m-d') : '-' }}</td> -->
+
+                            <!-- <td>
                                 {{ $renewal->date_of_renewal && $renewal->new_expiry_date ? \Carbon\Carbon::parse($renewal->new_expiry_date)->format('Y-m-d') : 'N/A' }}
-                            </td>
+                            </td> -->
+
+                            <td>
+                                    @if($renewal->new_expiry_date)
+                                        <span class="text-green-600">{{ \Carbon\Carbon::parse($renewal->new_expiry_date)->format('d-m-Y') }}</span>
+                                    @elseif(isset($renewal->deliverablePlan) && $renewal->deliverablePlan->expiry_date)
+                                        <span class="text-gray-500">{{ \Carbon\Carbon::parse($renewal->deliverablePlan->expiry_date)->format('d-m-Y') }}</span>
+                                    @else
+                                        <span class="text-red-500">-</span>
+                                    @endif
+                                </td>
                            
                             <td>
-                                <form action="{{ route('operations.renewals.toggle-status', $renewal->id) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="btn btn-sm {{ $renewal->status == 'Active' ? 'btn-success' : 'btn-secondary' }}">
-                                        {{ $renewal->status ?? 'Inactive' }}
-                                    </button>
-                                </form>
+                                @if($renewal->id)
+                                    <form action="{{ route('operations.renewals.toggle-status', $renewal->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="btn btn-sm {{ $renewal->status == 'Active' ? 'btn-success' : 'btn-secondary' }}">
+                                            {{ $renewal->status ?? 'Inactive' }}
+                                        </button>
+                                    </form>
+                                @endif
                             </td>
                         @empty
                             <tr>

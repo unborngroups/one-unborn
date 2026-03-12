@@ -1,109 +1,111 @@
 @extends('layouts.app')
 
+@section('title', 'Purchase Invoices')
+
 @section('content')
-<div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <h4>Purchasing &amp; Payables</h4>
-            <!-- <p class="text-muted mb-0">Track vendor invoices, expenses, and debit notes along with TDS/GST workflows.</p> -->
-        </div>
-        <!-- <a href="{{ route('finance.vendor-invoices.create') }}" class="btn btn-primary">New Vendor Invoice</a> -->
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">Purchase Invoices</h4>
+
+
     </div>
 
-    <div class="row gy-3">
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Vendor Invoices</h5>
-                    <p class="card-text">Capture invoice details, GST breakup, and maker/checker approvals before posting.</p>
-                    <a href="{{ route('finance.vendor-invoices.index') }}" class="btn btn-outline-primary btn-sm">View invoices</a>
-                </div>
-            </div>
+    @if(session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
         </div>
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Expenses</h5>
-                    <p class="card-text">Record inwards expenses, tag cost centres, and enforce expense policies.</p>
-                    <a href="{{ route('finance.expenses.index') }}" class="btn btn-outline-primary btn-sm">View expenses</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Debit Notes</h5>
-                    <p class="card-text">Issue credit or debit adjustments linked to original vendor invoices.</p>
-                    <a href="{{ route('finance.debit-notes.index') }}" class="btn btn-outline-primary btn-sm">View notes</a>
-                </div>
-            </div>
+    @endif
+
+    <div class="card shadow-sm">
+        <div class="card-body table-responsive">
+
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Invoice No</th>
+                        <th>Vendor</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th width="250">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @forelse($purchases as $purchase)
+                        <tr>
+                            <td>{{ $loop->iteration }}</td>
+
+                            <td>{{ $purchase->invoice_number ?? '-' }}</td>
+
+                            <td>
+                                @if($purchase->deliverable && $purchase->deliverable->feasibility && $purchase->deliverable->feasibility->client)
+                                    {{ $purchase->deliverable->feasibility->client->client_name }}
+                                @else
+                                    -
+                                @endif
+                            </td>
+
+                            <td>
+                                {{ $purchase->invoice_date 
+                                    ? \Carbon\Carbon::parse($purchase->invoice_date)->format('d-m-Y') 
+                                    : '-' }}
+                            </td>
+
+                            <td>
+                                ₹ {{ number_format($purchase->total_amount, 2) }}
+                            </td>
+
+                            <td>
+
+                                {{-- VIEW --}}
+                                <a href="{{ route('finance.purchases.show', $purchase->id) }}"
+                                   class="btn btn-sm btn-info">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+
+                                {{-- EDIT --}}
+                                <a href="{{ route('finance.purchases.edit', $purchase->id) }}"
+                                   class="btn btn-sm btn-warning">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+
+                                {{-- PDF --}}
+                                <a href="{{ route('finance.purchases.pdf', $purchase->id) }}"
+                                   class="btn btn-sm btn-secondary"
+                                   target="_blank">
+                                    <i class="bi bi-file-earmark-pdf"></i>
+                                </a>
+
+                                {{-- DELETE --}}
+                                <form action="{{ route('finance.purchases.destroy', $purchase->id) }}"
+                                      method="POST"
+                                      class="d-inline"
+                                      onsubmit="return confirm('Are you sure you want to delete this invoice?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="text-center">
+                                No Purchase Invoices Found.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+
         </div>
     </div>
 
-    <!-- <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h6>GST &amp; TDS Monitor</h6>
-                    <p class="small text-muted">Required fields are enforced for GSTIN, HSN/SAC, TDS sections, and PAN validation before invoices can be approved.</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h6>Approvals &amp; Auditing</h6>
-                    <p class="small text-muted">Maker, checker, and approver remarks are logged for every transaction. Disputes and audits can surface activity history from this view.</p>
-                </div>
-            </div>
-        </div>
-    </div> -->
 </div>
-
-<style>
-    .card {
-        border: none;
-        border-radius: 12px;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-    }
-
-    .card-body {
-        background-color: #f8f9fa;
-        border-radius: 12px;
-        padding: 1.5rem;
-    }
-
-    .card-title {
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-
-    .card-text {
-        color: #6c757d;
-        font-size: 0.9rem;
-        margin-bottom: 1rem;
-    }
-
-    .btn-outline-primary {
-        border-radius: 20px;
-        padding: 0.35rem 0.9rem;
-        font-size: 0.85rem;
-    }
-
-    .page-header h4 {
-        font-weight: 600;
-        margin-bottom: 0.25rem;
-    }
-
-    .page-header p {
-        color: #6c757d;
-        font-size: 0.85rem;
-    }
-</style>
 
 @endsection

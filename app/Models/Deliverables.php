@@ -169,13 +169,19 @@ public function deliverablePlan()
     return $this->belongsTo(DeliverablePlan::class);
 }
 
-public function invoice()
+public function sales()
 {
-    return $this->hasOne(Invoice::class,'deliverable_id');
+    return $this->hasOne(SalesInvoice::class,'deliverable_id');
+}
+
+public function purchase()
+{
+    return $this->hasOne(PurchaseInvoice::class,'deliverable_id');
 }
 
   public function purchase_order()
     {
         return $this->belongsTo(\App\Models\PurchaseOrder::class, 'purchase_order_id');
     }
+
 }

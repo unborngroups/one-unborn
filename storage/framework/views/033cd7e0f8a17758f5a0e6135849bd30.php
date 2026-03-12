@@ -29,8 +29,9 @@
 
         <div class="card-header bg-light d-flex justify-content-between">
 
+
             <!-- <h5 class="mb-0 text-danger">MANAGE USER</h5> -->
-              <form id="filterForm" method="GET" class="d-flex align-items-center gap-2 w-100">
+            <form id="filterForm" method="GET" class="d-flex align-items-center gap-2 w-100">
                 <label for="entriesSelect" class="mb-0">Show</label>
                 <select id="entriesSelect" name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
                     <option value="10" <?php echo e(request('per_page', 10) == 10 ? 'selected' : ''); ?>>10</option>
@@ -38,19 +39,16 @@
                     <option value="50" <?php echo e(request('per_page') == 50 ? 'selected' : ''); ?>>50</option>
                     <option value="100" <?php echo e(request('per_page') == 100 ? 'selected' : ''); ?>>100</option>
                 </select>
-                <!-- <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search..."> -->
-            </form>
                 <input type="text" name="search" value="<?php echo e(request('search')); ?>" class="form-control form-control-sm w-25" placeholder="Search..." onkeyup="this.form.submit();">
+            </form>
 
-            <!-- <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search..."> -->
 
         </div>
 
         <div class="card-body table-responsive">
 
-            <!-- <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search..."> -->
 
-            <table class="table table-bordered table-hover align-middle" id="feasibility">
+            <table class="table table-bordered table-hover align-middle" id="feasibilitytable">
 
                 <thead class="table-dark-primary text-center">
 
@@ -224,7 +222,7 @@ document.getElementById('search').addEventListener('keyup', function() {
 
     let value = this.value.toLowerCase();
 
-    document.querySelectorAll('#feasibility tbody tr').forEach(row => {
+    document.querySelectorAll('#feasibilitytable tbody tr').forEach(row => {
 
         row.style.display = row.textContent.toLowerCase().includes(value) ? '' : 'none';
 

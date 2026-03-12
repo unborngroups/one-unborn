@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\PincodeLookupController;
+use App\Http\Controllers\Api\InboundEmailController;
 use App\Models\Client;
 
 // GST API Routes
@@ -33,4 +34,11 @@ Route::get('/clients/head-office/{id}', function ($id) {
         'short_name',
         'business_display_name'
     )->where('office_type', 'head')->findOrFail($id);
+
+
+    Route::post('/email/inbound', 
+    [InboundEmailController::class, 'receive']
+);
+
+
 });

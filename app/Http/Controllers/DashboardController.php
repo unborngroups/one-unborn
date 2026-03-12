@@ -12,8 +12,20 @@ use App\Models\Renewal;
 
 class DashboardController extends Controller
 {
-     public function index()
-     {
+    public function index()
+    {
+        // Expired but not renewed deliverable plans (per circuit)
+        $expiredPlans = \App\Models\DeliverablePlan::whereNotNull('date_of_expiry')
+            ->where('date_of_expiry', '<', now())
+            ->get()
+            ->filter(function($plan) {
+                // No renewal exists for this deliverable_id and circuit_id
+                return !\App\Models\Renewal::where('deliverable_id', $plan->deliverable_id)
+                    ->where('circuit_id', $plan->circuit_id)
+                    ->exists();
+            });
+        $expiredRenewalCount = $expiredPlans->count();
+    
           $userType = Auth::user()->user_type ?? 'Employee';
 
         $feasibilityCounts = [
@@ -119,6 +131,7 @@ class DashboardController extends Controller
             'today' => $todayRenewals->count(),
             'tomorrow' => $tomorrowRenewals->count(),
             'week' => $weekRenewals->count(),
+            'expired' => $expiredRenewalCount,
         ];
 
         return view('welcome', compact(
@@ -130,7 +143,9 @@ class DashboardController extends Controller
             'renewalCounts',
             'todayRenewals',
             'tomorrowRenewals',
-            'weekRenewals'
+            'weekRenewals',
+            'expiredRenewalCount',
+            'expiredPlans'
         ));
      }
 }

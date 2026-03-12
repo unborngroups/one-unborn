@@ -104,5 +104,9 @@ public function getAuthPassword()
     return $this->belongsTo(Client::class, 'head_office_id');
 }
 
-
+// invoice link to client
+public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
 }

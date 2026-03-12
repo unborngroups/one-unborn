@@ -7,17 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 class Items extends Model
 {
     protected $fillable = [
-        'item_name',
-        'item_description',
-        'item_rate',
-        'hsn_sac_code',
-        'usage_unit',
-        'status',
+        'name',
+        'sku',
+        'price',
+        'stock',
+        'gst_rate',
     ];
 
-     public function invoice()
-{
-    return $this->hasOne(Invoice::class,'item_id');
-} 
- 
+    public function invoiceItems()
+    {
+        return $this->hasMany(InvoiceItem::class);
+    }
 }

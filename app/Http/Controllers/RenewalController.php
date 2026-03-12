@@ -33,18 +33,49 @@ class RenewalController extends Controller
        }
        $renewals = $query->orderBy('id', 'desc')->paginate($perPage)->withQueryString();
 
-
-        $query = Renewal::query();
-        // this lines for filtering today, tomorrow, week in dashboard
         $filter = $request->get('filter');
-        if ($filter === 'today') {
-            $query->whereDate('alert_date', today());
-        } elseif ($filter === 'tomorrow') {
-            $query->whereDate('alert_date', today()->addDay());
-        } elseif ($filter === 'week') {
-            $query->whereBetween('alert_date', [today(), today()->addDays(7)]);
+        if ($filter === 'expired') {
+            // Only show expired deliverable plans (circuit IDs) with no renewal
+            $expiredPlans = \App\Models\DeliverablePlan::whereNotNull('date_of_expiry')
+                ->where('date_of_expiry', '<', now())
+                ->get()
+                ->filter(function($plan) {
+                    return !\App\Models\Renewal::where('deliverable_id', $plan->deliverable_id)
+                        ->where('circuit_id', $plan->circuit_id)
+                        ->exists();
+                });
+            $expiredRenewals = $expiredPlans->map(function($plan) {
+                $renewal = new \App\Models\Renewal();
+                $renewal->deliverable_id = $plan->deliverable_id;
+                $renewal->circuit_id = $plan->circuit_id;
+                $renewal->date_of_renewal = null;
+                $renewal->renewal_months = null;
+                $renewal->new_expiry_date = null;
+                $renewal->alert_date = null;
+                $renewal->status = 'Expired';
+                $renewal->setRelation('deliverable', $plan->deliverable);
+                $renewal->setRelation('deliverablePlan', $plan);
+                return $renewal;
+            });
+            // Paginate manually
+            $page = $request->get('page', 1);
+            $total = $expiredRenewals->count();
+            $items = $expiredRenewals->slice(($page - 1) * $perPage, $perPage)->all();
+            $renewals = new \Illuminate\Pagination\LengthAwarePaginator($items, $total, $perPage, $page, [
+                'path' => $request->url(),
+                'query' => $request->query(),
+            ]);
+        } else {
+            $query = Renewal::query();
+            if ($filter === 'today') {
+                $query->whereDate('alert_date', today());
+            } elseif ($filter === 'tomorrow') {
+                $query->whereDate('alert_date', today()->addDay());
+            } elseif ($filter === 'week') {
+                $query->whereBetween('alert_date', [today(), today()->addDays(7)]);
+            }
+            $renewals = $query->latest()->paginate($perPage);
         }
-        $renewals = $query->latest()->paginate($perPage);
 
         $permissions = TemplateHelper::getUserMenuPermissions('Renewals') ?? (object)[
             'can_menu'   => true,
@@ -97,8 +128,13 @@ class RenewalController extends Controller
         // Alert 1 day before expiry
         $alertDate = $expiry->copy()->subDay();
 
+        // Always set circuit_id to match the selected deliverable plan
+        $deliverablePlan = DeliverablePlan::where('deliverable_id', $request->deliverable_id)->first();
+        $circuitId = $deliverablePlan ? $deliverablePlan->circuit_id : null;
+
         Renewal::create([
             'deliverable_id'   => $request->deliverable_id,
+            'circuit_id'       => $circuitId,
             'date_of_renewal'  => $renewalDate->format('Y-m-d'),
             'renewal_months'   => $request->renewal_months,
             'new_expiry_date'  => $expiry->format('Y-m-d'),

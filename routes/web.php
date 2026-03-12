@@ -15,12 +15,9 @@ use App\Http\Controllers\MenuController;
 use App\Http\Controllers\CompanySettingsController;
 use App\Http\Controllers\TaxInvoiceSettingsController;
 use App\Http\Controllers\FeasibilityStatusController;
-use App\Http\Controllers\Finance\VendorInvoiceController;
-use App\Http\Controllers\Finance\InvoiceController;
+
 use App\Http\Controllers\Report\DeliverableController;
-use App\Http\Controllers\Finance\ExpenseController;
-use App\Http\Controllers\Finance\ItemsController;
-use App\Http\Controllers\Finance\DebitNoteController; 
+ 
 use App\Http\Controllers\TerminationController;
 use App\Http\Controllers\RenewalController;
 // use App\Http\Controllers\InvoiceController;
@@ -29,6 +26,22 @@ use App\Http\Controllers\SystemSettingsController;
 use App\Http\Controllers\FeasibilityController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\FeasibilityExcelController;
+
+use App\Http\Controllers\Finance\CustomerController;
+use App\Http\Controllers\Finance\SalesController;
+use App\Http\Controllers\Finance\SettingsController;
+use App\Http\Controllers\Finance\PurchaseController;
+use App\Http\Controllers\Finance\BankingController;
+use App\Http\Controllers\Finance\AccountController;
+use App\Http\Controllers\Finance\ReportController;
+use App\Http\Controllers\Finance\FinanceGstController;
+use App\Http\Controllers\Finance\FinanceTdsController;
+use App\Http\Controllers\Finance\VendorInvoiceController;
+use App\Http\Controllers\Finance\InvoiceController;
+use App\Http\Controllers\Finance\ExpenseController;
+use App\Http\Controllers\Finance\ItemController;
+use App\Http\Controllers\Finance\DebitNoteController;
+
 use App\Http\Controllers\ClientPortalController;
 use App\Http\Controllers\ModelTypeController;
 use App\Http\Controllers\SlaReportController;
@@ -37,6 +50,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DeliverablesController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\PrivateChatController;
+
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\hrController;
@@ -49,11 +63,6 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\TrainingController;
 use App\Http\Controllers\StrategyController;
 use App\Http\Controllers\AssuranceController;
-use App\Http\Controllers\Finance\BankingController;
-use App\Http\Controllers\Finance\AccountController;
-use App\Http\Controllers\Finance\ReportController;
-use App\Http\Controllers\Finance\FinanceGstController;
-use App\Http\Controllers\Finance\FinanceTdsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -173,7 +182,8 @@ Route::patch('/users/{id}/toggle-status', [UserController::class, 'toggleStatus'
     Route::post('/hr/leavetype/bulk-delete', [LeaveTypeController::class, 'bulkDelete'])->name('hr.leavetype.bulk-delete');
     Route::post('/operations/termination/bulk-delete', [TerminationController::class, 'bulkDestroy'])->name('operations.termination.bulk-delete');
     Route::post('/operations/feasibility/bulk-delete', [FeasibilityStatusController::class, 'bulkDestroy'])->name('operations.feasibility.bulk-delete');
-    Route::post('/finance/items/bulk-delete', [ItemsController::class, 'bulkDestroy'])->name('finance.items.bulk-delete');
+    Route::post('/operations/deliverables/bulk-delete', [DeliverablesController::class, 'bulkDestroy'])->name('operations.deliverables.bulk-delete');
+    Route::post('/finance/items/bulk-delete', [ItemController::class, 'bulkDestroy'])->name('finance.items.bulk-delete');
     
     //view path
     Route::get('/users/{id}/view', [UserController::class, 'view'])->name('users.view');
@@ -455,7 +465,7 @@ Route::prefix('assetmaster/model_type')->name('assetmaster.model_type.')->group(
 
 // Finance Module Routes
 Route::prefix('finance')->name('finance.')->group(function () {
-           // accounts
+//            // accounts
     Route::get('accounts',[AccountController::class,'index'])->name('accounts.index');
     Route::get('accounts/create',[AccountController::class,'create'])->name('accounts.create');
     Route::post('accounts/store',[AccountController::class,'store'])->name('accounts.store');
@@ -466,32 +476,16 @@ Route::prefix('finance')->name('finance.')->group(function () {
     Route::post('accounts/{account}/approve',[AccountController::class,'approve'])->name('accounts.approve');
     Route::post('accounts/{account}/reject',[AccountController::class,'reject'])->name('accounts.reject');
 
-    // Invoice
-    Route::get('/invoices', [InvoiceController::class,'index'])->name('invoices.index');
-    Route::get('/invoices/create', [InvoiceController::class,'create'])->name('invoices.create');
-    Route::post('/invoices', [InvoiceController::class,'store'])->name('invoices.store');
-    Route::get('/invoices/{id}', [InvoiceController::class,'view'])->name('invoices.view');
-    Route::get('/invoices/{id}/edit', [InvoiceController::class,'edit'])->name('invoices.edit');
-    Route::put('/invoices/{id}', [InvoiceController::class,'update'])->name('invoices.update');
-    Route::delete('/invoices/{id}', [InvoiceController::class,'destroy'])->name('invoices.delete');
-    Route::get('/invoices/{id}/pdf', [InvoiceController::class,'pdf'])->name('invoices.pdf');
-    Route::get('/invoices/{id}/send-email', [InvoiceController::class,'sendEmail'])->name('invoices.sendEmail');
+    Route::get('/items', [ItemController::class,'index'])->name('items.index');
+    Route::get('/items/create', [ItemController::class,'create'])->name('items.create');
+    Route::post('/items', [ItemController::class,'store'])->name('items.store');
+    Route::get('/items/{id}', [ItemController::class,'view'])->name('items.view');
+    Route::get('/items/{id}/edit', [ItemController::class,'edit'])->name('items.edit');
+    Route::put('/items/{id}', [ItemController::class,'update'])->name('items.update');
+    Route::delete('/items/{id}', [ItemController::class,'destroy'])->name('items.destroy');
+    Route::patch('/items/{id}/toggle-status', [ItemController::class, 'toggleStatus'])->name('items.toggle-status');
 
-        // State-wise Invoice Report
-        Route::get('/invoices/state-report', [\App\Http\Controllers\InvoiceReportController::class, 'stateReport'])
-            ->name('invoices.state_report')
-            ->middleware(['auth', \App\Http\Middleware\CheckProfileCreated::class, \App\Http\Middleware\CheckPrivilege::class . ':view']);
-
-    Route::get('/items', [ItemsController::class,'index'])->name('items.index');
-    Route::get('/items/create', [ItemsController::class,'create'])->name('items.create');
-    Route::post('/items', [ItemsController::class,'store'])->name('items.store');
-    Route::get('/items/{id}', [ItemsController::class,'view'])->name('items.view');
-    Route::get('/items/{id}/edit', [ItemsController::class,'edit'])->name('items.edit');
-    Route::put('/items/{id}', [ItemsController::class,'update'])->name('items.update');
-    Route::delete('/items/{id}', [ItemsController::class,'destroy'])->name('items.destroy');
-    Route::patch('/items/{id}/toggle-status', [ItemsController::class, 'toggleStatus'])->name('items.toggle-status');
-
-
+ 
     // banking
     Route::get('banking',[BankingController::class,'index'])->name('banking.index');
     Route::get('banking/create',[BankingController::class,'create'])->name('banking.create');
@@ -500,28 +494,103 @@ Route::prefix('finance')->name('finance.')->group(function () {
     Route::post('banking/transaction/store',[BankingController::class,'storeTransaction'])->name('banking.transaction.store');
     Route::get('banking/reconcile/{txn}',[BankingController::class,'reconcile'])->name('banking.reconcile');
 
-    // 
-    Route::resource('vendor-invoices', VendorInvoiceController::class);
-    Route::resource('expenses', ExpenseController::class);
-    Route::resource('debit-notes', DebitNoteController::class);
-    Route::get('purchases', function () {
-        return view('finance.purchases.index');
-    })->name('purchases.index');
-    Route::prefix('reports')->name('reports.')->group(function () {
-        Route::get('/', [ReportController::class, 'index'])->name('index');
-        Route::get('profit-loss', [ReportController::class,'profitLoss'])->name('profit_loss');
-        Route::get('balance-sheet', [ReportController::class,'balanceSheet'])->name('balance_sheet');
-        Route::get('cash-flow', [ReportController::class,'cashFlow'])->name('cash_flow');
-    });
+    
+  
+        // Route::prefix('purchases')->name('purchases.')->group(function () {
+        // Route::resource('vendors', VendorController::class);});
+
+        Route::resource('/sales/customers',CustomerController::class)->names('finance.sales.customers');
+
+        // Route::resource('sales', SalesController::class);
+        // Route::resource('purchases', PurchaseController::class);
+
+        // Route::resource('customers', CustomerController::class);
+        // Route::resource('vendors', VendorController::class);
+
+        // Route::resource('accounts', AccountController::class);
+
+        Route::get('reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
+        Route::get('reports/purchase', [ReportController::class, 'purchase'])->name('reports.purchase');
+        Route::get('reports/gst', [ReportController::class, 'gst'])->name('reports.gst');
+
+        Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
+
 });
 
-Route::prefix('finance/settings')->middleware(['auth'])->name('finance.settings.')->group(function () {
-    Route::get('/', function() {return view('finance.settings.index');})->name('index');
-    Route::get('/gst', [FinanceGstController::class, 'index'])->name('gst');
-    Route::post('/gst', [FinanceGstController::class, 'update'])->name('gst.update');
-    Route::get('/tds', [FinanceTdsController::class, 'index'])->name('tds');
-    Route::post('/tds', [FinanceTdsController::class, 'update'])->name('tds.update');
+// Route::prefix('finance/sales')->name('finance.sales.')->group(function () {
+
+    // Route::get('/', [SalesController::class, 'index'])->name('index');
+    // Route::get('/create', [SalesController::class, 'create'])->name('create');
+    // Route::post('/', [SalesController::class, 'store'])->name('store');
+
+    // Route::get('/{id}', [PurchaseController::class, 'show'])->name('show');
+    // Route::get('/{id}/edit', [PurchaseController::class, 'edit'])->name('edit');
+    // Route::put('/{id}', [PurchaseController::class, 'update'])->name('update');
+    // Route::delete('/{id}', [PurchaseController::class, 'destroy'])->name('destroy');
+
+    // Route::get('/{id}/pdf', [PurchaseController::class, 'pdf'])->name('pdf');
+    // Route::get('/{id}/print', [PurchaseController::class, 'print'])->name('print');
+    // Route::post('/finance/purchases/{id}/submit',[PurchaseController::class,'submit'])->name('finance.purchases.submit');
+// });
+
+Route::prefix('finance/sales')->name('finance.sales.')->group(function () {
+    Route::get('/', [SalesController::class, 'index'])->name('index');
+    Route::get('/create', [SalesController::class, 'create'])->name('create');
+    Route::post('/', [SalesController::class, 'store'])->name('store');
+    Route::get('/{id}/pdf', [SalesController::class, 'pdf'])->name('pdf');
+    Route::get('/{id}/show', [SalesController::class, 'show'])->name('show');
+    Route::get('/{id}/edit', [SalesController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [SalesController::class, 'update'])->name('update');
+    Route::delete('/{id}', [SalesController::class, 'destroy'])->name('destroy');
+    Route::get('/{id}/print', [SalesController::class, 'print'])->name('print');
+    Route::post('/finance/sales/{id}/submit',[SalesController::class,'submit'])->name('finance.sales.submit');
 });
+
+
+Route::prefix('finance/sales-invoices')->name('finance.sales_invoices.')->group(function () {
+    Route::get('/', [SalesController::class, 'index'])->name('index');
+    Route::get('/{id}', [SalesController::class, 'show'])->name('show');
+    Route::post('/{id}/verify', [SalesController::class, 'verify'])->name('verify');
+    Route::post('/{id}/approve', [SalesController::class, 'approve'])->name('approve');
+    Route::post('/{id}/mark-paid', [SalesController::class, 'markPaid'])->name('markPaid');
+});
+
+Route::prefix('finance/purchases')->name('finance.purchases.')->group(function () {
+    Route::get('/', [PurchaseController::class, 'index'])->name('index');
+    Route::get('/{id}/show', [PurchaseController::class, 'show'])->name('show');
+    Route::get('/{id}/edit', [PurchaseController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [PurchaseController::class, 'update'])->name('update');
+    Route::delete('/{id}', [PurchaseController::class, 'destroy'])->name('destroy');
+    Route::get('/{id}/pdf', [PurchaseController::class, 'pdf'])->name('pdf');
+    Route::get('/{id}/print', [PurchaseController::class, 'print'])->name('print');
+    Route::post('/finance/purchases/{id}/submit',[PurchaseController::class,'submit'])->name('finance.purchases.submit');
+});
+
+Route::prefix('finance/purchase-invoices')->name('finance.purchase_invoices.')->group(function () {
+
+    Route::get('/', [PurchaseController::class, 'index'])->name('index');
+    Route::get('/{id}', [PurchaseController::class, 'show'])->name('show');
+    Route::post('/{id}/verify', [PurchaseController::class, 'verify'])->name('verify');
+    Route::post('/{id}/approve', [PurchaseController::class, 'approve'])->name('approve');
+    Route::post('/{id}/mark-paid', [PurchaseController::class, 'markPaid'])->name('markPaid');
+});
+
+    // Route::get('/finance/sales',[SalesController::class,'index'])->name('finance.sales.index');
+    // Route::get('/finance/sales/create', [SalesController::class, 'create'])->name('finance.sales.create');
+    // Route::post('/finance/sales', [SalesController::class, 'store'])->name('finance.sales.store');
+
+// Route::get('/finance/sales', 'SalesController@index')->name('finance.sales.index');
+
+// Route::get('/finance/sales_invoices', 'SalesController@index')->name('finance.sales_invoices.index');
+
+
+// Route::prefix('finance/settings')->middleware(['auth'])->name('finance.settings.')->group(function () {
+//     Route::get('/', function() {return view('finance.settings.index');})->name('index');
+//     Route::get('/gst', [FinanceGstController::class, 'index'])->name('gst');
+//     Route::post('/gst', [FinanceGstController::class, 'update'])->name('gst.update');
+//     Route::get('/tds', [FinanceTdsController::class, 'index'])->name('tds');
+//     Route::post('/tds', [FinanceTdsController::class, 'update'])->name('tds.update');
+// });
 
 Route::prefix('report/deliverable')->name('report.deliverable.')->group(function () {
     Route::get('open', [DeliverableController::class, 'open'])->name('open');
@@ -595,17 +664,17 @@ Route::post('/otp/verify', [OtpController::class, 'verify'])->name('otp.verify')
 Route::prefix('chat')
     ->middleware(['auth', \App\Http\Middleware\CheckProfileCreated::class])
     ->group(function () {
-        Route::get('/group/{id}/messages', [App\Http\Controllers\ChatController::class,'fetchMessages'])->name('chat.messages');
-        Route::post('/send', [App\Http\Controllers\ChatController::class,'send'])->name('chat.send');
-        Route::get('/group/{id}/online-users', [App\Http\Controllers\ChatController::class,'onlineUsers'])->name('chat.online-users');
-        Route::get('/all-users', [App\Http\Controllers\ChatController::class, 'allOnlineUsers'])->name('chat.all-online-users');
-        Route::post('/typing', [App\Http\Controllers\ChatController::class,'typing'])->name('chat.typing');
-        Route::get('/bootstrap', [App\Http\Controllers\ChatController::class,'bootstrap'])->name('chat.bootstrap');
+        Route::get('/group/{id}/messages', [PrivateChatController::class,'fetchMessages'])->name('chat.messages');
+        Route::post('/send', [PrivateChatController::class,'send'])->name('chat.send');
+        Route::get('/group/{id}/online-users', [PrivateChatController::class,'onlineUsers'])->name('chat.online-users');
+        Route::get('/all-users', [PrivateChatController::class, 'allOnlineUsers'])->name('chat.all-online-users');
+        Route::post('/typing', [PrivateChatController::class,'typing'])->name('chat.typing');
+        Route::get('/bootstrap', [PrivateChatController::class,'bootstrap'])->name('chat.bootstrap');
     });
 // ...existing code...
-Route::post('/finance/invoices/{id}/update-item', [\App\Http\Controllers\Finance\InvoiceController::class, 'updateInvoiceItem'])
-    ->name('finance.invoices.updateItem')
-    ->middleware(['auth', App\Http\Middleware\CheckProfileCreated::class]);
+// Route::post('/finance/invoices/{id}/update-item', [InvoiceController::class, 'updateInvoiceItem'])
+//     ->name('finance.invoices.updateItem')
+//     ->middleware(['auth', App\Http\Middleware\CheckProfileCreated::class]);
     
 
 /*

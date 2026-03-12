@@ -26,6 +26,7 @@
 
         </div>
         
+        <div class="">
         <form id="filterForm" method="GET" class="d-flex align-items-center gap-2 w-100">
             <label for="entriesSelect" class="mb-0">Show</label>
             <select id="entriesSelect" name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
@@ -37,6 +38,7 @@
             <!-- <input type="text" id="tableSearch" class="form-control form-control-sm w-25" placeholder="Search..."> -->
 
         </form>
+
         
         <div class="card-body">
             @if($records->count() > 0)
@@ -44,10 +46,8 @@
                     <table class="table table-bordered table-hover align-middle text-center" id="open">
                         <thead class="table-dark text-center align-middle">
                             <tr>
-                                <!-- <th width="50">
-                                    <input type="checkbox" id="select_all" class="form-check-input">
-                                </th> -->
-                                <th width="50">S.No</th>
+                                <th width="50" class="text-center"><input type="checkbox" id="select_all" style="width: 18px; height: 18px; cursor: pointer;"></th>
+                                
                                 <th width="150">Action</th>
                                 <th>PO Number</th>
                                 <th>Client Name</th>
@@ -60,9 +60,7 @@
                         <tbody>
                             @foreach($records as $index => $record)
                             <tr>
-                                <!-- <td>
-                                    <input type="checkbox" class="form-check-input row-checkbox" value="{{ $record->id }}">
-                                </td> -->
+                                
 
                               <td>{{ ($records->currentPage() - 1) * $records->perPage() + $loop->iteration }}</td>
 
@@ -203,6 +201,8 @@ document.getElementById('tableSearch').addEventListener('keyup', function() {
 
 });
 </script>
+
+
 <style>
     .table th,  .table td {
 

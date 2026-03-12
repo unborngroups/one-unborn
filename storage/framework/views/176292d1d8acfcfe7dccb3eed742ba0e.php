@@ -268,7 +268,7 @@
     <div class="row g-4 mt-2">
 
         <!-- Renewals Today -->
-         <div class="col-md-4 col-sm-6">
+         <div class="col-md-3 col-sm-6">
                 <a href="<?php echo e(route('operations.renewals.index', ['filter' => 'today'])); ?>" class="text-decoration-none">
                     <div class="dashboard-card" style="background:#845ec2;">
                         <h3 class="fw-bold m-0"><?php echo e($renewalCounts['today'] ?? 0); ?></h3>
@@ -282,7 +282,7 @@
             </div>
 
         <!--  -->
-        <div class="col-md-4 col-sm-6">
+        <div class="col-md-3 col-sm-6">
                 <a href="<?php echo e(route('operations.renewals.index', ['filter' => 'tomorrow'])); ?>" class="text-decoration-none">
                         <div class="dashboard-card" style="background:#d65db1;">
                             <h3 class="fw-bold m-0"><?php echo e($renewalCounts['tomorrow'] ?? 0); ?></h3>
@@ -292,11 +292,10 @@
                                 List <i class="bi bi-arrow-right-circle"></i>
                             </div>
                         </div>
-                    </a>
-                    
+                    </a>  
             </div>
       
-        <div class="col-md-4 col-sm-6">
+        <div class="col-md-3 col-sm-6">
                 <a href="<?php echo e(route('operations.renewals.index', ['filter' => 'week'])); ?>" class="text-decoration-none">
                         <div class="dashboard-card" style="background:#ff9671;">
                             <h3 class="fw-bold m-0"><?php echo e($renewalCounts['week'] ?? 0); ?></h3>
@@ -309,6 +308,20 @@
                     </a>
             </div>
 
+             <!-- Expired but not renewed Deliverables -->
+    <div class="col-md-3 col-sm-6">
+                <a href="<?php echo e(route('operations.renewals.index', ['filter' => 'expired'])); ?>" class="text-decoration-none">
+        <div class="dashboard-card" style="background:#ff6f61;">
+            <h3 class="fw-bold m-0"><?php echo e($expiredRenewalCount ?? 0); ?></h3>
+            <h4>Expired (Not Renewed)</h4>
+            <i class="bi bi-exclamation-triangle dashboard-icon-bg"></i>
+            <div class="dashboard-bottom">
+                List <i class="bi bi-arrow-right-circle"></i>
+            </div>
+        </div>
+                    </a>
+
+    </div>
 
     </div>
 

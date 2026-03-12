@@ -161,7 +161,7 @@
 
                     <label class="form-label">City</label>
 
-                    <select name="city" class="form-select select2-tags">
+                    <select name="city" id="district" class="form-select select2-tags">
 
                         <option value="">Select or Type City</option>
 
@@ -181,15 +181,15 @@
 
                     <label class="form-label">State</label>
 
-                    <select name="state" class="form-select select2-tags">
+                    <select name="state" id="state" class="form-select select2-tags">
 
                         <option value="">Select or Type State</option>
 
-                        <option>Karnataka</option>
+                        <option value="Karnataka">Karnataka</option>
 
-                        <option>Tamil Nadu</option>
+                        <option value="Tamil Nadu">Tamil Nadu</option>
 
-                        <option>Telangana</option>
+                        <option value="Telangana">Telangana</option>
 
                     </select>
 
@@ -201,7 +201,7 @@
 
                     <label class="form-label">Country</label>
 
-                    <select name="country" class="form-select select2-tags">
+                    <select name="country" id="post_office" class="form-select select2-tags">
 
                         <option value="">Select or Type Country</option>
 
@@ -216,7 +216,7 @@
                 </div>
                 <div class="col-md-3">
                     <label for="">Pincode</label>
-            <input type="text" name="pincode" class="form-control mb-3 mt-1" placeholder="Pincode">
+            <input type="text" name="pincode" id="pincode" class="form-control mb-3 mt-1" placeholder="Pincode">
                     
                 </div>
 
@@ -357,6 +357,7 @@
 </div>
 
 
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 {{-- ✅ GST Fetch JS --}}
 
@@ -502,6 +503,229 @@ document.querySelector('[name="head_office_id"]').addEventListener('change', fun
         });
 });
 
+
+// start pincode lookup--------------------------------------------------
+// Pincode lookup function
+
+function lookupPincode() {
+
+  const pincodeField = document.getElementById('pincode');
+
+  const p = pincodeField.value.trim();
+
+  
+
+  // Only proceed if we have exactly 6 digits
+
+  if (!/^\d{6}$/.test(p)) return;
+
+  
+
+  // Get field references
+
+  const stateField = document.getElementById('state');
+
+  const districtField = document.getElementById('district');
+
+  const areaField = document.getElementById('post_office');
+
+  
+
+  // Store original values in case of error
+
+  const originalState = stateField.value;
+
+  const originalDistrict = districtField.value;
+
+  const originalArea = areaField.value;
+
+  
+
+  // Show loading state
+
+  setSelectValue(stateField, 'Loading...');
+
+  setSelectValue(districtField, 'Loading...');
+
+  setSelectValue(areaField, 'Loading...');
+
+  
+
+  console.log('🔍 Looking up pincode:', p);
+
+  
+
+  // Make API call
+
+  axios.post('/api/pincode/lookup', { pincode: p })
+
+    .then(r => {
+
+      const d = r.data;
+
+      console.log('✅ Pincode lookup successful:', d);
+
+      console.log('State field element:', stateField);
+
+      console.log('District field element:', districtField);
+
+      console.log('Area field element:', areaField);
+
+      
+
+      // Update fields with fetched data
+
+      console.log('Setting state to:', d.state);
+
+      setSelectValue(stateField, d.state || '');
+
+      
+
+      console.log('Setting district to:', d.district);
+
+      setSelectValue(districtField, d.district || '');
+
+      
+
+      console.log('Setting area to:', d.post_office);
+
+      setSelectValue(areaField, d.post_office || '');
+
+      
+
+      // Show success message briefly
+
+      const notification = document.createElement('div');
+
+      notification.style.cssText = `
+
+        position: fixed; top: 20px; right: 20px; 
+
+        background: #d4edda; color: #155724; 
+
+        padding: 10px 15px; border-radius: 5px; 
+
+        border: 1px solid #c3e6cb; z-index: 9999;
+
+        font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+
+      `;
+
+      notification.innerHTML = `✅ Location found: ${d.state}, ${d.district}`;
+
+      document.body.appendChild(notification);
+
+      
+
+      // Remove notification after 3 seconds
+
+      setTimeout(() => {
+
+        if (notification.parentNode) {
+
+          notification.parentNode.removeChild(notification);
+
+        }
+
+      }, 3000);
+
+    })
+
+    .catch(err => {
+
+      console.error('❌ Pincode lookup failed:', err);
+
+      
+
+      // Restore original values
+
+      setSelectValue(stateField, originalState);
+
+      setSelectValue(districtField, originalDistrict);
+
+      setSelectValue(areaField, originalArea);
+
+      
+
+      // Show error message
+
+      let errorMessage = 'Unable to fetch pincode details. Please try again or enter manually.';
+
+      if (err.response && err.response.status === 404) {
+
+        errorMessage = 'Pincode not found. Please check the pincode and try again.';
+
+      } else if (err.response && err.response.status === 422) {
+
+        errorMessage = 'Invalid pincode format. Please enter a 6-digit pincode.';
+
+      }
+
+      
+
+      // Show error notification
+
+      const errorNotification = document.createElement('div');
+
+      errorNotification.style.cssText = `
+
+        position: fixed; top: 20px; right: 20px; 
+
+        background: #f8d7da; color: #721c24; 
+
+        padding: 10px 15px; border-radius: 5px; 
+
+        border: 1px solid #f5c6cb; z-index: 9999;
+
+        font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+
+      `;
+
+      errorNotification.innerHTML = `❌ ${errorMessage}`;
+
+      document.body.appendChild(errorNotification);
+
+      
+
+      // Remove error notification after 5 seconds
+
+      setTimeout(() => {
+
+        if (errorNotification.parentNode) {
+
+          errorNotification.parentNode.removeChild(errorNotification);
+
+        }
+
+      }, 5000);
+
+    });
+
+}
+// Add multiple event listeners for better responsiveness
+
+const pincodeInput = document.getElementById('pincode');
+
+// Trigger on blur (when user clicks outside the field)
+
+pincodeInput.addEventListener('blur', lookupPincode);
+
+function setSelectValue(select, value) {
+
+    if (!value) return;
+
+    let option = Array.from(select.options).find(o => o.value === value);
+
+    if (!option) {
+        let newOption = new Option(value, value, true, true);
+        select.add(newOption);
+    }
+
+    select.value = value;
+
+}
+
+//end pincode lookup-----------------------------------
 
 </script>
 

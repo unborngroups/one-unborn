@@ -69,8 +69,8 @@
                         <th>Client Name</th>
                         <th>Area State</th>
                         <th>Circuit_ID</th>
-                        <th>Date of Renewal</th>
-                        <th>New Date of Expiry</th>
+                        <th>Date of Renewal(Y-m-d)</th>
+                        <th>Date of Expiry(d-m-Y)</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -84,7 +84,7 @@
                             <td class="text-center"><?php echo e($key+1); ?></td>
                             <td class="text-center d-flex justify-content-center gap-1">
                                 
-                                <?php if($permissions->can_edit): ?>
+                                <?php if($permissions->can_edit && $renewal->id): ?>
                                     <a href="<?php echo e(route('operations.renewals.edit', $renewal)); ?>" class="btn btn-sm btn-primary">
                                         <i class="bi bi-pencil"></i>
                                     </a>
@@ -94,7 +94,7 @@
                                     <i class="bi bi-arrow-repeat"></i> Renew
                                 </a>
                                 
-                                <?php if($permissions->can_delete): ?>
+                                <?php if($permissions->can_delete && $renewal->id): ?>
                                     <form action="<?php echo e(route('operations.renewals.destroy',$renewal)); ?>" method="POST" class="d-inline">
                                         <?php echo csrf_field(); ?>
                                         <?php echo method_field('DELETE'); ?>
@@ -104,6 +104,7 @@
                                     </form>
                                 <?php endif; ?>
                                 
+                                <?php if($renewal->id): ?>
                                 <form action="<?php echo e(route('operations.renewals.toggle-status', $renewal->id)); ?>" method="POST" class="d-inline">
                                     <?php echo csrf_field(); ?>
                                     <?php echo method_field('PATCH'); ?>
@@ -112,8 +113,9 @@
 
                                     </button>
                                 </form>
+                                <?php endif; ?>
                                 
-                                <?php if($permissions->can_view): ?>
+                                <?php if($permissions->can_view && $renewal->id): ?>
                                     <a href="<?php echo e(route('operations.renewals.view', $renewal->id)); ?>" class="btn btn-sm btn-warning">
                                         <i class="bi bi-eye"></i>
                                     </a>
@@ -124,20 +126,34 @@
                             <td><?php echo e($renewal->deliverable->feasibility->area ?? '-'); ?>, <?php echo e($renewal->deliverable->feasibility->state ?? '-'); ?></td>
                             <td><?php echo e($renewal->circuit_id ?? (\App\Models\DeliverablePlan::where('deliverable_id', $renewal->deliverable_id)->value('circuit_id') ?? '-')); ?></td>
                             <td><?php echo e($renewal->date_of_renewal ? \Carbon\Carbon::parse($renewal->date_of_renewal)->format('Y-m-d') : '-'); ?></td>
-                            <td>
+                            <!-- <td><?php echo e($renewal->deliverable->date_of_expiry ? \Carbon\Carbon::parse($renewal->deliverable->date_of_expiry)->format('Y-m-d') : '-'); ?></td> -->
+
+                            <!-- <td>
                                 <?php echo e($renewal->date_of_renewal && $renewal->new_expiry_date ? \Carbon\Carbon::parse($renewal->new_expiry_date)->format('Y-m-d') : 'N/A'); ?>
 
-                            </td>
+                            </td> -->
+
+                            <td>
+                                    <?php if($renewal->new_expiry_date): ?>
+                                        <span class="text-green-600"><?php echo e(\Carbon\Carbon::parse($renewal->new_expiry_date)->format('d-m-Y')); ?></span>
+                                    <?php elseif(isset($renewal->deliverablePlan) && $renewal->deliverablePlan->expiry_date): ?>
+                                        <span class="text-gray-500"><?php echo e(\Carbon\Carbon::parse($renewal->deliverablePlan->expiry_date)->format('d-m-Y')); ?></span>
+                                    <?php else: ?>
+                                        <span class="text-red-500">-</span>
+                                    <?php endif; ?>
+                                </td>
                            
                             <td>
-                                <form action="<?php echo e(route('operations.renewals.toggle-status', $renewal->id)); ?>" method="POST" class="d-inline">
-                                    <?php echo csrf_field(); ?>
-                                    <?php echo method_field('PATCH'); ?>
-                                    <button type="submit" class="btn btn-sm <?php echo e($renewal->status == 'Active' ? 'btn-success' : 'btn-secondary'); ?>">
-                                        <?php echo e($renewal->status ?? 'Inactive'); ?>
+                                <?php if($renewal->id): ?>
+                                    <form action="<?php echo e(route('operations.renewals.toggle-status', $renewal->id)); ?>" method="POST" class="d-inline">
+                                        <?php echo csrf_field(); ?>
+                                        <?php echo method_field('PATCH'); ?>
+                                        <button type="submit" class="btn btn-sm <?php echo e($renewal->status == 'Active' ? 'btn-success' : 'btn-secondary'); ?>">
+                                            <?php echo e($renewal->status ?? 'Inactive'); ?>
 
-                                    </button>
-                                </form>
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
                             </td>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <tr>

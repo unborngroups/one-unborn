@@ -9,6 +9,7 @@ use App\Helpers\TemplateHelper;
 
 class Make_typeController extends Controller
 {
+
     public function index(Request $request)
     {
         // $makeTypes = MakeType::with('company')

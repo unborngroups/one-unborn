@@ -155,7 +155,7 @@ ALTER TABLE deliverables
 ADD COLUMN invoice_id BIGINT UNSIGNED NULL AFTER delivery_notes;
   
 
-  ----------------------------update pannanu----------------
+  --------------------------------------------
   ALTER TABLE companies
   ADD COLUMN company_logo VARCHAR(255) NULL AFTER billing_logo;
 
@@ -168,3 +168,9 @@ ADD COLUMN invoice_id BIGINT UNSIGNED NULL AFTER id;
   
 ALTER TABLE `invoices` ADD `items_id` BIGINT(20) UNSIGNED NULL AFTER `terms`;
 
+
+  ----------------------------update pannanu---------------------------------------
+ALTER TABLE feasibilities MODIFY status VARCHAR(225);
+
+ALTER TABLE invoice_items
+ADD item_id BIGINT UNSIGNED AFTER invoice_id;

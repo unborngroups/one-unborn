@@ -14,40 +14,59 @@ use Illuminate\Support\Facades\Log;
 use App\Models\MakeType;
 use App\Models\DeliverablePlan;
 use App\Models\ModelType;
-use App\Models\Asset;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\FeasibilityImport;
-use App\Helpers\EmailHelper;
-use Illuminate\Database\Eloquent\Model;
 
 class FeasibilityController extends Controller
 {
     public function index(Request $request)
     {
-        /** @var \App\Models\User $user */
         $user = Auth::user();
+        $perPage = (int) $request->get('per_page', 10);
+        $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
 
-        // ✅ Superadmin (1) & Admin (2) can see all feasibility records
-        if (in_array($user->user_type_id, [1, 2])) {
-            $feasibilities = Feasibility::with(['company', 'client'])->latest()->paginate(10);
-        } 
-        else {
-            // ✅ Normal users: only feasibility records belonging to their assigned companies
-            $companyIds = $user->companies()->pluck('companies.id');
+        $query = Feasibility::with(['company', 'client']);
 
-            // 
-            $perPage = (int) $request->get('per_page', 10);
-    $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
-
-    // Paginated vendors
-            $feasibilities = Feasibility::orderBy('id', 'desc')->paginate($perPage);
-
-
-            $feasibilities = Feasibility::with(['company', 'client'])->whereIn('company_id', $companyIds)->latest()->paginate(10);
+        // Normal users: only feasibility records belonging to their assigned companies
+        if (!in_array($user->user_type_id, [1, 2])) {
+            $companyIds = $user->company()->pluck('companies.id');
+            $query->whereIn('company_id', $companyIds);
         }
-    
 
-        // Use the helper correctly
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->orWhere('type_of_service', 'like', "%{$search}%")
+                  ->orWhere('delivery_company_name', 'like', "%{$search}%")
+                  ->orWhere('circuit_id', 'like', "%{$search}%")
+                  ->orWhere('location_id', 'like', "%{$search}%")
+                  ->orWhere('longitude', 'like', "%{$search}%")
+                  ->orWhere('latitude', 'like', "%{$search}%")
+                  ->orWhere('pincode', 'like', "%{$search}%")
+                  ->orWhere('state', 'like', "%{$search}%")
+                  ->orWhere('district', 'like', "%{$search}%")
+                  ->orWhere('area', 'like', "%{$search}%")
+                  ->orWhere('address', 'like', "%{$search}%")
+                  ->orWhere('spoc_name', 'like', "%{$search}%")
+                  ->orWhere('spoc_contact1', 'like', "%{$search}%")
+                  ->orWhere('spoc_contact2', 'like', "%{$search}%")
+                  ->orWhere('spoc_email', 'like', "%{$search}%")
+                  ->orWhere('no_of_links', 'like', "%{$search}%")
+                  ->orWhere('speed', 'like', "%{$search}%")
+                  ->orWhere('vendor_type', 'like', "%{$search}%")
+                  ->orWhere('static_ip', 'like', "%{$search}%")
+                  ->orWhere('static_ip_subnet', 'like', "%{$search}%")
+                  ->orWhere('static_ip_duration', 'like', "%{$search}%")
+                  ->orWhere('expected_delivery', 'like', "%{$search}%")
+                  ->orWhere('expected_activation', 'like', "%{$search}%")
+                  // Search by client name via relationship
+                  ->orWhereHas('client', function($cq) use ($search) {
+                      $cq->where('client_name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $feasibilities = $query->latest()->paginate($perPage);
+
+        
         $permissions = TemplateHelper::getUserMenuPermissions('Feasibility Master') ?? (object)[
             'can_menu' => true,
             'can_add' => true,
@@ -59,7 +78,7 @@ class FeasibilityController extends Controller
         return view('feasibility.index', compact('feasibilities', 'permissions'));
     }
    
-
+   
     /**
      * Show the form for creating a new resource.
      */
@@ -99,16 +118,16 @@ class FeasibilityController extends Controller
             'location_id' => 'nullable|string',
             'longitude' => 'nullable|string',
             'latitude' => 'nullable|string',
-            'pincode' => 'required',
+            'pincode' => 'required|digits:6',
             'state' => 'required',
             'district' => 'required',
             'area' => 'required',
             'address' => 'required',
             'spoc_name' => 'required',
-            'spoc_contact1' => 'required',
-            'spoc_contact2' => 'nullable',
+            'spoc_contact1' => 'required|digits:10',
+            'spoc_contact2' => 'nullable|digits:10',
             'spoc_email' => 'nullable|email',
-            'no_of_links' => 'required',
+            'no_of_links' => 'required|numeric|min:1',
             'speed' => 'required',
             'vendor_type' => 'required',
             'static_ip' => 'required|in:Yes,No',
@@ -140,13 +159,14 @@ class FeasibilityController extends Controller
     // Build hardware JSON
    $hardwareData = [];
 
-if ($request->hardware_required == '1') {
-    $hardwareData[] = [
-        'make_type_id' => $request->make_type_id,
-        'model_id'     => $request->model_id,
-    ];
+if ($request->hardware_required == '1' && $request->hardware_make && $request->hardware_model) {
+    foreach ($request->hardware_make as $index => $make) {
+        $hardwareData[] = [
+            'make_type_id' => $make,
+            'model_id' => $request->hardware_model[$index] ?? null,
+        ];
+    }
 }
-
 
     // Store JSON in validated array
     $validated['hardware_details'] = json_encode($hardwareData);

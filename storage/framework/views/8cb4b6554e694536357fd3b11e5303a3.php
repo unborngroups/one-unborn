@@ -922,110 +922,160 @@
 
             ?>
 
-            <?php if($finance && $finance->can_menu): ?>
-                <li class="nav-item">
-                    <details class="finance sidebar-dropdown" <?php echo e(request()->is('finance/*') ? 'open' : ''); ?>>
-                        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
-                            <span><i class="bi bi-cash-coin"></i> Finance</span>
-                            <i class="bi bi-chevron-down arrow-icon"></i>
-                        </summary>
+            
+<?php if($finance && $finance->can_menu): ?>
+<li class="nav-item">
+    <details class="finance sidebar-dropdown"
+        <?php echo e(request()->is('finance/*') ? 'open' : ''); ?>>
+        
+        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-cash-coin"></i> Finance</span>
+            <i class="bi bi-chevron-down arrow-icon"></i>
+        </summary>
 
-                        <ul class="nav flex-column ms-3 mt-1">
-                            <li>
-                                <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/accounts*') ? 'active' : ''); ?>"
-                                   href="<?php echo e(route('finance.accounts.index')); ?>">
-                                    <span><i class="bi bi-receipt me-2"></i> Accounts</span>
-                                </a>
-                            </li>
+        <ul class="nav flex-column ms-3 mt-2">
 
-                            <li>
-                                <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/invoice*') ? 'active' : ''); ?>"
-                                href="<?php echo e(route('finance.invoices.index')); ?>">
-                                <i class="bi bi-receipt me-2"></i> Invoice
-                                </a>
-                            </li>
+            
+            <?php if($sales && $sales->can_menu): ?>
+            <li>
+                <details <?php echo e(request()->is('finance/sales*') || request()->is('finance/customers*') ? 'open' : ''); ?>>
 
-                            <li>
-                                <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/items*') ? 'active' : ''); ?>"
-                                   href="<?php echo e(route('finance.items.index')); ?>">
-                                   <i class="bi bi-receipt me-2"></i> Items 
-                                </a>
-                            </li>
-                                <?php if(Route::has('finance.invoices.state_report') && TemplateHelper::getUserMenuPermissions('Invoice')->can_view): ?>
-                                <li>
-                                    <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/invoices/state-report') ? 'active' : ''); ?>"
-                                       href="<?php echo e(route('finance.invoices.state_report')); ?>">
-                                       <i class="bi bi-map me-2"></i> State-wise Invoice Report
-                                    </a>
-                                </li>
-                                <?php endif; ?>
+                    <summary class="nav-link text-white d-flex justify-content-between align-items-center menu-sales">
+                        <span><i class="bi bi-graph-up-arrow me-2"></i> Sales</span>
+                              <i class="bi bi-chevron-down arrow-icon"></i>
+                    </summary>
 
-                            <?php if(Route::has('finance.sales.index')): ?>
-                            <li>
-                                <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/sales*') ? 'active' : ''); ?>"
-                                   href="<?php echo e(route('finance.sales.index')); ?>">
-                                   <i class="bi bi-receipt me-2"></i> Sales
-                                </a>
-                            </li>
-                            <?php endif; ?>
+                    <ul class="nav flex-column ms-3 mt-1">
+                        <li>
+                            <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/sales*') ? 'active' : ''); ?>"
+                               href="<?php echo e(route('finance.sales.index')); ?>">
+                                Sales Invoices
+                            </a>
+                        </li>
 
-                            <?php if(Route::has('finance.purchases.index')): ?>
-                            <li>
-                                <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/purchases*') ? 'active' : ''); ?>"
-                                   href="<?php echo e(route('finance.purchases.index')); ?>">
-                                   <i class="bi bi-cart-check me-2"></i> Purchases
-                                </a>
-                            </li>
-                            <?php endif; ?>
+                         
+            <li>
+                <a class="nav-link text-white menu-item 
+                    <?php echo e(request()->is('finance/sales-invoices*') ? 'active' : ''); ?>"
+                   href="<?php echo e(route('finance.sales_invoices.index')); ?>">
+                    Auto Invoice Processing
+                </a>
+            </li>
 
-                            <?php if(Route::has('finance.gst.index')): ?>
-                            <li>
-                                <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/gst*') ? 'active' : ''); ?>"
-                                   href="<?php echo e(route('finance.gst.index')); ?>">
-                                   <i class="bi bi-percent me-2"></i> GST
-                                </a>
-                            </li>
-                            <?php endif; ?>
-
-                            <?php if(Route::has('finance.tds.index')): ?>
-                            <li>
-                                <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/tds*') ? 'active' : ''); ?>"
-                                   href="<?php echo e(route('finance.tds.index')); ?>">
-                                   <i class="bi bi-scissors me-2"></i> TDS
-                                </a>
-                            </li>
-                            <?php endif; ?>
-
-                            <?php if(Route::has('finance.banking.index')): ?>
-                            <li>
-                                <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/banking*') ? 'active' : ''); ?>"
-                                   href="<?php echo e(route('finance.banking.index')); ?>">
-                                   <i class="bi bi-bank me-2"></i> Banking
-                                </a>
-                            </li>
-                            <?php endif; ?>
-
-                            <?php if(Route::has('finance.reports.index')): ?>
-                            <li>
-                                <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/reports*') ? 'active' : ''); ?>"
-                                   href="<?php echo e(route('finance.reports.index')); ?>">
-                                   <i class="bi bi-bar-chart-line me-2"></i> Reports
-                                </a>
-                            </li>
-                            <?php endif; ?>
-
-                            <?php if(Route::has('finance.settings.index')): ?>
-                            <li>
-                                <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/settings*') ? 'active' : ''); ?>"
-                                   href="<?php echo e(route('finance.settings.index')); ?>">
-                                   <i class="bi bi-gear me-2"></i> Settings
-                                </a>
-                            </li>
-                            <?php endif; ?>
-                        </ul>
-                    </details>
-                </li>
+                       
+                    </ul>
+                </details>
+            </li>
             <?php endif; ?>
+
+
+            
+            <?php if($purchase && $purchase->can_menu): ?>
+            <li>
+                <details <?php echo e(request()->is('finance/purchases*') || request()->is('finance/vendors*') ? 'open' : ''); ?>>
+                    <summary class="nav-link text-white d-flex justify-content-between align-items-center menu-sales">
+                        <span><i class="bi bi-cart-check me-2"></i> Purchases</span>
+                              <i class="bi bi-chevron-down arrow-icon"></i>
+                    </summary>
+                    <ul class="nav flex-column ms-3 mt-1">
+                        <li>
+                            <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/purchases*') ? 'active' : ''); ?>"
+                               href="<?php echo e(route('finance.purchases.index')); ?>">
+                                Purchase Invoices
+                            </a>
+                        </li>
+
+                        
+            <li>
+                <a class="nav-link text-white menu-item 
+                    <?php echo e(request()->is('finance/purchase-invoices*') ? 'active' : ''); ?>"
+                   href="<?php echo e(route('finance.purchase_invoices.index')); ?>">
+                    Auto Invoice Processing
+                </a>
+            </li>
+            
+                    </ul>
+                </details>
+            </li>
+            <?php endif; ?>
+
+
+            
+            <?php if($items && $items->can_menu): ?>
+            <li>
+                <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/items*') ? 'active' : ''); ?>"
+                   href="<?php echo e(route('finance.items.index')); ?>">
+                    <i class="bi bi-box-seam me-2"></i> Items
+                </a>
+            </li>
+            <?php endif; ?>
+
+
+            
+            <?php if($banking && $banking->can_menu): ?>
+            <li>
+                <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/accounts*') ? 'active' : ''); ?>"
+                   href="<?php echo e(route('finance.accounts.index')); ?>">
+                    <i class="bi bi-journal-text me-2"></i> Accounts
+                </a>
+            </li>
+
+            <li>
+                <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/banking*') ? 'active' : ''); ?>"
+                   href="<?php echo e(route('finance.banking.index')); ?>">
+                    <i class="bi bi-bank me-2"></i> Banking
+                </a>
+            </li>
+            <?php endif; ?>
+
+
+            
+            <?php if($reports && $reports->can_menu): ?>
+            <li>
+                <details <?php echo e(request()->is('finance/reports*') ? 'open' : ''); ?>>
+                    <summary class="nav-link text-white">
+                        <span><i class="bi bi-bar-chart-line me-2"></i> Reports</span>
+                              <i class="bi bi-chevron-down arrow-icon"></i>
+                    </summary>
+                    <ul class="nav flex-column ms-3 mt-1">
+                        <li>
+                            <a class="nav-link text-white menu-item"
+                               href="<?php echo e(route('finance.reports.sales')); ?>">
+                                Sales Report
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link text-white menu-item"
+                               href="<?php echo e(route('finance.reports.purchase')); ?>">
+                                Purchase Report
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link text-white menu-item"
+                               href="<?php echo e(route('finance.reports.gst')); ?>">
+                                GST Report
+                            </a>
+                        </li>
+                    </ul>
+                </details>
+            </li>
+            <?php endif; ?>
+
+
+            
+            <?php if($settings && $settings->can_menu): ?>
+            <li>
+                <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/settings*') ? 'active' : ''); ?>"
+                   href="<?php echo e(route('finance.settings.index')); ?>">
+                    <i class="bi bi-gear me-2"></i> Settings
+                </a>
+            </li>
+            <?php endif; ?>
+
+        </ul>
+    </details>
+</li>
+<?php endif; ?>
 
                      
 

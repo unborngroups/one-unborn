@@ -69,4 +69,9 @@ class Vendor extends Model
     return $this->belongsTo(\App\Models\VendorMake::class, 'make_id');
 }
 
+public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+    
 }

@@ -922,110 +922,160 @@
 
             @endphp
 
-            @if($finance && $finance->can_menu)
-                <li class="nav-item">
-                    <details class="finance sidebar-dropdown" {{ request()->is('finance/*') ? 'open' : '' }}>
-                        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
-                            <span><i class="bi bi-cash-coin"></i> Finance</span>
-                            <i class="bi bi-chevron-down arrow-icon"></i>
-                        </summary>
+            {{-- FINANCE DROPDOWN --}}
+@if($finance && $finance->can_menu)
+<li class="nav-item">
+    <details class="finance sidebar-dropdown"
+        {{ request()->is('finance/*') ? 'open' : '' }}>
+        
+        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-cash-coin"></i> Finance</span>
+            <i class="bi bi-chevron-down arrow-icon"></i>
+        </summary>
 
-                        <ul class="nav flex-column ms-3 mt-1">
-                            <li>
-                                <a class="nav-link text-white menu-item {{ request()->is('finance/accounts*') ? 'active' : '' }}"
-                                   href="{{ route('finance.accounts.index') }}">
-                                    <span><i class="bi bi-receipt me-2"></i> Accounts</span>
-                                </a>
-                            </li>
+        <ul class="nav flex-column ms-3 mt-2">
 
-                            <li>
-                                <a class="nav-link text-white menu-item {{ request()->is('finance/invoice*') ? 'active' : '' }}"
-                                href="{{ route('finance.invoices.index') }}">
-                                <i class="bi bi-receipt me-2"></i> Invoice
-                                </a>
-                            </li>
+            {{-- SALES --}}
+            @if($sales && $sales->can_menu)
+            <li>
+                <details {{ request()->is('finance/sales*') || request()->is('finance/customers*') ? 'open' : '' }}>
 
-                            <li>
-                                <a class="nav-link text-white menu-item {{ request()->is('finance/items*') ? 'active' : '' }}"
-                                   href="{{ route('finance.items.index') }}">
-                                   <i class="bi bi-receipt me-2"></i> Items 
-                                </a>
-                            </li>
-                                @if(Route::has('finance.invoices.state_report') && TemplateHelper::getUserMenuPermissions('Invoice')->can_view)
-                                <li>
-                                    <a class="nav-link text-white menu-item {{ request()->is('finance/invoices/state-report') ? 'active' : '' }}"
-                                       href="{{ route('finance.invoices.state_report') }}">
-                                       <i class="bi bi-map me-2"></i> State-wise Invoice Report
-                                    </a>
-                                </li>
-                                @endif
+                    <summary class="nav-link text-white d-flex justify-content-between align-items-center menu-sales">
+                        <span><i class="bi bi-graph-up-arrow me-2"></i> Sales</span>
+                              <i class="bi bi-chevron-down arrow-icon"></i>
+                    </summary>
 
-                            @if(Route::has('finance.sales.index'))
-                            <li>
-                                <a class="nav-link text-white menu-item {{ request()->is('finance/sales*') ? 'active' : '' }}"
-                                   href="{{ route('finance.sales.index') }}">
-                                   <i class="bi bi-receipt me-2"></i> Sales
-                                </a>
-                            </li>
-                            @endif
+                    <ul class="nav flex-column ms-3 mt-1">
+                        <li>
+                            <a class="nav-link text-white menu-item {{ request()->is('finance/sales*') ? 'active' : '' }}"
+                               href="{{ route('finance.sales.index') }}">
+                                Sales Invoices
+                            </a>
+                        </li>
 
-                            @if(Route::has('finance.purchases.index'))
-                            <li>
-                                <a class="nav-link text-white menu-item {{ request()->is('finance/purchases*') ? 'active' : '' }}"
-                                   href="{{ route('finance.purchases.index') }}">
-                                   <i class="bi bi-cart-check me-2"></i> Purchases
-                                </a>
-                            </li>
-                            @endif
+                         {{-- Automated Purchase --}}
+            <li>
+                <a class="nav-link text-white menu-item 
+                    {{ request()->is('finance/sales-invoices*') ? 'active' : '' }}"
+                   href="{{ route('finance.sales_invoices.index') }}">
+                    Auto Invoice Processing
+                </a>
+            </li>
 
-                            @if(Route::has('finance.gst.index'))
-                            <li>
-                                <a class="nav-link text-white menu-item {{ request()->is('finance/gst*') ? 'active' : '' }}"
-                                   href="{{ route('finance.gst.index') }}">
-                                   <i class="bi bi-percent me-2"></i> GST
-                                </a>
-                            </li>
-                            @endif
-
-                            @if(Route::has('finance.tds.index'))
-                            <li>
-                                <a class="nav-link text-white menu-item {{ request()->is('finance/tds*') ? 'active' : '' }}"
-                                   href="{{ route('finance.tds.index') }}">
-                                   <i class="bi bi-scissors me-2"></i> TDS
-                                </a>
-                            </li>
-                            @endif
-
-                            @if(Route::has('finance.banking.index'))
-                            <li>
-                                <a class="nav-link text-white menu-item {{ request()->is('finance/banking*') ? 'active' : '' }}"
-                                   href="{{ route('finance.banking.index') }}">
-                                   <i class="bi bi-bank me-2"></i> Banking
-                                </a>
-                            </li>
-                            @endif
-
-                            @if(Route::has('finance.reports.index'))
-                            <li>
-                                <a class="nav-link text-white menu-item {{ request()->is('finance/reports*') ? 'active' : '' }}"
-                                   href="{{ route('finance.reports.index') }}">
-                                   <i class="bi bi-bar-chart-line me-2"></i> Reports
-                                </a>
-                            </li>
-                            @endif
-
-                            @if(Route::has('finance.settings.index'))
-                            <li>
-                                <a class="nav-link text-white menu-item {{ request()->is('finance/settings*') ? 'active' : '' }}"
-                                   href="{{ route('finance.settings.index') }}">
-                                   <i class="bi bi-gear me-2"></i> Settings
-                                </a>
-                            </li>
-                            @endif
-                        </ul>
-                    </details>
-                </li>
+                       
+                    </ul>
+                </details>
+            </li>
             @endif
+
+
+            {{-- PURCHASES --}}
+            @if($purchase && $purchase->can_menu)
+            <li>
+                <details {{ request()->is('finance/purchases*') || request()->is('finance/vendors*') ? 'open' : '' }}>
+                    <summary class="nav-link text-white d-flex justify-content-between align-items-center menu-sales">
+                        <span><i class="bi bi-cart-check me-2"></i> Purchases</span>
+                              <i class="bi bi-chevron-down arrow-icon"></i>
+                    </summary>
+                    <ul class="nav flex-column ms-3 mt-1">
+                        <li>
+                            <a class="nav-link text-white menu-item {{ request()->is('finance/purchases*') ? 'active' : '' }}"
+                               href="{{ route('finance.purchases.index') }}">
+                                Purchase Invoices
+                            </a>
+                        </li>
+
+                        {{-- Automated Purchase --}}
+            <li>
+                <a class="nav-link text-white menu-item 
+                    {{ request()->is('finance/purchase-invoices*') ? 'active' : '' }}"
+                   href="{{ route('finance.purchase_invoices.index') }}">
+                    Auto Invoice Processing
+                </a>
+            </li>
+            
+                    </ul>
+                </details>
+            </li>
+            @endif
+
+
+            {{-- MASTERS --}}
+            @if($items && $items->can_menu)
+            <li>
+                <a class="nav-link text-white menu-item {{ request()->is('finance/items*') ? 'active' : '' }}"
+                   href="{{ route('finance.items.index') }}">
+                    <i class="bi bi-box-seam me-2"></i> Items
+                </a>
+            </li>
+            @endif
+
+
+            {{-- ACCOUNTING --}}
+            @if($banking && $banking->can_menu)
+            <li>
+                <a class="nav-link text-white menu-item {{ request()->is('finance/accounts*') ? 'active' : '' }}"
+                   href="{{ route('finance.accounts.index') }}">
+                    <i class="bi bi-journal-text me-2"></i> Accounts
+                </a>
+            </li>
+
+            <li>
+                <a class="nav-link text-white menu-item {{ request()->is('finance/banking*') ? 'active' : '' }}"
+                   href="{{ route('finance.banking.index') }}">
+                    <i class="bi bi-bank me-2"></i> Banking
+                </a>
+            </li>
+            @endif
+
+
+            {{-- REPORTS --}}
+            @if($reports && $reports->can_menu)
+            <li>
+                <details {{ request()->is('finance/reports*') ? 'open' : '' }}>
+                    <summary class="nav-link text-white">
+                        <span><i class="bi bi-bar-chart-line me-2"></i> Reports</span>
+                              <i class="bi bi-chevron-down arrow-icon"></i>
+                    </summary>
+                    <ul class="nav flex-column ms-3 mt-1">
+                        <li>
+                            <a class="nav-link text-white menu-item"
+                               href="{{ route('finance.reports.sales') }}">
+                                Sales Report
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link text-white menu-item"
+                               href="{{ route('finance.reports.purchase') }}">
+                                Purchase Report
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link text-white menu-item"
+                               href="{{ route('finance.reports.gst') }}">
+                                GST Report
+                            </a>
+                        </li>
+                    </ul>
+                </details>
+            </li>
+            @endif
+
+
+            {{-- SETTINGS --}}
+            @if($settings && $settings->can_menu)
+            <li>
+                <a class="nav-link text-white menu-item {{ request()->is('finance/settings*') ? 'active' : '' }}"
+                   href="{{ route('finance.settings.index') }}">
+                    <i class="bi bi-gear me-2"></i> Settings
+                </a>
+            </li>
+            @endif
+
+        </ul>
+    </details>
+</li>
+@endif
 
                      {{-- Compliance --}}
 

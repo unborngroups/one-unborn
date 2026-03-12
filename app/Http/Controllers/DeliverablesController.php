@@ -229,7 +229,6 @@ class DeliverablesController extends Controller
         'feasibility.client',
         'feasibility.company',
         'deliverablePlans',
-        'invoice'
     ])->findOrFail($id);
     return view('operations.deliverables.view', [
         'record' => $deliverable,
@@ -285,8 +284,9 @@ class DeliverablesController extends Controller
         ]);
     }
 
+    
     /* ===================== SAVE ===================== */
-
+    
     public function operationsSave(Request $request, $id)
     {
         $deliverable = Deliverables::findOrFail($id);
@@ -299,7 +299,7 @@ class DeliverablesController extends Controller
             $rules["mtu_$i"] = 'required';
         }
         $request->validate($rules);
-
+    
         // Only update the main deliverable record once
         $data = $request->only([
             'status_of_link','mode_of_delivery','circuit_id',
@@ -311,9 +311,9 @@ class DeliverablesController extends Controller
             'payment_quick_url','payment_account','payment_username','payment_password','ipsec',
             'phase_1','phase_2','ipsec_interface'
         ]);
-
+    
         /* ===================== FILE UPLOADS ===================== */
-
+    
         $uploadMap = [
             'speed_test_file' => 'images/deliverable_speed_test',
             'ping_report_dns_file' => 'images/deliverable_pingreportdns',
@@ -323,105 +323,100 @@ class DeliverablesController extends Controller
             'export_file' => 'images/deliverable_export',
             'otc_bill_file' => 'images/deliverable_otcbill',
         ];
-
+    
         foreach ($uploadMap as $field => $folder) {
             if ($request->hasFile($field)) {
                 $file = $request->file($field);
                 $filename = time() . '_' . $file->getClientOriginalName();
                 $destination = public_path($folder);
-
+    
                 if (!file_exists($destination)) {
                     mkdir($destination, 0755, true);
                 }
-
+    
                 $file->move($destination, $filename);
-
+    
                 // ✅ store RELATIVE path
                 $data[$field] = $folder . '/' . $filename;
             }
         }
-
+    
         $data['ipsec'] = $request->input('ipsec', 'No');
         $data['status'] = $request->action === 'submit' ? 'Delivery' : 'InProgress';
         $deliverable->update($data);
-
+    
         // Simple auto-invoice creation when moved to Delivery
-        if ($data['status'] === 'Delivery' && !$deliverable->invoice_id) {
+        if ($data['status'] === 'Delivery') {
             $deliverable->refresh();
             $feasibility = $deliverable->feasibility;
             $company = $feasibility->company;
             $client = $feasibility->client;
             $firstPlan = $deliverable->deliverablePlans()->orderBy('link_number')->first();
-            $items = Items::first();
-            $invoice = new \App\Models\Invoice();
-            $invoice->deliverable_id = $deliverable->id;
-            $invoice->items_id = $items ? $items->id : null;
-            $invoice->invoice_no = 'INV-' . $deliverable->id;
-            $invoice->invoice_date = $firstPlan && $firstPlan->date_of_activation ? $firstPlan->date_of_activation : now()->format('Y-m-d');
-            $invoice->due_date = $firstPlan && $firstPlan->date_of_expiry ? $firstPlan->date_of_expiry : now()->addDays(15)->format('Y-m-d');
-            $invoice->customer_name = $client->client_name ?? '';
-            $invoice->save();
-            $deliverable->invoice_id = $invoice->id;
-            $deliverable->save();
+            $items = \App\Models\Items::first();
+            // --- SALES INVOICE ---
+            $salesInvoice = \App\Models\SalesInvoice::where('deliverable_id', $deliverable->id)->first();
+            if (!$salesInvoice) {
+                $salesInvoice = new \App\Models\SalesInvoice();
+                $salesInvoice->deliverable_id = $deliverable->id;
+                $salesInvoice->invoice_no = 'INV-' . $deliverable->id;
+                $isNewSalesInvoice = true;
+            } else {
+                $isNewSalesInvoice = false;
+            }
+            // Only set invoice_no if new
+            if ($isNewSalesInvoice) {
+                $salesInvoice->invoice_no = 'INV-' . $deliverable->id;
+            }
+            $salesInvoice->company_id = $company->id ?? null;
+            $salesInvoice->invoice_date = $firstPlan && $firstPlan->date_of_activation ? $firstPlan->date_of_activation : now()->format('Y-m-d');
+            $salesInvoice->due_date = $firstPlan && $firstPlan->date_of_expiry ? $firstPlan->date_of_expiry : now()->addDays(15)->format('Y-m-d');
+            $salesInvoice->customer_name = $client->client_name ?? '';
+            $salesInvoice->customer_email = $client->email ?? null;
+            $salesInvoice->customer_phone = $client->phone ?? null;
+            $salesInvoice->customer_address = $client->address ?? null;
+            $salesInvoice->customer_gstin = $client->gstin ?? null;
+            $salesInvoice->sub_total = 0;
+            $salesInvoice->cgst_total = 0;
+            $salesInvoice->sgst_total = 0;
+            $salesInvoice->grand_total = 0;
+            $salesInvoice->status = 'draft';
+            $salesInvoice->notes = null;
+            $salesInvoice->terms = null;
+            $salesInvoice->save();
+    
+            // --- PURCHASE INVOICE ---
+            $purchaseInvoice = \App\Models\PurchaseInvoice::where('deliverable_id', $deliverable->id)->first();
+            if (!$purchaseInvoice) {
+                $purchaseInvoice = new \App\Models\PurchaseInvoice();
+                $purchaseInvoice->deliverable_id = $deliverable->id;
+                $purchaseInvoice->invoice_no = 'PINV-' . $deliverable->id;
+                $isNewPurchaseInvoice = true;
+            } else {
+                $isNewPurchaseInvoice = false;
+            }
+            // Only set invoice_no if new
+            if ($isNewPurchaseInvoice) {
+                $purchaseInvoice->invoice_no = 'PINV-' . $deliverable->id;
+            }
+            $purchaseInvoice->company_id = $company->id ?? null;
+            $purchaseInvoice->invoice_date = $firstPlan && $firstPlan->date_of_activation ? $firstPlan->date_of_activation : now()->format('Y-m-d');
+            $purchaseInvoice->due_date = $firstPlan && $firstPlan->date_of_expiry ? $firstPlan->date_of_expiry : now()->addDays(15)->format('Y-m-d');
+            $purchaseInvoice->vendor_name = $deliverable->vendor ?? '';
+            $purchaseInvoice->vendor_email = null;
+            $purchaseInvoice->vendor_phone = null;
+            $purchaseInvoice->vendor_address = null;
+            $purchaseInvoice->vendor_gstin = null;
+            $purchaseInvoice->sub_total = 0;
+            $purchaseInvoice->cgst_total = 0;
+            $purchaseInvoice->sgst_total = 0;
+            $purchaseInvoice->grand_total = 0;
+            $purchaseInvoice->status = 'draft';
+            $purchaseInvoice->notes = null;
+            $purchaseInvoice->terms = null;
+            $purchaseInvoice->save();
         }
-    {
-        $deliverable = Deliverables::findOrFail($id);
-        $linkCount = $deliverable->feasibility->no_of_links ?? 1;
-        $rules = [
-            'lan_ip_1' => 'required'
-        ];
-        for ($i = 1; $i <= $linkCount; $i++) {
-            $rules["mode_of_delivery_$i"] = 'required|string';
-            $rules["mtu_$i"] = 'required';
-        }
-        $request->validate($rules);
-
-        // Only update the main deliverable record once
-        $data = $request->only([
-            'status_of_link','mode_of_delivery','circuit_id',
-            'client_circuit_id','client_feasibility','vendor_code',
-            'mtu','wifi_username','wifi_password',
-            'router_username','router_password','invoice_no',
-            'lan_ip_1','lan_ip_2','lan_ip_3','lan_ip_4',
-            'asset_id','asset_serial_no','asset_mac_no','otc_extra_charges','payment_login_url',
-            'payment_quick_url','payment_account','payment_username','payment_password','ipsec',
-            'phase_1','phase_2','ipsec_interface'
-        ]);
-
-        /* ===================== FILE UPLOADS ===================== */
-
-$uploadMap = [
-    'speed_test_file' => 'images/deliverable_speed_test',
-    'ping_report_dns_file' => 'images/deliverable_pingreportdns',
-    'ping_report_gateway_file' => 'images/deliverable_pingreportgateway',
-    'onu_ont_device_file' => 'images/deliverable_onu_ontdevice',
-    'static_ip_file' => 'images/deliverable_staticip',
-    'export_file' => 'images/deliverable_export',
-    'otc_bill_file' => 'images/deliverable_otcbill',
-];
-
-foreach ($uploadMap as $field => $folder) {
-    if ($request->hasFile($field)) {
-        $file = $request->file($field);
-        $filename = time() . '_' . $file->getClientOriginalName();
-        $destination = public_path($folder);
-
-        if (!file_exists($destination)) {
-            mkdir($destination, 0755, true);
-        }
-
-        $file->move($destination, $filename);
-
-        // ✅ store RELATIVE path
-        $data[$field] = $folder . '/' . $filename;
-    }
-}
-
-        $data['ipsec'] = $request->input('ipsec', 'No');
-        $data['status'] = $request->action === 'submit' ? 'Delivery' : 'InProgress';
-        $deliverable->update($data);
-            // Save per-link plan info in deliverable_plans table
-            // Fetch existing plans before delete to preserve circuit_id
+    
+            
             $existingPlansMap = $deliverable->deliverablePlans->keyBy('link_number');
             DeliverablePlan::where('deliverable_id', $deliverable->id)->delete();
 
@@ -686,7 +681,8 @@ if ($companySetting && $companySetting->delivery_email_check) {
             return redirect()->route('operations.deliverables.inprogress')
                 ->with('success', 'Deliverable saved successfully');
         }
-    }
+        
+    // }
     }
     
     // Acceptance list page (show all ILL deliverables that reached Delivery)
@@ -823,4 +819,5 @@ if ($companySetting && $companySetting->delivery_email_check) {
         return in_array($mode,['Static','Static IP'],true);
     }
 
+    
 }

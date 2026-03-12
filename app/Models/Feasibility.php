@@ -102,8 +102,15 @@ public function company() {
     return $this->belongsTo(Company::class);
 }
 
-public function deliverable_plans()
-    {
-        return $this->belongsTo(DeliverablePlan::class);
-    }
+public function deliverablePlans()
+{
+    return $this->hasMany(DeliverablePlan::class, 'feasibility_id');
+}
+
+
+public function companies()
+{
+    return $this->belongsToMany(Company::class, 'company_user', 'user_id', 'company_id');
+}
+
 }
