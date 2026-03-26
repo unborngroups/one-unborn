@@ -68,6 +68,12 @@
 
                                 </tr>
 
+                                <tr>
+                                    <th>Duration:</th>
+
+                                    <td>{{ $purchaseOrder->duration }}</td>
+                                </tr>
+
                             </table>
 
                         </div>
@@ -101,6 +107,13 @@
                                         <span class="badge bg-primary">{{ $purchaseOrder->no_of_links }} Links</span>
 
                                     </td>
+
+                                </tr>
+                                <tr>
+
+                                    <th>Company:</th>
+
+                                    <td>{{ $purchaseOrder->company->company_name ?? 'N/A' }}</td>
 
                                 </tr>
 

@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('feasibilities', function (Blueprint $table) {
             $table->id();
             $table->string('type_of_service');
+            $table->string('link_type');
             $table->foreignId('client_id')->constrained()->onDelete('cascade');
             $table->string('delivery_company_name')->nullable();
              $table->string('circuit_id')->nullable();
@@ -37,8 +38,9 @@ return new class extends Migration
             $table->date('expected_activation')->nullable();
             $table->boolean('hardware_required')->default(false);
             $table->json('hardware_details')->nullable();
+             $table->integer('existing_links')->default(0);
             // $table->string('hardware_model')->nullable();
-            $table->enum('status', ['Active', 'Inactive'])->default('Active');
+            $table->enum('status', ['Active', 'Inactive', 'Closed'])->default('Active');
 
           // ✅ FIXED Foreign key order
             $table->unsignedBigInteger('created_by')->nullable();
@@ -48,6 +50,10 @@ return new class extends Migration
 
 
             $table->timestamps();
+
+            $table->softDeletes();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->unsignedBigInteger('deleted_by')->nullable();
         });
     }
 

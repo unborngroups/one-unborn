@@ -1379,21 +1379,99 @@
 
 <!-- </div> -->
 
+<script>
+function expandSidebar() {
+    document.getElementById('sidebarWrapper').classList.add('sidebar-expanded');
+    document.getElementById('sidebarWrapper').classList.remove('sidebar-collapsed');
+}
+function collapseSidebar() {
+    document.getElementById('sidebarWrapper').classList.remove('sidebar-expanded');
+    document.getElementById('sidebarWrapper').classList.add('sidebar-collapsed');
+}
+</script>
+
+<style>
+/* Sidebar wrapper for expand/collapse */
+.sidebar-wrapper {
+    width: 64px;
+    background: #0a1857;
+    min-height: 100vh;
+    transition: width 0.25s cubic-bezier(.4,2,.6,1);
+    overflow-x: hidden;
+    z-index: 100;
+    position: relative;
+}
+.sidebar-wrapper.sidebar-expanded {
+    width: 240px;
+}
+.sidebar-wrapper .menu-text {
+    display: none;
+    transition: opacity 0.18s;
+    white-space: nowrap;
+}
+.sidebar-wrapper.sidebar-expanded .menu-text {
+    display: inline;
+    opacity: 1;
+    margin-left: 0.5rem;
+}
+.sidebar-wrapper .nav-link, .sidebar-wrapper .menu-item {
+    justify-content: center;
+}
+.sidebar-wrapper.sidebar-expanded .nav-link, .sidebar-wrapper.sidebar-expanded .menu-item {
+    justify-content: flex-start;
+}
+
+/* Hide chevrons and arrows when collapsed */
+.sidebar-wrapper:not(.sidebar-expanded) .arrow-icon,
+.sidebar-wrapper:not(.sidebar-expanded) summary .menu-text {
+    display: none !important;
+}
+
+/* Hide summary text when collapsed */
+.sidebar-wrapper:not(.sidebar-expanded) summary span .menu-text {
+    display: none !important;
+}
+
+/* Hide ul text when collapsed */
+.sidebar-wrapper:not(.sidebar-expanded) ul .menu-text {
+    display: none !important;
+}
+
+/* Hide button text when collapsed */
+.sidebar-wrapper:not(.sidebar-expanded) button .menu-text {
+    display: none !important;
+}
+
+/* Hide form text when collapsed */
+.sidebar-wrapper:not(.sidebar-expanded) form .menu-text {
+    display: none !important;
+}
+</style>
+
 
 
 {{-- Sidebar Styles --}}
 
 <style>
+
     /* Base link styling */
     .nav-link {
         font-size: 0.925rem;
         padding: 0.55rem 0.9rem;
-        border-radius: 4px;
+        border-radius: 8px;
         color: #e5ecff;
         display: flex;
         align-items: center;
         gap: 0.45rem;
-        transition: background-color 0.18s ease, color 0.18s ease, padding-left 0.18s ease;
+        box-shadow: 0 1px 4px 0 rgba(44, 44, 84, 0.08);
+        position: relative;
+        overflow: hidden;
+        transition: 
+            box-shadow 0.25s cubic-bezier(.4,2,.6,1),
+            transform 0.18s cubic-bezier(.4,2,.6,1),
+            background-color 0.18s ease, 
+            color 0.18s ease, 
+            padding-left 0.18s ease;
     }
 
     /* Top-level sections a bit bolder */
@@ -1408,24 +1486,45 @@
         font-size: 0.9rem;
     }
 
+
     /* Active state for menu items */
     .menu-item.active {
         background-color: #0d6efd;
-        border-radius: 4px;
+        border-radius: 8px;
         color: #fff !important;
-        box-shadow: 0 0 0 1px rgba(13, 110, 253, 0.4);
+        box-shadow: 0 2px 8px 0 rgba(13, 110, 253, 0.18), 0 0 0 1.5px rgba(13, 110, 253, 0.25);
+        transform: scale(1.04);
     }
 
-    /* Hover state */
-    .nav-link:hover {
-        background-color: rgba(255, 255, 255, 0.06);
-        color: #ffffff !important;
+
+    /* Hover state - advanced UI, no color change */
+    .nav-link:hover, .menu-item:hover {
+        box-shadow: 0 4px 16px 0 rgba(44, 44, 84, 0.16), 0 0 0 2px #fff2;
+        transform: scale(1.045);
+        color: #fff !important;
         text-decoration: none;
     }
 
-    .menu-item:hover {
-        background-color: #0b5ed7;
-        color: #fff !important;
+    /* Underline effect on hover */
+    .nav-link::after, .menu-item::after {
+        content: '';
+        display: block;
+        position: absolute;
+        left: 18px;
+        right: 18px;
+        bottom: 8px;
+        height: 2.5px;
+        /* background: linear-gradient(90deg, #fff2 0%, #fff 50%, #fff2 100%); */
+        border-radius: 2px;
+        opacity: 0;
+        transform: scaleX(0.7);
+        transition: opacity 0.18s, transform 0.18s;
+        pointer-events: none;
+    }
+    .nav-link:hover::after, .menu-item:hover::after,
+    .menu-item.active::after {
+        opacity: 1;
+        transform: scaleX(1);
     }
 
     /* Icons */
@@ -1433,14 +1532,14 @@
         font-size: 1rem;
     }
 
+
     /* Arrow icon rotation for open groups */
     .arrow-icon {
-        transition: transform 0.18s ease;
+        transition: transform 0.18s cubic-bezier(.4,2,.6,1);
         font-size: 0.8rem;
     }
-
     .nav-link[aria-expanded="true"] .arrow-icon {
-        transform: rotate(180deg);
+        transform: rotate(180deg) scale(1.2);
     }
 
     /* Spacing between groups */

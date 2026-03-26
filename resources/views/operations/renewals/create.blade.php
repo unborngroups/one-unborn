@@ -14,13 +14,17 @@
             {{-- Deliverable --}}
             <div class="mb-3">
                 <label for="deliverable_id" class="form-label">Deliverable (Circuit ID)</label>
-                <select name="deliverable_id" id="deliverable_id" class="form-select select2-tags" required>
+                <select name="deliverable_id" id="deliverable_id" class="form-select select2-tags" required  {{ isset($selectedDeliverable) ? 'readonly' : '' }}>
                     <option value="">Select Circuit ID</option>
-                    @foreach($deliverables_plans as $d)
-                        <option value="{{ $d->deliverable_id }}">
-                            {{ $d->circuit_id }}
-                        </option>
-                    @endforeach
+                     @foreach($deliverables_plans as $d)
+<option value="{{ $d->deliverable_id }}"
+    {{ isset($selectedDeliverable) && $selectedDeliverable == $d->deliverable_id ? 'selected' : '' }}>
+    {{ $d->circuit_id }}
+</option>
+@endforeach
+
+
+                   
                 </select>
             </div>
 
@@ -75,9 +79,10 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        // Always add 30 days per month
+        const daysToAdd = months * 30;
         const expiryDate = new Date(baseDate);
-        expiryDate.setMonth(expiryDate.getMonth() + months);
-        expiryDate.setDate(expiryDate.getDate() - 1);
+        expiryDate.setDate(expiryDate.getDate() + daysToAdd);
 
         expiryInput.value = expiryDate.toISOString().split('T')[0];
     }

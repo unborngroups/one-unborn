@@ -16,8 +16,10 @@ return new class extends Migration
             $table->string('po_number')->unique();
             $table->date('po_date');
             $table->unsignedBigInteger('feasibility_id');
+            $table->unsignedBigInteger('company_id'); // New field to link to Company
+            $table->string('duration')->nullable();
             $table->string('feasibility_request_id', 50)->nullable();
-            $table->decimal('arc_per_link', 10, 2);
+            $table->decimal('arc_per_link', 10, 2); 
             $table->decimal('otc_per_link', 10, 2); 
             $table->decimal('static_ip_cost_per_link', 10, 2);
 
@@ -44,10 +46,15 @@ return new class extends Migration
             $table->integer('contract_period'); // in months
             // $table->text('remarks')->nullable();
              // ✅ Workflow status
-    $table->enum('approval_status', ['Draft', 'Submitted', 'Approved', 'Cancelled'])->default('Draft');
-    // ✅ Record status
-    $table->enum('status', ['Active', 'Inactive'])->default('Active');
+            $table->enum('approval_status', ['Draft', 'Submitted', 'Approved', 'Cancelled'])->default('Draft');
+            // ✅ Record status
+            $table->enum('status', ['Active', 'Inactive'])->default('Active');
             $table->timestamps();
+
+            $table->softDeletes(); // Soft delete column
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->unsignedBigInteger('deleted_by')->nullable();
 
             $table->foreign('feasibility_id')->references('id')->on('feasibilities')->onDelete('cascade');
             $table->index('po_number');

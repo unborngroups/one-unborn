@@ -63,6 +63,11 @@ return new class extends Migration
                 $table->text("pppoe_vlan_{$i}")->nullable();
                 $table->text("dhcp_ip_address_{$i}")->nullable();
                 $table->text("dhcp_vlan_{$i}")->nullable();
+                $table->text("p2p_username_{$i}")->nullable();
+                $table->text("p2p_password_{$i}")->nullable();
+                $table->text("tunnel_{$i}")->nullable();
+                $table->text("tunnel_username_{$i}")->nullable();
+                $table->text("tunnel_password_{$i}")->nullable();
                 $table->text("static_ip_address_{$i}")->nullable();
                 $table->text("static_vlan_{$i}")->nullable();
                 $table->text("static_subnet_mask_{$i}")->nullable();
@@ -108,6 +113,10 @@ return new class extends Migration
             $table->unsignedBigInteger('invoice_id')->nullable();  // Link to Invoice if created
 
             $table->timestamps();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->unsignedBigInteger('deleted_by')->nullable();
+            $table->softDeletes();
 
             $table->index('status');
             $table->index('feasibility_id');

@@ -31,12 +31,19 @@ class PincodeLookupController extends Controller
             $existing = KnownPincode::where('pincode', $pincode)->first();
             if ($existing) {
                 Log::info('Pincode found in database', ['pincode' => $pincode]);
+                // For backward compatibility, return as array with one post office
                 return response()->json([
                     'source' => 'db',
                     'pincode' => $existing->pincode,
                     'state' => $existing->state,
                     'district' => $existing->district,
-                    'post_office' => $existing->post_office,
+                    'post_offices' => [
+                        [
+                            'name' => $existing->post_office,
+                            'state' => $existing->state,
+                            'district' => $existing->district,
+                        ]
+                    ],
                 ]);
             }
 
@@ -70,23 +77,35 @@ class PincodeLookupController extends Controller
                 return response()->json(['error' => 'Pincode not found'], 404);
             }
 
-            $po = $data[0]['PostOffice'][0] ?? null;
+            $postOffices = $data[0]['PostOffice'] ?? [];
+            $firstPO = $postOffices[0] ?? null;
 
+            // Save only the first post office for DB caching (legacy)
             $record = KnownPincode::create([
                 'pincode' => $pincode,
-                'state' => $po['State'] ?? null,
-                'district' => $po['District'] ?? null,
-                'post_office' => $po['Name'] ?? null,
+                'state' => $firstPO['State'] ?? null,
+                'district' => $firstPO['District'] ?? null,
+                'post_office' => $firstPO['Name'] ?? null,
             ]);
 
             Log::info('Pincode saved to database', ['pincode' => $pincode, 'record' => $record->toArray()]);
+
+            // Prepare all post offices for frontend dropdown
+            $postOfficeArr = [];
+            foreach ($postOffices as $po) {
+                $postOfficeArr[] = [
+                    'name' => $po['Name'] ?? '',
+                    'state' => $po['State'] ?? '',
+                    'district' => $po['District'] ?? '',
+                ];
+            }
 
             return response()->json([
                 'source' => 'api',
                 'pincode' => $record->pincode,
                 'state' => $record->state,
                 'district' => $record->district,
-                'post_office' => $record->post_office,
+                'post_offices' => $postOfficeArr,
             ]);
         } catch (\Exception $e) {
             Log::error('Pincode lookup exception', [

@@ -157,7 +157,7 @@
 
                     <label class="form-label">City</label>
 
-                    <select name="city" id="district" class="form-select select2-tags">
+                    <select name="city" id="" class="form-select select2-tags">
 
                         <option value="">Select or Type City</option>
 
@@ -177,7 +177,7 @@
 
                     <label class="form-label">State</label>
 
-                    <select name="state" id="state" class="form-select select2-tags">
+                    <select name="state" id="" class="form-select select2-tags">
 
                         <option value="">Select or Type State</option>
 
@@ -197,7 +197,7 @@
 
                     <label class="form-label">Country</label>
 
-                    <select name="country" id="post_office" class="form-select select2-tags">
+                    <select name="country" id="" class="form-select select2-tags">
 
                         <option value="">Select or Type Country</option>
 
@@ -718,6 +718,10 @@ function setSelectValue(select, value) {
     }
 
     select.value = value;
+    // 🔥 IMPORTANT for select2 refresh
+    if ($(select).hasClass("select2-hidden-accessible")) {
+        $(select).trigger('change');
+    }
 
 }
 

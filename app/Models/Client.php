@@ -107,6 +107,6 @@ public function getAuthPassword()
 // invoice link to client
 public function invoices()
     {
-        return $this->hasMany(Invoice::class);
+        return $this->hasMany(SalesInvoice::class);
     }
 }

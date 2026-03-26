@@ -113,8 +113,24 @@
 
         <hr>
 
+<?php
+    $linkType = $record->feasibility->link_type;
+    $noOfLinks = $record->feasibility->no_of_links ?? 1;
+    $maxVendors = 4;
+?>
 
 
+<?php
+    $previousVendorCount = 0;
+
+    if($previous){
+        for ($j = 1; $j <= 4; $j++) {
+            if (!empty($previous->{'vendor'.$j.'_name'})) {
+                $previousVendorCount++;
+            }
+        }
+    }
+?>
         
 
         <form id="feasibilityForm" method="POST">
@@ -142,6 +158,22 @@
             
 
             <?php for($i = 1; $i <= $maxVendors; $i++): ?>
+
+            <!-- existing vendor section -->
+             <?php
+            // ✅ Editable logic
+            if ($linkType === 'new') {
+    $isEditable = true;
+} else {
+    if ($i < $noOfLinks) {
+        $isEditable = false; // already existing → readonly
+    } else {
+        $isEditable = true; // new/increase → editable
+    }
+}
+        ?>
+        
+            <!-- end existing vendor section -->
 
                 <h5 class="fw-bold text-primary mb-3">
 
@@ -171,6 +203,7 @@
                 </h5>
 
                 
+                
 
                 <div class="row g-3 mb-4" id="vendor<?php echo e($i); ?>_section">
 
@@ -194,26 +227,35 @@
 
                         <select name="vendor<?php echo e($i); ?>_name" 
 
-                                class="form-select vendor-dropdown" 
+                                class="form-select vendor-dropdown <?php echo e(!$isEditable ? 'readonly-field' : ''); ?>"
 
                                 data-vendor-number="<?php echo e($i); ?>"
 
-                                <?php if($i <= $noOfLinks): ?> required <?php endif; ?>>
+                                <?php if($i <= $noOfLinks): ?> required <?php endif; ?>
+                                 <?php if(!$isEditable): ?>  style="pointer-events:none; background:#f1f3f5;" <?php endif; ?>>  
 
                             <option value="">Select Vendor</option>
 
                              
 
                             <?php $__currentLoopData = $vendors; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $vendor): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                
+<?php
+    $value = !empty($previous->{'vendor'.$i.'_name'})
+        ? ($previous->{'vendor'.$i.'_name'} ?? '')
+        : ($record->{'vendor'.$i.'_name'} ?? '');
+?>
+<!-- <option value="<?php echo e($vendor->vendor_name); ?>"
+    <?php echo e($value == $vendor->vendor_name ? 'selected' : ''); ?>>
+    <?php echo e($vendor->vendor_name); ?>
 
-                                <option value="<?php echo e($vendor->vendor_name); ?>" 
+</option> -->
 
-                                        <?php if($record->{'vendor' . $i . '_name'} == $vendor->vendor_name): ?> selected <?php endif; ?>>
+<option value="<?php echo e($vendor->vendor_name); ?>"
+    <?php echo e(strtolower(trim($value)) == strtolower(trim($vendor->vendor_name)) ? 'selected' : ''); ?>>
+    <?php echo e($vendor->vendor_name); ?>
 
-                                    <?php echo e($vendor->vendor_name); ?>
-
-
-                                </option>
+</option>
 
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
@@ -228,50 +270,75 @@
                     </div>
 
                     
+                    <?php
+    $arc = !empty($previous->{'vendor'.$i.'_arc'})
+        ? ($previous->{'vendor'.$i.'_arc'} ?? '') 
+        : ($record->{'vendor' . $i . '_arc'} ?? '');
+?>
 
                     <div class="col-md-2">
 
                         <label class="form-label fw-semibold">ARC</label>
 
-                        <input type="number" name="vendor<?php echo e($i); ?>_arc" class="form-control" value="<?php echo e($record->{'vendor' . $i . '_arc'}); ?>">
+                        <input type="number" name="vendor<?php echo e($i); ?>_arc" class="form-control <?php echo e(!$isEditable ? 'readonly-field' : ''); ?>" value="<?php echo e($arc); ?>" <?php if(!$isEditable): ?> readonly <?php endif; ?>>
 
                     </div>
 
                      
+                        <?php
+    $otc = !empty($previous->{'vendor'.$i.'_otc'})
+        ? ($previous->{'vendor'.$i.'_otc'} ?? '') 
+        : ($record->{'vendor' . $i . '_otc'} ?? '');
+?>
 
                     <div class="col-md-2">
 
                         <label class="form-label fw-semibold">OTC</label>
 
-                        <input type="number" name="vendor<?php echo e($i); ?>_otc" class="form-control" value="<?php echo e($record->{'vendor' . $i . '_otc'}); ?>">
+                        <input type="number" name="vendor<?php echo e($i); ?>_otc" class="form-control <?php echo e(!$isEditable ? 'readonly-field' : ''); ?>" value="<?php echo e($otc); ?>" <?php if(!$isEditable): ?> readonly <?php endif; ?>>
 
                     </div>
 
                     
 
+                     <?php
+    $staticIpCost = !empty($previous->{'vendor'.$i.'_static_ip_cost'})
+        ? ($previous->{'vendor'.$i.'_static_ip_cost'} ?? '') 
+        : ($record->{'vendor' . $i . '_static_ip_cost'} ?? '');
+?>
                     <div class="col-md-2 static-ip-cost-column">
     <label class="form-label fw-semibold">Static IP Cost</label>
     <input type="number" name="vendor<?php echo e($i); ?>_static_ip_cost"
-           class="form-control"
-           value="<?php echo e($record->{'vendor' . $i . '_static_ip_cost'}); ?>">
+           class="form-control <?php echo e(!$isEditable ? 'readonly-field' : ''); ?>"
+           value="<?php echo e($staticIpCost); ?>" <?php if(!$isEditable): ?> readonly <?php endif; ?>>
 </div>
 
 
                     
+                     <?php
+$deliveryTimeline = !empty($previous->{'vendor'.$i.'_delivery_timeline'})
+    ? $previous->{'vendor'.$i.'_delivery_timeline'}
+    : ($record->{'vendor'.$i.'_delivery_timeline'} ?? '');
+?>
 
                     <div class="col-md-2">
 
                         <label class="form-label fw-semibold">Delivery Timeline</label>
 
-                        <input type="text" name="vendor<?php echo e($i); ?>_delivery_timeline" class="form-control" value="<?php echo e($record->{'vendor' . $i . '_delivery_timeline'}); ?>">
+                        <input type="text" name="vendor<?php echo e($i); ?>_delivery_timeline" class="form-control <?php echo e(!$isEditable ? 'readonly-field' : ''); ?>" value="<?php echo e($deliveryTimeline); ?>" <?php if(!$isEditable): ?> readonly <?php endif; ?>>
 
                     </div>
                     
+                     <?php
+$remarks = !empty($previous->{'vendor'.$i.'_remarks'})
+    ? $previous->{'vendor'.$i.'_remarks'}
+    : ($record->{'vendor'.$i.'_remarks'} ?? '');
+?>
 
                     <div class="col-md-2">
 
                         <label class="form-label fw-semibold">Remarks</label>
-                        <input type="text" name="vendor<?php echo e($i); ?>_remarks" class="form-control" value="<?php echo e($record->{'vendor' . $i . '_remarks'}); ?>">
+                        <input type="text" name="vendor<?php echo e($i); ?>_remarks" class="form-control <?php echo e(!$isEditable ? 'readonly-field' : ''); ?>" value="<?php echo e($remarks); ?>" <?php if(!$isEditable): ?> readonly <?php endif; ?>>
 
                     </div>
 
@@ -419,35 +486,80 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Load normal vendor list
-    function setNormalVendors() {
-        vendorDropdowns.forEach(dd => {
-            dd.disabled = false;
+    // function setNormalVendors() {
+    //     vendorDropdowns.forEach(dd => {
 
-            let vendorOptions = `
-                <option value="">Select Vendor</option>
-                <?php $__currentLoopData = $vendors; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $v): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <option value="<?php echo e($v->vendor_name); ?>"><?php echo e($v->vendor_name); ?></option>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-            `;
+    //      // 🚫 Skip readonly fields (important fix)
+    //     if (dd.classList.contains('readonly-field')) return;
 
-            dd.innerHTML = vendorOptions;
+    //         dd.disabled = false;
 
-            // restore previous selected value if exists
-            let oldValue = dd.getAttribute("data-old") ?? "";
-            if (oldValue) {
-                dd.value = oldValue;
-            }
-        });
-    }
+    //         let vendorOptions = `
+    //             <option value="">Select Vendor</option>
+    //             <?php $__currentLoopData = $vendors; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $v): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+    //                 <option value="<?php echo e($v->vendor_name); ?>"><?php echo e($v->vendor_name); ?></option>
+    //             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+    //         `;
+
+    //         dd.innerHTML = vendorOptions;
+
+    //         // restore previous selected value if exists
+    //         let oldValue = dd.getAttribute("data-old") ?? "";
+    //         if (oldValue) {
+    //             dd.value = oldValue;
+    //         }
+    //     });
+    // }
 
     // Apply vendor type logic
     if (ownCompanies.includes(vendorType)) {
         setSelfVendor();
-    } else {
-        setNormalVendors();
     }
+    //  else {
+    //     setNormalVendors();
+    // }
+//     else {
+//     setExistingVendor();
+// }
 
+// function setExistingVendor() {
+//     vendorDropdowns.forEach(dd => {
+//         dd.disabled = false;
 
+//         // Check if the feasibility_status already exists for this feasibility
+//         fetch(`/sm/feasibility/status/${feasibilityId}`)
+//             .then(response => response.json())
+//             .then(data => {
+//                 const existingStatus = data.statuses.find(status => status.feasibility_id === feasibilityId);
+
+//                 if (existingStatus && existingStatus.vendor1_name) {
+//                     dd.value = existingStatus.vendor1_name;
+//                     dd.setAttribute("data-old", existingStatus.vendor1_name);
+//                 }
+
+//                 if (existingStatus && existingStatus.circuit_id) {
+//                     document.getElementById('circuit_id').value = existingStatus.circuit_id;
+//                 }
+
+//                 let vendorOptions = `
+//                     <option value="">Select Vendor</option>
+//                     <?php $__currentLoopData = $vendors; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $v): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+//                         <option value="<?php echo e($v->vendor_name); ?>"><?php echo e($v->vendor_name); ?></option>
+//                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+//                 `;
+
+//                 dd.innerHTML = vendorOptions;
+
+//                 // Display the existing value if it exists
+//                 if (dd.getAttribute("data-old")) {
+//                     dd.value = dd.getAttribute("data-old");
+//                 }
+//             })
+//             .catch(error => {
+//                 console.error(error);
+//             });
+//     });
+// }
 
     // ---------------------------------------------
     // Duplicate Vendor Validation + Required Fields
@@ -705,5 +817,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
 </script>
 
+<style>
+    .readonly-field{
+background:#f1f3f5;
+}
+</style>
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\operations\feasibility\edit.blade.php ENDPATH**/ ?>

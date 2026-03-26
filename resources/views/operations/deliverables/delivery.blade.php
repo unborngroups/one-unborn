@@ -86,6 +86,18 @@
                                         <i class="bi bi-eye"></i> View
                                     </a>
                                     @endif
+
+                                    {{-- Delete --}}
+                                 @if($permissions->can_delete)
+                                 <form action="{{ route('operations.deliverables.destroy',$record->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('DELETE') 
+                                    <button class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this Deliverable?')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                                 @endif
+
                                 </td>
 
                                 <td>{{ $record->feasibility->feasibility_request_id ?? 'N/A' }}</td>

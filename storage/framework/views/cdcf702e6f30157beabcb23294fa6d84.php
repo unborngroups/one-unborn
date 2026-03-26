@@ -28,8 +28,8 @@
                         <select name="vendor_id" class="form-select" required>
                             <option value="">Select Vendor</option>
                             <?php $__currentLoopData = $vendors; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $vendor): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <option value="<?php echo e($vendor->id); ?>">
-                                    <?php echo e($vendor->name); ?>
+                                <option value="<?php echo e($vendor->id); ?>" <?php echo e($purchase->vendor_id == $vendor->id ? ' selected' : ''); ?>>
+                                    <?php echo e($vendor->vendor_name); ?>
 
                                 </option>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -38,14 +38,28 @@
 
                     
                     <div class="col-md-4">
+    <label>Deliverable</label>
+    <select name="deliverable_id" id="deliverable_id" class="form-select" required>
+        <option value="">Select Deliverable</option>
+        <?php $__currentLoopData = $deliverables; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $del): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <option value="<?php echo e($del->id); ?>" <?php echo e($purchase->deliverable_id == $del->id ? ' selected' : ''); ?>>
+                <?php echo e($del->id); ?> - PO: <?php echo e($del->purchase_order_id); ?>
+
+            </option>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+    </select>
+</div>
+
+                    
+                    <div class="col-md-4">
                         <label class="form-label">Invoice Number</label>
-                        <input type="text" name="invoice_number" class="form-control" required>
+                        <input type="text" name="invoice_number" class="form-control" value="<?php echo e($purchase->invoice_no); ?>" required>
                     </div>
 
                     
                     <div class="col-md-4">
                         <label class="form-label">Invoice Date</label>
-                        <input type="date" name="invoice_date" class="form-control">
+                        <input type="date" name="invoice_date" class="form-control" value="<?php echo e($purchase->invoice_date); ?>">
                     </div>
 
                 </div>
@@ -71,8 +85,8 @@
                                     <select name="items[0][item_id]" class="form-select" required>
                                         <option value="">Select Item</option>
                                         <?php $__currentLoopData = $items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                            <option value="<?php echo e($item->id); ?>">
-                                                <?php echo e($item->name); ?>
+                                            <option value="<?php echo e($item->id); ?>" <?php echo e($purchase->items->contains('item_id', $item->id) ? ' selected' : ''); ?>>
+                                                <?php echo e($item->item_name); ?>
 
                                             </option>
                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -106,6 +120,14 @@
                     + Add Item
                 </button>
 
+                <div class="position-reltive form-floating-group">
+                    <label for="attachment">Attachment</label>
+                    <input type="file" name="po_invoice_file" class="form-control" required>
+                    <?php if(!empty($purchase->poinvoice_files)): ?>
+                    <img src="<?php echo e(asset('images/poinvoice_files/' .$purchase_poinvoice_files)); ?>" alt="">
+                    <?php endif; ?>
+                </div>
+                
                 <div class="text-end">
                     <h4>
                         Grand Total: ₹

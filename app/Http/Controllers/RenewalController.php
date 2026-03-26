@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use App\Helpers\TemplateHelper;
 use App\Models\DeliverablePlan;
+use Illuminate\Support\Facades\DB;
 
 class RenewalController extends Controller
 {
@@ -34,39 +35,20 @@ class RenewalController extends Controller
        $renewals = $query->orderBy('id', 'desc')->paginate($perPage)->withQueryString();
 
         $filter = $request->get('filter');
-        if ($filter === 'expired') {
-            // Only show expired deliverable plans (circuit IDs) with no renewal
-            $expiredPlans = \App\Models\DeliverablePlan::whereNotNull('date_of_expiry')
-                ->where('date_of_expiry', '<', now())
-                ->get()
-                ->filter(function($plan) {
-                    return !\App\Models\Renewal::where('deliverable_id', $plan->deliverable_id)
-                        ->where('circuit_id', $plan->circuit_id)
-                        ->exists();
-                });
-            $expiredRenewals = $expiredPlans->map(function($plan) {
-                $renewal = new \App\Models\Renewal();
-                $renewal->deliverable_id = $plan->deliverable_id;
-                $renewal->circuit_id = $plan->circuit_id;
-                $renewal->date_of_renewal = null;
-                $renewal->renewal_months = null;
-                $renewal->new_expiry_date = null;
-                $renewal->alert_date = null;
-                $renewal->status = 'Expired';
-                $renewal->setRelation('deliverable', $plan->deliverable);
-                $renewal->setRelation('deliverablePlan', $plan);
-                return $renewal;
-            });
-            // Paginate manually
-            $page = $request->get('page', 1);
-            $total = $expiredRenewals->count();
-            $items = $expiredRenewals->slice(($page - 1) * $perPage, $perPage)->all();
-            $renewals = new \Illuminate\Pagination\LengthAwarePaginator($items, $total, $perPage, $page, [
-                'path' => $request->url(),
-                'query' => $request->query(),
-            ]);
-        } else {
-            $query = Renewal::query();
+
+if ($filter === 'expired') {
+
+    $latestRenewalIds = Renewal::select('circuit_id', DB::raw('MAX(id) as latest_id'))
+        ->groupBy('circuit_id')
+        ->pluck('latest_id');
+
+    $renewals = Renewal::with('deliverable')
+        ->whereIn('id', $latestRenewalIds)
+        ->where('new_expiry_date', '<', now())
+        ->paginate($perPage);
+
+} 
+        else {
             if ($filter === 'today') {
                 $query->whereDate('alert_date', today());
             } elseif ($filter === 'tomorrow') {
@@ -104,10 +86,13 @@ class RenewalController extends Controller
         return view('operations.renewals.view', compact('renewal'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $deliverables_plans = DeliverablePlan::all();
-        return view('operations.renewals.create', compact('deliverables_plans'));
+
+         $selectedDeliverable = $request->deliverable_id;
+
+        return view('operations.renewals.create', compact('deliverables_plans', 'selectedDeliverable'));
     }
 
     public function store(Request $request)
@@ -129,7 +114,9 @@ class RenewalController extends Controller
         $alertDate = $expiry->copy()->subDay();
 
         // Always set circuit_id to match the selected deliverable plan
-        $deliverablePlan = DeliverablePlan::where('deliverable_id', $request->deliverable_id)->first();
+        $deliverable = Deliverables::findOrFail($request->deliverable_id);
+
+        $deliverablePlan = DeliverablePlan::where('deliverable_id', $deliverable->id)->first();
         $circuitId = $deliverablePlan ? $deliverablePlan->circuit_id : null;
 
         Renewal::create([

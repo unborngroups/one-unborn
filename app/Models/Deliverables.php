@@ -5,9 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\DeliverablePlan;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Deliverables extends Model
 {
+
+    use SoftDeletes;
+    protected $dates = ['deleted_at'];
+
     public function deliverablePlans()
     {
         return $this->hasMany(DeliverablePlan::class, 'deliverable_id', 'id')
@@ -87,7 +92,10 @@ class Deliverables extends Model
         'asset_serial_no',
         'asset_mac_no',
         'po_number',
-        'po_date'
+        'po_date',
+        'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 
     protected $casts = [

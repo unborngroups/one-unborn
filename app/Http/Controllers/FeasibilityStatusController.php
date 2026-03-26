@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Feasibility;
+use App\Models\PurchaseOrder;
 use App\Models\FeasibilityStatus;
 use App\Models\Deliverables;
 use Illuminate\Http\Request;
@@ -130,11 +131,13 @@ public function editSave(Request $request, $id)
         'vendor4_delivery_timeline' => 'nullable|string',
         'vendor4_remarks' => 'nullable|string',
 
-        'status' => 'required|in:Open,InProgress,Closed'
+        'status' => 'required|in:Open,InProgress,Closed',
+        'updated_by' => 'nullable|exists:users,id',
     ]);
 
     $record = FeasibilityStatus::findOrFail($id);
-    $record->update($data);
+        $data['updated_by'] = Auth::id();
+        $record->update($data);
 
     return redirect()->route('feasibility.status.index', $data['status'])
         ->with('success', 'Feasibility status updated successfully.');
@@ -369,6 +372,7 @@ public function editSave(Request $request, $id)
         return $this->commonSmSave($request, false);
     }
 
+
     // ============================
     // SM SUBMIT
     // ============================
@@ -487,6 +491,7 @@ public function editSave(Request $request, $id)
 
         $data = $request->validate($rules);
         $data['feasibility_id'] = $request->feasibility_id;
+        $data['created_by'] = Auth::id();
 
         // If submit button clicked → change status
         if ($submit) {
@@ -753,8 +758,24 @@ public function editSave(Request $request, $id)
         
         // ✅ Get all vendors for dropdown
         $vendors = \App\Models\Vendor::orderBy('vendor_name')->get();
+        $data['updated_by'] = Auth::id();
+        $record->update($data);
+
+        // ✅ Get circuit_id from current feasibility
+    $circuit_id = $record->feasibility->circuit_id ?? null;
+
+    $previous = null;
+
+    if ($circuit_id) {
+        $previous = FeasibilityStatus::whereHas('feasibility', function($q) use ($circuit_id) {
+                $q->where('circuit_id', $circuit_id);
+            })
+            ->where('id', '!=', $record->id) // avoid current record
+            ->latest()
+            ->first();
+    }
         
-        return view('operations.feasibility.edit', compact('record', 'vendors'));
+        return view('operations.feasibility.edit', compact('record', 'vendors', 'previous'));
     }
 
    // ============================
@@ -795,6 +816,7 @@ public function editSave(Request $request, $id)
         $record = FeasibilityStatus::findOrFail($id);
         
         $data['status'] = 'InProgress';
+        $data['updated_by'] = Auth::id();
         $record->update($data);
 
     $connectionType = $request->input('connection_type');
@@ -1105,11 +1127,10 @@ public function editSave(Request $request, $id)
     return [];
 }
 
-
     /**
      * Bulk delete clients selected from the open feasibility table only.
      */
-    public function bulkDestroy(Request $request)
+  public function bulkDestroy(Request $request)
     {
         $request->validate([
             'ids' => 'required|array|min:1',
@@ -1135,8 +1156,6 @@ public function editSave(Request $request, $id)
         return redirect()->route('operations.feasibility.open')
             ->with('success', 'Feasibility marked as Not-Feasible successfully.');
     }
-
-
 
         /**
      * Show Not-Feasible feasibilities in operations section

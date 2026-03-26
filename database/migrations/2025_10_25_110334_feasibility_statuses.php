@@ -46,6 +46,12 @@ return new class extends Migration
     // Status management
     $table->enum('status', ['Open', 'InProgress', 'Closed', 'Feasible', 'Not-Feasible'])->default('Open');
     $table->timestamps();
+    $table->softDeletes();
+    $table->unsignedBigInteger('updated_by')->nullable();
+    $table->unsignedBigInteger('deleted_by')->nullable();
+    $table->unsignedBigInteger('created_by')->nullable();
+
+
 });
 
     }

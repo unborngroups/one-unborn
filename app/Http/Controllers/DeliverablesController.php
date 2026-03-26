@@ -13,6 +13,7 @@ use App\Models\Client;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Auth;
 
 use App\Models\{
     Deliverables,
@@ -289,7 +290,19 @@ class DeliverablesController extends Controller
     
     public function operationsSave(Request $request, $id)
     {
+        
+        // Validate
         $deliverable = Deliverables::findOrFail($id);
+
+            // Update deliverable status
+    $deliverable->update([
+        'status' => 'Delivery',
+        'updated_by' => Auth::id()
+    ]);
+
+    $linkCount = 4; // or dynamic if needed
+
+
         $linkCount = $deliverable->feasibility->no_of_links ?? 1;
         $rules = [
             'lan_ip_1' => 'required'
@@ -415,10 +428,9 @@ class DeliverablesController extends Controller
             $purchaseInvoice->terms = null;
             $purchaseInvoice->save();
         }
-    
-            
+        
             $existingPlansMap = $deliverable->deliverablePlans->keyBy('link_number');
-            DeliverablePlan::where('deliverable_id', $deliverable->id)->delete();
+            // DeliverablePlan::where('deliverable_id', $deliverable->id)->delete();
 
             // Define variables needed for circuit_id generation
             $feasibility = $deliverable->feasibility; // or fetch as needed
@@ -436,11 +448,28 @@ class DeliverablesController extends Controller
                 'Andaman and Nicobar Islands' => 'AN', 'Chandigarh' => 'CH', 'Dadra and Nagar Haveli' => 'DH', 'Daman and Diu' => 'DD',
                 'Delhi' => 'DL', 'Lakshadweep' => 'LD', 'Pondicherry' => 'PY',
             ];
-            $maxSeq = DeliverablePlan::whereYear('created_at', $year)
-                ->where('circuit_id', 'like', substr($year, -2).'%')
-                ->selectRaw("MAX(CAST(RIGHT(circuit_id, 4) AS UNSIGNED)) as max_seq")
-                ->value('max_seq');
-            $serial = $maxSeq ? intval($maxSeq) : 0;
+            // $maxSeq = DeliverablePlan::whereYear('created_at', $year)
+            //     ->where('circuit_id', 'like', substr($year, -2).'%')
+            //     ->selectRaw("MAX(CAST(RIGHT(circuit_id, 4) AS UNSIGNED)) as max_seq")
+            //     ->value('max_seq');
+            // $serial = $maxSeq ? intval($maxSeq) : 0;
+
+
+            // Generate circuit_id sequence with locking to prevent race conditions start
+            DB::beginTransaction();
+
+$maxSeq = DeliverablePlan::lockForUpdate()
+    ->whereYear('created_at', $year)
+    ->where('circuit_id', 'like', substr($year, -2).'%')
+    ->selectRaw("MAX(CAST(RIGHT(circuit_id, 4) AS UNSIGNED)) as max_seq")
+    ->value('max_seq');
+
+$serial = $maxSeq ? intval($maxSeq) : 0;
+$serial++;
+
+DB::commit();
+// end of locking for circuit_id generation
+
 
             // Build a map of per-link vendor snapshots from feasibility status
             $linkVendorsForSave = [];
@@ -462,10 +491,15 @@ class DeliverablesController extends Controller
             }
 
             for ($i = 1; $i <= $linkCount; $i++) {
-                $serial++;
+                // $serial++;
                 $vendorSnapshot = $linkVendorsForSave[$i] ?? null;
                 // Preserve circuit_id if editing, only generate if missing
                 $existingPlan = $existingPlansMap->get($i);
+                
+                if (!$existingPlan) {
+                   $serial++; // only increment for new serial in circuit_id generation
+                }
+
                 $planData = [
                     'deliverable_id' => $deliverable->id,
                     'link_number' => $i,
@@ -501,6 +535,11 @@ class DeliverablesController extends Controller
                     'pppoe_vlan' => $request->input('pppoe_vlan_' . $i),
                     'dhcp_ip_address' => $request->input('dhcp_ip_address_' . $i),
                     'dhcp_vlan' => $request->input('dhcp_vlan_' . $i),
+                    'p2p_username' => $request->input('p2p_username_' . $i),
+                    'p2p_password' => $request->input('p2p_password_' . $i),
+                    'tunnel' => $request->input('tunnel_' . $i),
+                    'tunnel_username' => $request->input('tunnel_username_' . $i),
+                    'tunnel_password' => $request->input('tunnel_password_' . $i),
                     'static_ip_address' => $request->input('static_ip_address_' . $i),
                     'static_vlan_tag' => $request->input('static_vlan_tag_' . $i),
                     'network_ip' => $request->input('network_ip_' . $i),
@@ -508,8 +547,18 @@ class DeliverablesController extends Controller
                     'static_gateway' => $request->input('gateway_' . $i),
                     'usable_ips' => $request->input('usable_ips_' . $i),
                     'remarks' => $request->input('remarks_' . $i),
+                    'updated_by' => Auth::id()
                 ];
-                DeliverablePlan::create($planData);
+                // DeliverablePlan::create($planData);
+                $plan = DeliverablePlan::withTrashed()->updateOrCreate(
+               [
+               'deliverable_id' => $deliverable->id,
+              'link_number' => $i
+               ],
+               $planData
+                );
+
+                $plan->restore();
             }
 
         /* ---- CLIENT LINK ---- */
@@ -638,7 +687,10 @@ if ($companySetting && $companySetting->delivery_email_check) {
 } else {
     Log::info('Delivery email disabled via settings');
 }
-            // Auto-create renewal entry if not exists
+            // Auto-create renewal entry if not exists\
+            $deliverable->load('deliverablePlans');
+
+
             foreach ($deliverable->deliverablePlans as $plan) {
                 $activation = $plan->date_of_activation;
                 $months = $plan->no_of_months_renewal;
@@ -819,5 +871,26 @@ if ($companySetting && $companySetting->delivery_email_check) {
         return in_array($mode,['Static','Static IP'],true);
     }
 
+    public function destroy($id)
+{
+    $deliverable = Deliverables::findOrFail($id);
+
+    // update deleted_by in plans
+    DeliverablePlan::where('deliverable_id', $id)
+        ->update(['deleted_by' => Auth::id()]);
+
+    // soft delete plans
+    DeliverablePlan::where('deliverable_id', $id)->delete();
+
+    // update deleted_by in deliverable
+    $deliverable->update([
+        'deleted_by' => Auth::id()
+    ]);
+
+    // soft delete deliverable
+    $deliverable->delete();
+
+    return back()->with('success', 'Deleted');
+}
     
 }

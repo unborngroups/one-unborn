@@ -47,15 +47,32 @@ class PrefixGenerator
      * Generate Feasibility Request ID
      */
     public static function generateFeasibilityId($clientId = null)
-    {
-        // Try client-based first, then financial year-based
-        if ($clientId) {
-            $prefix = self::generate('Feasibility', 'CB', ['client_id' => $clientId]);
-            if ($prefix) return $prefix;
+{
+    if ($clientId) {
+
+        // Sync sequence with last record
+        $last = \App\Models\Feasibility::orderBy('id','desc')->first();
+
+        if ($last) {
+
+            $parts = explode('/', $last->feasibility_request_id);
+            $lastSeq = intval(end($parts));
+
+            $config = PrefixConfiguration::getConfig('Feasibility','CB');
+
+            if ($config && $config->current_sequence < $lastSeq) {
+                $config->current_sequence = $lastSeq;
+                $config->save();
+            }
         }
-        
-        return self::generate('Feasibility', 'FY');
+
+        $prefix = self::generate('Feasibility','CB',['client_id'=>$clientId]);
+
+        if ($prefix) return $prefix;
     }
+
+    return self::generate('Feasibility','FY');
+}
 
     /**
      * Generate Invoice number

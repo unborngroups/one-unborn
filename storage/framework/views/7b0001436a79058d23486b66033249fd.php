@@ -185,8 +185,6 @@ unset($__errorArgs, $__bag); ?>
 
             </div>
 
-
-
             
 
             <div class="col-md-6 mb-3">

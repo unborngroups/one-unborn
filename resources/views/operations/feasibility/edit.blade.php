@@ -112,8 +112,24 @@
 
         <hr>
 
+@php
+    $linkType = $record->feasibility->link_type;
+    $noOfLinks = $record->feasibility->no_of_links ?? 1;
+    $maxVendors = 4;
+@endphp
 
 
+@php
+    $previousVendorCount = 0;
+
+    if($previous){
+        for ($j = 1; $j <= 4; $j++) {
+            if (!empty($previous->{'vendor'.$j.'_name'})) {
+                $previousVendorCount++;
+            }
+        }
+    }
+@endphp
         {{-- ✅ Main form - no action applied, JS sets action dynamically --}}
 
         <form id="feasibilityForm" method="POST">
@@ -142,6 +158,22 @@
 
             @for($i = 1; $i <= $maxVendors; $i++)
 
+            <!-- existing vendor section -->
+             @php
+            // ✅ Editable logic
+            if ($linkType === 'new') {
+    $isEditable = true;
+} else {
+    if ($i < $noOfLinks) {
+        $isEditable = false; // already existing → readonly
+    } else {
+        $isEditable = true; // new/increase → editable
+    }
+}
+        @endphp
+        
+            <!-- end existing vendor section -->
+
                 <h5 class="fw-bold text-primary mb-3">
 
                     Vendor {{ $i }}
@@ -168,6 +200,7 @@
 
                 </h5>
 
+                
                 {{-- ✅ Vendor Input Row --}}
 
                 <div class="row g-3 mb-4" id="vendor{{ $i }}_section">
@@ -192,25 +225,33 @@
 
                         <select name="vendor{{ $i }}_name" 
 
-                                class="form-select vendor-dropdown" 
+                                class="form-select vendor-dropdown {{ !$isEditable ? 'readonly-field' : '' }}"
 
                                 data-vendor-number="{{ $i }}"
 
-                                @if($i <= $noOfLinks) required @endif>
+                                @if($i <= $noOfLinks) required @endif
+                                 @if(!$isEditable)  style="pointer-events:none; background:#f1f3f5;" @endif>  {{-- if not editable disable --}}
 
                             <option value="">Select Vendor</option>
 
                              {{-- Populate vendor list --}}
 
                             @foreach($vendors as $vendor)
+                                
+@php
+    $value = !empty($previous->{'vendor'.$i.'_name'})
+        ? ($previous->{'vendor'.$i.'_name'} ?? '')
+        : ($record->{'vendor'.$i.'_name'} ?? '');
+@endphp
+<!-- <option value="{{ $vendor->vendor_name }}"
+    {{ $value == $vendor->vendor_name ? 'selected' : '' }}>
+    {{ $vendor->vendor_name }}
+</option> -->
 
-                                <option value="{{ $vendor->vendor_name }}" 
-
-                                        @if($record->{'vendor' . $i . '_name'} == $vendor->vendor_name) selected @endif>
-
-                                    {{ $vendor->vendor_name }}
-
-                                </option>
+<option value="{{ $vendor->vendor_name }}"
+    {{ strtolower(trim($value)) == strtolower(trim($vendor->vendor_name)) ? 'selected' : '' }}>
+    {{ $vendor->vendor_name }}
+</option>
 
                             @endforeach
 
@@ -225,50 +266,75 @@
                     </div>
 
                     {{-- ARC --}}
+                    @php
+    $arc = !empty($previous->{'vendor'.$i.'_arc'})
+        ? ($previous->{'vendor'.$i.'_arc'} ?? '') 
+        : ($record->{'vendor' . $i . '_arc'} ?? '');
+@endphp
 
                     <div class="col-md-2">
 
                         <label class="form-label fw-semibold">ARC</label>
 
-                        <input type="number" name="vendor{{ $i }}_arc" class="form-control" value="{{ $record->{'vendor' . $i . '_arc'} }}">
+                        <input type="number" name="vendor{{ $i }}_arc" class="form-control {{ !$isEditable ? 'readonly-field' : '' }}" value="{{ $arc }}" @if(!$isEditable) readonly @endif>
 
                     </div>
 
                      {{-- OTC --}}
+                        @php
+    $otc = !empty($previous->{'vendor'.$i.'_otc'})
+        ? ($previous->{'vendor'.$i.'_otc'} ?? '') 
+        : ($record->{'vendor' . $i . '_otc'} ?? '');
+@endphp
 
                     <div class="col-md-2">
 
                         <label class="form-label fw-semibold">OTC</label>
 
-                        <input type="number" name="vendor{{ $i }}_otc" class="form-control" value="{{ $record->{'vendor' . $i . '_otc'} }}">
+                        <input type="number" name="vendor{{ $i }}_otc" class="form-control {{ !$isEditable ? 'readonly-field' : '' }}" value="{{ $otc }}" @if(!$isEditable) readonly @endif>
 
                     </div>
 
                     {{-- Static IP Cost --}}
 
+                     @php
+    $staticIpCost = !empty($previous->{'vendor'.$i.'_static_ip_cost'})
+        ? ($previous->{'vendor'.$i.'_static_ip_cost'} ?? '') 
+        : ($record->{'vendor' . $i . '_static_ip_cost'} ?? '');
+@endphp
                     <div class="col-md-2 static-ip-cost-column">
     <label class="form-label fw-semibold">Static IP Cost</label>
     <input type="number" name="vendor{{ $i }}_static_ip_cost"
-           class="form-control"
-           value="{{ $record->{'vendor' . $i . '_static_ip_cost'} }}">
+           class="form-control {{ !$isEditable ? 'readonly-field' : '' }}"
+           value="{{ $staticIpCost }}" @if(!$isEditable) readonly @endif>
 </div>
 
 
                     {{-- Delivery Timeline --}}
+                     @php
+$deliveryTimeline = !empty($previous->{'vendor'.$i.'_delivery_timeline'})
+    ? $previous->{'vendor'.$i.'_delivery_timeline'}
+    : ($record->{'vendor'.$i.'_delivery_timeline'} ?? '');
+@endphp
 
                     <div class="col-md-2">
 
                         <label class="form-label fw-semibold">Delivery Timeline</label>
 
-                        <input type="text" name="vendor{{ $i }}_delivery_timeline" class="form-control" value="{{ $record->{'vendor' . $i . '_delivery_timeline'} }}">
+                        <input type="text" name="vendor{{ $i }}_delivery_timeline" class="form-control {{ !$isEditable ? 'readonly-field' : '' }}" value="{{ $deliveryTimeline }}" @if(!$isEditable) readonly @endif>
 
                     </div>
                     {{-- Remarks --}}
+                     @php
+$remarks = !empty($previous->{'vendor'.$i.'_remarks'})
+    ? $previous->{'vendor'.$i.'_remarks'}
+    : ($record->{'vendor'.$i.'_remarks'} ?? '');
+@endphp
 
                     <div class="col-md-2">
 
                         <label class="form-label fw-semibold">Remarks</label>
-                        <input type="text" name="vendor{{ $i }}_remarks" class="form-control" value="{{ $record->{'vendor' . $i . '_remarks'} }}">
+                        <input type="text" name="vendor{{ $i }}_remarks" class="form-control {{ !$isEditable ? 'readonly-field' : '' }}" value="{{ $remarks }}" @if(!$isEditable) readonly @endif>
 
                     </div>
 
@@ -416,35 +482,80 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Load normal vendor list
-    function setNormalVendors() {
-        vendorDropdowns.forEach(dd => {
-            dd.disabled = false;
+    // function setNormalVendors() {
+    //     vendorDropdowns.forEach(dd => {
 
-            let vendorOptions = `
-                <option value="">Select Vendor</option>
-                @foreach($vendors as $v)
-                    <option value="{{ $v->vendor_name }}">{{ $v->vendor_name }}</option>
-                @endforeach
-            `;
+    //      // 🚫 Skip readonly fields (important fix)
+    //     if (dd.classList.contains('readonly-field')) return;
 
-            dd.innerHTML = vendorOptions;
+    //         dd.disabled = false;
 
-            // restore previous selected value if exists
-            let oldValue = dd.getAttribute("data-old") ?? "";
-            if (oldValue) {
-                dd.value = oldValue;
-            }
-        });
-    }
+    //         let vendorOptions = `
+    //             <option value="">Select Vendor</option>
+    //             @foreach($vendors as $v)
+    //                 <option value="{{ $v->vendor_name }}">{{ $v->vendor_name }}</option>
+    //             @endforeach
+    //         `;
+
+    //         dd.innerHTML = vendorOptions;
+
+    //         // restore previous selected value if exists
+    //         let oldValue = dd.getAttribute("data-old") ?? "";
+    //         if (oldValue) {
+    //             dd.value = oldValue;
+    //         }
+    //     });
+    // }
 
     // Apply vendor type logic
     if (ownCompanies.includes(vendorType)) {
         setSelfVendor();
-    } else {
-        setNormalVendors();
     }
+    //  else {
+    //     setNormalVendors();
+    // }
+//     else {
+//     setExistingVendor();
+// }
 
+// function setExistingVendor() {
+//     vendorDropdowns.forEach(dd => {
+//         dd.disabled = false;
 
+//         // Check if the feasibility_status already exists for this feasibility
+//         fetch(`/sm/feasibility/status/${feasibilityId}`)
+//             .then(response => response.json())
+//             .then(data => {
+//                 const existingStatus = data.statuses.find(status => status.feasibility_id === feasibilityId);
+
+//                 if (existingStatus && existingStatus.vendor1_name) {
+//                     dd.value = existingStatus.vendor1_name;
+//                     dd.setAttribute("data-old", existingStatus.vendor1_name);
+//                 }
+
+//                 if (existingStatus && existingStatus.circuit_id) {
+//                     document.getElementById('circuit_id').value = existingStatus.circuit_id;
+//                 }
+
+//                 let vendorOptions = `
+//                     <option value="">Select Vendor</option>
+//                     @foreach($vendors as $v)
+//                         <option value="{{ $v->vendor_name }}">{{ $v->vendor_name }}</option>
+//                     @endforeach
+//                 `;
+
+//                 dd.innerHTML = vendorOptions;
+
+//                 // Display the existing value if it exists
+//                 if (dd.getAttribute("data-old")) {
+//                     dd.value = dd.getAttribute("data-old");
+//                 }
+//             })
+//             .catch(error => {
+//                 console.error(error);
+//             });
+//     });
+// }
 
     // ---------------------------------------------
     // Duplicate Vendor Validation + Required Fields
@@ -702,4 +813,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 </script>
 
+<style>
+    .readonly-field{
+background:#f1f3f5;
+}
+</style>
 @endsection

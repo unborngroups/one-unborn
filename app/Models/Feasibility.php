@@ -36,6 +36,8 @@ class Feasibility extends Model
         'type_of_service',
         'company_id',
         'client_id',
+        'circuit_id',
+        'link_type',
         'delivery_company_name',
         'location_id',
         'longitude',
@@ -60,7 +62,10 @@ class Feasibility extends Model
         'hardware_required',
          'hardware_details',
         'status',
+        'existing_links',
         'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -81,11 +86,28 @@ class Feasibility extends Model
 {
     return $this->belongsTo(Client::class, 'client_id');
 }
+    
+public function vendor()
+{
+    return $this->belongsTo(Client::class, 'client_id');
+}
+
 
 public function createdBy()
 {
     return $this->belongsTo(User::class, 'created_by');
 }
+
+public function updatedUser()
+{
+    return $this->belongsTo(User::class,'updated_by');
+}
+
+public function deletedUser()
+{
+    return $this->belongsTo(User::class,'deleted_by');
+}
+
 
     // Provide alias for existing controllers referencing createdByUser
     public function createdByUser()

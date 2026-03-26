@@ -4,9 +4,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\VendorController;
 use App\Http\Controllers\PincodeLookupController;
 use App\Http\Controllers\Api\InboundEmailController;
 use App\Models\Client;
+use App\Models\Vendor;
 
 // GST API Routes
 Route::get('fetch-gst/{gst}', [CompanyController::class, 'fetchGst'])->name('api.fetch-gst');
@@ -20,6 +22,10 @@ Route::get('fetch-company-by-pan/{pan}', [CompanyController::class, 'fetchByPan'
 
 // PAN Verification Route
 Route::get('/verify-pan', [ClientController::class, 'verifyPan']);
+
+
+// PAN Verification Route
+Route::get('/verify-pan', [VendorController::class, 'verifyPan']);
 
 // Pincode Lookup Route
 Route::post('/pincode/lookup', [PincodeLookupController::class, 'lookup'])->name('api.pincode.lookup');

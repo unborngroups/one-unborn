@@ -8,23 +8,19 @@ use App\Models\Menu;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Feasibility;
 use App\Models\PurchaseOrder;
+use Illuminate\Support\Facades\DB;  
 use App\Models\Renewal;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        // Expired but not renewed deliverable plans (per circuit)
-        $expiredPlans = \App\Models\DeliverablePlan::whereNotNull('date_of_expiry')
-            ->where('date_of_expiry', '<', now())
-            ->get()
-            ->filter(function($plan) {
-                // No renewal exists for this deliverable_id and circuit_id
-                return !\App\Models\Renewal::where('deliverable_id', $plan->deliverable_id)
-                    ->where('circuit_id', $plan->circuit_id)
-                    ->exists();
-            });
-        $expiredRenewalCount = $expiredPlans->count();
+        // Expired (not renewed): Only circuit_ids whose latest renewal is expired
+        $latestRenewals = \App\Models\Renewal::select('circuit_id', DB::raw('MAX(new_expiry_date) as latest_expiry'))
+            ->groupBy('circuit_id')
+            ->get();
+
+        $expiredRenewalCount = $latestRenewals->where('latest_expiry', '<', now())->count();
     
           $userType = Auth::user()->user_type ?? 'Employee';
 
@@ -109,23 +105,31 @@ class DashboardController extends Controller
                           ->get();
 
         // Upcoming Renewals logic
-        $todayRenewals = \App\Models\Renewal::with('deliverable')
-            ->whereNotNull('alert_date')
-            ->whereDate('alert_date', now()->toDateString())
-            ->get();
+        // $todayRenewals = \App\Models\Renewal::with('deliverable')
+        //     ->whereNotNull('alert_date')
+        //     ->whereDate('alert_date', now()->toDateString())
+        //     ->get();
 
         // $tomorrowRenewals = \App\Models\Renewal::with('deliverable')
+        //     ->whereNotNull('alert_date')
         //     ->whereDate('alert_date', now()->addDay()->toDateString())
         //     ->get();
 
-        $tomorrowRenewals = \App\Models\Renewal::with('deliverable')
-            ->whereNotNull('alert_date')
-            ->whereDate('alert_date', now()->addDay()->toDateString())
-            ->get();
+        // $weekRenewals = \App\Models\Renewal::with('deliverable')
+        //     ->whereBetween('alert_date', [now()->toDateString(), now()->addDays(7)->toDateString()])
+        //     ->get();
 
-        $weekRenewals = \App\Models\Renewal::with('deliverable')
-            ->whereBetween('alert_date', [now()->toDateString(), now()->addDays(7)->toDateString()])
-            ->get();
+        $latestRenewalIds = \App\Models\Renewal::select('circuit_id', DB::raw('MAX(id) as latest_id'))
+             ->groupBy('circuit_id')
+             ->pluck('latest_id');
+
+        $latestRenewals = \App\Models\Renewal::with('deliverable')
+             ->whereIn('id', $latestRenewalIds)
+             ->get();
+
+        $todayRenewals = $latestRenewals->where('alert_date', now()->toDateString());
+        $tomorrowRenewals = $latestRenewals->where('alert_date', now()->addDay()->toDateString());
+        $weekRenewals = $latestRenewals->whereBetween('alert_date', [now()->toDateString(), now()->addDays(7)->toDateString()]);
 
         $renewalCounts = [
             'today' => $todayRenewals->count(),
@@ -144,8 +148,7 @@ class DashboardController extends Controller
             'todayRenewals',
             'tomorrowRenewals',
             'weekRenewals',
-            'expiredRenewalCount',
-            'expiredPlans'
+            'expiredRenewalCount'
         ));
      }
 }

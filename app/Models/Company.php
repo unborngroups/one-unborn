@@ -114,8 +114,9 @@ public function clients() {
         return $this->hasOne(\App\Models\CompanySetting::class, 'company_id', 'id');
     }
 
-    public function invoices() {
-        return $this->hasMany(Invoice::class);
-    }   
+    public function purchase_orders() {
+    return $this->hasMany(PurchaseOrder::class);
 }
 
+
+}

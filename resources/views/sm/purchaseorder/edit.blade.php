@@ -68,7 +68,7 @@
 
                             {{-- ✅ Feasibility Dropdown (disabled on edit to prevent change) --}}
 
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
 
                                 <label for="feasibility_id" class="form-label">
 
@@ -76,11 +76,13 @@
 
                                 </label>
 
-                                <input type="text" class="form-control" 
+                                @php
+                                $feas = $purchaseOrder->feasibility;
+                                @endphp
 
-                                       value="{{ $purchaseOrder->feasibility->feasibility_request_id }} - {{ $purchaseOrder->feasibility->client->client_name ?? 'Unknown' }}" 
-
-                                       disabled>
+                              <input type="text" class="form-control" 
+       value="{{ $feas->feasibility_request_id ?? 'N/A' }} - {{ $feas->client->client_name ?? 'Unknown' }}" 
+       disabled>
 
                                 <input type="hidden" name="feasibility_id" value="{{ $purchaseOrder->feasibility_id }}">
 
@@ -109,7 +111,7 @@
 
                             {{-- PO Number --}}
 
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
 
                                 <label for="po_number" class="form-label">
 
@@ -135,7 +137,7 @@
 
                             {{-- PO Date --}}
 
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
 
                                 <label for="po_date" class="form-label">
 
@@ -182,7 +184,7 @@
 
                         <div class="row">
 
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
 
                                 <label class="form-label fw-semibold">No. of Links *</label>
 
@@ -199,6 +201,37 @@
                                 </select>
 
                             </div>
+
+                            <!-- Company Name -->
+                            <div class="col-md-4">
+
+                    <label class="form-label fw-semibold">Company <span class="text-danger">*</span></label>
+
+                    <select name="company_id" id="company_id" class="form-select" >
+
+                        <option value="">Select Company</option>
+
+                        @foreach($companies as $company)
+
+                            <option value="{{ $company->id }}" 
+    {{ (string) old('company_id', $purchaseOrder->company_id) === (string) $company->id ? 'selected' : '' }}>
+    {{ $company->company_name }}
+</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Static IP Duration</label>
+                    <select name="duration" id="duration" class="form-select">
+                        <option value="">Select Duration</option>
+                        <option value="Quarterly" {{ old('duration', $purchaseOrder->duration) == 'Quarterly' ? 'selected' : '' }} >Quarterly</option>
+                        <option value="Half-Yearly" {{ old('duration', $purchaseOrder->duration) == 'Half-Yearly' ? 'selected' : '' }}>Half-Yearly</option>
+                        <option value="Monthly" {{ old('duration', $purchaseOrder->duration) == 'Monthly' ? 'selected' : '' }}>Monthly</option>
+                        <option value="Yearly" {{ old('duration', $purchaseOrder->duration) == 'Yearly' ? 'selected' : '' }}>Yearly</option>
+                    </select>
+                   
+                </div>
 
                         </div>
 

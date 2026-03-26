@@ -78,7 +78,10 @@
 
                     <?php $__empty_1 = true; $__currentLoopData = $renewals; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $renewal): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                         <?php
-                            $plan = $renewal->deliverable->deliverablePlans->where('circuit_id', $renewal->circuit_id)->first();
+$plan = optional($renewal->deliverable)
+    ?->deliverablePlans
+    ?->where('circuit_id', $renewal->circuit_id)
+    ->first();
                         ?>
                         <tr>
                             <td class="text-center"><?php echo e($key+1); ?></td>
@@ -126,13 +129,7 @@
                             <td><?php echo e($renewal->deliverable->feasibility->area ?? '-'); ?>, <?php echo e($renewal->deliverable->feasibility->state ?? '-'); ?></td>
                             <td><?php echo e($renewal->circuit_id ?? (\App\Models\DeliverablePlan::where('deliverable_id', $renewal->deliverable_id)->value('circuit_id') ?? '-')); ?></td>
                             <td><?php echo e($renewal->date_of_renewal ? \Carbon\Carbon::parse($renewal->date_of_renewal)->format('Y-m-d') : '-'); ?></td>
-                            <!-- <td><?php echo e($renewal->deliverable->date_of_expiry ? \Carbon\Carbon::parse($renewal->deliverable->date_of_expiry)->format('Y-m-d') : '-'); ?></td> -->
-
-                            <!-- <td>
-                                <?php echo e($renewal->date_of_renewal && $renewal->new_expiry_date ? \Carbon\Carbon::parse($renewal->new_expiry_date)->format('Y-m-d') : 'N/A'); ?>
-
-                            </td> -->
-
+                    
                             <td>
                                     <?php if($renewal->new_expiry_date): ?>
                                         <span class="text-green-600"><?php echo e(\Carbon\Carbon::parse($renewal->new_expiry_date)->format('d-m-Y')); ?></span>

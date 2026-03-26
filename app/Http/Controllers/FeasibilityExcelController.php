@@ -213,6 +213,7 @@ if ($address !== null) {
             'speed' => $rowData['speed'],
             'static_ip' => $staticIpFlag,
             'static_ip_subnet' => $rowData['static_ip_subnet'],
+            'static_ip_duration' => $rowData['static_ip_duration'],
             'expected_delivery' => $this->parseDate($rowData['expected_delivery']),
             'expected_activation' => $this->parseDate($rowData['expected_activation']),
             'hardware_required' => $hardwareFlag,

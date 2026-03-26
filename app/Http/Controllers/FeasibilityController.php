@@ -96,9 +96,10 @@ class FeasibilityController extends Controller
         }
         
         // Clients are always independent - show all clients to everyone
-        $clients = Client::where('office_type', 'head')
-                 ->orderBy('client_name')
-                 ->get();
+        // $clients = Client::where('office_type', 'head')
+        //          ->orderBy('client_name')
+        //          ->get();
+        $clients = Client::all();
 
         $makes     = MakeType::all();
         $models    = ModelType::all();
@@ -113,6 +114,7 @@ class FeasibilityController extends Controller
             'type_of_service' => 'required',
             'company_id' => 'required|exists:companies,id',
             'client_id' => 'required',
+            'link_type' => 'required|string',
             'delivery_company_name' => 'nullable|string',
             'circuit_id' => 'nullable|string',
             'location_id' => 'nullable|string',
@@ -139,6 +141,7 @@ class FeasibilityController extends Controller
             // 'hardware_model_name' => 'nullable',
             'hardware_make' => 'array|nullable',
             'hardware_model' => 'array|nullable',
+            'existing_links' => 'nullable|numeric|min:0',
             'status' => 'required|in:Active,Inactive',
         ]);
 
@@ -260,56 +263,6 @@ public function sendCreatedEmail($feasibility)
     }
 }
 
-// private function getEmailRecipients($feasibility, $newStatus, $previousStatus = null)
-// {
-//     $settings = \App\Models\CompanySetting::first();
-//     $notifyConfig = $settings->feasibility_notifications ?? [];
-
-//     // Open → Send to configured user type
-//     if ($newStatus == 'Open' && !empty($notifyConfig['Open'])) {
-//         return \App\Models\User::whereHas('userType', function ($q) use ($notifyConfig) {
-//             $q->where('name', $notifyConfig['Open']);
-//         })
-//         ->whereNotNull('official_email')
-//         ->pluck('official_email')
-//         ->toArray();
-//     }
-
-//     // Closed → Send ONLY to Creator (S&M)
-//     if ($newStatus == 'Closed' && $feasibility->createdByUser) {
-//         $creatorEmail = $feasibility->createdByUser->official_email ?? $feasibility->createdByUser->email;
-//         return $creatorEmail ? [$creatorEmail] : [];
-//     }
-
-//     return [];
-// }
-
-// private function sendUpdatedEmail($feasibility)
-// {
-//     try {
-//         $creatorEmail = optional($feasibility->createdByUser)->official_email;
-
-//         if ($creatorEmail) {
-//             Mail::to($creatorEmail)->send(
-//                 new \App\Mail\FeasibilityStatusMail(
-//                     $feasibility,
-//                     'Updated / Closed',
-//                     null,
-//                     Auth::user(),
-//                     'updated'
-//                 )
-//             );
-//         } else {
-//             Log::warning('Creator email missing', [
-//                 'feasibility_id' => $feasibility->id
-//             ]);
-//         }
-
-//     } catch (\Exception $e) {
-//         Log::error('Feasibility update email failed', ['error' => $e->getMessage()]);
-//     }
-// }
-
      public function update(Request $request, $id)
     {
         Log::info('Feasibility update called', ['id' => $id, 'payload' => $request->all()]);
@@ -318,6 +271,8 @@ public function sendCreatedEmail($feasibility)
             'type_of_service' => 'required',
             'company_id' => 'required|exists:companies,id',
             'client_id' => 'required',
+            'circuit_id' => 'nullable|string',
+            'link_type' => 'required|string',
             'delivery_company_name' => 'nullable|string',
             'location_id' => 'nullable|string',
             'longitude' => 'nullable|string',
@@ -343,6 +298,7 @@ public function sendCreatedEmail($feasibility)
             // 'hardware_model_name' => 'nullable',
             'hardware_make' => 'array|nullable',
             'hardware_model' => 'array|nullable',
+            'existing_links' => 'nullable|numeric|min:0',
             // Status is stored but not edited here; allow any existing value
             'status' => 'nullable|string',
         ]);
@@ -353,7 +309,9 @@ public function sendCreatedEmail($feasibility)
     
     // 🧠 Convert hardware_required to proper boolean
     $validated['hardware_required'] = (bool) $validated['hardware_required'];
-    
+
+        // Add updated_by
+        $validated['updated_by'] = Auth::user()->id;
 
     // Build hardware JSON exactly like store()
     $hardwareData = [];
@@ -459,8 +417,9 @@ $status = FeasibilityStatus::where('feasibility_id', $feasibility->id)->first();
         $clients = Client::all();
         $makes = MakeType::all();
         $models = ModelType::all();
+        $deliverables_plans = \App\Models\DeliverablePlan::all();
 
-        return view('feasibility.edit', compact('feasibility', 'companies', 'clients', 'makes', 'models'));
+        return view('feasibility.edit', compact('feasibility', 'companies', 'clients', 'makes', 'models', 'deliverables_plans'));
     }
 
 //     public function show(Feasibility $feasibility)

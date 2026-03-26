@@ -176,8 +176,6 @@
 
             </div>
 
-
-
             {{-- ✅ Date of Joining --}}
 
             <div class="col-md-6 mb-3">

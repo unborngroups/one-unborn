@@ -1,0 +1,26 @@
+-- Step 1: delete deliverable_plans
+DELETE dp FROM deliverable_plans dp
+JOIN deliverables d ON dp.deliverable_id = d.id
+JOIN purchase_orders po ON d.purchase_order_id = po.id
+JOIN feasibilities f ON po.feasibility_id = f.id
+WHERE f.client_id = 61;
+
+-- Step 2: delete deliverables
+DELETE d FROM deliverables d
+JOIN purchase_orders po ON d.purchase_order_id = po.id
+JOIN feasibilities f ON po.feasibility_id = f.id
+WHERE f.client_id = 61;
+
+-- Step 3: delete purchase_orders
+DELETE po FROM purchase_orders po
+JOIN feasibilities f ON po.feasibility_id = f.id
+WHERE f.client_id = 61;
+
+-- Step 4: delete feasibility_statuses
+DELETE fs FROM feasibility_statuses fs
+JOIN feasibilities f ON fs.feasibility_id = f.id
+WHERE f.client_id = 61;
+
+-- Step 5: delete feasibilities
+DELETE FROM feasibilities 
+WHERE client_id = 61;

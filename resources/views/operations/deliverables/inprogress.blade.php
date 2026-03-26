@@ -74,12 +74,23 @@
                                         <i class="bi bi-pencil"></i> Edit
                                     </a>
                                     @endif
+                                    {{--view--}}
                                     @if($permissions->can_view)
                                     <a href="{{ route('operations.deliverables.view', $record->id) }}" 
                                        class="btn btn-sm btn-info">
                                         <i class="bi bi-eye"></i> View
                                     </a>
                                     @endif
+                                     {{-- Delete --}}
+                                 @if($permissions->can_delete)
+                                 <form action="{{ route('operations.deliverables.destroy',$record->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('DELETE') 
+                                    <button class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this Deliverable?')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                                @endif
                                 </td>
 
                                 <td>{{ $record->po_number ?? 'N/A' }}</td>

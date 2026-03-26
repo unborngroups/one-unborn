@@ -77,7 +77,10 @@
 
                     @forelse($renewals as $key => $renewal)
                         @php
-                            $plan = $renewal->deliverable->deliverablePlans->where('circuit_id', $renewal->circuit_id)->first();
+$plan = optional($renewal->deliverable)
+    ?->deliverablePlans
+    ?->where('circuit_id', $renewal->circuit_id)
+    ->first();
                         @endphp
                         <tr>
                             <td class="text-center">{{ $key+1 }}</td>
@@ -124,12 +127,7 @@
                             <td>{{ $renewal->deliverable->feasibility->area ?? '-' }}, {{ $renewal->deliverable->feasibility->state ?? '-' }}</td>
                             <td>{{ $renewal->circuit_id ?? (\App\Models\DeliverablePlan::where('deliverable_id', $renewal->deliverable_id)->value('circuit_id') ?? '-') }}</td>
                             <td>{{ $renewal->date_of_renewal ? \Carbon\Carbon::parse($renewal->date_of_renewal)->format('Y-m-d') : '-' }}</td>
-                            <!-- <td>{{ $renewal->deliverable->date_of_expiry ? \Carbon\Carbon::parse($renewal->deliverable->date_of_expiry)->format('Y-m-d') : '-' }}</td> -->
-
-                            <!-- <td>
-                                {{ $renewal->date_of_renewal && $renewal->new_expiry_date ? \Carbon\Carbon::parse($renewal->new_expiry_date)->format('Y-m-d') : 'N/A' }}
-                            </td> -->
-
+                    
                             <td>
                                     @if($renewal->new_expiry_date)
                                         <span class="text-green-600">{{ \Carbon\Carbon::parse($renewal->new_expiry_date)->format('d-m-Y') }}</span>

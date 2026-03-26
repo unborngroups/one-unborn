@@ -40,7 +40,7 @@
 
     <div class="card shadow border-0 p-4">
 
-        <form action="{{ route('finance.items.update', $items) }}" method="POST">
+        <form action="{{ route('finance.items.update', $items->id) }}" method="POST">
 
             <?= csrf_field() ?> 
 

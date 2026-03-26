@@ -69,6 +69,12 @@
 
                                 </tr>
 
+                                <tr>
+                                    <th>Duration:</th>
+
+                                    <td><?php echo e($purchaseOrder->duration); ?></td>
+                                </tr>
+
                             </table>
 
                         </div>
@@ -102,6 +108,13 @@
                                         <span class="badge bg-primary"><?php echo e($purchaseOrder->no_of_links); ?> Links</span>
 
                                     </td>
+
+                                </tr>
+                                <tr>
+
+                                    <th>Company:</th>
+
+                                    <td><?php echo e($purchaseOrder->company->company_name ?? 'N/A'); ?></td>
 
                                 </tr>
 

@@ -68,6 +68,29 @@
         </div>
 
         <form action="<?php echo e(route('feasibility.update', $feasibility->id)); ?>" method="POST">
+
+            <input type="hidden" name="existing_links" id="existing_links" value="0">
+                 
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Link Type <span class="text-danger">*</span></label>
+                    <select id="link_type" name="link_type" class="form-select" required>
+                        <option value="">Select</option>
+                        <option value="new" <?php echo e($importRow['link_type'] === 'new' ? 'selected' : ''); ?>>New Link</option>
+                        <option value="existing" <?php echo e($importRow['link_type'] === 'existing' ? 'selected' : ''); ?>>Existing Link</option>
+                    </select>
+                </div>
+                <div class="col-md-4" id="existing_circuit_box" style="display:none;">
+                    <label class="form-label fw-semibold">Select Circuit ID</label>
+                    <select id="circuit_id" name="circuit_id" class="form-select select2-tags">
+                        <option value="">Select Circuit ID</option>
+                        <?php $__currentLoopData = $deliverables_plans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $d): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($d['circuit_id']); ?>"><?php echo e($d['circuit_id']); ?></option>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </select>
+                </div>
+            </div>
+
             <?php echo csrf_field(); ?>
             <?php echo method_field('PUT'); ?>
 
@@ -108,8 +131,7 @@
                         <option value="">Select Client</option>
                         <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <option value="<?php echo e($client->id); ?>" <?php echo e((string) old('client_id', $feasibility->client_id) === (string) $client->id ? 'selected' : ''); ?>>
-                                <?php echo e($client->business_name ?: $client->client_name); ?>
-
+                                <?php echo e($client->business_name ?: $client->client_name); ?>  (<?php echo e($client->state); ?>)
                             </option>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>

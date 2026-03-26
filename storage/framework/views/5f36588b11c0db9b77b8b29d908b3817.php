@@ -342,6 +342,7 @@
                                     <option value="">Select Mode</option>
                                     <option value="PPPoE" <?php echo e($selectedMode === 'PPPoE' ? 'selected' : ''); ?>>PPPoE</option>
                                     <option value="DHCP" <?php echo e($selectedMode === 'DHCP' ? 'selected' : ''); ?>>DHCP</option>
+                                    <option value="P2P" <?php echo e($selectedMode === 'P2P' ? 'selected' : ''); ?>>P2P</option>
                                     <!-- <option value="Static IP" <?php echo e(in_array($selectedMode, ['Static IP', 'Static']) ? 'selected' : ''); ?>>Static IP</option> -->
                                     <!-- <option value="PAYMENTS" <?php echo e($selectedMode === 'PAYMENTS' ? 'selected' : ''); ?>>PAYMENTS</option> -->
 
@@ -546,7 +547,8 @@
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">IP Address</label>
                                         <input type="text" class="form-control" name="dhcp_ip_address_<?php echo e($i); ?>" 
-                                               value="<?php echo e(old('dhcp_ip_address_'.$i, $plan->dhcp_ip_address ?? '')); ?>">
+                                               value="<?php echo e(old('021313
+                                               '.$i, $plan->dhcp_ip_address ?? '')); ?>">
                                     </div>
 
                                     <div class="col-md-6 mb-3">
@@ -554,6 +556,50 @@
                                         <input type="text" class="form-control" name="dhcp_vlan_<?php echo e($i); ?>" 
                                                value="<?php echo e(old('dhcp_vlan_'.$i, $plan->dhcp_vlan ?? '')); ?>">
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        
+                        <div class="card mb-3" id="p2p_section_<?php echo e($i); ?>" style="display: none;">
+                            <div class="card-header bg-warning text-dark">
+                                <h6 class="mb-0">P2P Configuration</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Username</label>
+                                        <input type="text" class="form-control" name="p2p_username_<?php echo e($i); ?>" 
+                                               value="<?php echo e(old('p2p_username_'.$i, $plan->p2p_username ?? '')); ?>">
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Password</label>
+                                        <input type="text" class="form-control" name="p2p_password_<?php echo e($i); ?>" 
+                                               value="<?php echo e(old('p2p_password_'.$i, $plan->p2p_password ?? '')); ?>">
+                                    </div>
+
+                                    
+                                    <!--  -->
+                                    <div class="row mb-3" id="tunnel_row_<?php echo e($i); ?>">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Tunnel</label>
+                                <select name="tunnel_<?php echo e($i); ?>" id="tunnel_<?php echo e($i); ?>" class="form-select tunnel-select" data-index="<?php echo e($i); ?>">
+                                    <option value="">Select</option>
+                                    <option value="Yes" <?php echo e(old('tunnel_'.$i, $plan->tunnel ?? '') == 'Yes' ? 'selected' : ''); ?>>Yes</option>
+                                    <option value="No" <?php echo e(old('tunnel_'.$i, $plan->tunnel ?? '') == 'No' ? 'selected' : ''); ?>>No</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3 tunnel-fields" id="tunnel_fields_<?php echo e($i); ?>" style="display: none;">
+                                <label class="form-label">Tunnel Username</label>
+                                <input type="text" class="form-control" name="tunnel_username_<?php echo e($i); ?>" id="tunnel_username_<?php echo e($i); ?>" value="<?php echo e(old('tunnel_username_'.$i, $plan->tunnel_username ?? '')); ?>">
+                            </div>
+                            <div class="col-md-4 mb-3 tunnel-fields" id="tunnel_fields_pw_<?php echo e($i); ?>" style="display: none;">
+                                <label class="form-label">Tunnel Password</label>
+                                <input type="text" class="form-control" name="tunnel_password_<?php echo e($i); ?>" id="tunnel_password_<?php echo e($i); ?>" value="<?php echo e(old('tunnel_password_'.$i, $plan->tunnel_password ?? '')); ?>">
+                            </div>
+                        </div>
+
                                 </div>
                             </div>
                         </div>
@@ -930,8 +976,9 @@ document.addEventListener('DOMContentLoaded', function () {
     function toggleSectionsByLink(linkNo, selectedMode) {
         const pppoe = document.getElementById(`pppoe_section_${linkNo}`);
         const dhcp = document.getElementById(`dhcp_section_${linkNo}`);
+        const p2p = document.getElementById(`p2p_section_${linkNo}`);
 
-        [pppoe, dhcp].forEach(sec => {
+        [pppoe, dhcp, p2p].forEach(sec => {
             if (sec) {
                 sec.style.display = 'none';
             }
@@ -942,6 +989,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (selectedMode === 'DHCP' && dhcp) {
             dhcp.style.display = 'block';
+        }
+        if (selectedMode === 'P2P' && p2p) {
+            p2p.style.display = 'block';
         }
         // If Static IP or PAYMENTS modes are reintroduced with separate sections,
         // extend this function similarly for those IDs.
@@ -974,6 +1024,31 @@ document.addEventListener('DOMContentLoaded', function () {
         if (select.value) {
             toggleSectionsByLink(select.dataset.link, select.value);
         }
+    });
+});
+
+// Tunnel show/hide logic
+// Place after all other DOMContentLoaded handlers
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.tunnel-select').forEach(function(select) {
+        const idx = select.getAttribute('data-index');
+        const usernameDiv = document.getElementById('tunnel_fields_' + idx);
+        const passwordDiv = document.getElementById('tunnel_fields_pw_' + idx);
+        function toggleTunnelFields() {
+            if (select.value === 'Yes') {
+                if (usernameDiv) usernameDiv.style.display = '';
+                if (passwordDiv) passwordDiv.style.display = '';
+            } else {
+                if (usernameDiv) usernameDiv.style.display = 'none';
+                if (passwordDiv) passwordDiv.style.display = 'none';
+                if (document.getElementById('tunnel_username_' + idx)) document.getElementById('tunnel_username_' + idx).value = '';
+                if (document.getElementById('tunnel_password_' + idx)) document.getElementById('tunnel_password_' + idx).value = '';
+            }
+        }
+        select.addEventListener('change', toggleTunnelFields);
+        // Initial state
+        toggleTunnelFields();
     });
 });
 

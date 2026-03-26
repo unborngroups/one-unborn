@@ -204,42 +204,34 @@
 
         <?php endif; ?>
 
-
-<!--         
-
-        <h5 class="mb-3">Import Feasibility</h5>
-        <div class="row g-3 align-items-center ml-2 mb-4">
-            <div class="col-md-4">
-                <form action="<?php echo e(route('feasibility.import')); ?>" method="POST" enctype="multipart/form-data">
-                    <?php echo csrf_field(); ?>
-                    <div class="input-group">
-                        <input type="file" name="file" class="form-control" required>
-                        <button type="submit" class="btn btn-primary">Import Excel</button>
-                    </div>
-                </form>
-            </div>
-    </div>
- -->
-
-
-
          
 
         <form action="<?php echo e(route('feasibility.store')); ?>" method="POST">
-                    <script>
-                    // Before form submit, enable all fields so backend receives all values
-                    document.addEventListener('DOMContentLoaded', function() {
-                        var feasibilityForm = document.querySelector('form');
-                        if (feasibilityForm) {
-                            feasibilityForm.addEventListener('submit', function() {
-                                var allFields = feasibilityForm.querySelectorAll('input, select, textarea');
-                                allFields.forEach(function(el) {
-                                    el.disabled = false;
-                                });
-                            });
-                        }
-                    });
-                    </script>
+            <!-- Hidden field to track existing links -->
+            <input type="hidden" name="existing_links" id="existing_links" value="0">
+
+<script>
+// Before form submit, enable all fields and re-set their values from DOM to ensure backend receives all values
+document.addEventListener('DOMContentLoaded', function() {
+    var feasibilityForm = document.querySelector('form');
+    if (feasibilityForm) {
+        feasibilityForm.addEventListener('submit', function() {
+            var allFields = feasibilityForm.querySelectorAll('input, select, textarea');
+            allFields.forEach(function(el) {
+                // Save value before enabling
+                var val = el.value;
+                el.disabled = false;
+                // For selects, re-set value after enabling to ensure it's present
+                if (el.tagName === 'SELECT') {
+                    el.value = val;
+                }
+            });
+        });
+    }
+});
+</script>
+
+                    
             <div class="row mb-3">
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">Link Type <span class="text-danger">*</span></label>
@@ -324,7 +316,7 @@
 
                         <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 
-                            <option value="<?php echo e($client->id); ?>" <?php echo e((string) old('client_id', $importRow['client_id'] ?? '') === (string) $client->id ? 'selected' : ''); ?>><?php echo e($client->business_name ?: $client->client_name); ?></option>
+                            <option value="<?php echo e($client->id); ?>" <?php echo e((string) old('client_id', $importRow['client_id'] ?? '') === (string) $client->id ? 'selected' : ''); ?>><?php echo e($client->business_name ?: $client->client_name); ?> (<?php echo e($client->state); ?>)</option>
 
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
@@ -591,20 +583,20 @@ document.addEventListener('DOMContentLoaded', function() {
     ];
 
     function setFieldsEditable(editable) {
-        editableSelectors.forEach(sel => {
-            document.querySelectorAll(sel).forEach(el => {
-                if (el.tagName === 'SELECT' || el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
-                    el.readOnly = !editable;
-                    el.disabled = !editable;
-                }
-            });
+    editableSelectors.forEach(sel => {
+        document.querySelectorAll(sel).forEach(el => {
+            el.readOnly = !editable;
+
+            if(!editable){
+                el.classList.add('autofill-field');
+                el.classList.remove('manual-field');
+            }else{
+                el.classList.remove('autofill-field');
+                el.classList.add('manual-field');
+            }
         });
-        // Always keep no_of_links enabled
-        if (noOfLinksSelect) {
-            noOfLinksSelect.disabled = false;
-            noOfLinksSelect.readOnly = false;
-        }
-    }
+    });
+}
 
     // Restrict no_of_links for existing link
     function restrictNoOfLinksOptions(current) {
@@ -673,10 +665,6 @@ document.addEventListener('DOMContentLoaded', function() {
         setFieldsEditable(true);
     }
 });
-
-                                // 
-
-
                                
 $(document).ready(function () {
 
@@ -696,6 +684,7 @@ $(document).ready(function () {
                 if (res.success) {
                     const f = res.feasibility;
 
+                     $('#existing_links').val(f.no_of_links);
                     setSelectValue(document.getElementById('type_of_service'),f.type_of_service);
 
                     setSelectValue(document.getElementById('company_id'), String(f.company_id));
@@ -867,16 +856,8 @@ if (f.hardware_details) {
 
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-
-
 <script>
 
-// document.getElementById('hardware_required').addEventListener('change', function() {
-
-//     document.getElementById('hardware_name_div').style.display = this.value == '1' ? 'block' : 'none';
-//     document.getElementById('hardware_make_div').style.display = this.value == '1' ? 'block' : 'none';
-
-// });
 const hardwareRequiredSelect = document.getElementById('hardware_required');
 const hardwareRow = document.querySelector('.hardware_row');
 const addHardwareBtnDiv = document.getElementById('add_btn_div');
@@ -941,15 +922,11 @@ if (initialRemoveBtn) {
     });
 }
 
-
-
 // Helper function to set value in select dropdown, creating option if needed
 
 function setSelectValue(selectElement, value) {
 
   console.log('setSelectValue called with:', selectElement.id, 'value:', value);
-
-  
 
   if (!value || value === '') {
 
@@ -966,8 +943,6 @@ function setSelectValue(selectElement, value) {
     return;
 
   }
-
-  
 
   // Check if option already exists
 
@@ -1001,15 +976,11 @@ function setSelectValue(selectElement, value) {
 
   }
 
-  
-
   // Set the value
 
   selectElement.value = value;
 
   console.log('Set native value for', selectElement.id, 'to:', value);
-
-  
 
   // Handle Select2 if available
 
@@ -1037,13 +1008,9 @@ function setSelectValue(selectElement, value) {
 
   }
 
-  
-
   console.log('Final value for', selectElement.id, ':', selectElement.value);
 
 }
-
-
 
 // Pincode lookup function
 
@@ -1053,13 +1020,9 @@ function lookupPincode() {
 
   const p = pincodeField.value.trim();
 
-  
-
   // Only proceed if we have exactly 6 digits
 
   if (!/^\d{6}$/.test(p)) return;
-
-  
 
   // Get field references
 
@@ -1069,8 +1032,6 @@ function lookupPincode() {
 
   const areaField = document.getElementById('post_office');
 
-  
-
   // Store original values in case of error
 
   const originalState = stateField.value;
@@ -1078,8 +1039,6 @@ function lookupPincode() {
   const originalDistrict = districtField.value;
 
   const originalArea = areaField.value;
-
-  
 
   // Show loading state
 
@@ -1089,11 +1048,7 @@ function lookupPincode() {
 
   setSelectValue(areaField, 'Loading...');
 
-  
-
   console.log('🔍 Looking up pincode:', p);
-
-  
 
   // Make API call
 
@@ -1111,27 +1066,19 @@ function lookupPincode() {
 
       console.log('Area field element:', areaField);
 
-      
-
       // Update fields with fetched data
 
       console.log('Setting state to:', d.state);
 
       setSelectValue(stateField, d.state || '');
 
-      
-
       console.log('Setting district to:', d.district);
 
       setSelectValue(districtField, d.district || '');
 
-      
-
       console.log('Setting area to:', d.post_office);
 
-      setSelectValue(areaField, d.post_office || '');
-
-      
+      setSelectValue(areaField, d.post_office || '');         
 
       // Show success message briefly
 
@@ -1155,8 +1102,6 @@ function lookupPincode() {
 
       document.body.appendChild(notification);
 
-      
-
       // Remove notification after 3 seconds
 
       setTimeout(() => {
@@ -1173,9 +1118,7 @@ function lookupPincode() {
 
     .catch(err => {
 
-      console.error('❌ Pincode lookup failed:', err);
-
-      
+      console.error('❌ Pincode lookup failed:', err);      
 
       // Restore original values
 
@@ -1293,129 +1236,23 @@ document.addEventListener('DOMContentLoaded', function () {
     updateStaticIpDependentFields();
     enforceStaticIpForILL();
 });
-// document.getElementById('importexcel').
-
-// document.getElementById('importexcel').
 
 function excelImport() {
     // Excel import logic removed; reintroduce carefully if required.
 }
 
-
-// if the user select the circuit id from the dropdown, autofill the fields
-// $(document).ready(function() {
-//     $('#deliverable_id').on('change', function() {
-//         let selected = $(this).find(':selected');
-//         $('[name="type_of_service"]').val(selected.data('type_of_service') || '');
-//         $('[name="company_id"]').val(selected.data('company_id') || '');
-//         $('[name="client_id"]').val(selected.data('client_id') || '');
-//         $('[name="delivery_company_name"]').val(selected.data('delivery_company_name') || '');
-//         $('[name="location_id"]').val(selected.data('location_id') || '');
-//         $('[name="longitude"]').val(selected.data('longitude') || '');
-//         $('[name="latitude"]').val(selected.data('latideliverable_idtude') || '');
-//         $('[name="pincode"]').val(selected.data('pincode') || '');
-//         $('[name="state"]').val(selected.data('state') || '');
-//         $('[name="district"]').val(selected.data('district') || '');
-//         $('[name="area"]').val(selected.data('area') || '');
-//         $('[name="address"]').val(selected.data('address') || '');
-//         $('[name="spoc_name"]').val(selected.data('spoc_name') || '');
-//         $('[name="spoc_contact1"]').val(selected.data('spoc_contact1') || '');
-//         $('[name="spoc_contact2"]').val(selected.data('spoc_contact2') || '');
-//         $('[name="spoc_email"]').val(selected.data('spoc_email') || '');
-//         $('[name="speed"]').val(selected.data('speed') || '');
-//         $('[name="static_ip"]').val(selected.data('static_ip') || '');
-//         $('[name="static_ip_subnet"]').val(selected.data('static_ip_subnet') || '');
-//         $('[name="expected_delivery"]').val(selected.data('expected_delivery') || '');
-//         $('[name="expected_activation"]').val(selected.data('expected_activation') || '');
-//         $('[name="hardware_required"]').val(selected.data('hardware_required') || '');
-
-
-//     });
-//     $('#deliverable_id').trigger('change');
-
-// });
 </script>
 
-<script>
-     // Place AJAX autofill logic after DOMContentLoaded
-                                    $(document).ready(function () {
-                                        $('#circuit_id').on('change', function () {
-                                            const circuitId = $(this).val();
-                                            if (!circuitId) return;
-                                            $.ajax({
-                                                url: `/feasibility/by-circuit/${circuitId}`,
-                                                type: 'GET',
-                                                success: function (res) {
-                                                    if (res.success) {
-                                                        const f = res.feasibility;
-                                                        // Helper to set value for input/select/textarea and update hidden if present
-                                                        function setFieldValue(selector, value) {
-                                                            $(selector).val(value);
-                                                            // For native DOM
-                                                            const el = document.querySelector(selector);
-                                                            if (el) el.value = value;
-                                                            // If hidden input for select exists, update it
-                                                            if (el && el.tagName === 'SELECT' && el.nextElementSibling && el.nextElementSibling.classList.contains('hidden-select-value')) {
-                                                                el.nextElementSibling.value = value;
-                                                            }
-                                                        }
-                                                        setSelectValue(document.getElementById('type_of_service'), f.type_of_service);
-                                                        setSelectValue(document.getElementById('company_id'), String(f.company_id));
-                                                        setSelectValue(document.getElementById('client_id'), String(f.client_id));
-                                                        setFieldValue('input[name="delivery_company_name"]', f.delivery_company_name);
-                                                        setFieldValue('input[name="location_id"]', f.location_id);
-                                                        setFieldValue('input[name="longitude"]', f.longitude);
-                                                        setFieldValue('input[name="latitude"]', f.latitude);
-                                                        setFieldValue('input[name="pincode"]', f.pincode);
-                                                        setSelectValue(document.getElementById('state'), f.state);
-                                                        setSelectValue(document.getElementById('district'), f.district);
-                                                        setSelectValue(document.getElementById('post_office'), f.area);
-                                                        setFieldValue('textarea[name="address"]', f.address);
-                                                        setFieldValue('input[name="spoc_name"]', f.spoc_name);
-                                                        setFieldValue('input[name="spoc_contact1"]', f.spoc_contact1);
-                                                        setFieldValue('input[name="spoc_contact2"]', f.spoc_contact2);
-                                                        setFieldValue('input[name="spoc_email"]', f.spoc_email);
-                                                        setSelectValue(document.querySelector('select[name="vendor_type"]'), f.vendor_type);
-                                                        setFieldValue('input[name="speed"]', f.speed);
-                                                        setFieldValue('select[name="no_of_links"]', f.no_of_links);
-                                                        setSelectValue(document.getElementById('static_ip'), f.static_ip);
-                                                        setSelectValue(document.getElementById('static_ip_subnet'), f.static_ip_subnet);
-                                                        setSelectValue(document.getElementById('static_ip_duration'), f.static_ip_duration);
-                                                        const hardwareSelect = document.getElementById('hardware_required');
-                                                        setSelectValue(hardwareSelect, f.hardware_required ? '1' : '0');
-                                                        hardwareSelect.dispatchEvent(new Event('change'));
-                                                        if (f.hardware_details) {
-                                                            let hardwares = [];
-                                                            try { hardwares = JSON.parse(f.hardware_details); } catch (e) { console.error(e); }
-                                                            if (hardwares.length > 0) {
-                                                                setSelectValue(hardwareSelect, '1');
-                                                                hardwareSelect.dispatchEvent(new Event('change'));
-                                                                const hw = hardwares[0];
-                                                                const row = document.querySelector('.hardware_row');
-                                                                const makeSelect  = row.querySelector('select[name="make_type_id[]"]');
-                                                                const modelSelect = row.querySelector('select[name="model_id[]"]');
-                                                                setTimeout(() => {
-                                                                    setSelectValue(makeSelect, String(hw.make_type_id));
-                                                                    $(makeSelect).trigger('change');
-                                                                    setTimeout(() => {
-                                                                        setSelectValue(modelSelect, String(hw.model_id));
-                                                                        $(modelSelect).trigger('change');
-                                                                    }, 500);
-                                                                }, 500);
-                                                            }
-                                                        }
-                                                        setFieldValue('input[name="expected_delivery"]', f.expected_delivery);
-                                                        setFieldValue('input[name="expected_activation"]', f.expected_activation);
-                                                    } else {
-                                                        alert(res.message || 'No feasibility found');
-                                                    }
-                                                },
-                                                error: function (err) {
-                                                    alert('Failed to fetch feasibility');
-                                                }
-                                            });
-                                        });
-});
-</script>
+<style>
+.autofill-field{
+    background-color:#e8f4ff !important;
+    border:1px solid #90c8ff;
+}
+
+.manual-field{
+    background-color:#ffffff !important;
+}
+</style>
+
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\feasibility\create.blade.php ENDPATH**/ ?>

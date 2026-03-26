@@ -69,7 +69,7 @@
 
                             
 
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
 
                                 <label for="feasibility_id" class="form-label">
 
@@ -77,11 +77,13 @@
 
                                 </label>
 
-                                <input type="text" class="form-control" 
+                                <?php
+                                $feas = $purchaseOrder->feasibility;
+                                ?>
 
-                                       value="<?php echo e($purchaseOrder->feasibility->feasibility_request_id); ?> - <?php echo e($purchaseOrder->feasibility->client->client_name ?? 'Unknown'); ?>" 
-
-                                       disabled>
+                              <input type="text" class="form-control" 
+       value="<?php echo e($feas->feasibility_request_id ?? 'N/A'); ?> - <?php echo e($feas->client->client_name ?? 'Unknown'); ?>" 
+       disabled>
 
                                 <input type="hidden" name="feasibility_id" value="<?php echo e($purchaseOrder->feasibility_id); ?>">
 
@@ -110,7 +112,7 @@
 
                             
 
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
 
                                 <label for="po_number" class="form-label">
 
@@ -150,7 +152,7 @@ unset($__errorArgs, $__bag); ?>
 
                             
 
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
 
                                 <label for="po_date" class="form-label">
 
@@ -225,7 +227,7 @@ unset($__errorArgs, $__bag); ?>
 
                         <div class="row">
 
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
 
                                 <label class="form-label fw-semibold">No. of Links *</label>
 
@@ -242,6 +244,38 @@ unset($__errorArgs, $__bag); ?>
                                 </select>
 
                             </div>
+
+                            <!-- Company Name -->
+                            <div class="col-md-4">
+
+                    <label class="form-label fw-semibold">Company <span class="text-danger">*</span></label>
+
+                    <select name="company_id" id="company_id" class="form-select" >
+
+                        <option value="">Select Company</option>
+
+                        <?php $__currentLoopData = $companies; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $company): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+
+                            <option value="<?php echo e($company->id); ?>" 
+    <?php echo e((string) old('company_id', $purchaseOrder->company_id) === (string) $company->id ? 'selected' : ''); ?>>
+    <?php echo e($company->company_name); ?>
+
+</option>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Static IP Duration</label>
+                    <select name="duration" id="duration" class="form-select">
+                        <option value="">Select Duration</option>
+                        <option value="Quarterly" <?php echo e(old('duration', $purchaseOrder->duration) == 'Quarterly' ? 'selected' : ''); ?> >Quarterly</option>
+                        <option value="Half-Yearly" <?php echo e(old('duration', $purchaseOrder->duration) == 'Half-Yearly' ? 'selected' : ''); ?>>Half-Yearly</option>
+                        <option value="Monthly" <?php echo e(old('duration', $purchaseOrder->duration) == 'Monthly' ? 'selected' : ''); ?>>Monthly</option>
+                        <option value="Yearly" <?php echo e(old('duration', $purchaseOrder->duration) == 'Yearly' ? 'selected' : ''); ?>>Yearly</option>
+                    </select>
+                   
+                </div>
 
                         </div>
 

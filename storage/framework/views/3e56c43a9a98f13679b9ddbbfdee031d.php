@@ -70,6 +70,14 @@
     <!-- BILL TO / SHIP TO DATA -->
     <tr>
         <td class="Bill">
+        
+        <!-- <h4> <strong><?php echo e($feasibility->client->client_name ?? ''); ?></strong></h4>
+        <h4><?php echo e($feasibility->client->client_name ?? ''); ?></h4>
+        <h4><?php echo e($feasibility->client->address1 ?? ''); ?></h4>
+        <h4><?php echo e($feasibility->client->city ?? ''); ?>,
+            <?php echo e($feasibility->client->state ?? ''); ?> -
+            <?php echo e($feasibility->client->pincode ?? ''); ?></h4>
+        <h4>GSTIN: <?php echo e($feasibility->client->gstin ?? ''); ?></h4> -->
             <strong><?php echo e($feasibility->client->client_name ?? ''); ?></strong><br>
             <?php echo e($feasibility->client->client_name ?? ''); ?><br>
             <?php echo e($feasibility->client->address1 ?? ''); ?><br>
@@ -222,14 +230,14 @@ span{
     display: flex;
     margin-top: 20px;
 }
-.left-box {
+/* .left-box {
     width: 60%;
 }
 .right-box {
     width: 40%;
     border: 1px solid #000;
     padding: 10px;
-}
+} */
 .right-box table td {
     border: none;
     padding: 5px;
@@ -242,8 +250,15 @@ span{
     border-color: #000;
     border-radius: 1px;
     border-style: solid;
-    width: 70%;
-    margin-left: 15%;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.container.mt-4 {
+    padding-left: 16px;
+    padding-right: 16px;
+    max-width: 1000px;
+    margin: 0 auto;
 }
 
 </style>

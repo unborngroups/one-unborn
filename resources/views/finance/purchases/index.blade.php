@@ -7,8 +7,11 @@
 <div class="container-fluid">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">Purchase Invoices</h4>
-
+        <h2 class="mb-0">Purchase Invoices</h2>
+                            {{--create--}}
+                                <a href="{{ route('finance.purchases.create') }}"
+                                   class="btn btn-sm btn-info p-2 text-white"> <h2>+  create invoice</h2>
+                                </a>
 
     </div>
 
@@ -22,7 +25,7 @@
         <div class="card-body table-responsive">
 
             <table class="table table-bordered table-hover align-middle">
-                <thead class="table-light">
+                <thead class="table-dark-primary">
                     <tr>
                         <th>#</th>
                         <th>Invoice No</th>
@@ -38,7 +41,7 @@
                         <tr>
                             <td>{{ $loop->iteration }}</td>
 
-                            <td>{{ $purchase->invoice_number ?? '-' }}</td>
+                            <td>{{ $purchase->invoice_no ?? '-' }}</td>
 
                             <td>
                                 @if($purchase->deliverable && $purchase->deliverable->feasibility && $purchase->deliverable->feasibility->client)

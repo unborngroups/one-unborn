@@ -14,14 +14,18 @@
             
             <div class="mb-3">
                 <label for="deliverable_id" class="form-label">Deliverable (Circuit ID)</label>
-                <select name="deliverable_id" id="deliverable_id" class="form-select select2-tags" required>
+                <select name="deliverable_id" id="deliverable_id" class="form-select select2-tags" required  <?php echo e(isset($selectedDeliverable) ? 'readonly' : ''); ?>>
                     <option value="">Select Circuit ID</option>
-                    <?php $__currentLoopData = $deliverables_plans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $d): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <option value="<?php echo e($d->deliverable_id); ?>">
-                            <?php echo e($d->circuit_id); ?>
+                     <?php $__currentLoopData = $deliverables_plans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $d): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+<option value="<?php echo e($d->deliverable_id); ?>"
+    <?php echo e(isset($selectedDeliverable) && $selectedDeliverable == $d->deliverable_id ? 'selected' : ''); ?>>
+    <?php echo e($d->circuit_id); ?>
 
-                        </option>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+</option>
+<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
+
+                   
                 </select>
             </div>
 
@@ -76,9 +80,10 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        // Always add 30 days per month
+        const daysToAdd = months * 30;
         const expiryDate = new Date(baseDate);
-        expiryDate.setMonth(expiryDate.getMonth() + months);
-        expiryDate.setDate(expiryDate.getDate() - 1);
+        expiryDate.setDate(expiryDate.getDate() + daysToAdd);
 
         expiryInput.value = expiryDate.toISOString().split('T')[0];
     }

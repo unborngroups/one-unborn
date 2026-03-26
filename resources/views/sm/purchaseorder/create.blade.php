@@ -59,9 +59,9 @@
 </style>
                         @csrf
                         <div class="row gy-3">
-                            <div class="col-md-5 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label for="feasibility_id" class="form-label"><strong>Feasibility Request ID <span class="text-danger">*</span></strong></label>
-                                <select class="form-select select2" id="feasibility_id" name="feasibility_id" required onchange="loadFeasibilityDetails()">
+                                <select class="form-select select2" id="feasibility_id" name="feasibility_id" onchange="loadFeasibilityDetails()">
                                     <option value="">Select Available Feasibility</option>
                                     @foreach($closedFeasibilities as $feas)
                                         <option value="{{ $feas->feasibility->id }}"
@@ -93,7 +93,7 @@
                                 @enderror
                             </div>
 
-                            <div class="col-md-3 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label class="form-label"><strong>PO Date *</strong></label>
                                 <input type="date" class="form-control" id="po_date" name="po_date" required value="{{ date('Y-m-d') }}">
                             </div>
@@ -101,7 +101,7 @@
                         
 
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label class="form-label fw-semibold">No. of Links *</label>
                                 <select id="no_of_links_dropdown" class="form-select" required onchange="showDynamicPricing()">
                                     <option value="">Select</option>
@@ -113,6 +113,37 @@
                             </div>
                             <input type="hidden" name="no_of_links" id="no_of_links_hidden">
                             <input type="hidden" id="static_ip_required" name="static_ip_required" value="0">
+
+                            <!-- Company Name -->
+                            <div class="col-md-4">
+
+                    <label class="form-label fw-semibold">Company <span class="text-danger">*</span></label>
+
+                    <select name="company_id" id="company_id" class="form-select">
+
+                        <option value="">Select Company</option>
+
+                        @foreach($companies as $company)
+
+                            <option value="{{ $company->id }}" >{{ $company->company_name }}</option>
+
+                        @endforeach
+
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Static IP Duration</label>
+                    <select name="duration" id="duration" class="form-select">
+                        <option value="">Select Duration</option>
+                        <option value="Quarterly" >Quarterly</option>
+                        <option value="Half-Yearly">Half-Yearly</option>
+                        <option value="Monthly" >Monthly</option>
+                        <option value="Yearly">Yearly</option>
+                    </select>
+                   
+                </div>
+
                         </div>
 
                         <div id="dynamicPricingContainer" style="display:none;">

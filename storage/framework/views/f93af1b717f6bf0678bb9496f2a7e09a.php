@@ -87,6 +87,18 @@
                                         <i class="bi bi-eye"></i> View
                                     </a>
                                     <?php endif; ?>
+
+                                    
+                                 <?php if($permissions->can_delete): ?>
+                                 <form action="<?php echo e(route('operations.deliverables.destroy',$record->id)); ?>" method="POST" class="d-inline">
+                                    <?php echo csrf_field(); ?>
+                                    <?php echo method_field('DELETE'); ?> 
+                                    <button class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this Deliverable?')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                                 <?php endif; ?>
+
                                 </td>
 
                                 <td><?php echo e($record->feasibility->feasibility_request_id ?? 'N/A'); ?></td>

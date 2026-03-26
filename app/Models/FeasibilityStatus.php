@@ -43,6 +43,9 @@ class FeasibilityStatus extends Model
         'vendor4_delivery_timeline',
         'vendor4_remarks',
 
+        'created_by',
+        'updated_by',
+        'deleted_by',
         'status', // Open, InProgress, Closed, Not-Feasible
     ];
 
@@ -51,4 +54,20 @@ class FeasibilityStatus extends Model
     {
         return $this->belongsTo(Feasibility::class);
     }
+
+    public function createdUser()
+{
+    return $this->belongsTo(User::class,'created_by');
+}
+
+public function updatedUser()
+{
+    return $this->belongsTo(User::class,'updated_by');
+}
+
+public function deletedUser()
+{
+    return $this->belongsTo(User::class,'deleted_by');
+}
+
 }

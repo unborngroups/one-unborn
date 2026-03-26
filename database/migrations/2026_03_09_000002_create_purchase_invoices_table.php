@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('vendor_phone')->nullable();
             $table->text('vendor_address')->nullable();
             $table->string('vendor_gstin')->nullable();
+            $table->string('po_invoice_file')->nullable();
             $table->decimal('sub_total', 15, 2)->default(0);
             $table->decimal('cgst_total', 15, 2)->default(0);
             $table->decimal('sgst_total', 15, 2)->default(0);

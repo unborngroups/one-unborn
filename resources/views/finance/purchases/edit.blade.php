@@ -28,23 +28,36 @@
                         <select name="vendor_id" class="form-select" required>
                             <option value="">Select Vendor</option>
                             @foreach($vendors as $vendor)
-                                <option value="{{ $vendor->id }}">
-                                    {{ $vendor->name }}
+                                <option value="{{ $vendor->id }}" {{ $purchase->vendor_id == $vendor->id ? ' selected' : '' }}>
+                                    {{ $vendor->vendor_name }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
 
+                    {{-- Deliverable --}}
+                    <div class="col-md-4">
+    <label>Deliverable</label>
+    <select name="deliverable_id" id="deliverable_id" class="form-select" required>
+        <option value="">Select Deliverable</option>
+        @foreach($deliverables as $del)
+            <option value="{{ $del->id }}" {{ $purchase->deliverable_id == $del->id ? ' selected' : '' }}>
+                {{ $del->id }} - PO: {{ $del->purchase_order_id }}
+            </option>
+        @endforeach
+    </select>
+</div>
+
                     {{-- Invoice Number --}}
                     <div class="col-md-4">
                         <label class="form-label">Invoice Number</label>
-                        <input type="text" name="invoice_number" class="form-control" required>
+                        <input type="text" name="invoice_number" class="form-control" value="{{ $purchase->invoice_no }}" required>
                     </div>
 
                     {{-- Invoice Date --}}
                     <div class="col-md-4">
                         <label class="form-label">Invoice Date</label>
-                        <input type="date" name="invoice_date" class="form-control">
+                        <input type="date" name="invoice_date" class="form-control" value="{{ $purchase->invoice_date }}">
                     </div>
 
                 </div>
@@ -70,8 +83,8 @@
                                     <select name="items[0][item_id]" class="form-select" required>
                                         <option value="">Select Item</option>
                                         @foreach($items as $item)
-                                            <option value="{{ $item->id }}">
-                                                {{ $item->name }}
+                                            <option value="{{ $item->id }}" {{ $purchase->items->contains('item_id', $item->id) ? ' selected' : '' }}>
+                                                {{ $item->item_name }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -104,6 +117,14 @@
                     + Add Item
                 </button>
 
+                <div class="position-reltive form-floating-group">
+                    <label for="attachment">Attachment</label>
+                    <input type="file" name="po_invoice_file" class="form-control" required>
+                    @if(!empty($purchase->poinvoice_files))
+                    <img src="{{ asset('images/poinvoice_files/' .$purchase_poinvoice_files) }}" alt="">
+                    @endif
+                </div>
+                
                 <div class="text-end">
                     <h4>
                         Grand Total: ₹

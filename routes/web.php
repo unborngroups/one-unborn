@@ -17,7 +17,7 @@ use App\Http\Controllers\TaxInvoiceSettingsController;
 use App\Http\Controllers\FeasibilityStatusController;
 
 use App\Http\Controllers\Report\DeliverableController;
- 
+
 use App\Http\Controllers\TerminationController;
 use App\Http\Controllers\RenewalController;
 // use App\Http\Controllers\InvoiceController;
@@ -310,7 +310,7 @@ Route::get('/test-email', function () {
     Route::post('/operations/deliverables/{id}/submit', [DeliverablesController::class, 'operationsSubmit'])->name('operations.deliverables.submit');
     Route::get('/operations/deliverables/create-from-feasibility/{feasibilityId}', [DeliverablesController::class, 'createFromFeasibility'])->name('operations.deliverables.create-from-feasibility');
     Route::get('/calculate-subnet', [DeliverablesController::class, 'calculateSubnet'])->name('calculate.subnet');
-
+    Route::delete('/operations/deliverables/{id}', [DeliverablesController::class, 'destroy'])->name('operations.deliverables.destroy');
     // renewal
     route::get('/operations/renewals', [RenewalController::class, 'index'])->name('operations.renewals.index');
     route::get('/operations/renewals/create', [RenewalController::class, 'create'])->name('operations.renewals.create');
@@ -392,8 +392,6 @@ Route::get('/operations/asset/{id}/print', [AssetController::class, 'print'])->n
         Route::get('/fetch-by-number/{po_number}', [PurchaseOrderController::class, 'fetchByNumber'])->name('fetch-by-number');
     });
 
-   
-
     Route::prefix('sm')->name('sm.')->middleware(['auth'])->group(function () {
 
     Route::prefix('proposal')->name('proposal.')->group(function () {
@@ -408,9 +406,6 @@ Route::get('/operations/asset/{id}/print', [AssetController::class, 'print'])->n
 
 // HR module - list users with profiles and view/edit via profile controller
 
-    // Route::get('/hr', [hrController::class, 'index'])->name('hr.index');
-    // Route::get('/hr/{id}/view', [hrController::class, 'show'])->name('hr.view');
-    // Route::get('/hr/{id}/edit', [hrController::class, 'edit'])->name('hr.edit');
     Route::get('/hr', [hrController::class, 'index'])->name('hr.index');
 // Employee index (HR) - reuses the same listing as HR index
 Route::get('/hr/employee', [hrController::class, 'index'])->name('hr.employee.index');
@@ -432,10 +427,6 @@ Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
 Route::get('/training', [TrainingController::class, 'index'])->name('training.index');
 Route::get('/strategy', [StrategyController::class, 'index'])->name('strategy.index');
 Route::get('/assurance', [AssuranceController::class, 'index'])->name('assurance.index');
-
-// Route::get('/assetmaster/asset_type', [Asset_typeController::class, 'index'])->name('assetmaster.asset_type.index');
-// Route::get('/assetmaster/make_type', [Make_typeController::class, 'index'])->name('assetmaster.make_type.index');
-
  
 Route::prefix('assetmaster/asset_type')->name('assetmaster.asset_type.')->group(function () {
     Route::get('/', [Asset_typeController::class, 'index'])->name('index');
@@ -559,11 +550,17 @@ Route::prefix('finance/purchases')->name('finance.purchases.')->group(function (
     Route::get('/', [PurchaseController::class, 'index'])->name('index');
     Route::get('/{id}/show', [PurchaseController::class, 'show'])->name('show');
     Route::get('/{id}/edit', [PurchaseController::class, 'edit'])->name('edit');
+    Route::get('/create', [PurchaseController::class, 'create'])->name('create');
     Route::put('/{id}', [PurchaseController::class, 'update'])->name('update');
+    Route::post('/', [PurchaseController::class, 'store'])->name('store');
     Route::delete('/{id}', [PurchaseController::class, 'destroy'])->name('destroy');
     Route::get('/{id}/pdf', [PurchaseController::class, 'pdf'])->name('pdf');
     Route::get('/{id}/print', [PurchaseController::class, 'print'])->name('print');
     Route::post('/finance/purchases/{id}/submit',[PurchaseController::class,'submit'])->name('finance.purchases.submit');
+    // web.php
+Route::post('/parse-invoice', [PurchaseController::class, 'parseInvoice']);
+Route::get('/get-po-data/{vendorId}', [PurchaseController::class, 'getPoData']);
+
 });
 
 Route::prefix('finance/purchase-invoices')->name('finance.purchase_invoices.')->group(function () {
@@ -574,23 +571,6 @@ Route::prefix('finance/purchase-invoices')->name('finance.purchase_invoices.')->
     Route::post('/{id}/approve', [PurchaseController::class, 'approve'])->name('approve');
     Route::post('/{id}/mark-paid', [PurchaseController::class, 'markPaid'])->name('markPaid');
 });
-
-    // Route::get('/finance/sales',[SalesController::class,'index'])->name('finance.sales.index');
-    // Route::get('/finance/sales/create', [SalesController::class, 'create'])->name('finance.sales.create');
-    // Route::post('/finance/sales', [SalesController::class, 'store'])->name('finance.sales.store');
-
-// Route::get('/finance/sales', 'SalesController@index')->name('finance.sales.index');
-
-// Route::get('/finance/sales_invoices', 'SalesController@index')->name('finance.sales_invoices.index');
-
-
-// Route::prefix('finance/settings')->middleware(['auth'])->name('finance.settings.')->group(function () {
-//     Route::get('/', function() {return view('finance.settings.index');})->name('index');
-//     Route::get('/gst', [FinanceGstController::class, 'index'])->name('gst');
-//     Route::post('/gst', [FinanceGstController::class, 'update'])->name('gst.update');
-//     Route::get('/tds', [FinanceTdsController::class, 'index'])->name('tds');
-//     Route::post('/tds', [FinanceTdsController::class, 'update'])->name('tds.update');
-// });
 
 Route::prefix('report/deliverable')->name('report.deliverable.')->group(function () {
     Route::get('open', [DeliverableController::class, 'open'])->name('open');

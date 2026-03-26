@@ -50,6 +50,12 @@ return new class extends Migration
             $table->string('pppoe_vlan')->nullable();
             $table->string('dhcp_ip_address')->nullable();
             $table->string('dhcp_vlan')->nullable();
+            $table->string('p2p_username')->nullable();
+            $table->text('p2p_password')->nullable();
+            $table->string('tunnel')->nullable();
+            $table->string('tunnel_username')->nullable();
+            $table->text('tunnel_password')->nullable();
+
             $table->string('static_ip_address')->nullable();
             $table->string('static_vlan')->nullable();
             $table->string('network_ip')->nullable();
@@ -60,6 +66,10 @@ return new class extends Migration
 
 
             $table->timestamps();
+            $table->unsignedBigInteger('created_by')->nullable();
+    $table->unsignedBigInteger('updated_by')->nullable();
+    $table->unsignedBigInteger('deleted_by')->nullable();
+    $table->softDeletes();
             $table->unique(['deliverable_id', 'link_number']);
         });
     }

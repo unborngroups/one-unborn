@@ -2,6 +2,7 @@ ALTER TABLE client_links
 ADD deliverable_id BIGINT UNSIGNED NULL AFTER id,
 ADD INDEX client_links_deliverable_id_index (deliverable_id);
 
+ALTER TABLE purchase_orders DROP INDEX unique_feasibility_po;
 
 ALTER TABLE deliverables
 DROP COLUMN dhcp_ip_address,

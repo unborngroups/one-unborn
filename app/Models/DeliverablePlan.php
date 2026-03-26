@@ -5,9 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Deliverables;
 use App\Models\Renewal;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DeliverablePlan extends Model
 {
+    use SoftDeletes;
+    protected $dates = ['deleted_at'];
+
     protected $fillable = [
         'deliverable_id',
         'link_number',
@@ -42,6 +46,11 @@ class DeliverablePlan extends Model
         'pppoe_vlan',
         'dhcp_ip_address',  
         'dhcp_vlan',
+        'p2p_username',
+        'p2p_password',
+        'tunnel',
+        'tunnel_username',
+        'tunnel_password',
         'static_ip_address',
         'static_vlan',
         'network_ip',
@@ -49,6 +58,9 @@ class DeliverablePlan extends Model
         'static_gateway',
         'usable_ips',
         'remarks',
+        'created_by',
+        'updated_by',
+        'deleted_by',
         
     ];
 

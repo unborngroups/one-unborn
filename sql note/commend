@@ -1,6 +1,8 @@
 <!-- purchase order ra db la import panna itha terminal la run pannanum -->
 php artisan sync:deliverables-from-pos
 
+php artisan app:sync-renewals-from-deliverable-plans
+
 # invoice pdf generate panna itha terminal la run pannanum
 composer require barryvdh/laravel-dompdf
 
@@ -13,7 +15,7 @@ F:\xampp\php\php.ini
 ;extension=zip  --> extension=zip  #update pannanu
 
 SELECT
-    f.client_id,
+    f.client_id,  
     f.location_id,
     f.address,
     dp.circuit_id,
@@ -96,3 +98,90 @@ JOIN feasibilities f
 JOIN deliverable_plans dp
     ON dp.deliverable_id = d.id
 
+
+SELECT 
+    f.id, 
+    f.feasibility_request_id, 
+    f.address,
+    po.po_number,
+    po.po_date,
+    po.purchase_order_id,
+    po.arc_cost,
+    po.otc_cost,
+    po.static_ip_cost
+FROM feasibilities f
+JOIN feasibility_statuses fs 
+    ON f.id = fs.feasibility_id
+JOIN purchase_orders po 
+    ON f.id = po.feasibility_id
+WHERE fs.status = 'Closed';
+
+
+
+SELECT 
+    f.id, 
+    f.feasibility_request_id, 
+    f.address,
+    f.no_of_links,
+    f.state,
+    c.client_name,
+    po.po_number,
+    po.po_date,
+    po.id,
+    po.arc_per_link,
+    po.otc_per_link,
+    po.static_ip_cost_per_link
+FROM feasibilities f
+JOIN feasibility_statuses fs 
+    ON f.id = fs.feasibility_id
+JOIN purchase_orders po 
+    ON po.id = (
+        SELECT MAX(id) 
+        FROM purchase_orders 
+        WHERE feasibility_id = f.id
+    )
+JOIN clients c 
+    ON f.client_id = c.id
+WHERE fs.id = (
+    SELECT MAX(id) 
+    FROM feasibility_statuses 
+    WHERE feasibility_id = f.id
+)
+AND fs.status = 'Closed'
+ORDER BY po.id ASC;
+
+
+SELECT 
+    f.id, 
+    f.feasibility_request_id, 
+    f.address,
+    f.no_of_links,
+    f.state,
+    c.client_name,
+    v.vendor_name,   -- ✅ from master
+    po.po_number,
+    po.po_date,
+    po.id,
+    po.arc_per_link,
+    po.otc_per_link,
+    po.static_ip_cost_per_link
+FROM feasibilities f
+JOIN feasibility_statuses fs 
+    ON f.id = fs.feasibility_id
+LEFT JOIN vendors v 
+    ON v.vendor_name = fs.vendor1_name   -- ⚠️ match by name
+JOIN purchase_orders po 
+    ON po.id = (
+        SELECT MAX(id) 
+        FROM purchase_orders 
+        WHERE feasibility_id = f.id
+    )
+JOIN clients c 
+    ON f.client_id = c.id
+WHERE fs.id = (
+    SELECT MAX(id) 
+    FROM feasibility_statuses 
+    WHERE feasibility_id = f.id
+)
+AND fs.status = 'Closed'
+ORDER BY po.id ASC;

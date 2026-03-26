@@ -169,8 +169,104 @@ ADD COLUMN invoice_id BIGINT UNSIGNED NULL AFTER id;
 ALTER TABLE `invoices` ADD `items_id` BIGINT(20) UNSIGNED NULL AFTER `terms`;
 
 
-  ----------------------------update pannanu---------------------------------------
+  -------------------------------------------------------------------
 ALTER TABLE feasibilities MODIFY status VARCHAR(225);
 
 ALTER TABLE invoice_items
 ADD item_id BIGINT UNSIGNED AFTER invoice_id;
+
+----------------------------update pannanu---------------------------------------
+
+ALTER TABLE purchase_orders 
+ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at,
+ADD COLUMN created_by BIGINT UNSIGNED NULL AFTER deleted_at,
+ADD COLUMN updated_by BIGINT UNSIGNED NULL AFTER created_by,
+ADD COLUMN deleted_by BIGINT UNSIGNED NULL AFTER updated_by;
+
+ALTER TABLE feasibilities --added the db
+ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at,
+ADD COLUMN updated_by BIGINT UNSIGNED NULL AFTER created_by,
+ADD COLUMN deleted_by BIGINT UNSIGNED NULL AFTER updated_by;
+
+ALTER TABLE feasibility_statuses --added the db
+ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at,
+ADD COLUMN created_by BIGINT UNSIGNED NULL AFTER deleted_at,
+ADD COLUMN updated_by BIGINT UNSIGNED NULL AFTER created_by,
+ADD COLUMN deleted_by BIGINT UNSIGNED NULL AFTER updated_by;
+
+ALTER TABLE feasibilities 
+MODIFY status ENUM('Active','Inactive','Closed') DEFAULT 'Active'; --added the db
+
+ALTER TABLE feasibilities 
+ADD COLUMN existing_links INT DEFAULT 0 AFTER status;
+
+
+ALTER TABLE deliverable_plans
+ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at,
+ADD COLUMN created_by BIGINT UNSIGNED NULL AFTER deleted_at,
+ADD COLUMN updated_by BIGINT UNSIGNED NULL AFTER created_by,
+ADD COLUMN deleted_by BIGINT UNSIGNED NULL AFTER updated_by;
+
+
+ALTER TABLE deliverables
+ADD COLUMN created_at TIMESTAMP NULL DEFAULT NULL AFTER router_password_4,
+ADD COLUMN updated_at TIMESTAMP NULL DEFAULT NULL AFTER created_at,
+ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at,
+ADD COLUMN created_by BIGINT UNSIGNED NULL AFTER deleted_at,
+ADD COLUMN updated_by BIGINT UNSIGNED NULL AFTER created_by,
+ADD COLUMN deleted_by BIGINT UNSIGNED NULL AFTER updated_by;
+
+ALTER TABLE deliverables 
+MODIFY created_by BIGINT NULL,
+MODIFY updated_by BIGINT NULL,
+MODIFY deleted_by BIGINT NULL;
+
+ALTER TABLE purchase_orders ADD vendor_id BIGINT AFTER po_date;
+
+ALTER TABLE purchase_invoices ADD vendor_id BIGINT AFTER due_date;
+
+ALTER TABLE feasibilities ADD link_type VARCHAR(255) NULL AFTER type_of_service; -- To add the column
+
+
+ALTER TABLE `deliverables`
+ADD COLUMN `p2p_username_1` VARCHAR(255) NULL AFTER `dhcp_vlan_4`,  -- To add the column    
+ADD COLUMN `p2p_username_2` VARCHAR(255) NULL AFTER `p2p_username_1`,
+ADD COLUMN `p2p_username_3` VARCHAR(255) NULL AFTER `p2p_username_2`,
+ADD COLUMN `p2p_username_4` VARCHAR(255) NULL AFTER `p2p_username_3`,
+
+ADD COLUMN `p2p_password_1` VARCHAR(255) NULL AFTER `p2p_username_4`,
+ADD COLUMN `p2p_password_2` VARCHAR(255) NULL AFTER `p2p_password_1`,
+ADD COLUMN `p2p_password_3` VARCHAR(255) NULL AFTER `p2p_password_2`,
+ADD COLUMN `p2p_password_4` VARCHAR(255) NULL AFTER `p2p_password_3`;
+
+ALTER TABLE `deliverable_plans`
+ADD COLUMN `p2p_username` VARCHAR(255) NULL AFTER `dhcp_vlan`,
+ADD COLUMN `p2p_password` VARCHAR(255) NULL AFTER `p2p_username`;  --
+
+ALTER TABLE purchase_orders 
+ADD COLUMN company_id BIGINT UNSIGNED NULL AFTER feasibility_id,
+ADD COLUMN duration VARCHAR(255) NULL AFTER company_id;
+
+
+
+ALTER TABLE `deliverables`
+ADD COLUMN `tunnel_1` VARCHAR(100) NULL AFTER `p2p_password_3`,
+ADD COLUMN `tunnel_2` VARCHAR(100) NULL AFTER `tunnel_1`,
+ADD COLUMN `tunnel_3` VARCHAR(100) NULL AFTER `tunnel_2`,
+ADD COLUMN `tunnel_4` VARCHAR(100) NULL AFTER `tunnel_3`,
+
+ADD COLUMN `tunnel_username_1` VARCHAR(100) NULL AFTER `tunnel_4`,
+ADD COLUMN `tunnel_username_2` VARCHAR(100) NULL AFTER `tunnel_username_1`,
+ADD COLUMN `tunnel_username_3` VARCHAR(100) NULL AFTER `tunnel_username_2`,
+ADD COLUMN `tunnel_username_4` VARCHAR(100) NULL AFTER `tunnel_username_3`,
+
+ADD COLUMN `tunnel_password_1` VARCHAR(100) NULL AFTER `tunnel_username_4`,
+ADD COLUMN `tunnel_password_2` VARCHAR(100) NULL AFTER `tunnel_password_1`,
+ADD COLUMN `tunnel_password_3` VARCHAR(100) NULL AFTER `tunnel_password_2`,
+ADD COLUMN `tunnel_password_4` VARCHAR(100) NULL AFTER `tunnel_password_3`;
+
+ALTER TABLE `deliverable_plans`
+ADD COLUMN `tunnel` VARCHAR(100) NULL AFTER `p2p_password`,
+ADD COLUMN `tunnel_username` VARCHAR(100) NULL AFTER `tunnel`,
+ADD COLUMN `tunnel_password` VARCHAR(100) NULL AFTER `tunnel_username`;
+    
