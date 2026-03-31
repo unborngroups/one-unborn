@@ -29,7 +29,7 @@
 
             <div class="col-md-4">
                 <label class="text-muted">Vendor</label>
-                <p class="fw-semibold">{{ $purchase->vendor->vendor_name ?? '-' }}</p>
+                <p class="fw-semibold">{{ $displayVendorName ?: (optional($purchase->vendor)->vendor_name ?? $vendorFromMaster ?? $purchase->vendor_name ?? $purchase->vendor_name_raw ?? '-') }}</p>
             </div>
 
             <div class="col-md-4">
@@ -44,25 +44,54 @@
 
             <div class="col-md-4">
                 <label class="text-muted">Invoice Number</label>
-                <p class="fw-semibold text-primary">{{ $purchase->invoice_no }}</p>
+                <p class="fw-semibold text-primary">{{ $displayInvoiceNo ?: $purchase->invoice_no ?: '-' }}</p>
             </div>
 
             <div class="col-md-4">
                 <label class="text-muted">Invoice Date</label>
-                <p>{{ $purchase->invoice_date ?? '-' }}</p>
+                <p>{{ $displayInvoiceDate ? \Carbon\Carbon::parse($displayInvoiceDate)->format('d-m-Y') : '-' }}</p>
+            </div>
+
+            <div class="col-md-4">
+                <label class="text-muted">GSTIN</label>
+                <p>{{ $displayGstin ?: '-' }}</p>
             </div>
 
             <div class="col-md-4">
                 <label class="text-muted">Status</label>
 
-                @if($purchase->status == 'higher')
-                    <span class="badge bg-danger">Higher</span>
-                @elseif($purchase->status == 'lower')
-                    <span class="badge bg-warning text-dark">Lower</span>
-                @else
-                    <span class="badge bg-success">Matched</span>
-                @endif
+                <span class="badge 
+                    @switch($displayStatus)
+                        @case('draft') bg-secondary @break
+                        @case('needs_review') bg-warning text-dark @break
+                        @case('verified') bg-info @break
+                        @case('approved') bg-primary @break
+                        @case('paid') bg-dark @break
+                        @case('failed') bg-danger @break
+                        @case('duplicate') bg-danger @break
+                        @case('higher') bg-danger @break
+                        @case('lower') bg-warning text-dark @break
+                        @default bg-success
+                    @endswitch">
+                    {{ ucfirst(str_replace('_', ' ', $displayStatus)) }}
+                </span>
             </div>
+
+            <div class="col-md-4">
+                <label class="text-muted">Accuracy</label>
+                <p>{{ !is_null($displayAccuracy) ? rtrim(rtrim(number_format((float) $displayAccuracy, 2), '0'), '.') . '%' : '-' }}</p>
+            </div>
+
+            @php
+                $importFailureReason = data_get($purchase->raw_json, 'import_failure_reason');
+            @endphp
+            @if(!empty($importFailureReason))
+                <div class="col-md-12">
+                    <div class="alert alert-danger py-2 mb-0">
+                        <strong>Import Alert:</strong> {{ $importFailureReason }}
+                    </div>
+                </div>
+            @endif
 
         </div>
 
@@ -82,12 +111,33 @@
             </thead>
 
             <tbody>
-                @forelse($purchase->items as $item)
+                @php
+                    $showRows = $purchase->items->isNotEmpty()
+                        ? $purchase->items->map(function ($item) {
+                            return [
+                                'item_name' => $item->item->item_description ?? $item->item->item_name ?? '-',
+                                'quantity' => $item->quantity,
+                                'price' => $item->price,
+                                'total' => $item->total,
+                            ];
+                        })->toArray()
+                        : array_map(function ($row) {
+                            $quantity = (float) ($row['quantity'] ?? 1);
+                            $price = (float) ($row['price'] ?? 0);
+                            return [
+                                'item_name' => $row['item_label'] ?? 'Invoice Item',
+                                'quantity' => $quantity,
+                                'price' => $price,
+                                'total' => $quantity * $price,
+                            ];
+                        }, $prefillRows ?? []);
+                @endphp
+                @forelse($showRows as $item)
                     <tr>
-                        <td>{{ $item->item->item_name ?? '-' }}</td>
-                        <td>{{ $item->quantity }}</td>
-                        <td>₹ {{ number_format($item->price, 2) }}</td>
-                        <td class="fw-semibold">₹ {{ number_format($item->total, 2) }}</td>
+                        <td>{{ $item['item_name'] ?? '-' }}</td>
+                        <td>{{ $item['quantity'] ?? 0 }}</td>
+                        <td>₹ {{ number_format((float) ($item['price'] ?? 0), 2) }}</td>
+                        <td class="fw-semibold">₹ {{ number_format((float) ($item['total'] ?? 0), 2) }}</td>
                     </tr>
                 @empty
                     <tr>
@@ -102,7 +152,7 @@
         {{-- TOTAL --}}
         <div class="text-end">
             <h4 class="fw-bold text-success">
-                Total: ₹ {{ number_format($purchase->total_amount, 2) }}
+                Total: ₹ {{ number_format((float) ($displayGrandTotal ?? $purchase->total_amount ?? 0), 2) }}
             </h4>
         </div>
 
@@ -111,10 +161,10 @@
             <label class="text-muted">Invoice File</label><br>
 
             @if($purchase->po_invoice_file)
-                <a href="{{ asset('images/poinvoice_files/'.$purchase->po_invoice_file) }}"
-                   target="_blank"
+                <a href="{{ route('finance.purchases.download-source-pdf', $purchase->id) }}"
+                   download
                    class="btn btn-outline-primary btn-sm mt-1">
-                   📄 View Invoice
+                   <i class="bi bi-download"></i> Download Source File
                 </a>
             @else
                 <p class="text-muted">No file uploaded</p>

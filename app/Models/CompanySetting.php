@@ -68,6 +68,7 @@ class CompanySetting extends Model
         'invoice_mail_from_name',
         'invoice_mail_footer',
         'invoice_mail_signature',
+        'invoice_mail_read_days',
         
     ];
 
@@ -80,6 +81,11 @@ class CompanySetting extends Model
     public function templates()
     {
         return $this->hasMany(EmailTemplate::class, 'company_id', 'company_id');
+    }
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class, 'company_id');
     }
 
 }

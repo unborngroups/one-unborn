@@ -414,6 +414,8 @@ class DeliverablesController extends Controller
             $purchaseInvoice->company_id = $company->id ?? null;
             $purchaseInvoice->invoice_date = $firstPlan && $firstPlan->date_of_activation ? $firstPlan->date_of_activation : now()->format('Y-m-d');
             $purchaseInvoice->due_date = $firstPlan && $firstPlan->date_of_expiry ? $firstPlan->date_of_expiry : now()->addDays(15)->format('Y-m-d');
+            // Set vendor_name_raw for new schema
+            $purchaseInvoice->vendor_name_raw = $deliverable->vendor ?? '';
             $purchaseInvoice->vendor_name = $deliverable->vendor ?? '';
             $purchaseInvoice->vendor_email = null;
             $purchaseInvoice->vendor_phone = null;
@@ -491,13 +493,12 @@ DB::commit();
             }
 
             for ($i = 1; $i <= $linkCount; $i++) {
-                // $serial++;
                 $vendorSnapshot = $linkVendorsForSave[$i] ?? null;
                 // Preserve circuit_id if editing, only generate if missing
                 $existingPlan = $existingPlansMap->get($i);
-                
+                $circuitId = $existingPlan ? $existingPlan->circuit_id : $this->generateCircuitId($companyName, $clientShortName, $state, $year, $serial);
                 if (!$existingPlan) {
-                   $serial++; // only increment for new serial in circuit_id generation
+                    $serial++; // Only increment serial if a new circuit_id is generated
                 }
 
                 $planData = [
@@ -506,7 +507,7 @@ DB::commit();
                     'vendor_name' => $vendorSnapshot->vendor_name ?? null,
                     'vendor_email' => $vendorSnapshot->contact_person_email ?? null,
                     'vendor_contact' => $vendorSnapshot->contact_person_mobile ?? null,
-                    'circuit_id' => $existingPlan ? $existingPlan->circuit_id : $this->generateCircuitId($companyName, $clientShortName, $state, $year, $serial),
+                    'circuit_id' => $circuitId,
                     'plans_name' => $request->input('plans_name_' . $i),
                     'speed_in_mbps_plan' => $request->input('speed_in_mbps_plan_' . $i),
                     'no_of_months_renewal' => $request->input('no_of_months_renewal_' . $i),
@@ -550,15 +551,23 @@ DB::commit();
                     'updated_by' => Auth::id()
                 ];
                 // DeliverablePlan::create($planData);
+                // Get old circuit_id if exists
+                $oldCircuitId = $existingPlan ? $existingPlan->circuit_id : null;
                 $plan = DeliverablePlan::withTrashed()->updateOrCreate(
-               [
-               'deliverable_id' => $deliverable->id,
-              'link_number' => $i
-               ],
-               $planData
+                    [
+                        'deliverable_id' => $deliverable->id,
+                        'link_number' => $i
+                    ],
+                    $planData
                 );
-
                 $plan->restore();
+
+                // If circuit_id changed, update in renewals
+                if ($oldCircuitId && $oldCircuitId !== $plan->circuit_id) {
+                    \App\Models\Renewal::where('deliverable_id', $deliverable->id)
+                        ->where('circuit_id', $oldCircuitId)
+                        ->update(['circuit_id' => $plan->circuit_id]);
+                }
             }
 
         /* ---- CLIENT LINK ---- */

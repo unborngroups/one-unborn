@@ -8,17 +8,38 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="mb-0">Purchase Invoices</h2>
-                            
-                                <a href="<?php echo e(route('finance.purchases.create')); ?>"
-                                   class="btn btn-sm btn-info p-2 text-white"> <h2>+  create invoice</h2>
-                                </a>
-
+        <div class="d-flex gap-2 align-items-center">
+            
+            <a href="<?php echo e(route('finance.purchases.create')); ?>"
+               class="btn btn-sm btn-info p-2 text-white"> <h2>+  create invoice</h2>
+            </a>
+        </div>
     </div>
 
     <?php if(session('success')): ?>
         <div class="alert alert-success">
-            <?php echo e(session('success')); ?>
+            <pre style="margin:0;white-space:pre-wrap;"><?php echo e(session('success')); ?></pre>
+        </div>
+    <?php endif; ?>
 
+    <?php if(session('error')): ?>
+        <div class="alert alert-danger">
+            <?php echo e(session('error')); ?>
+
+        </div>
+    <?php endif; ?>
+
+    <?php
+        $vendorNameFailedCount = $purchases->filter(function ($purchase) {
+            $reason = strtolower((string) data_get($purchase->raw_json, 'import_failure_reason', ''));
+            return strtolower((string) ($purchase->status ?? '')) === 'failed'
+                && str_contains($reason, 'vendor name');
+        })->count();
+    ?>
+
+    <?php if($vendorNameFailedCount > 0): ?>
+        <div class="alert alert-danger">
+            <?php echo e($vendorNameFailedCount); ?> invoice(s) failed: Vendor name mistake. Please correct vendor name in Vendor Master.
         </div>
     <?php endif; ?>
 
@@ -31,8 +52,11 @@
                         <th>#</th>
                         <th>Invoice No</th>
                         <th>Vendor</th>
+                        <th>GSTIN</th>
                         <th>Date</th>
                         <th>Total</th>
+                        <th>Accuracy</th>
+                        <th>Status</th>
                         <th width="250">Action</th>
                     </tr>
                 </thead>
@@ -42,16 +66,24 @@
                         <tr>
                             <td><?php echo e($loop->iteration); ?></td>
 
-                            <td><?php echo e($purchase->invoice_no ?? '-'); ?></td>
+                            <td>
+                                <?php
+                                    $invoiceNoDisplay = trim((string) ($purchase->invoice_no ?? ''));
+                                    $rawInvoiceNo = trim((string) data_get($purchase->raw_json, 'invoice_number', ''));
+                                    if ($invoiceNoDisplay !== '' && str_starts_with(strtoupper($invoiceNoDisplay), 'GMAIL-') && $rawInvoiceNo !== '') {
+                                        $invoiceNoDisplay = $rawInvoiceNo;
+                                    }
+                                ?>
+                                <?php echo e($invoiceNoDisplay !== '' ? $invoiceNoDisplay : '-'); ?>
+
+                            </td>
 
                             <td>
-                                <?php if($purchase->deliverable && $purchase->deliverable->feasibility && $purchase->deliverable->feasibility->client): ?>
-                                    <?php echo e($purchase->deliverable->feasibility->client->client_name); ?>
+                                <?php echo e(data_get($purchase->raw_json, 'vendor_name') ?? $purchase->vendor_name_raw ?? $purchase->vendor_name ?? optional($purchase->vendor)->vendor_name ?? '-'); ?>
 
-                                <?php else: ?>
-                                    -
-                                <?php endif; ?>
                             </td>
+
+                            <td><?php echo e($purchase->gstin ?? $purchase->gst_number ?? $purchase->vendor_gstin ?? '-'); ?></td>
 
                             <td>
                                 <?php echo e($purchase->invoice_date 
@@ -63,6 +95,61 @@
                             <td>
                                 ₹ <?php echo e(number_format($purchase->total_amount, 2)); ?>
 
+                            </td>
+
+                            <td>
+                                <?php
+                                    $accuracy = $purchase->confidence_score;
+
+                                    if ((is_null($accuracy) || (float) $accuracy <= 0) && is_array($purchase->raw_json)) {
+                                        $accuracy = data_get($purchase->raw_json, 'matching.combined_confidence');
+                                    }
+                                ?>
+
+                                <?php if(!is_null($accuracy) && (float) $accuracy > 0): ?>
+                                    <span class="badge 
+                                        <?php if($accuracy >= 80): ?>
+                                            bg-success
+                                        <?php elseif($accuracy >= 50): ?>
+                                            bg-warning text-dark
+                                        <?php else: ?>
+                                            bg-danger
+                                        <?php endif; ?>">
+                                        <?php echo e(rtrim(rtrim(number_format($accuracy, 2), '0'), '.')); ?>%
+                                    </span>
+                                <?php else: ?>
+                                    <span class="text-muted">-</span>
+                                <?php endif; ?>
+                            </td>
+
+                            
+                            <td>
+                                <?php
+                                    $st = strtolower($purchase->status ?? '');
+                                ?>
+                                <?php if($st === 'needs_review'): ?>
+                                    <form action="<?php echo e(route('finance.purchases.approve', $purchase->id)); ?>" method="POST" class="d-inline">
+                                        <?php echo csrf_field(); ?>
+                                        <button type="submit" class="btn btn-sm btn-success"
+                                                onclick="return confirm('Approve this invoice?')">
+                                            <i class="bi bi-check-circle"></i> Approve
+                                        </button>
+                                    </form>
+                                <?php else: ?>
+                                    <?php
+                                        $statusMap = [
+                                            'ok'       => ['label' => 'OK',       'class' => 'bg-success'],
+                                            'higher'   => ['label' => 'Higher',   'class' => 'bg-danger'],
+                                            'lower'    => ['label' => 'Lower',    'class' => 'bg-warning text-dark'],
+                                            'verified' => ['label' => 'Verified', 'class' => 'bg-info text-dark'],
+                                            'approved' => ['label' => 'Approved', 'class' => 'bg-primary'],
+                                            'paid'     => ['label' => 'Paid',     'class' => 'bg-dark'],
+                                            'failed'   => ['label' => 'Failed',   'class' => 'bg-danger'],
+                                        ];
+                                        $statusInfo = $statusMap[$st] ?? ['label' => ucfirst($st ?: 'Pending'), 'class' => 'bg-secondary'];
+                                    ?>
+                                    <span class="badge <?php echo e($statusInfo['class']); ?>"><?php echo e($statusInfo['label']); ?></span>
+                                <?php endif; ?>
                             </td>
 
                             <td>
@@ -79,12 +166,12 @@
                                     <i class="bi bi-pencil-square"></i>
                                 </a>
 
-                                
+                                <!-- 
                                 <a href="<?php echo e(route('finance.purchases.pdf', $purchase->id)); ?>"
                                    class="btn btn-sm btn-secondary"
                                    target="_blank">
                                     <i class="bi bi-file-earmark-pdf"></i>
-                                </a>
+                                </a> -->
 
                                 
                                 <form action="<?php echo e(route('finance.purchases.destroy', $purchase->id)); ?>"
@@ -102,7 +189,7 @@
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
-                            <td colspan="6" class="text-center">
+                            <td colspan="9" class="text-center">
                                 No Purchase Invoices Found.
                             </td>
                         </tr>

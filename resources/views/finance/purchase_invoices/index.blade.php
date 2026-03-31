@@ -6,6 +6,19 @@
 
 <div class="container-fluid">
 
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">Purchase Invoice Automation</h4>
 
@@ -56,17 +69,12 @@
                             <td>{{ $loop->iteration }}</td>
 
                             <td>
-                                {{ $invoice->vendor_name_raw }}
-                                @if($invoice->vendor_id)
-                                    <span class="badge bg-success">Mapped</span>
-                                @else
-                                    <span class="badge bg-danger">Unmapped</span>
-                                @endif
+                                {{ optional($invoice->vendor)->vendor_name ?? $invoice->vendor_name_raw ?? $invoice->vendor_name ?? '-' }}
                             </td>
 
-                            <td>{{ $invoice->gstin ?? '-' }}</td>
+                            <td>{{ $invoice->gstin ?? $invoice->gst_number ?? $invoice->vendor_gstin ?? '-' }}</td>
 
-                            <td>{{ $invoice->invoice_number }}</td>
+                            <td>{{ $invoice->invoice_no ?? $invoice->invoice_number ?? '-' }}</td>
 
                             <td>
                                 {{ $invoice->invoice_date
@@ -74,7 +82,7 @@
                                     : '-' }}
                             </td>
 
-                            <td>₹ {{ number_format($invoice->total_amount, 2) }}</td>
+                            <td>₹ {{ number_format($invoice->total_amount ?? $invoice->grand_total ?? $invoice->amount ?? 0, 2) }}</td>
 
                             <td>
                                 <span class="badge 
@@ -108,6 +116,11 @@
                                 <a href="{{ route('finance.purchase_invoices.show', $invoice->id) }}"
                                    class="btn btn-primary btn-sm">
                                     View
+                                </a>
+
+                                <a href="{{ route('finance.purchase_invoices.edit', $invoice->id) }}"
+                                   class="btn btn-warning btn-sm">
+                                    Edit
                                 </a>
 
                                 @if($invoice->status == 'needs_review')

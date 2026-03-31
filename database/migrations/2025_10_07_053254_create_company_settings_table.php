@@ -77,6 +77,7 @@ return new class extends Migration
             $table->string('invoice_mail_from_name')->nullable();
             $table->string('invoice_mail_footer')->nullable();
             $table->string('invoice_mail_signature')->nullable();
+            $table->integer('invoice_mail_read_days')->default(0);
 
             $table->timestamps();
         });

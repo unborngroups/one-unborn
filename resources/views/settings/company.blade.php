@@ -343,6 +343,10 @@
     <div class="card-body bg-light">
         <div class="row g-3">
             <div class="col-md-4">
+                <label class="form-label">Invoice Count Day's</label>
+                <input type="number" name="invoice_mail_read_days" class="form-control" value="{{ old('invoice_mail_read_days', $company->invoice_mail_read_days ?? 0) }}" min="0">
+            </div>
+            <div class="col-md-4">
                 <label class="form-label">SMTP Server Address *</label>
                 <input type="text" name="invoice_mail_host" class="form-control" value="{{ old('invoice_mail_host', $company->invoice_mail_host ?? '') }}" required>
             </div>

@@ -30,7 +30,7 @@
                         </select>
                     </div>
 
-                    
+                    <!-- 
                     <div class="col-md-4">
     <label>Deliverable</label>
     <select name="deliverable_id" id="deliverable_id" class="form-select" required>
@@ -42,7 +42,7 @@
             </option>
         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </select>
-</div>
+</div> -->
 
                     
                     <div class="col-md-4">
@@ -59,7 +59,7 @@
                 </div>
 
                 <hr>
-
+ 
                 
                 <div class="row mb-3">
                     <div class="col-md-4">

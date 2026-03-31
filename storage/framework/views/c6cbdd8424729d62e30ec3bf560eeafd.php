@@ -1,1 +1,0 @@
-<?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\finance\purchaseinvoicexceldownload\index.blade.php ENDPATH**/ ?>

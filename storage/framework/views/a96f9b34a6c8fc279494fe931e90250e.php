@@ -76,8 +76,8 @@
                     <label class="form-label fw-semibold">Link Type <span class="text-danger">*</span></label>
                     <select id="link_type" name="link_type" class="form-select" required>
                         <option value="">Select</option>
-                        <option value="new" <?php echo e($importRow['link_type'] === 'new' ? 'selected' : ''); ?>>New Link</option>
-                        <option value="existing" <?php echo e($importRow['link_type'] === 'existing' ? 'selected' : ''); ?>>Existing Link</option>
+                        <option value="new">New Link</option>
+                        <option value="existing">Existing Link</option>
                     </select>
                 </div>
                 <div class="col-md-4" id="existing_circuit_box" style="display:none;">

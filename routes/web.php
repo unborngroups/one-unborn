@@ -31,6 +31,7 @@ use App\Http\Controllers\Finance\CustomerController;
 use App\Http\Controllers\Finance\SalesController;
 use App\Http\Controllers\Finance\SettingsController;
 use App\Http\Controllers\Finance\PurchaseController;
+use App\Http\Controllers\Finance\EmailInvoiceController;
 use App\Http\Controllers\Finance\BankingController;
 use App\Http\Controllers\Finance\AccountController;
 use App\Http\Controllers\Finance\ReportController;
@@ -80,6 +81,10 @@ use App\Http\Middleware\ClientAuth;
 // OTP routes for login (must be above fallback and client portal)
 Route::post('/otp/send', [OtpController::class, 'send'])->name('otp.send');
 Route::post('/otp/verify', [OtpController::class, 'verify'])->name('otp.verify');
+
+// 📧 Email Webhook for Invoice Processing (Public - No Auth Required)
+Route::post('/webhook/email/invoice', [EmailInvoiceController::class, 'receiveEmailWebhook'])->name('webhook.email.invoice');
+Route::get('/webhook/email/test', [EmailInvoiceController::class, 'testWebhook'])->name('webhook.email.test');
 
 // Internal chat APIs used by the floating widget
 Route::prefix('chat')
@@ -550,23 +555,31 @@ Route::prefix('finance/purchases')->name('finance.purchases.')->group(function (
     Route::get('/', [PurchaseController::class, 'index'])->name('index');
     Route::get('/{id}/show', [PurchaseController::class, 'show'])->name('show');
     Route::get('/{id}/edit', [PurchaseController::class, 'edit'])->name('edit');
+    Route::get('/{id}/download-source-pdf', [PurchaseController::class, 'downloadSourcePdf'])->name('download-source-pdf');
     Route::get('/create', [PurchaseController::class, 'create'])->name('create');
     Route::put('/{id}', [PurchaseController::class, 'update'])->name('update');
     Route::post('/', [PurchaseController::class, 'store'])->name('store');
     Route::delete('/{id}', [PurchaseController::class, 'destroy'])->name('destroy');
+    Route::post('/{id}/approve', [PurchaseController::class, 'approve'])->name('approve');
     Route::get('/{id}/pdf', [PurchaseController::class, 'pdf'])->name('pdf');
     Route::get('/{id}/print', [PurchaseController::class, 'print'])->name('print');
     Route::post('/finance/purchases/{id}/submit',[PurchaseController::class,'submit'])->name('finance.purchases.submit');
     // web.php
-Route::post('/parse-invoice', [PurchaseController::class, 'parseInvoice']);
-Route::get('/get-po-data/{vendorId}', [PurchaseController::class, 'getPoData']);
+    Route::post('/parse-invoice', [PurchaseController::class, 'parseInvoice'])->name('parse-invoice');
+    Route::post('/email-pdf', [PurchaseController::class, 'createInvoiceFromEmailPDF'])->name('email-pdf');
+    Route::get('/get-po-data/{vendorId}', [PurchaseController::class, 'getPoData']);
+
+    // ✅ Manual Gmail IMAP fetch trigger
+    Route::post('/fetch-gmail', [PurchaseController::class, 'fetchGmail'])->name('fetch-gmail');
 
 });
 
 Route::prefix('finance/purchase-invoices')->name('finance.purchase_invoices.')->group(function () {
 
-    Route::get('/', [PurchaseController::class, 'index'])->name('index');
-    Route::get('/{id}', [PurchaseController::class, 'show'])->name('show');
+    Route::get('/', [PurchaseController::class, 'autoInvoiceIndex'])->name('index');
+    Route::get('/{id}/edit', [PurchaseController::class, 'editAutoInvoice'])->name('edit');
+    Route::put('/{id}', [PurchaseController::class, 'updateAutoInvoice'])->name('update');
+    Route::get('/{id}', [PurchaseController::class, 'showAutoInvoice'])->name('show');
     Route::post('/{id}/verify', [PurchaseController::class, 'verify'])->name('verify');
     Route::post('/{id}/approve', [PurchaseController::class, 'approve'])->name('approve');
     Route::post('/{id}/mark-paid', [PurchaseController::class, 'markPaid'])->name('markPaid');

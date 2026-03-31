@@ -29,7 +29,7 @@
 
             <div class="col-md-4">
                 <label class="text-muted">Vendor</label>
-                <p class="fw-semibold"><?php echo e($purchase->vendor->vendor_name ?? '-'); ?></p>
+                <p class="fw-semibold"><?php echo e($displayVendorName ?: (optional($purchase->vendor)->vendor_name ?? $vendorFromMaster ?? $purchase->vendor_name ?? $purchase->vendor_name_raw ?? '-')); ?></p>
             </div>
 
             <div class="col-md-4">
@@ -46,25 +46,56 @@
 
             <div class="col-md-4">
                 <label class="text-muted">Invoice Number</label>
-                <p class="fw-semibold text-primary"><?php echo e($purchase->invoice_no); ?></p>
+                <p class="fw-semibold text-primary"><?php echo e($displayInvoiceNo ?: $purchase->invoice_no ?: '-'); ?></p>
             </div>
 
             <div class="col-md-4">
                 <label class="text-muted">Invoice Date</label>
-                <p><?php echo e($purchase->invoice_date ?? '-'); ?></p>
+                <p><?php echo e($displayInvoiceDate ? \Carbon\Carbon::parse($displayInvoiceDate)->format('d-m-Y') : '-'); ?></p>
+            </div>
+
+            <div class="col-md-4">
+                <label class="text-muted">GSTIN</label>
+                <p><?php echo e($displayGstin ?: '-'); ?></p>
             </div>
 
             <div class="col-md-4">
                 <label class="text-muted">Status</label>
 
-                <?php if($purchase->status == 'higher'): ?>
-                    <span class="badge bg-danger">Higher</span>
-                <?php elseif($purchase->status == 'lower'): ?>
-                    <span class="badge bg-warning text-dark">Lower</span>
-                <?php else: ?>
-                    <span class="badge bg-success">Matched</span>
-                <?php endif; ?>
+                <span class="badge 
+                    <?php switch($displayStatus):
+                        case ('draft'): ?> bg-secondary <?php break; ?>
+                        <?php case ('needs_review'): ?> bg-warning text-dark <?php break; ?>
+                        <?php case ('verified'): ?> bg-info <?php break; ?>
+                        <?php case ('approved'): ?> bg-primary <?php break; ?>
+                        <?php case ('paid'): ?> bg-dark <?php break; ?>
+                        <?php case ('failed'): ?> bg-danger <?php break; ?>
+                        <?php case ('duplicate'): ?> bg-danger <?php break; ?>
+                        <?php case ('higher'): ?> bg-danger <?php break; ?>
+                        <?php case ('lower'): ?> bg-warning text-dark <?php break; ?>
+                        <?php default: ?> bg-success
+                    <?php endswitch; ?>">
+                    <?php echo e(ucfirst(str_replace('_', ' ', $displayStatus))); ?>
+
+                </span>
             </div>
+
+            <div class="col-md-4">
+                <label class="text-muted">Accuracy</label>
+                <p><?php echo e(!is_null($displayAccuracy) ? rtrim(rtrim(number_format((float) $displayAccuracy, 2), '0'), '.') . '%' : '-'); ?></p>
+            </div>
+
+            <?php
+                $importFailureReason = data_get($purchase->raw_json, 'import_failure_reason');
+            ?>
+            <?php if(!empty($importFailureReason)): ?>
+                <div class="col-md-12">
+                    <div class="alert alert-danger py-2 mb-0">
+                        <strong>Import Alert:</strong> <?php echo e($importFailureReason); ?>
+
+                    </div>
+                </div>
+            <?php endif; ?>
 
         </div>
 
@@ -84,12 +115,33 @@
             </thead>
 
             <tbody>
-                <?php $__empty_1 = true; $__currentLoopData = $purchase->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                <?php
+                    $showRows = $purchase->items->isNotEmpty()
+                        ? $purchase->items->map(function ($item) {
+                            return [
+                                'item_name' => $item->item->item_description ?? $item->item->item_name ?? '-',
+                                'quantity' => $item->quantity,
+                                'price' => $item->price,
+                                'total' => $item->total,
+                            ];
+                        })->toArray()
+                        : array_map(function ($row) {
+                            $quantity = (float) ($row['quantity'] ?? 1);
+                            $price = (float) ($row['price'] ?? 0);
+                            return [
+                                'item_name' => $row['item_label'] ?? 'Invoice Item',
+                                'quantity' => $quantity,
+                                'price' => $price,
+                                'total' => $quantity * $price,
+                            ];
+                        }, $prefillRows ?? []);
+                ?>
+                <?php $__empty_1 = true; $__currentLoopData = $showRows; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                     <tr>
-                        <td><?php echo e($item->item->item_name ?? '-'); ?></td>
-                        <td><?php echo e($item->quantity); ?></td>
-                        <td>₹ <?php echo e(number_format($item->price, 2)); ?></td>
-                        <td class="fw-semibold">₹ <?php echo e(number_format($item->total, 2)); ?></td>
+                        <td><?php echo e($item['item_name'] ?? '-'); ?></td>
+                        <td><?php echo e($item['quantity'] ?? 0); ?></td>
+                        <td>₹ <?php echo e(number_format((float) ($item['price'] ?? 0), 2)); ?></td>
+                        <td class="fw-semibold">₹ <?php echo e(number_format((float) ($item['total'] ?? 0), 2)); ?></td>
                     </tr>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                     <tr>
@@ -104,7 +156,7 @@
         
         <div class="text-end">
             <h4 class="fw-bold text-success">
-                Total: ₹ <?php echo e(number_format($purchase->total_amount, 2)); ?>
+                Total: ₹ <?php echo e(number_format((float) ($displayGrandTotal ?? $purchase->total_amount ?? 0), 2)); ?>
 
             </h4>
         </div>
@@ -114,10 +166,10 @@
             <label class="text-muted">Invoice File</label><br>
 
             <?php if($purchase->po_invoice_file): ?>
-                <a href="<?php echo e(asset('images/poinvoice_files/'.$purchase->po_invoice_file)); ?>"
-                   target="_blank"
+                <a href="<?php echo e(route('finance.purchases.download-source-pdf', $purchase->id)); ?>"
+                   download
                    class="btn btn-outline-primary btn-sm mt-1">
-                   📄 View Invoice
+                   <i class="bi bi-download"></i> Download Source File
                 </a>
             <?php else: ?>
                 <p class="text-muted">No file uploaded</p>

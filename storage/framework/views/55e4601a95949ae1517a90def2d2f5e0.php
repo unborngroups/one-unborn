@@ -6,6 +6,21 @@
 
 <div class="container-fluid">
 
+    <?php if(session('success')): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <?php echo e(session('success')); ?>
+
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
+    <?php if(session('error')): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <?php echo e(session('error')); ?>
+
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">Purchase Invoice Automation</h4>
 
@@ -56,18 +71,13 @@
                             <td><?php echo e($loop->iteration); ?></td>
 
                             <td>
-                                <?php echo e($invoice->vendor_name_raw); ?>
+                                <?php echo e(optional($invoice->vendor)->vendor_name ?? $invoice->vendor_name_raw ?? $invoice->vendor_name ?? '-'); ?>
 
-                                <?php if($invoice->vendor_id): ?>
-                                    <span class="badge bg-success">Mapped</span>
-                                <?php else: ?>
-                                    <span class="badge bg-danger">Unmapped</span>
-                                <?php endif; ?>
                             </td>
 
-                            <td><?php echo e($invoice->gstin ?? '-'); ?></td>
+                            <td><?php echo e($invoice->gstin ?? $invoice->gst_number ?? $invoice->vendor_gstin ?? '-'); ?></td>
 
-                            <td><?php echo e($invoice->invoice_number); ?></td>
+                            <td><?php echo e($invoice->invoice_no ?? $invoice->invoice_number ?? '-'); ?></td>
 
                             <td>
                                 <?php echo e($invoice->invoice_date
@@ -76,7 +86,7 @@
 
                             </td>
 
-                            <td>₹ <?php echo e(number_format($invoice->total_amount, 2)); ?></td>
+                            <td>₹ <?php echo e(number_format($invoice->total_amount ?? $invoice->grand_total ?? $invoice->amount ?? 0, 2)); ?></td>
 
                             <td>
                                 <span class="badge 
@@ -111,6 +121,11 @@
                                 <a href="<?php echo e(route('finance.purchase_invoices.show', $invoice->id)); ?>"
                                    class="btn btn-primary btn-sm">
                                     View
+                                </a>
+
+                                <a href="<?php echo e(route('finance.purchase_invoices.edit', $invoice->id)); ?>"
+                                   class="btn btn-warning btn-sm">
+                                    Edit
                                 </a>
 
                                 <?php if($invoice->status == 'needs_review'): ?>

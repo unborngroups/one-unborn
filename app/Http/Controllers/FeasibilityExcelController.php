@@ -156,6 +156,7 @@ class FeasibilityExcelController extends Controller
 
         if (!empty($rowErrors)) {
             $this->importErrors[] = "Row " . ($index + 1) . ": " . implode('; ', $rowErrors) . ".";
+            $row = array_pad($row, count($originalHeaders), null);
             $assoc = array_combine($originalHeaders, $row);
             $assoc['Error Reason'] = implode('; ', $rowErrors);
             $failedRows[] = $assoc;
@@ -246,6 +247,7 @@ if ($address !== null) {
             $errorMsg = "Row " . ($index + 1) . ": Failed to save - " . $e->getMessage();
             $this->importErrors[] = $errorMsg;
             // Add failed row data for table display
+            $row = array_pad($row, count($originalHeaders), null);
             $assoc = array_combine($originalHeaders, $row);
             $assoc['Error Reason'] = $errorMsg;
             $failedRows[] = $assoc;

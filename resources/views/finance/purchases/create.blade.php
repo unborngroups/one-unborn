@@ -30,7 +30,7 @@
                         </select>
                     </div>
 
-                    {{-- Deliverable --}}
+                    <!-- {{-- Deliverable --}}
                     <div class="col-md-4">
     <label>Deliverable</label>
     <select name="deliverable_id" id="deliverable_id" class="form-select" required>
@@ -41,7 +41,7 @@
             </option>
         @endforeach
     </select>
-</div>
+</div> -->
 
                     {{-- Invoice Number --}}
                     <div class="col-md-4">
@@ -58,7 +58,7 @@
                 </div>
 
                 <hr>
-
+ 
                 {{-- 🔥 PO TOTAL --}}
                 <div class="row mb-3">
                     <div class="col-md-4">

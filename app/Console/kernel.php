@@ -21,6 +21,9 @@ class Kernel extends ConsoleKernel
         $schedule->call(function () {
             \App\Models\LoginLog::markStaleOffline();
         })->everyMinute();
+
+         // ✅ Auto-import invoices from Gmail every 2 minutes
+        $schedule->command('invoice:fetch-gmail')->everyTwoMinutes();
     }
 
     protected function commands()

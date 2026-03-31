@@ -59,7 +59,9 @@ class PurchaseOrderController extends Controller
     public function create()
     {
         // Get only closed feasibilities that don't have a Purchase Order yet
-        $usedFeasibilityIds = PurchaseOrder::pluck('feasibility_id')->toArray();
+        $usedFeasibilityIds = PurchaseOrder::whereNotNull('feasibility_id')
+    ->pluck('feasibility_id')
+    ->toArray();
         $companies = Company::all();
         $closedFeasibilities = FeasibilityStatus::with('feasibility.client')
             ->where('status', 'Closed')
@@ -290,8 +292,11 @@ class PurchaseOrderController extends Controller
         $companies = Company::all();
         
         // Get closed feasibilities excluding those already used, but include current PO's feasibility
-        $usedFeasibilityIds = PurchaseOrder::where('id', '!=', $id)->pluck('feasibility_id')->toArray();
-        
+        $usedFeasibilityIds = PurchaseOrder::where('id', '!=', $id)
+    ->whereNotNull('feasibility_id')
+    ->pluck('feasibility_id')
+    ->toArray();
+
         $closedFeasibilities = FeasibilityStatus::with('feasibility.client')
             ->where('status', 'Closed')
             ->whereNotIn('feasibility_id', $usedFeasibilityIds)
@@ -601,6 +606,17 @@ class PurchaseOrderController extends Controller
      */
     public function createDeliverableFromPurchaseOrder($purchaseOrder)
 {
+
+// ✅ deliverable with feasiblity_id exists
+    $feasibility = null;
+$feasibilityStatus = null;
+
+if ($purchaseOrder->feasibility_id) {
+    $feasibility = \App\Models\Feasibility::find($purchaseOrder->feasibility_id);
+    $feasibilityStatus = FeasibilityStatus::where('feasibility_id', $purchaseOrder->feasibility_id)->first();
+}
+
+
     Log::info('CREATE DELIVERABLE START', [
         'po_id' => $purchaseOrder->id,
         'feasibility' => $purchaseOrder->feasibility
@@ -646,47 +662,39 @@ class PurchaseOrderController extends Controller
 
         $feasibilityStatus = FeasibilityStatus::where('feasibility_id', $purchaseOrder->feasibility_id)->first();
         
-        if (!$feasibility) {
-            Log::error("Feasibility not found for Purchase Order ID: {$purchaseOrder->id}");
-            return;
-        }
-        
-        // Prepare circuit_id components
-        $companyName = $feasibility->company->company_name ?? '';
-        $shortname = $feasibility->client->short_name ?? '';
-        $state = $feasibility->state ?? '';
+        // If feasibility is missing, use safe defaults for deliverable fields
+        $companyName = $feasibility && $feasibility->company ? $feasibility->company->company_name : ($purchaseOrder->company->company_name ?? '');
+        $shortname = $feasibility && $feasibility->client ? $feasibility->client->short_name : '';
+        $state = $feasibility ? ($feasibility->state ?? '') : '';
         $year = date('Y');
-        // Get sequence and generate circuit_id using DeliverablesController helper
         $deliverablesController = new \App\Http\Controllers\DeliverablesController();
         $sequence = $deliverablesController->getCircuitSequence($companyName, $shortname, $state, $year);
         $circuit_id = $deliverablesController->generateCircuitId($companyName, $shortname, $state, $year, $sequence);
-        
-        // Create a new Deliverable record
+
         $deliverable = Deliverables::create([
-            'feasibility_id' => $feasibility->id,
+            'feasibility_id' => $purchaseOrder->feasibility_id ?? null,
             'company_id' => $purchaseOrder->company_id,
             'purchase_order_id' => $purchaseOrder->id,
             'status' => 'Open',
             'circuit_id' => $circuit_id,
-            'site_address' => $feasibility->site_address ?? '',
-            'local_contact' => $feasibility->contact_person ?? '',
-            'state' => $feasibility->state ?? '',
-            'gst_number' => $feasibility->gst_number ?? '',
-            'link_type' => $feasibility->connection_type ?? '',
-            'speed_in_mbps' => $feasibility->bandwidth ?? '',
+            'site_address' => $feasibility ? ($feasibility->site_address ?? '') : '',
+            'local_contact' => $feasibility ? ($feasibility->contact_person ?? '') : '',
+            'state' => $feasibility ? ($feasibility->state ?? '') : '',
+            'gst_number' => $feasibility ? ($feasibility->gst_number ?? '') : '',
+            'link_type' => $feasibility ? ($feasibility->connection_type ?? '') : '',
+            'speed_in_mbps' => $feasibility ? ($feasibility->bandwidth ?? '') : '',
             'no_of_links' => $purchaseOrder->no_of_links ?? 1,
-            'vendor' => $feasibilityStatus->vendor1_name ?? '',
+            'vendor' => $feasibilityStatus ? ($feasibilityStatus->vendor1_name ?? '') : '',
             'arc_cost' => $purchaseOrder->arc_per_link,
-            'status_of_link' => $feasibility->status_of_link ?? '',
+            'status_of_link' => $feasibility ? ($feasibility->status_of_link ?? '') : '',
             'otc_cost' => $purchaseOrder->otc_per_link,
             'static_ip_cost' => $purchaseOrder->static_ip_cost_per_link,
             'po_number' => $purchaseOrder->po_number,
             'po_date' => $purchaseOrder->po_date,
-             'created_by' => Auth::id(),
-             'updated_by' => Auth::id(),
-
+            'created_by' => Auth::id(),
+            'updated_by' => Auth::id(),
         ]);
-        
+
         Log::info('Deliverable created', ['deliverable_id' => $deliverable->id, 'po_id' => $purchaseOrder->id]);
         
     } catch (\Exception $e) {
