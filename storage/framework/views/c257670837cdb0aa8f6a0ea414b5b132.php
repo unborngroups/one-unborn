@@ -42,7 +42,17 @@
 
     </div>
 
+     
 
+    <div class="col-md-4 mb-3">
+
+        <label class="form-label">Short Name <span class="text-danger">*</span></label>
+
+        <input type="text" name="short_name" class="form-control"
+
+            value="<?php echo e(old('short_name', $company->short_name ?? '')); ?>" required>
+
+    </div>
 
     
 
@@ -140,11 +150,84 @@
 
 </button> -->
 
+    </div>
 
+     
+
+    <div class="col-md-4 mb-3">
+
+        <label class="form-label">MSME ID <span class="text-danger">*</span></label>
+
+        <input type="text" name="msme_id" class="form-control"
+
+            value="<?php echo e(old('msme_id', $company->msme_id ?? '')); ?>" required>
 
     </div>
 
+    <!-- pincode -->
+                <div class="col-md-3">
 
+                    <label class="form-label fw-semibold">Pincode <span class="text-danger">*</span></label>
+
+                    <input type="text" name="pincode" id="pincode" maxlength="6" class="form-control" required value="<?php echo e(old('pincode', $importRow['pincode'] ?? '')); ?>">
+
+                </div>
+                <!-- Select State -->
+
+                <div class="col-md-3">
+
+                    <label class="form-label fw-semibold">State <span class="text-danger">*</span></label>
+
+                    <select name="state" id="state" class="form-select select2-tags">
+
+                        <option value="" >Select or Type State</option>
+
+                        <option value="Karnataka" >Karnataka</option>
+
+                        <option value="Tamil Nadu" >Tamil Nadu</option>
+
+                        <option value="Telangana" >Telangana</option>
+
+                    </select>
+
+                </div>
+                <!-- Select District -->
+
+                <div class="col-md-3">
+
+                    <label class="form-label fw-semibold">District <span class="text-danger">*</span></label>
+
+                   <select name="district" id="district" class="form-select select2-tags">
+
+                        <option value="" >Select or Type District</option>
+
+                        <option value="Salem" >Salem</option>
+
+                        <option value="Dharmapuri" >Dharmapuri</option>
+
+                        <option value="Erode" >Erode</option>
+
+                    </select>
+
+                </div>
+                <!-- Select Area -->
+                <div class="col-md-3">
+
+                    <label class="form-label fw-semibold">Area <span class="text-danger">*</span></label>
+                      
+                    <select name="area" id="post_office" class="form-select select2-tags">
+
+                        <option value="">Select or Type Area</option>
+
+                        <option value="Uthagarai" >Uthagarai</option>
+
+                        <option value="Harur" >Harur</option>
+
+                        <option value="Kottaiyur">Kottaiyur</option>
+                    </select>
+
+                </div>
+                
 
     
 
@@ -171,8 +254,6 @@
             value="<?php echo e(old('website', $company->website ?? '')); ?>">
 
     </div>
-
-
 
     
 
@@ -512,12 +593,17 @@ document.getElementById('fetch_gst_btn').addEventListener('click', async () => {
 
             throw new Error(data.error || `HTTP ${response.status}`);
 
+                    const firstPostOffice = Array.isArray(pinData.post_offices) && pinData.post_offices.length
+                        ? pinData.post_offices[0].name
+                        : '';
+
+
         }
 
 
 
         // Check if we got valid GST data
-
+                        document.getElementById('post_office').value = firstPostOffice || addr.loc || '';
         if (data.error) {
 
             throw new Error(data.error);
@@ -665,6 +751,142 @@ document.getElementById('fetch_gst_btn').addEventListener('click', async () => {
     }
 
 });
+
+// Pincode lookup function start
+function setSelectValue(selectElement, value) {
+    if (!selectElement) return;
+
+    const normalized = (value ?? '').toString().trim();
+    if (normalized === '') return;
+
+    const hasOption = Array.from(selectElement.options || []).some(opt => opt.value === normalized);
+    if (!hasOption) {
+        const option = document.createElement('option');
+        option.value = normalized;
+        option.text = normalized;
+        selectElement.add(option);
+    }
+
+    selectElement.value = normalized;
+    if (window.jQuery && jQuery(selectElement).hasClass('select2-hidden-accessible')) {
+        jQuery(selectElement).trigger('change');
+    }
+}
+
+function showPincodeToast(message, isError = false) {
+    const toast = document.createElement('div');
+    toast.style.cssText = [
+        'position: fixed',
+        'top: 20px',
+        'right: 20px',
+        'padding: 10px 15px',
+        'border-radius: 5px',
+        'z-index: 9999',
+        'font-size: 14px',
+        'box-shadow: 0 2px 5px rgba(0,0,0,0.2)',
+        isError ? 'background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb' : 'background: #d4edda; color: #155724; border: 1px solid #c3e6cb'
+    ].join(';');
+    toast.innerHTML = message;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, isError ? 5000 : 3000);
+}
+
+async function lookupPincode() {
+    const pincodeField = document.getElementById('pincode');
+    if (!pincodeField) return;
+
+    const p = pincodeField.value.trim();
+    if (!/^\d{6}$/.test(p)) return;
+    if (window.__lastCompanyPincodeLookup === p) return;
+
+    window.__lastCompanyPincodeLookup = p;
+
+    const stateField = document.getElementById('state');
+    const districtField = document.getElementById('district');
+    const areaField = document.getElementById('post_office');
+
+    const originalState = stateField ? stateField.value : '';
+    const originalDistrict = districtField ? districtField.value : '';
+    const originalArea = areaField ? areaField.value : '';
+
+    setSelectValue(stateField, 'Loading...');
+    setSelectValue(districtField, 'Loading...');
+    setSelectValue(areaField, 'Loading...');
+
+    try {
+        const response = await fetch('/api/pincode/lookup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ pincode: p })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            const err = new Error(data.error || 'Pincode lookup failed');
+            err.status = response.status;
+            throw err;
+        }
+
+        const firstPostOffice = Array.isArray(data.post_offices) && data.post_offices.length
+            ? data.post_offices[0].name
+            : '';
+
+        setSelectValue(stateField, data.state || '');
+        setSelectValue(districtField, data.district || '');
+        setSelectValue(areaField, firstPostOffice || '');
+
+        showPincodeToast(`Location found: ${data.state || ''}, ${data.district || ''}`);
+    } catch (err) {
+        setSelectValue(stateField, originalState);
+        setSelectValue(districtField, originalDistrict);
+        setSelectValue(areaField, originalArea);
+
+        let errorMessage = 'Unable to fetch pincode details. Please try again or enter manually.';
+        if (err.status === 404) {
+            errorMessage = 'Pincode not found. Please check the pincode and try again.';
+        } else if (err.status === 422) {
+            errorMessage = 'Invalid pincode format. Please enter a 6-digit pincode.';
+        }
+
+        showPincodeToast(errorMessage, true);
+    }
+}
+
+const pincodeInput = document.getElementById('pincode');
+if (pincodeInput) {
+    pincodeInput.addEventListener('blur', lookupPincode);
+
+    pincodeInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            lookupPincode();
+        }
+    });
+
+    let pincodeTimeout;
+    pincodeInput.addEventListener('input', function() {
+        window.__lastCompanyPincodeLookup = null;
+
+        if (pincodeTimeout) {
+            clearTimeout(pincodeTimeout);
+        }
+
+        const value = this.value.trim();
+        if (/^\d{6}$/.test(value)) {
+            pincodeTimeout = setTimeout(() => {
+                lookupPincode();
+            }, 250);
+        }
+    });
+}
+//end pincode lookup----------
+
 
 </script>
 

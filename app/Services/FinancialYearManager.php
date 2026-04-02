@@ -33,15 +33,26 @@ class FinancialYearManager
     private static function createFYForDate($date)
     {
         // Determine FY start based on date
-        if ($date->month >= 4) {
-            // April to March next year
-            $startYear = $date->year;
-            $endYear = $date->year + 1;
-        } else {
-            // January to March (previous FY)
-            $startYear = $date->year - 1;
-            $endYear = $date->year;
+        $startYear = $date->month >= 4 ? $date->year : $date->year - 1;
+        $endYear = $startYear + 1;
+        $startDate = Carbon::createFromDate($startYear, 4, 1);
+        $endDate = Carbon::createFromDate($endYear, 3, 31);
+        $fyName = $startYear . '-' . substr($endYear, -2);
+
+        // Prevent duplicate FY creation
+        $existingFY = FinancialYear::where('name', $fyName)->first();
+        if ($existingFY) {
+            return $existingFY;
         }
+
+        return FinancialYear::create([
+            'name' => $fyName,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'is_active' => false, // Will be activated separately
+            'current_year' => $startYear,
+            'year_format' => 'YY-YY'
+        ]);
         
         $startDate = Carbon::createFromDate($startYear, 4, 1);
         $endDate = Carbon::createFromDate($endYear, 3, 31);

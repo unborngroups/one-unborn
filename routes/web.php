@@ -15,6 +15,8 @@ use App\Http\Controllers\MenuController;
 use App\Http\Controllers\CompanySettingsController;
 use App\Http\Controllers\TaxInvoiceSettingsController;
 use App\Http\Controllers\FeasibilityStatusController;
+use App\Http\Controllers\Finance\EmailController;
+
 
 use App\Http\Controllers\Report\DeliverableController;
 
@@ -198,8 +200,9 @@ Route::patch('/users/{id}/toggle-status', [UserController::class, 'toggleStatus'
     Route::get('/vendors/{id}/view', [App\Http\Controllers\VendorController::class, 'view'])->name('vendors.view');
 
     // ⚙️ Settings Routes
-    Route::get('/company-settings', [CompanySettingsController::class, 'index'])->name('settings.company');
+   Route::get('/company-settings', [CompanySettingsController::class, 'index'])->name('settings.company');
     Route::put('/company-settings', [CompanySettingsController::class, 'update'])->name('company.settings.update');
+    Route::post('/finance/test-invoice-email', [PurchaseController::class, 'testInvoiceEmailConnection'])->name('finance.test-invoice-email');
     Route::get('/tax-invoice-settings', [TaxInvoiceSettingsController::class, 'index'])->name('settings.tax.invoice');
     Route::put('/tax-invoice-settings', [TaxInvoiceSettingsController::class, 'update'])->name('settings.tax.invoice.update');
     Route::get('/system-settings', [SystemSettingsController::class, 'index'])->name('settings.system');
@@ -553,6 +556,7 @@ Route::prefix('finance/sales-invoices')->name('finance.sales_invoices.')->group(
 
 Route::prefix('finance/purchases')->name('finance.purchases.')->group(function () {
     Route::get('/', [PurchaseController::class, 'index'])->name('index');
+    Route::get('/download-excel', [PurchaseController::class, 'downloadExcel'])->name('downloadExcel');
     Route::get('/{id}/show', [PurchaseController::class, 'show'])->name('show');
     Route::get('/{id}/edit', [PurchaseController::class, 'edit'])->name('edit');
     Route::get('/{id}/download-source-pdf', [PurchaseController::class, 'downloadSourcePdf'])->name('download-source-pdf');
@@ -571,6 +575,8 @@ Route::prefix('finance/purchases')->name('finance.purchases.')->group(function (
 
     // ✅ Manual Gmail IMAP fetch trigger
     Route::post('/fetch-gmail', [PurchaseController::class, 'fetchGmail'])->name('fetch-gmail');
+    // ✅ Test email connection
+     Route::post('/test-email', [PurchaseController::class, 'testInvoiceEmailConnection'])->name('test-email');
 
 });
 
@@ -713,3 +719,6 @@ Route::get('/fix-env', function () {
 
     return "✅ ENV and CONFIG refreshed successfully.";
 });
+
+// 📧 Test IMAP Email Fetch Route
+Route::get('/fetch-emails', [EmailController::class, 'fetchEmails']);

@@ -96,16 +96,15 @@ class FeasibilityController extends Controller
         }
         
         // Clients are always independent - show all clients to everyone
-        // $clients = Client::where('office_type', 'head')
-        //          ->orderBy('client_name')
-        //          ->get();
         $clients = Client::all();
+        // Get unique states from clients
+        $clientStates = Client::select('state')->distinct()->pluck('state')->filter();
 
         $makes     = MakeType::all();
         $models    = ModelType::all();
         // Use DeliverablePlan for circuit_id dropdown
         $deliverables_plans = \App\Models\DeliverablePlan::all();
-        return view('feasibility.create', compact('clients', 'companies', 'makes', 'models', 'deliverables_plans'));
+        return view('feasibility.create', compact('clients', 'companies', 'makes', 'models', 'deliverables_plans', 'clientStates'));
     }
 
     public function store(Request $request)
@@ -113,6 +112,7 @@ class FeasibilityController extends Controller
         $validated = $request->validate([
             'type_of_service' => 'required',
             'company_id' => 'required|exists:companies,id',
+            'client_state' => 'required|string',
             'client_id' => 'required',
             'link_type' => 'required|string',
             'delivery_company_name' => 'nullable|string',
@@ -270,6 +270,7 @@ public function sendCreatedEmail($feasibility)
         $validated = $request->validate([
             'type_of_service' => 'required',
             'company_id' => 'required|exists:companies,id',
+            'client_state' => 'required|string',
             'client_id' => 'required',
             'circuit_id' => 'nullable|string',
             'link_type' => 'required|string',

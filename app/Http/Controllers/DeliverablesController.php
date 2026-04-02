@@ -290,6 +290,7 @@ class DeliverablesController extends Controller
     
     public function operationsSave(Request $request, $id)
     {
+        set_time_limit(300); // 5 minutes
         
         // Validate
         $deliverable = Deliverables::findOrFail($id);
@@ -615,12 +616,20 @@ if (!$companySetting) {
             $company = $deliverable->feasibility->company_name;
 
             $to = is_string($to)
-    ? array_map('trim', preg_split('/[;,]/', $to))
-    : $to;
+                ? array_map('trim', preg_split('/[;,]/', $to))
+                : (array) $to;
 
-$cc = is_string($cc)
-    ? array_map('trim', preg_split('/[;,]/', $cc))
-    : $cc;
+            $cc = is_string($cc)
+                ? array_map('trim', preg_split('/[;,]/', $cc))
+                : (array) $cc;
+
+            $to = array_values(array_filter($to, function ($email) {
+                return is_string($email) && $email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL);
+            }));
+
+            $cc = array_values(array_filter($cc, function ($email) {
+                return is_string($email) && $email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL);
+            }));
 
     $templateKey = 'deliverable_delivered';
 
@@ -672,13 +681,23 @@ $cc = is_string($cc)
             // Log::info('Email template data', $templateData);
             $emailSent = false;
 
-if ($companySetting && $companySetting->delivery_email_check) {
-
-    Log::info('Delivery email enabled, sending mail');
-            try {
+            if ($companySetting && $companySetting->delivery_email_check) {
+                Log::info('Delivery email enabled, sending mail');
                 try {
-                    dispatch(function () use ($to, $templateKey, $templateData, $cc) {
-                        EmailHelper::sendDynamicEmail(
+                    if (empty($to)) {
+                        Log::warning('Delivery email skipped: no valid recipient', [
+                            'deliverable_id' => $deliverable->id,
+                            'raw_to' => $client->delivered_email ?? null,
+                            'raw_cc' => $client->delivered_cc ?? null,
+                        ]);
+                    } else {
+                        Log::info('Delivery email recipients prepared', [
+                            'deliverable_id' => $deliverable->id,
+                            'to' => $to,
+                            'cc' => $cc,
+                        ]);
+
+                        $emailSent = EmailHelper::sendDynamicEmail(
                             $to,
                             $templateKey,
                             $templateData,
@@ -686,16 +705,14 @@ if ($companySetting && $companySetting->delivery_email_check) {
                             null,
                             'delivery'
                         );
-                    });
+                    }
                 } catch (\Exception $e) {
-                    Log::error('Delivery email queue failed: ' . $e->getMessage());
+                    Log::error('Delivery email failed: ' . $e->getMessage());
+                    $emailSent = false;
                 }
-            } catch (\Exception $e) {
-                Log::error('Delivery email failed: ' . $e->getMessage());
+            } else {
+                Log::info('Delivery email disabled via settings');
             }
-} else {
-    Log::info('Delivery email disabled via settings');
-}
             // Auto-create renewal entry if not exists\
             $deliverable->load('deliverablePlans');
 

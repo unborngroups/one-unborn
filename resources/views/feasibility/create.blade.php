@@ -252,37 +252,48 @@ document.addEventListener('DOMContentLoaded', function() {
             @csrf
 
             <div class="row g-3" id="new_link_fields">
+
                 <!-- Feasibility ID -->
                 <div class="col-md-3">
-
                     <label class="form-label fw-semibold">Feasibility Request ID</label>
-
                     <input type="text" class="form-control bg-light" value="Auto-generated" readonly>
-
-                    <!-- <small class="text-muted">ID will be generated automatically when saved</small> -->
-
                 </div>
+
                 <!-- Type Of Service -->
-
                 <div class="col-md-3">
-
                     <label class="form-label fw-semibold">Type of Service <span class="text-danger">*</span></label>
-
                     @php $typeSelection = old('type_of_service', $importRow['type_of_service'] ?? ''); @endphp
                     <select name="type_of_service" id="type_of_service" class="form-select" required>
-
                         <option value="" {{ $typeSelection === '' ? 'selected' : '' }}>Select</option>
-
                         <option value="Broadband" {{ $typeSelection === 'Broadband' ? 'selected' : '' }}>Broadband</option>
-
                         <option value="ILL" {{ $typeSelection === 'ILL' ? 'selected' : '' }}>ILL</option>
-
                         <option value="P2P" {{ $typeSelection === 'P2P' ? 'selected' : '' }}>P2P</option>
-
                     </select>
-
                 </div>
-                <!-- Company Name -->
+
+                <!-- Client State Dropdown -->
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Client State <span class="text-danger">*</span></label>
+                    <select name="client_state" id="client_state" class="form-select" required>
+                        <option value="">Select State</option>
+                        @foreach($clientStates as $state)
+                            <option value="{{ $state }}">{{ $state }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Client Name Dropdown -->
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Client Name <span class="text-danger">*</span></label>
+                    <select name="client_id" id="client_id" class="form-select" required>
+                        <option value="">Select Client</option>
+                        @foreach($clients as $client)
+                            <option value="{{ $client->id }}" data-state="{{ $client->state }}">{{ $client->client_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                 <!-- Company Name -->
 
                 <div class="col-md-3">
 
@@ -295,25 +306,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         @foreach($companies as $company)
 
                             <option value="{{ $company->id }}" {{ (string) old('company_id', $importRow['company_id'] ?? '') === (string) $company->id ? 'selected' : '' }}>{{ $company->company_name }}</option>
-
-                        @endforeach
-
-                    </select>
-
-                </div>
-
-                <!-- Client Name -->
-                <div class="col-md-3">
-
-                    <label class="form-label fw-semibold">Client Name <span class="text-danger">*</span></label>
-
-                    <select name="client_id" id="client_id" class="form-select" required>
-
-                        <option value="">Select Client</option>
-
-                        @foreach($clients as $client)
-
-                            <option value="{{ $client->id }}" {{ (string) old('client_id', $importRow['client_id'] ?? '') === (string) $client->id ? 'selected' : '' }}>{{ $client->business_name ?: $client->client_name }} ({{ $client->state }})</option>
 
                         @endforeach
 
@@ -477,6 +469,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">Vendor Type <span class="text-danger">*</span></label>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const stateSelect = document.getElementById('client_state');
+    const clientSelect = document.getElementById('client_id');
+    const allOptions = Array.from(clientSelect.options);
+
+    stateSelect.addEventListener('change', function() {
+        const selectedState = this.value;
+        clientSelect.innerHTML = '<option value="">Select Client</option>';
+        allOptions.forEach(option => {
+            if (!option.value) return; // skip placeholder
+            if (option.getAttribute('data-state') === selectedState) {
+                clientSelect.appendChild(option.cloneNode(true));
+            }
+        });
+    });
+});
+</script>
                     @php $vendorTypeValue = old('vendor_type', $importRow['vendor_type'] ?? ''); @endphp
                       
                     <select name="vendor_type" class="form-select" required>
@@ -1009,7 +1020,7 @@ function setSelectValue(selectElement, value) {
 
 }
 
-// Pincode lookup function
+// Pincode lookup function start
 
 function lookupPincode() {
 

@@ -981,7 +981,7 @@
                         <li>
                             <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/purchases*') ? 'active' : ''); ?>"
                                href="<?php echo e(route('finance.purchases.index')); ?>">
-                                Purchase Invoices
+                                Auto Invoice Processing
                             </a>
                         </li>
 
@@ -990,10 +990,18 @@
                 <a class="nav-link text-white menu-item 
                     <?php echo e(request()->is('finance/purchase-invoices*') ? 'active' : ''); ?>"
                    href="<?php echo e(route('finance.purchase_invoices.index')); ?>">
-                    Auto Invoice Processing
+                    Purchase Invoices
                 </a>
             </li>
-            
+
+             
+            <li>
+                <a class="nav-link text-white menu-item 
+                    <?php echo e(request()->is('finance/purchases/download-excel') ? 'active' : ''); ?>"
+                   href="<?php echo e(route('finance.purchases.downloadExcel')); ?>">
+                    Excel Download
+                </a>
+            </li>
                     </ul>
                 </details>
             </li>

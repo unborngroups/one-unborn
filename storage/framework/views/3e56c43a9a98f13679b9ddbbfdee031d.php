@@ -296,7 +296,7 @@
 .inv-wrapper * { box-sizing: border-box; }
 
 .inv-wrapper {
-    max-width: 980px;
+    max-width: 780px;
     margin: 20px auto;
     padding: 0 12px;
     font-family: Arial, Helvetica, sans-serif;

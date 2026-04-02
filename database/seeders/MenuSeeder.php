@@ -62,13 +62,14 @@ class MenuSeeder extends Seeder
             ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Accounts', 'sub_section' => null , 'route' => 'finance.accounts.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Banking', 'sub_section' => null , 'route' => 'finance.banking.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Purchases', 'sub_section' => null , 'route' => 'finance.purchases.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
+            // Purchases Excel Download submenu
+            ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Purchases', 'sub_section' => 'Purchases Excel Download', 'route' => 'finance.purchases.downloadExcel', 'icon' => 'bi bi-file-earmark-excel', 'can_add' => 0, 'can_edit' => 0, 'can_delete' => 0, 'can_view' => 1],
             ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Reports', 'sub_section' => null , 'route' => 'finance.reports.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Settings', 'sub_section' => null , 'route' => 'finance.settings.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Invoice', 'sub_section' => null , 'route' => 'finance.invoice.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Items', 'sub_section' => null , 'route' => 'finance.items.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Sales', 'sub_section' => null , 'route' => 'finance.sales.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             
-
             // compliance Module
             ['module_name' => 'Compliance', 'user_type' => 'superadmin', 'name' => 'Compliance', 'sub_section' => null , 'route' => 'compliance.index', 'icon' => 'bi bi-file-shield', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
 

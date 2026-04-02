@@ -969,7 +969,7 @@
             @endif
 
 
-            {{-- PURCHASES --}}
+            {{-- Auto Invoice Processing --}}
             @if($purchase && $purchase->can_menu)
             <li>
                 <details {{ request()->is('finance/purchases*') || request()->is('finance/vendors*') ? 'open' : '' }}>
@@ -981,19 +981,27 @@
                         <li>
                             <a class="nav-link text-white menu-item {{ request()->is('finance/purchases*') ? 'active' : '' }}"
                                href="{{ route('finance.purchases.index') }}">
-                                Purchase Invoices
+                                Auto Invoice Processing
                             </a>
                         </li>
 
-                        {{-- Automated Purchase --}}
+                        {{-- Purchase Invoices--}}
             <li>
                 <a class="nav-link text-white menu-item 
                     {{ request()->is('finance/purchase-invoices*') ? 'active' : '' }}"
                    href="{{ route('finance.purchase_invoices.index') }}">
-                    Auto Invoice Processing
+                    Purchase Invoices
                 </a>
             </li>
-            
+
+             {{--  Purchase Excel Download --}}
+            <li>
+                <a class="nav-link text-white menu-item 
+                    {{ request()->is('finance/purchases/download-excel') ? 'active' : '' }}"
+                   href="{{ route('finance.purchases.downloadExcel') }}">
+                    Excel Download
+                </a>
+            </li>
                     </ul>
                 </details>
             </li>

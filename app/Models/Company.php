@@ -20,6 +20,7 @@ class Company extends Model
         'user_name',
         'trade_name',
         'company_name',
+        'short_name',
         'business_number',
         
 
@@ -32,6 +33,7 @@ class Company extends Model
 
         // 🏢 Address & Registration
         'gstin',
+        'msme_id',
         'pan_number',
         'address',
 

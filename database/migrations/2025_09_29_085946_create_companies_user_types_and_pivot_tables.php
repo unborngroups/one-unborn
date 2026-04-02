@@ -18,8 +18,9 @@ return new class extends Migration
             $table->string('company_logo')->nullable();
             $table->string('trade_name')->nullable();              // Trade/Brand Name
             $table->string('company_name');                        // Company Name
+            $table->string('short_name')->nullable();
             $table->string('business_number')->nullable();               // Business Number (CIN / LLPIN)
-            $table->string('user_name')->nullable();                   // User Name
+            $table->string('user_name')->nullable();                 // User Name
 
             // ☎️ Contact Details
             $table->string('company_phone')->nullable();           // Company Phone (landline)
@@ -30,6 +31,7 @@ return new class extends Migration
 
             // 🏢 Address & Registration
             $table->string('gstin')->nullable();                  // GSTIN (fetched via API)
+            $table->string('msme_id')->nullable();
             $table->string('pan_number')->nullable();              // PAN Number
             $table->text('address')->nullable();                   // Address (fetched or typed manually)
 

@@ -35,6 +35,7 @@ class Feasibility extends Model
         'feasibility_request_id',
         'type_of_service',
         'company_id',
+        'client_state',
         'client_id',
         'circuit_id',
         'link_type',

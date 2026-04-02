@@ -272,9 +272,17 @@ ADD COLUMN `tunnel_password` VARCHAR(100) NULL AFTER `tunnel_username`;
     
 
     -- update pannanu---------------------------------------
-   
-    ALTER TABLE purchase_orders 
-    MODIFY feasibility_require_id BIGINT NULL;
 
     ALTER TABLE company_settings
     ADD COLUMN invoice_mail_read_days INT DEFAULT 0 AFTER invoice_mail_signature;
+
+ALTER TABLE companies
+ ADD COLUMN short_name VARCHAR(50) NULL AFTER trade_name,
+ ADD COLUMN msme_id VARCHAR(50) NULL  AFTER gstin,
+ ADD COLUMN pincode VARCHAR(50) NULL AFTER pan_number,
+ ADD COLUMN state VARCHAR(50) NULL  AFTER pincode,
+ ADD COLUMN district VARCHAR(50) NULL AFTER state,
+ ADD COLUMN area VARCHAR(50) NULL AFTER district;
+
+ ALTER TABLE feasibilities
+ ADD COLUMN client_state VARCHAR(50) NULL AFTER company_id;

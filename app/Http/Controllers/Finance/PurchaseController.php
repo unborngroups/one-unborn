@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Exports\PurchasesExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PurchaseController extends Controller
 {
@@ -38,7 +40,9 @@ class PurchaseController extends Controller
 
         $purchasesQuery = PurchaseInvoice::with(['vendor', 'deliverable.feasibility.client'])->latest();
         $fromDate = now()->subDays($mailReadDays)->startOfDay();
-        $purchasesQuery->where('created_at', '>=', $fromDate);
+        $purchasesQuery->where('created_at', '>=', $fromDate)
+            // Keep newly auto-imported draft invoices only in Auto Invoice Processing.
+            ->where('status', '!=', 'draft');
 
         $purchases = $purchasesQuery->get();
 
@@ -77,7 +81,7 @@ class PurchaseController extends Controller
                 '--recent' => true,
                 '--days' => $mailReadDays,
             ]);
-            Cache::put($cooldownKey, 1, now()->addSeconds(120));
+            Cache::put($cooldownKey, 1, now()->addMinutes(1)); // 1 minute cooldown after completion
         } catch (\Throwable $e) {
             Log::warning('Auto Gmail invoice fetch failed on purchases index.', ['error' => $e->getMessage()]);
         } finally {
@@ -1047,6 +1051,11 @@ private function updateImage($request, $oldFile, $field, $folder)
             'notes'        => $request->notes,
         ]);
 
+        // Once draft invoice is reviewed/updated, move it to the next workflow stage.
+        if (strtolower((string) $invoice->status) === 'draft') {
+            $invoice->update(['status' => 'needs_review']);
+        }
+
         return redirect()
             ->route('finance.purchase_invoices.show', $id)
             ->with('success', 'Invoice details updated successfully.');
@@ -1293,7 +1302,7 @@ private function extractAmount($text, $keyword)
 private function extractGSTNumber($text)
 {
     // GST Pattern: 2 digits (state) + 5 letters (PAN) + 4 digits + 1 letter + 1 checksum + 1 check digit
-    $pattern = '/\b\d{2}[A-Z]{5}\d{4}[A-Z1-9][A-Z][0-9]\d\b/';
+    $pattern = '/\b\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z0-9]{1}Z[A-Z0-9]{1}$/';
     
     preg_match($pattern, $text, $matches);
 
@@ -1463,5 +1472,90 @@ public function fetchGmail(Request $request)
             ->with('error', 'Gmail fetch failed: ' . $e->getMessage());
     }
 }
+
+/**
+ * Test Email Connection for Invoice Import
+ */
+public function testInvoiceEmailConnection(Request $request)
+{
+    if (!function_exists('imap_open')) {
+        return response()->json([
+            'success' => false,
+            'message' => 'PHP IMAP extension not enabled. Enable php_imap in php.ini'
+        ], 500);
+    }
+
+    try {
+        $companySetting = CompanySetting::query()->first();
+        if (!$companySetting || !$companySetting->invoice_mail_host) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invoice email settings not configured in Company Settings'
+            ], 400);
+        }
+
+        $host = $companySetting->invoice_mail_host;
+        $username = $companySetting->invoice_mail_username;
+        $password = $companySetting->invoice_mail_password;
+        $port = $companySetting->invoice_mail_port ?? 993;
+        $encryption = $companySetting->invoice_mail_encryption ?? 'ssl';
+
+        if (!$host || !$username || !$password) {
+            return response()->json([
+                'success' => false,
+                'message' => 'SMTP Server, Email Account, or Password is missing'
+            ], 400);
+        }
+
+        // Build IMAP connection string
+        $imapPath = '{' . $host . ':' . $port . '/' . $encryption . '}INBOX';
+
+        // Try to connect
+        $inbox = @imap_open($imapPath, $username, $password, OP_HALFOPEN);
+
+        if (!$inbox) {
+            $error = imap_last_error() ?: 'Unknown IMAP connection error';
+            return response()->json([
+                'success' => false,
+                'message' => 'IMAP Connection Failed: ' . $error
+            ], 500);
+        }
+
+        // Get mailbox info
+        $mailboxInfo = imap_mailboxmsginfo($inbox);
+        $emailCount = $mailboxInfo->Nmsgs ?? 0;
+
+        imap_close($inbox);
+
+        return response()->json([
+            'success' => true,
+            'message' => '✅ Connection successful! Found ' . $emailCount . ' email(s) in mailbox'
+        ]);
+
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+/**
+ * Download purchases as Excel
+ */
+    public function downloadExcel(Request $request)
+    {
+        $purchases = PurchaseInvoice::with('vendor')->get();
+        $records = $purchases->map(function ($purchase) {
+            return (object) [
+                'vendor_name' => optional($purchase->vendor)->vendor_name ?? $purchase->vendor_name ?? '',
+                'vendor_bank_account' => optional($purchase->vendor)->bank_account ?? '',
+                'vendor_ifsc' => optional($purchase->vendor)->ifsc_code ?? '',
+                'amount' => $purchase->total_amount ?? $purchase->grand_total ?? $purchase->amount ?? '',
+                'invoice_no' => $purchase->invoice_no ?? '',
+            ];
+        });
+        return Excel::download(new PurchasesExport($records), 'purchases.xlsx');
+    }
 
 }

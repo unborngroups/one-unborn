@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Models\EmailTemplate;
 use Illuminate\Support\Facades\Config;
-use App\Models\Company;
+use App\Models\CompanySetting;
 
 class EmailHelper
 {
@@ -41,7 +41,10 @@ class EmailHelper
      */
     public static function sendDynamicEmail($to, $templateKey, $data = [], $cc = null, $from = null, $mailType = 'main')
     {
-        self::setMailConfig($mailType);
+        if (!self::setMailConfig($mailType)) {
+            Log::error('Dynamic mail config failed', ['mail_type' => $mailType]);
+            return false;
+        }
         // Fetch template from DB or config
         $template = self::getTemplate($templateKey);
         if (!$template) {
@@ -55,10 +58,10 @@ class EmailHelper
         $subject = self::parseTemplate($template->subject, $dataForTemplate);
 
         try {
-            Mail::send([], [], function ($message) use ($to, $cc, $from, $subject, $dataForTemplate, $template, $inlineAttachments) {
+            Mail::html('', function ($message) use ($to, $cc, $from, $subject, $dataForTemplate, $template, $inlineAttachments) {
                 $message->to($to)
                     ->subject($subject);
-                    // ->html('');
+
                 if ($cc) {
                     $message->cc($cc);
                 }
@@ -77,6 +80,17 @@ class EmailHelper
                 // Replace image URLs in template body with CIDs if present
                 $bodyData = array_merge($dataForTemplate, $inlineCids);
                 $body = self::parseTemplate($template->body, $bodyData);
+
+                // Some templates are stored with escaped HTML in DB; decode before send.
+                $body = html_entity_decode((string) $body, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+                // Replace any original URL placeholders with cid when present.
+                foreach ($inlineCids as $field => $cid) {
+                    $original = (string) ($dataForTemplate[$field] ?? '');
+                    if ($original !== '') {
+                        $body = str_replace($original, $cid, $body);
+                    }
+                }
                 // if (!empty($inlineCids)) {
                 //     foreach ($inlineCids as $field => $cid) {
                 //         // Replace src="...field..." with src="cid:..."
@@ -101,43 +115,45 @@ class EmailHelper
 
 private static function setMailConfig($type = 'main')
 {
-    $company = Company::with('settings')->first();
-    if (!$company || !$company->settings) {
-        Log::error('Company or Company settings missing');
+    $s = CompanySetting::query()
+        ->orderByDesc('is_default')
+        ->orderBy('id')
+        ->first();
+
+    if (!$s) {
+        Log::error('Company settings missing');
         return false;
     }
 
-    $s = $company->settings;
-
     switch ($type) {
         case 'delivery':
-            $host = $s->delivery_mail_host;
-            $username = $s->delivery_mail_username;
-            $password = $s->delivery_mail_password;
-            $port = $s->delivery_mail_port;
-            $encryption = $s->delivery_mail_encryption;
-            $fromAddress = $s->delivery_mail_from_address;
-            $fromName = $s->delivery_mail_from_name ?? 'Unborn';
+            $host = $s->delivery_mail_host ?: $s->mail_host ?: env('MAIL_HOST');
+            $username = $s->delivery_mail_username ?: $s->mail_username ?: env('MAIL_USERNAME');
+            $password = $s->delivery_mail_password ?: $s->mail_password ?: env('MAIL_PASSWORD');
+            $port = $s->delivery_mail_port ?: $s->mail_port ?: env('MAIL_PORT');
+            $encryption = $s->delivery_mail_encryption ?: $s->mail_encryption ?: env('MAIL_ENCRYPTION', 'tls');
+            $fromAddress = $s->delivery_mail_from_address ?: $s->mail_from_address ?: env('MAIL_FROM_ADDRESS');
+            $fromName = $s->delivery_mail_from_name ?: $s->mail_from_name ?: env('MAIL_FROM_NAME', 'Unborn');
             break;
 
         case 'invoice':
-            $host = $s->invoice_mail_host;
-            $username = $s->invoice_mail_username;
-            $password = $s->invoice_mail_password;
-            $port = $s->invoice_mail_port;
-            $encryption = $s->invoice_mail_encryption;
-            $fromAddress = $s->invoice_mail_from_address;
-            $fromName = $s->invoice_mail_from_name ?? 'Unborn';
+            $host = $s->invoice_mail_host ?: $s->mail_host ?: env('MAIL_HOST');
+            $username = $s->invoice_mail_username ?: $s->mail_username ?: env('MAIL_USERNAME');
+            $password = $s->invoice_mail_password ?: $s->mail_password ?: env('MAIL_PASSWORD');
+            $port = $s->invoice_mail_port ?: $s->mail_port ?: env('MAIL_PORT');
+            $encryption = $s->invoice_mail_encryption ?: $s->mail_encryption ?: env('MAIL_ENCRYPTION', 'tls');
+            $fromAddress = $s->invoice_mail_from_address ?: $s->mail_from_address ?: env('MAIL_FROM_ADDRESS');
+            $fromName = $s->invoice_mail_from_name ?: $s->mail_from_name ?: env('MAIL_FROM_NAME', 'Unborn');
             break;
 
         default:
-            $host = $s->mail_host;
-            $username = $s->mail_username;
-            $password = $s->mail_password;
-            $port = $s->mail_port;
-            $encryption = $s->mail_encryption;
-            $fromAddress = $s->mail_from_address;
-            $fromName = $s->mail_from_name ?? 'Unborn';
+            $host = $s->mail_host ?: env('MAIL_HOST');
+            $username = $s->mail_username ?: env('MAIL_USERNAME');
+            $password = $s->mail_password ?: env('MAIL_PASSWORD');
+            $port = $s->mail_port ?: env('MAIL_PORT');
+            $encryption = $s->mail_encryption ?: env('MAIL_ENCRYPTION', 'tls');
+            $fromAddress = $s->mail_from_address ?: env('MAIL_FROM_ADDRESS');
+            $fromName = $s->mail_from_name ?: env('MAIL_FROM_NAME', 'Unborn');
     }
 
     if (!$host || !$username || !$password || !$port || !$fromAddress) {
@@ -155,6 +171,7 @@ private static function setMailConfig($type = 'main')
         'mail.mailers.smtp.encryption' => strtolower($encryption),
         'mail.mailers.smtp.username' => $username,
         'mail.mailers.smtp.password' => $password,
+        'mail.mailers.smtp.timeout' => 20,
         'mail.from.address' => $fromAddress,
         'mail.from.name' => $fromName,
     ]);
