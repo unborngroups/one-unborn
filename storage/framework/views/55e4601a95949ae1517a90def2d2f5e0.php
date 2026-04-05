@@ -22,27 +22,12 @@
     <?php endif; ?>
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">Purchase Invoice Automation</h4>
+        <h2 class="mb-0">Purchase Invoices</h2>
 
-        <div>
-            <a href="<?php echo e(route('finance.purchase_invoices.index', ['status' => 'needs_review'])); ?>"
-               class="btn btn-warning btn-sm">
-                Needs Review
-            </a>
-
-            <a href="<?php echo e(route('finance.purchase_invoices.index', ['status' => 'verified'])); ?>"
-               class="btn btn-info btn-sm">
-                Verified
-            </a>
-
-            <a href="<?php echo e(route('finance.purchase_invoices.index', ['status' => 'approved'])); ?>"
-               class="btn btn-success btn-sm">
-                Approved
-            </a>
-
-            <a href="<?php echo e(route('finance.purchase_invoices.index', ['status' => 'paid'])); ?>"
-               class="btn btn-dark btn-sm">
-                Paid
+        <div class="d-flex gap-2 align-items-center">
+            <a href="<?php echo e(route('finance.purchases.create')); ?>"
+               class="btn btn-sm btn-info p-2 text-white">
+                <h2 class="mb-0">+ create invoice</h2>
             </a>
         </div>
     </div>
@@ -51,17 +36,17 @@
         <div class="card-body table-responsive">
 
             <table class="table table-bordered table-hover align-middle">
-                <thead class="table-light">
+                <thead class="table-dark-primary">
                     <tr>
                         <th>#</th>
+                        <th>Invoice No</th>
                         <th>Vendor</th>
                         <th>GSTIN</th>
-                        <th>Invoice No</th>
                         <th>Date</th>
                         <th>Total</th>
-                        <th>Confidence</th>
+                        <th>Accuracy</th>
                         <th>Status</th>
-                        <th width="180">Action</th>
+                        <th width="250">Action</th>
                     </tr>
                 </thead>
 
@@ -71,13 +56,23 @@
                             <td><?php echo e($loop->iteration); ?></td>
 
                             <td>
-                                <?php echo e(optional($invoice->vendor)->vendor_name ?? $invoice->vendor_name_raw ?? $invoice->vendor_name ?? '-'); ?>
+                                <?php
+                                    $invoiceNoDisplay = trim((string) ($invoice->invoice_no ?? ''));
+                                    $rawInvoiceNo = trim((string) data_get($invoice->raw_json, 'invoice_number', ''));
+                                    if ($invoiceNoDisplay !== '' && str_starts_with(strtoupper($invoiceNoDisplay), 'GMAIL-') && $rawInvoiceNo !== '') {
+                                        $invoiceNoDisplay = $rawInvoiceNo;
+                                    }
+                                ?>
+                                <?php echo e($invoiceNoDisplay !== '' ? $invoiceNoDisplay : '-'); ?>
+
+                            </td>
+
+                            <td>
+                                <?php echo e(data_get($invoice->raw_json, 'vendor_name') ?? $invoice->vendor_name_raw ?? $invoice->vendor_name ?? optional($invoice->vendor)->vendor_name ?? '-'); ?>
 
                             </td>
 
                             <td><?php echo e($invoice->gstin ?? $invoice->gst_number ?? $invoice->vendor_gstin ?? '-'); ?></td>
-
-                            <td><?php echo e($invoice->invoice_no ?? $invoice->invoice_number ?? '-'); ?></td>
 
                             <td>
                                 <?php echo e($invoice->invoice_date
@@ -89,16 +84,28 @@
                             <td>₹ <?php echo e(number_format($invoice->total_amount ?? $invoice->grand_total ?? $invoice->amount ?? 0, 2)); ?></td>
 
                             <td>
-                                <span class="badge 
-                                    <?php if($invoice->confidence_score >= 80): ?>
-                                        bg-success
-                                    <?php elseif($invoice->confidence_score >= 50): ?>
-                                        bg-warning
-                                    <?php else: ?>
-                                        bg-danger
-                                    <?php endif; ?>">
-                                    <?php echo e($invoice->confidence_score); ?>%
-                                </span>
+                                <?php
+                                    $accuracy = $invoice->confidence_score;
+
+                                    if ((is_null($accuracy) || (float) $accuracy <= 0) && is_array($invoice->raw_json)) {
+                                        $accuracy = data_get($invoice->raw_json, 'matching.combined_confidence');
+                                    }
+                                ?>
+
+                                <?php if(!is_null($accuracy) && (float) $accuracy > 0): ?>
+                                    <span class="badge 
+                                        <?php if($accuracy >= 80): ?>
+                                            bg-success
+                                        <?php elseif($accuracy >= 50): ?>
+                                            bg-warning text-dark
+                                        <?php else: ?>
+                                            bg-danger
+                                        <?php endif; ?>">
+                                        <?php echo e(rtrim(rtrim(number_format($accuracy, 2), '0'), '.')); ?>%
+                                    </span>
+                                <?php else: ?>
+                                    <span class="text-muted">-</span>
+                                <?php endif; ?>
                             </td>
 
                             <td>
@@ -119,13 +126,13 @@
                             <td>
 
                                 <a href="<?php echo e(route('finance.purchase_invoices.show', $invoice->id)); ?>"
-                                   class="btn btn-primary btn-sm">
-                                    View
+                                   class="btn btn-sm btn-info">
+                                    <i class="bi bi-eye"></i>
                                 </a>
 
                                 <a href="<?php echo e(route('finance.purchase_invoices.edit', $invoice->id)); ?>"
-                                   class="btn btn-warning btn-sm">
-                                    Edit
+                                   class="btn btn-sm btn-warning">
+                                    <i class="bi bi-pencil-square"></i>
                                 </a>
 
                                 <?php if($invoice->status == 'needs_review'): ?>
@@ -133,8 +140,8 @@
                                           method="POST"
                                           class="d-inline">
                                         <?php echo csrf_field(); ?>
-                                        <button class="btn btn-info btn-sm">
-                                            Verify
+                                        <button class="btn btn-sm btn-info">
+                                            <i class="bi bi-check2-square"></i>
                                         </button>
                                     </form>
                                 <?php endif; ?>
@@ -144,8 +151,8 @@
                                           method="POST"
                                           class="d-inline">
                                         <?php echo csrf_field(); ?>
-                                        <button class="btn btn-success btn-sm">
-                                            Approve
+                                        <button class="btn btn-sm btn-success">
+                                            <i class="bi bi-check-circle"></i>
                                         </button>
                                     </form>
                                 <?php endif; ?>
@@ -155,8 +162,8 @@
                                           method="POST"
                                           class="d-inline">
                                         <?php echo csrf_field(); ?>
-                                        <button class="btn btn-dark btn-sm">
-                                            Mark Paid
+                                        <button class="btn btn-sm btn-dark">
+                                            <i class="bi bi-cash-stack"></i>
                                         </button>
                                     </form>
                                 <?php endif; ?>
@@ -166,7 +173,7 @@
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
                             <td colspan="9" class="text-center">
-                                No invoices found.
+                                No Purchase Invoices Found.
                             </td>
                         </tr>
                     <?php endif; ?>

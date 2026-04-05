@@ -16,6 +16,7 @@ use App\Http\Controllers\CompanySettingsController;
 use App\Http\Controllers\TaxInvoiceSettingsController;
 use App\Http\Controllers\FeasibilityStatusController;
 use App\Http\Controllers\Finance\EmailController;
+use App\Http\Controllers\ReportDashboardController;
 
 
 use App\Http\Controllers\Report\DeliverableController;
@@ -152,8 +153,10 @@ Route::middleware(['auth'])->group(function () {
 //
 Route::middleware(['auth', \App\Http\Middleware\CheckProfileCreated::class])->group(function () {
     // 🏠 Dashboard
-Route::get('/welcome', [DashboardController::class, 'index'])->name('welcome');
-
+    Route::get('/welcome', [DashboardController::class, 'index'])->name('welcome');
+    Route::get('/report-dashboard', [ReportDashboardController::class, 'index'])->name('report_dashboard');
+    // AJAX: Dashboard filtered table
+    Route::get('/report-dashboard/table', [ReportDashboardController::class, 'table'])->name('report_dashboard.table');
     //     // 👤 Users (Privilege control)
     // 👤 User routes (Privilege controlled)
 Route::get('users', [UserController::class, 'index'])->middleware(\App\Http\Middleware\CheckPrivilege::class .':view')->name('users.index');
@@ -236,7 +239,6 @@ Route::post('/menus/usertype-privileges/{userTypeId}', [MenuController::class, '
 Route::resource('usertypetable', UserTypeController::class);
 Route::patch('/usertypetable/{id}/toggle-status', [UserTypeController::class, 'toggleStatus'])->name('usertypetable.toggle-status');
 
-// 🏢 Company Config + Status
 Route::patch('/companies/{company}/toggle-status', [CompanyController::class, 'toggleStatus'])->name('companies.toggle-status');
 Route::get('/companies/{id}/email-config', [CompanyController::class, 'emailConfig'])->name('companies.email.config');
 Route::post('/companies/{id}/email-config', [CompanyController::class, 'saveEmailConfig'])->name('companies.save.email.config');
@@ -297,6 +299,8 @@ Route::get('/test-email', function () {
     Route::get('/operations/feasibility/notfeasible', [FeasibilityStatusController::class, 'operationsNotFeasibleList'])->name('operations.feasibility.notfeasible.list');
     Route::get('/operations/feasibility/inprogress', [FeasibilityStatusController::class, 'operationsInProgress'])->name('operations.feasibility.inprogress');
     Route::get('/operations/feasibility/closed', [FeasibilityStatusController::class, 'operationsClosed'])->name('operations.feasibility.closed');
+
+}); // <-- Close the main middleware group here
     Route::get('/operations/feasibility/{id}/view', [FeasibilityStatusController::class, 'operationsView'])->name('operations.feasibility.view');
     Route::get('/operations/feasibility/{id}/edit', [FeasibilityStatusController::class, 'operationsEdit'])->name('operations.feasibility.edit');
     Route::post('/operations/feasibility/{id}/save', [FeasibilityStatusController::class, 'operationsSave'])->name('operations.feasibility.save');
@@ -544,7 +548,11 @@ Route::prefix('finance/sales')->name('finance.sales.')->group(function () {
     Route::get('/{id}/print', [SalesController::class, 'print'])->name('print');
     Route::post('/finance/sales/{id}/submit',[SalesController::class,'submit'])->name('finance.sales.submit');
 });
-
+// Recurring Invoice
+Route::prefix('finance/sales/recurring-invoice')->name('finance.sales.recurring-invoice.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Finance\RecurringInvoiceController::class, 'index'])->name('index');
+    // Add more routes as needed (create, edit, etc.)
+});
 
 Route::prefix('finance/sales-invoices')->name('finance.sales_invoices.')->group(function () {
     Route::get('/', [SalesController::class, 'index'])->name('index');
@@ -555,8 +563,12 @@ Route::prefix('finance/sales-invoices')->name('finance.sales_invoices.')->group(
 });
 
 Route::prefix('finance/purchases')->name('finance.purchases.')->group(function () {
+        // Export selected or all purchases to Excel
+        Route::post('/export-excel', [PurchaseController::class, 'exportExcel'])->name('exportExcel');
     Route::get('/', [PurchaseController::class, 'index'])->name('index');
     Route::get('/download-excel', [PurchaseController::class, 'downloadExcel'])->name('downloadExcel');
+    // New: Excel Table Page (not download)
+    Route::get('/excel-download-page', [PurchaseController::class, 'excelDownloadPage'])->name('excelDownloadPage');
     Route::get('/{id}/show', [PurchaseController::class, 'show'])->name('show');
     Route::get('/{id}/edit', [PurchaseController::class, 'edit'])->name('edit');
     Route::get('/{id}/download-source-pdf', [PurchaseController::class, 'downloadSourcePdf'])->name('download-source-pdf');
@@ -598,60 +610,13 @@ Route::prefix('report/deliverable')->name('report.deliverable.')->group(function
     Route::post('download-excel', [DeliverableController::class, 'downloadExcel'])->name('downloadExcel');
 });
 
-//time log report 
-
-// Pincode Lookup
-
-    // 🧪 Debug route to test user type privilege system
-    Route::get('/debug-privileges', function () {
-        $user = Auth::user();
-        if (!$user) {
-            return response()->json(['error' => 'No authenticated user']);
-        }
-        
-        // Test permission checks for key menus
-        $manageUsersPermission = \App\Helpers\TemplateHelper::getUserMenuPermissions('Manage User');
-        $dashboardPermission = \App\Helpers\TemplateHelper::getUserMenuPermissions('Dashboard');
-        $feasibilityPermission = \App\Helpers\TemplateHelper::getUserMenuPermissions('Feasibility Master');
-        
-        // Get privilege counts
-        $userPrivCount = \App\Models\UserMenuPrivilege::where('user_id', $user->id)->count();
-        $userTypePrivCount = \App\Models\UserTypeMenuPrivilege::where('user_type_id', $user->user_type_id)->count();
-        
-        return response()->json([
-            'user_info' => [
-                'name' => $user->name,
-                'user_type' => $user->userType->name ?? 'No type',
-                'user_type_id' => $user->user_type_id
-            ],
-            'privilege_counts' => [
-                'individual_user_privileges' => $userPrivCount,
-                'user_type_privileges' => $userTypePrivCount
-            ],
-            'permission_tests' => [
-                'manage_users' => $manageUsersPermission,
-                'dashboard' => $dashboardPermission,
-                'feasibility_master' => $feasibilityPermission
-            ],
-            'test_info' => [
-                'description' => 'Testing user type privilege fallback system',
-                'expected_behavior' => 'Should show permissions based on user type when no individual privileges exist',
-                'note' => 'Individual user privilege button has been commented out in users/index.blade.php'
-            ]
-        ]);
-    })->name('debug.privileges');
-
-    // Fallback route to handle undefined routes
-    Route::fallback(function () {
-        return redirect('/welcome');
-    });
 
 
 
-    
-}
-
-);
+// Fallback route to handle undefined routes (should be last, outside all groups)
+Route::fallback(function () {
+    return redirect('/welcome');
+});
 
 
 

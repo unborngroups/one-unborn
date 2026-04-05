@@ -8,6 +8,8 @@ use App\Models\VendorLearningLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\middleware;
 
 class PurchaseInvoiceController extends Controller
 {
@@ -69,7 +71,7 @@ class PurchaseInvoiceController extends Controller
 
             DB::commit();
 
-            Log::info('Invoice verified: ' . $id . ' by user: ' . auth()->id());
+            Log::info('Invoice verified: ' . $id . ' by user: ' . Auth::id());
 
             return response()->json([
                 'success' => true,
@@ -105,7 +107,7 @@ class PurchaseInvoiceController extends Controller
 
             DB::commit();
 
-            Log::info('Invoice approved: ' . $id . ' by user: ' . auth()->id());
+            Log::info('Invoice approved: ' . $id . ' by user: ' . Auth::id());
 
             return response()->json([
                 'success' => true,
@@ -141,7 +143,7 @@ class PurchaseInvoiceController extends Controller
 
             DB::commit();
 
-            Log::info('Invoice marked as paid: ' . $id . ' by user: ' . auth()->id());
+            Log::info('Invoice marked as paid: ' . $id . ' by user: ' . Auth::id());
 
             return response()->json([
                 'success' => true,

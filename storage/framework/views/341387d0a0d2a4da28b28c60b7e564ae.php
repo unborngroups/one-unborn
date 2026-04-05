@@ -190,7 +190,7 @@
             <div class="card shadow-sm mb-4">
                 <div class="card-header py-2 fw-semibold">Invoice Attachment</div>
                 <div class="card-body text-center">
-                    <a href="<?php echo e(Storage::url($invoice->po_invoice_file)); ?>"
+                    <a href="<?php echo e(route('finance.purchases.download-source-pdf', $invoice->id)); ?>"
                        target="_blank"
                        class="btn btn-outline-primary w-100">
                         View Invoice PDF

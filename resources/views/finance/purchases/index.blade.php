@@ -7,11 +7,31 @@
 <div class="container-fluid">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0">Purchase Invoices</h2>
+        <h2 class="mb-0">Purchase Invoice Automation</h2>
         <div class="d-flex gap-2 align-items-center">
-            {{--create--}}
-            <a href="{{ route('finance.purchases.create') }}"
-               class="btn btn-sm btn-info p-2 text-white"> <h2>+  create invoice</h2>
+            <a href="{{ route('finance.purchase_invoices.index', ['status' => 'draft']) }}"
+               class="btn btn-secondary btn-sm">
+                Draft
+            </a>
+            <a href="{{ route('finance.purchase_invoices.index', ['status' => 'needs_review']) }}"
+               class="btn btn-warning btn-sm">
+                Needs Review
+            </a>
+            <a href="{{ route('finance.purchase_invoices.index', ['status' => 'verified']) }}"
+               class="btn btn-info btn-sm">
+                Verified
+            </a>
+            <a href="{{ route('finance.purchase_invoices.index', ['status' => 'approved']) }}"
+               class="btn btn-success btn-sm">
+                Approved
+            </a>
+            <a href="{{ route('finance.purchase_invoices.index', ['status' => 'paid']) }}"
+               class="btn btn-dark btn-sm">
+                Paid
+            </a>
+            <a href="{{ route('finance.purchase_invoices.index') }}"
+               class="btn btn-primary btn-sm">
+                All
             </a>
         </div>
     </div>
@@ -49,12 +69,12 @@
                 <thead class="table-dark-primary">
                     <tr>
                         <th>#</th>
-                        <th>Invoice No</th>
                         <th>Vendor</th>
                         <th>GSTIN</th>
+                        <th>Invoice No</th>
                         <th>Date</th>
                         <th>Total</th>
-                        <th>Accuracy</th>
+                        <th>Confidence</th>
                         <th>Status</th>
                         <th width="250">Action</th>
                     </tr>
@@ -66,6 +86,12 @@
                             <td>{{ $loop->iteration }}</td>
 
                             <td>
+                                {{ data_get($purchase->raw_json, 'vendor_name') ?? $purchase->vendor_name_raw ?? $purchase->vendor_name ?? optional($purchase->vendor)->vendor_name ?? '-' }}
+                            </td>
+
+                            <td>{{ $purchase->gstin ?? $purchase->gst_number ?? $purchase->vendor_gstin ?? '-' }}</td>
+
+                            <td>
                                 @php
                                     $invoiceNoDisplay = trim((string) ($purchase->invoice_no ?? ''));
                                     $rawInvoiceNo = trim((string) data_get($purchase->raw_json, 'invoice_number', ''));
@@ -75,12 +101,6 @@
                                 @endphp
                                 {{ $invoiceNoDisplay !== '' ? $invoiceNoDisplay : '-' }}
                             </td>
-
-                            <td>
-                                {{ data_get($purchase->raw_json, 'vendor_name') ?? $purchase->vendor_name_raw ?? $purchase->vendor_name ?? optional($purchase->vendor)->vendor_name ?? '-' }}
-                            </td>
-
-                            <td>{{ $purchase->gstin ?? $purchase->gst_number ?? $purchase->vendor_gstin ?? '-' }}</td>
 
                             <td>
                                 {{ $purchase->invoice_date 
@@ -185,7 +205,7 @@
                     @empty
                         <tr>
                             <td colspan="9" class="text-center">
-                                No Purchase Invoices Found.
+                                No invoices found.
                             </td>
                         </tr>
                     @endforelse

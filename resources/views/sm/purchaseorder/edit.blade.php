@@ -214,7 +214,7 @@
                         @foreach($companies as $company)
 
                             <option value="{{ $company->id }}" 
-    {{ (string) old('company_id', $purchaseOrder->company_id) === (string) $company->id ? 'selected' : '' }}>
+    {{ (string) old('company_id', optional($purchaseOrder->feasibility)->company_id ?? $purchaseOrder->company_id) === (string) $company->id ? 'selected' : '' }}>
     {{ $company->company_name }}
 </option>
                         @endforeach

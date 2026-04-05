@@ -122,11 +122,11 @@ unset($__errorArgs, $__bag); ?>
                             <input type="hidden" id="static_ip_required" name="static_ip_required" value="0">
 
                             <!-- Company Name -->
-                            <div class="col-md-4">
-
+                            <div class="col-md-4" id="feasiblity_company_box">
+    
                     <label class="form-label fw-semibold">Company <span class="text-danger">*</span></label>
 
-                    <select name="company_id" id="company_id" class="form-select">
+                    <select name="company_id" id="feasibility_company" class="form-select">
 
                         <option value="">Select Company</option>
 
@@ -615,11 +615,16 @@ function redirectToFeasibilityView() {
 
 function loadFeasibilityDetails() {
     const id = document.getElementById('feasibility_id').value;
+    const companyField = document.getElementById('feasibility_company');
 
     if (!id) {
         feasibilityAmounts = {};
         staticIpRequiredForFeasibility = false;
         document.getElementById('dynamicPricingContainer').style.display = 'none';
+        if (companyField) {
+            companyField.value = '';
+            companyField.disabled = false;
+        }
         const addrBox = document.getElementById('feasibility_address_box');
         const addrField = document.getElementById('feasibility_address');
         if (addrBox && addrField) {
@@ -686,6 +691,41 @@ function loadFeasibilityDetails() {
                 }
             }
 
+            // Auto-select company from selected feasibility
+            const companyBox = document.getElementById('feasibility_company_box');
+            let companyValue = '';
+            let companyLabel = '';
+            if (d.feasibility && d.feasibility.company_id) {
+                companyValue = String(d.feasibility.company_id);
+            } else if (d.company_id) {
+                companyValue = String(d.company_id);
+            } else if (d.feasibility && d.feasibility.company && d.feasibility.company.id) {
+                companyValue = String(d.feasibility.company.id);
+            }
+            if (d.company_name) {
+                companyLabel = d.company_name;
+            } else if (d.feasibility && d.feasibility.company && d.feasibility.company.company_name) {
+                companyLabel = d.feasibility.company.company_name;
+            }
+            if (companyBox && companyField) {
+                if (companyValue) {
+                    const optionExists = Array.from(companyField.options).some(opt => String(opt.value) === companyValue);
+                    if (!optionExists) {
+                        const newOption = document.createElement('option');
+                        newOption.value = companyValue;
+                        newOption.text = companyLabel || `Company ${companyValue}`;
+                        companyField.appendChild(newOption);
+                    }
+                    companyField.value = companyValue;
+                    companyField.disabled = true;
+                    companyBox.classList.remove('d-none');
+                } else {
+                    companyField.value = '';
+                    companyField.disabled = false;
+                    companyBox.classList.add('d-none');
+                }
+            }
+
             // Auto-select No. of Links from feasibility and make it read-only
             const linksDropdown = document.getElementById('no_of_links_dropdown');
             if (d.no_of_links) {
@@ -706,8 +746,18 @@ function loadFeasibilityDetails() {
         })
         .catch(err => {
             console.error('Feasibility load error:', err);
+            if (companyField) {
+                companyField.disabled = false;
+            }
         });
 }
+
+document.getElementById('purchaseOrderForm')?.addEventListener('submit', function () {
+    const companyField = document.getElementById('feasibility_company');
+    if (companyField) {
+        companyField.disabled = false;
+    }
+});
 
 // 
 

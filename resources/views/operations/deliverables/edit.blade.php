@@ -50,7 +50,7 @@
                         </div>
                         <div class="col-md-3">
                             <strong>Client Name:</strong><br>
-                            {{ $record->feasibility->client->client_name ?? 'N/A' }}
+                            {{ $record->feasibility->client->client_name ?? 'N/A' }} - {{ $record->feasibility->client_state ?? 'N/A' }}
                         </div>
                         <div class="col-md-3">
                             <strong>Pincode:</strong><br>

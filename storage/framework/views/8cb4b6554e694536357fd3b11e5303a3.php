@@ -2,6 +2,7 @@
 <?php
     use App\Helpers\TemplateHelper;
     $dashboard = TemplateHelper::getUserMenuPermissions('Dashboard');
+    $reportdashboard = TemplateHelper::getUserMenuPermissions('Report Dashboard');
 
     // Masters dropdown permissions
     $company = TemplateHelper::getUserMenuPermissions('Company Details');
@@ -31,6 +32,23 @@
                     </div>
                 </li>
                 <?php endif; ?>
+
+                 <?php if($reportdashboard && $reportdashboard->can_menu): ?>
+
+                <li class="nav-item">
+
+                    <a class="nav-link text-white menu-item <?php echo e(request()->is('report-dashboard') ? 'active' : ''); ?>" href="<?php echo e(route('report_dashboard')); ?>"> 
+
+                        <i class="bi bi-speedometer2"></i> Report Dashboard
+
+                    </a>
+
+                </li>
+                        </ul>
+                    </div>
+                </li>
+                <?php endif; ?>
+
                 
 
             <?php if(($company && $company->can_menu) || ($users && $users->can_menu) || ($userType && $userType->can_menu) || ($client && $client->can_menu) || ($vendor && $vendor->can_menu)): ?>
@@ -946,22 +964,20 @@
                     </summary>
 
                     <ul class="nav flex-column ms-3 mt-1">
+
                         <li>
                             <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/sales*') ? 'active' : ''); ?>"
                                href="<?php echo e(route('finance.sales.index')); ?>">
-                                Sales Invoices
+                                Auto Sales Invoices
                             </a>
                         </li>
 
-                         
-            <li>
-                <a class="nav-link text-white menu-item 
-                    <?php echo e(request()->is('finance/sales-invoices*') ? 'active' : ''); ?>"
-                   href="<?php echo e(route('finance.sales_invoices.index')); ?>">
-                    Auto Invoice Processing
-                </a>
-            </li>
-
+                        <li>
+                            <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/sales/recurring-invoice') ? 'active' : ''); ?>"
+                               href="<?php echo e(route('finance.sales.recurring-invoice.index')); ?>">
+                                Recurring Invoice
+                            </a>
+                        </li>
                        
                     </ul>
                 </details>
@@ -971,25 +987,28 @@
 
             
             <?php if($purchase && $purchase->can_menu): ?>
+
             <li>
-                <details <?php echo e(request()->is('finance/purchases*') || request()->is('finance/vendors*') ? 'open' : ''); ?>>
+                <details <?php echo e(request()->is('finance/purchases*') || request()->is('finance/purchase-invoices*') || request()->is('finance/vendors*') ? 'open' : ''); ?>>
                     <summary class="nav-link text-white d-flex justify-content-between align-items-center menu-sales">
                         <span><i class="bi bi-cart-check me-2"></i> Purchases</span>
                               <i class="bi bi-chevron-down arrow-icon"></i>
                     </summary>
                     <ul class="nav flex-column ms-3 mt-1">
                         <li>
-                            <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/purchases*') ? 'active' : ''); ?>"
-                               href="<?php echo e(route('finance.purchases.index')); ?>">
+
+                        <a class="nav-link text-white menu-item 
+                    <?php echo e(request()->is('finance/purchases') ? 'active' : ''); ?>"
+                   href="<?php echo e(route('finance.purchases.index')); ?>"> 
                                 Auto Invoice Processing
                             </a>
                         </li>
 
                         
+
             <li>
-                <a class="nav-link text-white menu-item 
-                    <?php echo e(request()->is('finance/purchase-invoices*') ? 'active' : ''); ?>"
-                   href="<?php echo e(route('finance.purchase_invoices.index')); ?>">
+                <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/purchase-invoices*') ? 'active' : ''); ?>"
+                               href="<?php echo e(route('finance.purchase_invoices.index')); ?>">
                     Purchase Invoices
                 </a>
             </li>
@@ -997,8 +1016,8 @@
              
             <li>
                 <a class="nav-link text-white menu-item 
-                    <?php echo e(request()->is('finance/purchases/download-excel') ? 'active' : ''); ?>"
-                   href="<?php echo e(route('finance.purchases.downloadExcel')); ?>">
+                    <?php echo e(request()->is('finance/purchases/excel-download-page') ? 'active' : ''); ?>"
+                   href="<?php echo e(route('finance.purchases.excelDownloadPage')); ?>">
                     Excel Download
                 </a>
             </li>
@@ -1242,6 +1261,7 @@
                 </li>
 
             <?php endif; ?>
+
 
             <!--  -->
 

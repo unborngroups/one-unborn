@@ -257,7 +257,7 @@ unset($__errorArgs, $__bag); ?>
                         <?php $__currentLoopData = $companies; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $company): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 
                             <option value="<?php echo e($company->id); ?>" 
-    <?php echo e((string) old('company_id', $purchaseOrder->company_id) === (string) $company->id ? 'selected' : ''); ?>>
+    <?php echo e((string) old('company_id', optional($purchaseOrder->feasibility)->company_id ?? $purchaseOrder->company_id) === (string) $company->id ? 'selected' : ''); ?>>
     <?php echo e($company->company_name); ?>
 
 </option>

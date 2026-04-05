@@ -31,14 +31,19 @@ class FetchGmailInvoicesCommand extends Command
             return 1;
         }
 
-        $companySetting = CompanySetting::query()->first();
+        $companySetting = $this->resolveInvoiceCompanySetting();
         $mailboxConfig = $this->resolveMailboxConfig($companySetting);
 
         $host     = $mailboxConfig['host'];
         $username = $mailboxConfig['username'];
         $password = $mailboxConfig['password'];
+        $allowedRecipientEmails = $this->resolveAllowedRecipientEmails($companySetting, $mailboxConfig);
+        $strictRecipientFilter = (bool) env('INVOICE_FETCH_STRICT_RECIPIENT', false);
 
         $this->info("Connecting to Gmail: {$username}");
+        if ($strictRecipientFilter && !empty($allowedRecipientEmails)) {
+            $this->info('Allowed recipient email(s): ' . implode(', ', $allowedRecipientEmails));
+        }
 
         $inbox = @imap_open($host, $username, $password);
 
@@ -54,6 +59,7 @@ class FetchGmailInvoicesCommand extends Command
         $stateFile = storage_path('app/invoice_fetch_state.json');
         $state = $this->loadState($stateFile);
         $lastProcessedUid = (int) ($state['last_uid'] ?? 0);
+        // Scan all emails in the lookback window to find invoice attachments.
         $maxPerRun = max((int) env('INVOICE_FETCH_MAX_PER_RUN', 100), 1);
 
         $uids = imap_search($inbox, 'ALL', SE_UID);
@@ -65,7 +71,7 @@ class FetchGmailInvoicesCommand extends Command
 
         sort($uids, SORT_NUMERIC);
 
-        $configuredLookbackDays = (int) (CompanySetting::query()->value('invoice_mail_read_days') ?? env('INVOICE_FETCH_LOOKBACK_DAYS', 30));
+        $configuredLookbackDays = (int) (($companySetting?->invoice_mail_read_days) ?? env('INVOICE_FETCH_LOOKBACK_DAYS', 30));
         $configuredLookbackDays = max($configuredLookbackDays, 1);
         $lookbackDaysOption = $this->option('days');
         $lookbackDays = ($lookbackDaysOption !== null && $lookbackDaysOption !== '')
@@ -122,26 +128,18 @@ class FetchGmailInvoicesCommand extends Command
             $mailDate = $this->extractHeaderDate($header);
             $subjectHasInvoiceHint = $this->isInvoiceKeywordText($subject); // for logging only
 
+            // Optional strict recipient filter (disabled by default).
+            if ($strictRecipientFilter && !empty($allowedRecipientEmails) && !$this->isMailAddressedToAllowedRecipients($header, $allowedRecipientEmails)) {
+                $this->line('  ⏭ Skipped mail not addressed to configured invoice email.');
+                continue;
+            }
+
             $this->line("→ Email: [{$subject}] from [{$from}]");
 
             $structure = imap_fetchstructure($inbox, $emailNum);
             $parts     = [];
             if (isset($structure->parts)) {
                 $this->collectParts($structure->parts, $parts, $emailNum, '');
-            }
-
-            $hasInvoiceAttachmentHint = false;
-            foreach ($parts as $partMeta) {
-                $partFilename = (string) ($partMeta['filename'] ?? '');
-                if ($partFilename !== '' && $this->isInvoiceKeywordText($partFilename)) {
-                    $hasInvoiceAttachmentHint = true;
-                    break;
-                }
-            }
-
-            if (!$subjectHasInvoiceHint && !$hasInvoiceAttachmentHint) {
-                $this->line('  ⏭ Skipped non-invoice email (no invoice keyword in subject or attachment name).');
-                continue;
             }
 
             $attachmentsFound = 0;
@@ -199,12 +197,6 @@ class FetchGmailInvoicesCommand extends Command
                 $invoiceDate = $invoiceData['invoice_date'] ?? $mailDate ?? now()->toDateString();
 
                 if (isset($invoiceData['error'])) {
-                    if (!$subjectHasInvoiceHint && !$fileHasInvoiceHint) {
-                        $this->warn('  ⏭ Non-invoice attachment skipped after parse failure.');
-                        @unlink($tempFile);
-                        continue;
-                    }
-
                     $this->error('  ✗ Parse failed: ' . $invoiceData['error']);
 
                     // Always store any supported attachment for manual review regardless of keywords.
@@ -277,9 +269,15 @@ class FetchGmailInvoicesCommand extends Command
                 }
 
                 if (!$this->hasMeaningfulInvoiceData($invoiceData)) {
-                    $this->warn('  ⏭ Attachment parsed but has no meaningful invoice data. Skipping.');
-                    @unlink($tempFile);
-                    continue;
+                    // If filename or subject has invoice keyword, still save for manual review.
+                    if ($fileHasInvoiceHint || $subjectHasInvoiceHint) {
+                        $this->warn('  ⚠ No data extracted but invoice hint found. Saving for manual review.');
+                        $invoiceData['vendor_name'] = $this->extractName($from);
+                    } else {
+                        $this->warn('  ⏭ Attachment parsed but has no meaningful invoice data. Skipping.');
+                        @unlink($tempFile);
+                        continue;
+                    }
                 }
 
                 if ($existingInvoiceByHash && !$invoiceNo) {
@@ -416,7 +414,7 @@ class FetchGmailInvoicesCommand extends Command
                     'gst_number'     => $gst,
                     'vendor_gstin'   => $gst,
                     'po_invoice_file'=> $savedFile,
-                    'status'         => $vendorFailureReason ? 'failed' : ($vendor ? 'email_imported' : 'needs_review'),
+                    'status'         => 'draft',
                     'confidence_score'=> $confidence,
                     'arc_amount'     => $arc,
                     'otc_amount'     => $otc,
@@ -585,17 +583,23 @@ class FetchGmailInvoicesCommand extends Command
 
     private function hasMeaningfulInvoiceData(array $invoiceData): bool
     {
-        $invoiceNo = trim((string) ($invoiceData['invoice_number'] ?? ''));
-        $gst = trim((string) ($invoiceData['gst'] ?? ''));
-        $vendorName = trim((string) ($invoiceData['vendor_name'] ?? ''));
-        $total = (float) ($invoiceData['total'] ?? 0);
+        $invoiceNo   = trim((string) ($invoiceData['invoice_number'] ?? ''));
+        $gst         = trim((string) ($invoiceData['gst'] ?? ''));
+        $vendorName  = trim((string) ($invoiceData['vendor_name'] ?? ''));
+        $total       = (float) ($invoiceData['total'] ?? 0);
         $isInvoiceFlag = (bool) ($invoiceData['is_invoice'] ?? false);
 
+        // Has at least one core identifier
         if ($invoiceNo !== '' || $gst !== '' || $total > 0) {
             return true;
         }
 
         if ($isInvoiceFlag && $vendorName !== '') {
+            return true;
+        }
+
+        // Even if we can't fully parse amounts, save it for manual review if vendor name found
+        if ($vendorName !== '') {
             return true;
         }
 
@@ -652,21 +656,159 @@ class FetchGmailInvoicesCommand extends Command
 
     private function resolveMailboxConfig(?CompanySetting $companySetting): array
     {
+        // Priority: Company Settings invoice mailbox > .env fallback > defaults.
+        // This ensures only configured company invoice mailbox is used for auto-read.
         $host = $this->buildImapHost($companySetting)
+            ?: $this->buildImapHostFromEnv()
             ?: env('IMAP_HOST', '{imap.gmail.com:993/imap/ssl/novalidate-cert}[Gmail]/All Mail');
 
-        $username = trim((string) ($companySetting?->invoice_mail_username
+        $username = trim((string) (
+            $companySetting?->invoice_mail_username
             ?: $companySetting?->invoice_mail_from_address
-            ?: env('IMAP_USERNAME', env('MAIL_USERNAME'))));
+            ?: env('MAIL_USERNAME')
+            ?: env('IMAP_USERNAME')
+        ));
 
-        $password = (string) ($companySetting?->invoice_mail_password
-            ?: env('IMAP_PASSWORD', env('MAIL_PASSWORD')));
+        $password = (string) (
+            $companySetting?->invoice_mail_password
+            ?: env('MAIL_PASSWORD')
+            ?: env('IMAP_PASSWORD')
+        );
 
         return [
             'host' => $host,
             'username' => $username,
             'password' => $password,
         ];
+    }
+
+    private function buildImapHostFromEnv(): ?string
+    {
+        $host = trim((string) (env('IMAP_HOST') ?: env('MAIL_HOST', '')));
+        if ($host === '') {
+            return null;
+        }
+
+        if (str_starts_with($host, '{')) {
+            return $host;
+        }
+
+        $port = trim((string) (env('IMAP_PORT') ?: env('MAIL_PORT', '993')));
+        $encryption = strtolower(trim((string) (env('IMAP_ENCRYPTION') ?: env('MAIL_ENCRYPTION', 'ssl'))));
+        $mailbox = trim((string) env('IMAP_MAILBOX', '[Gmail]/All Mail'));
+
+        [$host, $port, $encryption, $mailbox] = $this->normalizeImapServerSettings($host, $port, $encryption, $mailbox);
+
+        $flags = '/imap';
+        if ($encryption === 'ssl') {
+            $flags .= '/ssl/novalidate-cert';
+        } elseif ($encryption === 'tls') {
+            $flags .= '/tls/novalidate-cert';
+        } else {
+            $flags .= '/notls';
+        }
+
+        return '{' . $host . ':' . $port . $flags . '}' . $mailbox;
+    }
+
+    private function resolveInvoiceCompanySetting(): ?CompanySetting
+    {
+        $candidate = CompanySetting::query()
+            ->orderByDesc('is_default')
+            ->orderByDesc('updated_at')
+            ->get()
+            ->first(function (CompanySetting $setting) {
+                return trim((string) ($setting->invoice_mail_host ?? '')) !== ''
+                    || trim((string) ($setting->invoice_mail_username ?? '')) !== ''
+                    || trim((string) ($setting->invoice_mail_from_address ?? '')) !== '';
+            });
+
+        if ($candidate) {
+            return $candidate;
+        }
+
+        return CompanySetting::query()
+            ->orderByDesc('is_default')
+            ->orderByDesc('updated_at')
+            ->first();
+    }
+
+    private function resolveAllowedRecipientEmails(?CompanySetting $companySetting, array $mailboxConfig): array
+    {
+        $emails = [];
+
+        $candidateTexts = [
+            (string) ($companySetting?->invoice_mail_from_address ?? ''),
+            (string) ($companySetting?->invoice_mail_username ?? ''),
+            (string) ($mailboxConfig['username'] ?? ''),
+        ];
+
+        foreach ($candidateTexts as $text) {
+            foreach ($this->extractEmailsFromText($text) as $email) {
+                $emails[$email] = true;
+            }
+        }
+
+        return array_keys($emails);
+    }
+
+    private function extractEmailsFromText(string $text): array
+    {
+        preg_match_all('/[\w.+\-]+@[\w\-]+\.[\w.\-]+/', strtolower($text), $matches);
+        $emails = $matches[0] ?? [];
+        $emails = array_map('trim', $emails);
+        $emails = array_filter($emails, fn ($email) => $email !== '');
+
+        return array_values(array_unique($emails));
+    }
+
+    private function isMailAddressedToAllowedRecipients(object $header, array $allowedRecipientEmails): bool
+    {
+        $recipientEmails = $this->collectHeaderRecipientEmails($header);
+
+        // Some providers do not return recipient details in IMAP headers.
+        // In that case, do not block processing to avoid false negatives.
+        if (empty($recipientEmails)) {
+            return true;
+        }
+
+        $allowedMap = array_fill_keys(array_map('strtolower', $allowedRecipientEmails), true);
+        foreach ($recipientEmails as $recipientEmail) {
+            if (isset($allowedMap[strtolower($recipientEmail)])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function collectHeaderRecipientEmails(object $header): array
+    {
+        $emails = [];
+
+        foreach (['to', 'cc', 'reply_to'] as $field) {
+            $entries = $header->{$field} ?? [];
+            if (!is_array($entries)) {
+                continue;
+            }
+
+            foreach ($entries as $entry) {
+                $mailbox = trim((string) ($entry->mailbox ?? ''));
+                $host = trim((string) ($entry->host ?? ''));
+                if ($mailbox !== '' && $host !== '') {
+                    $email = strtolower($mailbox . '@' . $host);
+                    $emails[$email] = true;
+                }
+            }
+        }
+
+        foreach (['toaddress', 'ccaddress', 'reply_toaddress'] as $textField) {
+            foreach ($this->extractEmailsFromText((string) ($header->{$textField} ?? '')) as $email) {
+                $emails[strtolower($email)] = true;
+            }
+        }
+
+        return array_keys($emails);
     }
 
     private function buildImapHost(?CompanySetting $companySetting): ?string
@@ -1264,7 +1406,7 @@ class FetchGmailInvoicesCommand extends Command
             'confidence_score' => $confidence,
             'po_invoice_file' => $savedFile,
             'email_log_id' => $emailLogId,
-            'status' => $vendorFailureReason ? 'failed' : ($matchResult['vendor'] ? 'email_imported' : $invoice->status),
+            'status' => $invoice->status,
         ];
 
         $incomingInvoiceNo = trim((string) ($newPayload['invoice_no'] ?? ''));

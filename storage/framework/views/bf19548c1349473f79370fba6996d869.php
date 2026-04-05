@@ -7,11 +7,31 @@
 <div class="container-fluid">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0">Purchase Invoices</h2>
+        <h2 class="mb-0">Purchase Invoice Automation</h2>
         <div class="d-flex gap-2 align-items-center">
-            
-            <a href="<?php echo e(route('finance.purchases.create')); ?>"
-               class="btn btn-sm btn-info p-2 text-white"> <h2>+  create invoice</h2>
+            <a href="<?php echo e(route('finance.purchase_invoices.index', ['status' => 'draft'])); ?>"
+               class="btn btn-secondary btn-sm">
+                Draft
+            </a>
+            <a href="<?php echo e(route('finance.purchase_invoices.index', ['status' => 'needs_review'])); ?>"
+               class="btn btn-warning btn-sm">
+                Needs Review
+            </a>
+            <a href="<?php echo e(route('finance.purchase_invoices.index', ['status' => 'verified'])); ?>"
+               class="btn btn-info btn-sm">
+                Verified
+            </a>
+            <a href="<?php echo e(route('finance.purchase_invoices.index', ['status' => 'approved'])); ?>"
+               class="btn btn-success btn-sm">
+                Approved
+            </a>
+            <a href="<?php echo e(route('finance.purchase_invoices.index', ['status' => 'paid'])); ?>"
+               class="btn btn-dark btn-sm">
+                Paid
+            </a>
+            <a href="<?php echo e(route('finance.purchase_invoices.index')); ?>"
+               class="btn btn-primary btn-sm">
+                All
             </a>
         </div>
     </div>
@@ -50,12 +70,12 @@
                 <thead class="table-dark-primary">
                     <tr>
                         <th>#</th>
-                        <th>Invoice No</th>
                         <th>Vendor</th>
                         <th>GSTIN</th>
+                        <th>Invoice No</th>
                         <th>Date</th>
                         <th>Total</th>
-                        <th>Accuracy</th>
+                        <th>Confidence</th>
                         <th>Status</th>
                         <th width="250">Action</th>
                     </tr>
@@ -65,6 +85,13 @@
                     <?php $__empty_1 = true; $__currentLoopData = $purchases; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $purchase): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                         <tr>
                             <td><?php echo e($loop->iteration); ?></td>
+
+                            <td>
+                                <?php echo e(data_get($purchase->raw_json, 'vendor_name') ?? $purchase->vendor_name_raw ?? $purchase->vendor_name ?? optional($purchase->vendor)->vendor_name ?? '-'); ?>
+
+                            </td>
+
+                            <td><?php echo e($purchase->gstin ?? $purchase->gst_number ?? $purchase->vendor_gstin ?? '-'); ?></td>
 
                             <td>
                                 <?php
@@ -77,13 +104,6 @@
                                 <?php echo e($invoiceNoDisplay !== '' ? $invoiceNoDisplay : '-'); ?>
 
                             </td>
-
-                            <td>
-                                <?php echo e(data_get($purchase->raw_json, 'vendor_name') ?? $purchase->vendor_name_raw ?? $purchase->vendor_name ?? optional($purchase->vendor)->vendor_name ?? '-'); ?>
-
-                            </td>
-
-                            <td><?php echo e($purchase->gstin ?? $purchase->gst_number ?? $purchase->vendor_gstin ?? '-'); ?></td>
 
                             <td>
                                 <?php echo e($purchase->invoice_date 
@@ -190,7 +210,7 @@
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
                             <td colspan="9" class="text-center">
-                                No Purchase Invoices Found.
+                                No invoices found.
                             </td>
                         </tr>
                     <?php endif; ?>

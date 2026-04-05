@@ -271,7 +271,7 @@ ADD COLUMN `tunnel_username` VARCHAR(100) NULL AFTER `tunnel`,
 ADD COLUMN `tunnel_password` VARCHAR(100) NULL AFTER `tunnel_username`;
     
 
-    -- update pannanu---------------------------------------
+    -- update pannita---------------------------------------
 
     ALTER TABLE company_settings
     ADD COLUMN invoice_mail_read_days INT DEFAULT 0 AFTER invoice_mail_signature;

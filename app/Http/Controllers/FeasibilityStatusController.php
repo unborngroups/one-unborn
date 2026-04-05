@@ -97,7 +97,11 @@ class FeasibilityStatusController extends Controller
 public function edit($id)
 {
     $record = FeasibilityStatus::with('feasibility')->findOrFail($id);
-    return view('feasibility.feasibility_status.edit', compact('record'));
+    $deliverablePlan = null;
+    if ($record->feasibility && $record->feasibility->link_type === 'existing' && $record->feasibility->circuit_id) {
+        $deliverablePlan = \App\Models\DeliverablePlan::where('circuit_id', $record->feasibility->circuit_id)->first();
+    }
+    return view('operations.feasibility.edit', compact('record', 'deliverablePlan'));
 }
 
 public function editSave(Request $request, $id)
@@ -1137,10 +1141,26 @@ public function editSave(Request $request, $id)
             'ids.*' => 'required|integer|exists:feasibilities,id',
         ]);
 
-        Feasibility::whereIn('id', $request->input('ids'))->delete();
 
+        // Only delete feasibilities with NO purchase orders
+        $feasibilities = Feasibility::whereIn('id', $request->input('ids'))->get();
+        $undeletable = [];
+        $deleted = 0;
+        foreach ($feasibilities as $feasibility) {
+            if ($feasibility->purchaseOrders()->withTrashed()->count() > 0) {
+                $undeletable[] = $feasibility->feasibility_request_id ?? $feasibility->id;
+            } else {
+                $feasibility->delete();
+                $deleted++;
+            }
+        }
+
+        $msg = $deleted . ' feasibility(s) deleted successfully.';
+        if (count($undeletable)) {
+            $msg .= ' Cannot delete feasibilities with purchase orders: ' . implode(', ', $undeletable);
+        }
         return redirect()->route('operations.feasibility.open')
-            ->with('success', count($request->input('ids')) . ' feasibility(s) deleted successfully.');
+            ->with('success', $msg);
     }
 
    /**

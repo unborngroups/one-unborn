@@ -87,7 +87,7 @@
                         @if($invoice->po_invoice_file)
                         <hr>
                         <p class="mb-1 text-muted fw-semibold">Attached File</p>
-                        <a href="{{ Storage::url($invoice->po_invoice_file) }}"
+                        <a href="{{ route('finance.purchases.download-source-pdf', $invoice->id) }}"
                            target="_blank"
                            class="btn btn-outline-info btn-sm w-100">
                             View Invoice PDF

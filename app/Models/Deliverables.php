@@ -163,6 +163,11 @@ class Deliverables extends Model
         return $query->where('status', 'InProgress');
     }
 
+        public function updatedUser()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
     public function scopeDelivery($query)
     {
         return $query->where('status', 'Delivery');
@@ -191,5 +196,10 @@ public function purchase()
     {
         return $this->belongsTo(\App\Models\PurchaseOrder::class, 'purchase_order_id');
     }
+
+    public function feasibilityStatus()
+{
+    return $this->hasOne(FeasibilityStatus::class, 'feasibility_id', 'feasibility_id');
+}
 
 }

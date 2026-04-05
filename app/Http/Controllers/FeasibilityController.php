@@ -420,7 +420,10 @@ $status = FeasibilityStatus::where('feasibility_id', $feasibility->id)->first();
         $models = ModelType::all();
         $deliverables_plans = \App\Models\DeliverablePlan::all();
 
-        return view('feasibility.edit', compact('feasibility', 'companies', 'clients', 'makes', 'models', 'deliverables_plans'));
+        $clientStates = Client::select('state')->distinct()->pluck('state')->filter();
+
+
+        return view('feasibility.edit', compact('feasibility', 'companies', 'clients', 'makes', 'models', 'deliverables_plans', 'clientStates'));
     }
 
 //     public function show(Feasibility $feasibility)

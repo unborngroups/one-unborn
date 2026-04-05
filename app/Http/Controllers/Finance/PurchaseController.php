@@ -29,7 +29,8 @@ class PurchaseController extends Controller
 {
     private function getInvoiceMailReadDays(): int
     {
-        $mailReadDays = (int) (CompanySetting::query()->value('invoice_mail_read_days') ?? 30);
+        $companySetting = $this->resolveInvoiceCompanySetting();
+        $mailReadDays = (int) (($companySetting?->invoice_mail_read_days) ?? 30);
         return max($mailReadDays, 1);
     }
 
@@ -38,11 +39,18 @@ class PurchaseController extends Controller
         $mailReadDays = $this->getInvoiceMailReadDays();
         $this->autoFetchGmailInvoices($mailReadDays);
 
+        $status = trim((string) $request->input('status', ''));
         $purchasesQuery = PurchaseInvoice::with(['vendor', 'deliverable.feasibility.client'])->latest();
         $fromDate = now()->subDays($mailReadDays)->startOfDay();
-        $purchasesQuery->where('created_at', '>=', $fromDate)
-            // Keep newly auto-imported draft invoices only in Auto Invoice Processing.
-            ->where('status', '!=', 'draft');
+        // Show all invoice statuses (including draft) so newly auto-read mails are visible.
+        $purchasesQuery->where(function ($query) use ($fromDate) {
+            $query->where('created_at', '>=', $fromDate)
+                ->orWhere('updated_at', '>=', $fromDate);
+        });
+
+        if ($status !== '') {
+            $purchasesQuery->where('status', $status);
+        }
 
         $purchases = $purchasesQuery->get();
 
@@ -988,8 +996,15 @@ private function updateImage($request, $oldFile, $field, $folder)
 
     public function autoInvoiceIndex(Request $request)
     {
+        // Ensure email imports are refreshed even when user opens Auto Invoice page directly.
+        $mailReadDays = $this->getInvoiceMailReadDays();
+        $this->autoFetchGmailInvoices($mailReadDays);
+
         $status  = $request->input('status');
-        $query   = PurchaseInvoice::with('vendor')->latest();
+        // Auto Invoice Processing should list only invoices imported from email.
+        $query   = PurchaseInvoice::with('vendor')
+            ->whereNotNull('email_log_id')
+            ->latest();
 
         if ($status) {
             $query->where('status', $status);
@@ -1051,9 +1066,9 @@ private function updateImage($request, $oldFile, $field, $folder)
             'notes'        => $request->notes,
         ]);
 
-        // Once draft invoice is reviewed/updated, move it to the next workflow stage.
-        if (strtolower((string) $invoice->status) === 'draft') {
-            $invoice->update(['status' => 'needs_review']);
+        // After user updates in Auto Invoice Processing, move to Purchases workflow.
+        if (in_array(strtolower((string) $invoice->status), ['draft', 'needs_review', 'failed', 'email_imported'], true)) {
+            $invoice->update(['status' => 'verified']);
         }
 
         return redirect()
@@ -1486,29 +1501,24 @@ public function testInvoiceEmailConnection(Request $request)
     }
 
     try {
-        $companySetting = CompanySetting::query()->first();
-        if (!$companySetting || !$companySetting->invoice_mail_host) {
+        $companySetting = $this->resolveInvoiceCompanySetting();
+
+        $username = trim((string) (env('IMAP_USERNAME')
+            ?: $companySetting?->invoice_mail_username
+            ?: $companySetting?->invoice_mail_from_address
+            ?: env('MAIL_USERNAME')));
+        $password = (string) (env('IMAP_PASSWORD')
+            ?: $companySetting?->invoice_mail_password
+            ?: env('MAIL_PASSWORD'));
+        $imapPath = $this->buildImapMailboxPathFromEnv()
+            ?: $this->buildImapMailboxPath($companySetting);
+
+        if (!$imapPath || !$username || !$password) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invoice email settings not configured in Company Settings'
+                'message' => 'Invoice IMAP host, email account, or password is missing'
             ], 400);
         }
-
-        $host = $companySetting->invoice_mail_host;
-        $username = $companySetting->invoice_mail_username;
-        $password = $companySetting->invoice_mail_password;
-        $port = $companySetting->invoice_mail_port ?? 993;
-        $encryption = $companySetting->invoice_mail_encryption ?? 'ssl';
-
-        if (!$host || !$username || !$password) {
-            return response()->json([
-                'success' => false,
-                'message' => 'SMTP Server, Email Account, or Password is missing'
-            ], 400);
-        }
-
-        // Build IMAP connection string
-        $imapPath = '{' . $host . ':' . $port . '/' . $encryption . '}INBOX';
 
         // Try to connect
         $inbox = @imap_open($imapPath, $username, $password, OP_HALFOPEN);
@@ -1540,6 +1550,119 @@ public function testInvoiceEmailConnection(Request $request)
     }
 }
 
+private function buildImapMailboxPathFromEnv(): ?string
+{
+    $host = trim((string) (env('IMAP_HOST') ?: env('MAIL_HOST', '')));
+    if ($host === '') {
+        return null;
+    }
+
+    if (str_starts_with($host, '{')) {
+        return $host;
+    }
+
+    $port = trim((string) (env('IMAP_PORT') ?: env('MAIL_PORT', '993')));
+    $encryption = strtolower(trim((string) (env('IMAP_ENCRYPTION') ?: env('MAIL_ENCRYPTION', 'ssl'))));
+    $mailbox = trim((string) env('IMAP_MAILBOX', '[Gmail]/All Mail'));
+
+    [$host, $port, $encryption, $mailbox] = $this->normalizeImapServerSettings($host, $port, $encryption, $mailbox);
+
+    $flags = '/imap';
+
+    if ($encryption === 'ssl') {
+        $flags .= '/ssl/novalidate-cert';
+    } elseif ($encryption === 'tls') {
+        $flags .= '/tls/novalidate-cert';
+    } else {
+        $flags .= '/notls';
+    }
+
+    return '{' . $host . ':' . $port . $flags . '}' . $mailbox;
+}
+
+private function resolveInvoiceCompanySetting(): ?CompanySetting
+{
+    $candidate = CompanySetting::query()
+        ->orderByDesc('is_default')
+        ->orderByDesc('updated_at')
+        ->get()
+        ->first(function (CompanySetting $setting) {
+            return trim((string) ($setting->invoice_mail_host ?? '')) !== ''
+                || trim((string) ($setting->invoice_mail_username ?? '')) !== ''
+                || trim((string) ($setting->invoice_mail_from_address ?? '')) !== '';
+        });
+
+    if ($candidate) {
+        return $candidate;
+    }
+
+    return CompanySetting::query()
+        ->orderByDesc('is_default')
+        ->orderByDesc('updated_at')
+        ->first();
+}
+
+private function buildImapMailboxPath(?CompanySetting $companySetting): ?string
+{
+    $host = trim((string) ($companySetting?->invoice_mail_host ?? ''));
+    if ($host === '') {
+        return null;
+    }
+
+    if (str_starts_with($host, '{')) {
+        return $host;
+    }
+
+    $port = trim((string) ($companySetting?->invoice_mail_port ?: '993'));
+    $encryption = strtolower(trim((string) ($companySetting?->invoice_mail_encryption ?: 'ssl')));
+    $mailbox = 'INBOX';
+
+    [$host, $port, $encryption, $mailbox] = $this->normalizeImapServerSettings($host, $port, $encryption, $mailbox);
+
+    $flags = '/imap';
+
+    if ($encryption === 'ssl') {
+        $flags .= '/ssl/novalidate-cert';
+    } elseif ($encryption === 'tls') {
+        $flags .= '/tls/novalidate-cert';
+    } else {
+        $flags .= '/notls';
+    }
+
+    return '{' . $host . ':' . $port . $flags . '}' . $mailbox;
+}
+
+private function normalizeImapServerSettings(string $host, string $port, string $encryption, string $mailbox): array
+{
+    $normalizedHost = strtolower(trim($host));
+
+    if (str_contains($normalizedHost, 'smtp.gmail.com') || $normalizedHost === 'gmail.com') {
+        return ['imap.gmail.com', '993', 'ssl', '[Gmail]/All Mail'];
+    }
+
+    if (str_contains($normalizedHost, 'smtp.office365.com') || str_contains($normalizedHost, 'outlook.office365.com')) {
+        return ['outlook.office365.com', '993', 'ssl', 'INBOX'];
+    }
+
+    if (str_contains($normalizedHost, 'smtp-mail.outlook.com')) {
+        return ['imap-mail.outlook.com', '993', 'ssl', 'INBOX'];
+    }
+
+    if (str_starts_with($normalizedHost, 'smtp.')) {
+        $normalizedHost = 'imap.' . substr($normalizedHost, 5);
+    }
+
+    if ($port === '587') {
+        $port = '993';
+    }
+
+    if ($encryption === 'tls') {
+        $encryption = 'ssl';
+    }
+
+    return [$normalizedHost, $port ?: '993', $encryption ?: 'ssl', $mailbox];
+}
+
 /**
  * Download purchases as Excel
  */
@@ -1558,4 +1681,39 @@ public function testInvoiceEmailConnection(Request $request)
         return Excel::download(new PurchasesExport($records), 'purchases.xlsx');
     }
 
+
+public function excelDownloadPage(Request $request)
+{
+    $perPage = $request->input('per_page', 10);
+    $search = $request->input('search', '');
+
+    $query = \App\Models\PurchaseInvoice::with(['vendor'])->latest();
+
+    if ($search) {
+        $query->where(function($q) use ($search) {
+            $q->orWhere('invoice_number', 'like', "%$search%")
+              ->orWhere('amount', 'like', "%$search%")
+              ->orWhere('status', 'like', "%$search%")
+              ->orWhereHas('vendor', function($q2) use ($search) {
+                  $q2->where('vendor_name', 'like', "%$search%");
+              });
+        });
+    }
+
+    $purchases = $query->paginate($perPage);
+    return view('finance.purchases.excel_download', compact('purchases'));
+}
+
+    public function exportExcel(Request $request)
+    {
+        $ids = $request->input('selected', []);
+        $query = \App\Models\PurchaseInvoice::query();
+        if (!empty($ids)) {
+            $query->whereIn('id', $ids);
+        }
+        $purchases = $query->with(['vendor'])->get();
+
+        // Use your export logic/package here. Example with Maatwebsite\Excel:
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\PurchasesExport($purchases), 'purchases.xlsx');
+    }
 }

@@ -10,11 +10,15 @@ class MenuSeeder extends Seeder
     public function run(): void
     {
         $menus = [
+           
                         // Feasibility Notification Settings
                         // ['module_name' => 'Settings', 'user_type' => 'superadmin', 'name' => 'Feasibility Notification Settings','sub_section' => null ,'route' => 'settings.feasibility-notifications.edit', 'icon' => 'bi bi-bell', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             // 🌟 Dashboard Module
             ['module_name' => 'Dashboard', 'user_type' => 'superadmin', 'name' => 'Dashboard', 'sub_section' => null , 'route' => 'welcome', 'icon' => 'bi bi-speedometer2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
-           // 👥 Masters
+        //    Report Dashboard
+            ['module_name' => 'Dashboard', 'user_type' => 'superadmin', 'name' => 'Report Dashboard', 'sub_section' => null , 'route' => 'report.dashboard', 'icon' => 'bi bi-bar-chart', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
+           
+            // 👥 Masters
             ['module_name' => 'Masters', 'user_type' => 'superadmin', 'name' => 'Manage User', 'sub_section' => null , 'route' => 'users.index', 'icon' => 'bi bi-people', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             ['module_name' => 'Masters', 'user_type' => 'superadmin', 'name' => 'User Type', 'sub_section' => null , 'route' => 'usertype.index', 'icon' => 'bi bi-person-lines-fill', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             ['module_name' => 'Masters', 'user_type' => 'superadmin', 'name' => 'Template Masters', 'sub_section' => null , 'route' => 'emails.index', 'icon' => 'bi bi-file-earmark-text', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
@@ -62,6 +66,8 @@ class MenuSeeder extends Seeder
             ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Accounts', 'sub_section' => null , 'route' => 'finance.accounts.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Banking', 'sub_section' => null , 'route' => 'finance.banking.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Purchases', 'sub_section' => null , 'route' => 'finance.purchases.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
+             // Recurring Invoice (Finance > Sales)
+            ['module_name' => 'Finance','user_type' => 'superadmin','name' => 'Recurring Invoice','sub_section' => null,'route' => 'finance.sales.recurring-invoice.index','icon' => 'bi bi-repeat','can_add' => 1,'can_edit' => 1,'can_delete' => 1,'can_view' => 1],
             // Purchases Excel Download submenu
             ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Purchases', 'sub_section' => 'Purchases Excel Download', 'route' => 'finance.purchases.downloadExcel', 'icon' => 'bi bi-file-earmark-excel', 'can_add' => 0, 'can_edit' => 0, 'can_delete' => 0, 'can_view' => 1],
             ['module_name' => 'Finance', 'user_type' => 'superadmin', 'name' => 'Reports', 'sub_section' => null , 'route' => 'finance.reports.index', 'icon' => 'bi bi-wallet2', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],

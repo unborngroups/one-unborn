@@ -75,8 +75,8 @@
                     <label class="form-label fw-semibold">Link Type <span class="text-danger">*</span></label>
                     <select id="link_type" name="link_type" class="form-select" required>
                         <option value="">Select</option>
-                        <option value="new">New Link</option>
-                        <option value="existing">Existing Link</option>
+                        <option value="new" {{ (string) old('link_type', $feasibility->link_type) === 'new' ? 'selected' : '' }}>New Link</option>
+                        <option value="existing" {{ (string) old('link_type', $feasibility->link_type) === 'existing' ? 'selected' : '' }}>Existing Link</option>
                     </select>
                 </div>
                 <div class="col-md-4" id="existing_circuit_box" style="display:none;">
@@ -111,18 +111,19 @@
                     </select>
                 </div>
 
+                 <!-- Client State Dropdown -->
                 <div class="col-md-3">
-                    <label class="form-label fw-semibold">Company <span class="text-danger">*</span></label>
-                    <select name="company_id" id="company_id" class="form-select" required>
-                        <option value="">Select Company</option>
-                        @foreach($companies as $company)
-                            <option value="{{ $company->id }}" {{ (string) old('company_id', $feasibility->company_id) === (string) $company->id ? 'selected' : '' }}>
-                                {{ $company->company_name }}
+                    <label class="form-label fw-semibold">Client State <span class="text-danger">*</span></label>
+                    <select name="client_state" id="client_state" class="form-select" required>
+                        <option value="">Select State</option>
+                        @foreach($clientStates as $state)
+                            <option value="{{ $state }}" {{ (string) old('client_state', $feasibility->client_state) === (string) $state ? 'selected' : '' }}>
+                                {{ $state }}
                             </option>
                         @endforeach
                     </select>
                 </div>
-
+                
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">Client Name <span class="text-danger">*</span></label>
                     <select name="client_id" id="client_id" class="form-select" required>
@@ -130,6 +131,18 @@
                         @foreach($clients as $client)
                             <option value="{{ $client->id }}" {{ (string) old('client_id', $feasibility->client_id) === (string) $client->id ? 'selected' : '' }}>
                                 {{ $client->business_name ?: $client->client_name }}  ({{ $client->state }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Company <span class="text-danger">*</span></label>
+                    <select name="company_id" id="company_id" class="form-select" required>
+                        <option value="">Select Company</option>
+                        @foreach($companies as $company)
+                            <option value="{{ $company->id }}" {{ (string) old('company_id', $feasibility->company_id) === (string) $company->id ? 'selected' : '' }}>
+                                {{ $company->company_name }}
                             </option>
                         @endforeach
                     </select>

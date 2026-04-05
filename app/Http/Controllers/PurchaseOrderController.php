@@ -239,9 +239,10 @@ class PurchaseOrderController extends Controller
 
             // Prepare data for storage
             $feasibility = Feasibility::find($validated['feasibility_id']);
+            $resolvedCompanyId = $feasibility ? $feasibility->company_id : ($validated['company_id'] ?? null);
             $poData = [
                 'feasibility_id' => $validated['feasibility_id'],
-                'company_id' => $validated['company_id'],
+                'company_id' => $resolvedCompanyId,
                 'duration' => $validated['duration'],
                 'feasibility_request_id' => $feasibility ? $feasibility->feasibility_request_id : null,
                 'po_number' => $validated['po_number'],
@@ -422,9 +423,10 @@ class PurchaseOrderController extends Controller
         
         // Prepare data for update
         $feasibility = Feasibility::find($validated['feasibility_id']);
+        $resolvedCompanyId = $feasibility ? $feasibility->company_id : ($validated['company_id'] ?? null);
         $poData = [
             'feasibility_id' => $validated['feasibility_id'],
-            'company_id' => $validated['company_id'],
+            'company_id' => $resolvedCompanyId,
             'feasibility_request_id' => $feasibility ? $feasibility->feasibility_request_id : null,
             'po_number' => $validated['po_number'],
             'po_date' => $validated['po_date'],
@@ -532,7 +534,7 @@ class PurchaseOrderController extends Controller
     // AJAX method to get feasibility details
     public function getFeasibilityDetails($id)
     {
-        $feasibility = Feasibility::with(['client', 'feasibilityStatus'])->findOrFail($id);
+        $feasibility = Feasibility::with(['client', 'feasibilityStatus', 'company'])->findOrFail($id);
         
         // Get vendor pricing from feasibility status
         $feasibilityStatus = $feasibility->feasibilityStatus;
@@ -590,6 +592,8 @@ class PurchaseOrderController extends Controller
         return response()->json([
             'client' => $feasibility->client,
             'feasibility' => $feasibility,
+            'company_id' => $feasibility->company_id,
+            'company_name' => optional($feasibility->company)->company_name,
             'no_of_links' => $feasibility->no_of_links,
             'arc_per_link' => (float) $pricing['arc_per_link'],
             'otc_per_link' => (float) $pricing['otc_per_link'],

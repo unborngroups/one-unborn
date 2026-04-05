@@ -53,7 +53,7 @@
                         </div>
                         <div class="col-md-3">
                             <strong>Client Name:</strong><br>
-                            <?php echo e($record->feasibility->client->client_name ?? 'N/A'); ?>
+                            <?php echo e($record->feasibility->client->client_name ?? 'N/A'); ?> - <?php echo e($record->feasibility->client_state ?? 'N/A'); ?>
 
                         </div>
                         <div class="col-md-3">

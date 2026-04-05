@@ -34,7 +34,7 @@
 
                 <h6 class="fw-semibold text-muted">Client:</h6>
 
-                <p><?php echo e($record->feasibility->client->client_name ?? 'N/A'); ?></p>
+                <p><?php echo e($record->feasibility->client->client_name ?? 'N/A'); ?> - <?php echo e($record->feasibility->client_state ?? 'N/A'); ?></p>
 
             </div>
 
@@ -79,6 +79,23 @@
 
                 <p><?php echo e($record->feasibility->address ?? 'N/A'); ?></p>
 
+            </div>
+
+            
+
+
+            <div class="col-md-4">
+                <h6 class="fw-semibold text-muted">Link Type:</h6>
+                <p><?php echo e($record->feasibility->link_type ?? 'N/A'); ?></p>
+                <?php if(($record->feasibility->link_type ?? '') === 'existing' && isset($deliverablePlan) && $deliverablePlan): ?>
+                    <span class="text-muted small">Vendor: <?php echo e($deliverablePlan->vendor_name ?? 'N/A'); ?></span><br>
+                    <span class="text-muted small">ARC: <?php echo e($deliverablePlan->plans_name ?? 'N/A'); ?></span>
+                <?php endif; ?>
+            </div>
+
+            <div class="col-md-4">
+                <h6 class="fw-semibold text-muted">Circuit ID:</h6>
+                <p><?php echo e($record->feasibility->circuit_id ?? 'N/A'); ?></p>
             </div>
 
             
@@ -222,7 +239,6 @@
                         </label>
 
 
-
                         
 
                         <select name="vendor<?php echo e($i); ?>_name" 
@@ -244,6 +260,10 @@
     $value = !empty($previous->{'vendor'.$i.'_name'})
         ? ($previous->{'vendor'.$i.'_name'} ?? '')
         : ($record->{'vendor'.$i.'_name'} ?? '');
+    // If still empty and existing link, use deliverable
+    if (empty($value) && $i == 1 && isset($deliverable) && $deliverable) {
+        $value = $deliverable->feasibilityStatus->vendor1_name ?? '';
+    }
 ?>
 <!-- <option value="<?php echo e($vendor->vendor_name); ?>"
     <?php echo e($value == $vendor->vendor_name ? 'selected' : ''); ?>>
@@ -274,6 +294,11 @@
     $arc = !empty($previous->{'vendor'.$i.'_arc'})
         ? ($previous->{'vendor'.$i.'_arc'} ?? '') 
         : ($record->{'vendor' . $i . '_arc'} ?? '');
+
+    // If still empty and existing link, use deliverable
+    if (empty($arc) && $i == 1 && isset($deliverable) && $deliverable) {
+        $arc = $deliverable->feasibilityStatus->vendor1_arc ?? '';
+    }
 ?>
 
                     <div class="col-md-2">
@@ -289,6 +314,10 @@
     $otc = !empty($previous->{'vendor'.$i.'_otc'})
         ? ($previous->{'vendor'.$i.'_otc'} ?? '') 
         : ($record->{'vendor' . $i . '_otc'} ?? '');
+    // If still empty and existing link, use deliverable
+    if (empty($otc) && $i == 1 && isset($deliverable) && $deliverable) {
+        $otc = $deliverable->feasibilityStatus->vendor1_otc ?? '';
+    }
 ?>
 
                     <div class="col-md-2">
@@ -305,6 +334,11 @@
     $staticIpCost = !empty($previous->{'vendor'.$i.'_static_ip_cost'})
         ? ($previous->{'vendor'.$i.'_static_ip_cost'} ?? '') 
         : ($record->{'vendor' . $i . '_static_ip_cost'} ?? '');
+    // If still empty and existing link, use deliverable
+    if (empty($staticIpCost) && $i == 1 && isset($deliverable) && $deliverable) {
+        $staticIpCost = $deliverable->feasibilityStatus->vendor1_static_ip_cost ?? '';
+    }
+
 ?>
                     <div class="col-md-2 static-ip-cost-column">
     <label class="form-label fw-semibold">Static IP Cost</label>
@@ -319,6 +353,10 @@
 $deliveryTimeline = !empty($previous->{'vendor'.$i.'_delivery_timeline'})
     ? $previous->{'vendor'.$i.'_delivery_timeline'}
     : ($record->{'vendor'.$i.'_delivery_timeline'} ?? '');
+    // If still empty and existing link, use deliverable
+    if (empty($deliveryTimeline) && $i == 1 && isset($deliverable) && $deliverable) {
+        $deliveryTimeline = $deliverable->feasibilityStatus->vendor1_delivery_timeline ?? '';
+    }
 ?>
 
                     <div class="col-md-2">
@@ -333,6 +371,10 @@ $deliveryTimeline = !empty($previous->{'vendor'.$i.'_delivery_timeline'})
 $remarks = !empty($previous->{'vendor'.$i.'_remarks'})
     ? $previous->{'vendor'.$i.'_remarks'}
     : ($record->{'vendor'.$i.'_remarks'} ?? '');
+    // If still empty and existing link, use deliverable
+    if (empty($remarks) && $i == 1 && isset($deliverable) && $deliverable) {
+        $remarks = $deliverable->feasibilityStatus->vendor1_remarks ?? '';
+    }
 ?>
 
                     <div class="col-md-2">

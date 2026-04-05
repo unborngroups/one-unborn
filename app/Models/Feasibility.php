@@ -136,4 +136,16 @@ public function companies()
     return $this->belongsToMany(Company::class, 'company_user', 'user_id', 'company_id');
 }
 
+    protected static function booted()
+    {
+        parent::booted();
+        static::deleting(function ($feasibility) {
+            // Force delete all related purchase orders, including soft deleted ones
+            foreach ($feasibility->purchaseOrders()->withTrashed()->get() as $po) {
+                $po->forceDelete();
+            }
+        });
+    }
+
+    
 }

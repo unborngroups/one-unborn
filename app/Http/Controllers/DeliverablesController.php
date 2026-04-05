@@ -399,37 +399,37 @@ class DeliverablesController extends Controller
             $salesInvoice->save();
     
             // --- PURCHASE INVOICE ---
-            $purchaseInvoice = \App\Models\PurchaseInvoice::where('deliverable_id', $deliverable->id)->first();
-            if (!$purchaseInvoice) {
-                $purchaseInvoice = new \App\Models\PurchaseInvoice();
-                $purchaseInvoice->deliverable_id = $deliverable->id;
-                $purchaseInvoice->invoice_no = 'PINV-' . $deliverable->id;
-                $isNewPurchaseInvoice = true;
-            } else {
-                $isNewPurchaseInvoice = false;
-            }
-            // Only set invoice_no if new
-            if ($isNewPurchaseInvoice) {
-                $purchaseInvoice->invoice_no = 'PINV-' . $deliverable->id;
-            }
-            $purchaseInvoice->company_id = $company->id ?? null;
-            $purchaseInvoice->invoice_date = $firstPlan && $firstPlan->date_of_activation ? $firstPlan->date_of_activation : now()->format('Y-m-d');
-            $purchaseInvoice->due_date = $firstPlan && $firstPlan->date_of_expiry ? $firstPlan->date_of_expiry : now()->addDays(15)->format('Y-m-d');
-            // Set vendor_name_raw for new schema
-            $purchaseInvoice->vendor_name_raw = $deliverable->vendor ?? '';
-            $purchaseInvoice->vendor_name = $deliverable->vendor ?? '';
-            $purchaseInvoice->vendor_email = null;
-            $purchaseInvoice->vendor_phone = null;
-            $purchaseInvoice->vendor_address = null;
-            $purchaseInvoice->vendor_gstin = null;
-            $purchaseInvoice->sub_total = 0;
-            $purchaseInvoice->cgst_total = 0;
-            $purchaseInvoice->sgst_total = 0;
-            $purchaseInvoice->grand_total = 0;
-            $purchaseInvoice->status = 'draft';
-            $purchaseInvoice->notes = null;
-            $purchaseInvoice->terms = null;
-            $purchaseInvoice->save();
+        //     $purchaseInvoice = \App\Models\PurchaseInvoice::where('deliverable_id', $deliverable->id)->first();
+        //     if (!$purchaseInvoice) {
+        //         $purchaseInvoice = new \App\Models\PurchaseInvoice();
+        //         $purchaseInvoice->deliverable_id = $deliverable->id;
+        //         $purchaseInvoice->invoice_no = 'PINV-' . $deliverable->id;
+        //         $isNewPurchaseInvoice = true;
+        //     } else {
+        //         $isNewPurchaseInvoice = false;
+        //     }
+        //     // Only set invoice_no if new
+        //     if ($isNewPurchaseInvoice) {
+        //         $purchaseInvoice->invoice_no = 'PINV-' . $deliverable->id;
+        //     }
+        //     $purchaseInvoice->company_id = $company->id ?? null;
+        //     $purchaseInvoice->invoice_date = $firstPlan && $firstPlan->date_of_activation ? $firstPlan->date_of_activation : now()->format('Y-m-d');
+        //     $purchaseInvoice->due_date = $firstPlan && $firstPlan->date_of_expiry ? $firstPlan->date_of_expiry : now()->addDays(15)->format('Y-m-d');
+        //     // Set vendor_name_raw for new schema
+        //     $purchaseInvoice->vendor_name_raw = $deliverable->vendor ?? '';
+        //     $purchaseInvoice->vendor_name = $deliverable->vendor ?? '';
+        //     $purchaseInvoice->vendor_email = null;
+        //     $purchaseInvoice->vendor_phone = null;
+        //     $purchaseInvoice->vendor_address = null;
+        //     $purchaseInvoice->vendor_gstin = null;
+        //     $purchaseInvoice->sub_total = 0;
+        //     $purchaseInvoice->cgst_total = 0;
+        //     $purchaseInvoice->sgst_total = 0;
+        //     $purchaseInvoice->grand_total = 0;
+        //     $purchaseInvoice->status = 'draft';
+        //     $purchaseInvoice->notes = null;
+        //     $purchaseInvoice->terms = null;
+        //     $purchaseInvoice->save();
         }
         
             $existingPlansMap = $deliverable->deliverablePlans->keyBy('link_number');
@@ -705,6 +705,24 @@ if (!$companySetting) {
                             null,
                             'delivery'
                         );
+
+                        // Log to deliverable_email_logs table
+                        try {
+                            \App\Models\DeliverableEmailLog::create([
+                                'deliverable_id' => $deliverable->id,
+                                'sent_by' => Auth::id(),
+                                'sent_at' => now(),
+                                'sent_from_email' => config('mail.from.address'),
+                                'sent_to_email' => is_array($to) ? implode(',', $to) : $to,
+                                'subject' => $templateKey,
+                                'body' => json_encode($templateData),
+                                'attachment_path' => null, // Add if you want to log attachments
+                                'received_at' => null, // To be updated when received
+                                'received_status' => $emailSent ? 'pending' : 'failed',
+                            ]);
+                        } catch (\Exception $ex) {
+                            Log::error('Failed to log deliverable email: ' . $ex->getMessage());
+                        }
                     }
                 } catch (\Exception $e) {
                     Log::error('Delivery email failed: ' . $e->getMessage());
