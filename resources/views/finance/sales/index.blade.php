@@ -30,7 +30,7 @@
                     <tr>
                         <th>#</th>
                         <th>Invoice No</th>
-                        <th>Customer</th>
+                        <th>Client</th>
                         <th>Date</th>
                         <th>Total Amount</th>
                         <th width="180">Action</th>
@@ -49,7 +49,7 @@
                         </td>
 
                         <td>
-                            {{ $sale->client->name ?? '-' }}
+                            {{ $client->client_name ?? '-' }}
                         </td>
 
                         <td>

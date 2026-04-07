@@ -28,9 +28,6 @@
                     </a>
 
                 </li>
-                        </ul>
-                    </div>
-                </li>
                 @endif
 
                  @if($reportdashboard && $reportdashboard->can_menu)
@@ -43,9 +40,6 @@
 
                     </a>
 
-                </li>
-                        </ul>
-                    </div>
                 </li>
                 @endif
 
@@ -144,7 +138,6 @@
                     </div>
 
                 </li>
-
             @endif
 
 
@@ -985,7 +978,7 @@
             @endif
 
 
-            {{-- Auto Invoice Processing --}}
+{{-- Auto Invoice Processing --}}
             @if($purchase && $purchase->can_menu)
 
             <li>
@@ -996,19 +989,17 @@
                     </summary>
                     <ul class="nav flex-column ms-3 mt-1">
                         <li>
-
-                        <a class="nav-link text-white menu-item 
-                    {{ request()->is('finance/purchases') ? 'active' : '' }}"
-                   href="{{ route('finance.purchases.index') }}"> 
+                            <a class="nav-link text-white menu-item {{ request()->is('finance/purchase-invoices*') ? 'active' : '' }}"
+                               href="{{ route('finance.purchase_invoices.index') }}">
                                 Auto Invoice Processing
                             </a>
                         </li>
 
                         {{-- Purchase Invoices--}}
-
             <li>
-                <a class="nav-link text-white menu-item {{ request()->is('finance/purchase-invoices*') ? 'active' : '' }}"
-                               href="{{ route('finance.purchase_invoices.index') }}">
+                <a class="nav-link text-white menu-item 
+                    {{ request()->is('finance/purchases*') ? 'active' : '' }}"
+                   href="{{ route('finance.purchases.index') }}">
                     Purchase Invoices
                 </a>
             </li>
@@ -1016,17 +1007,25 @@
              {{--  Purchase Excel Download --}}
             <li>
                 <a class="nav-link text-white menu-item 
-                    {{ request()->is('finance/purchases/excel-download-page') ? 'active' : '' }}"
-                   href="{{ route('finance.purchases.excelDownloadPage') }}">
+                    {{ request()->is('finance/purchases/download-excel') ? 'active' : '' }}"
+                   href="{{ route('finance.purchases.downloadExcel') }}">
                     Excel Download
+                </a>
+            </li>
+
+            <li>
+                <a class="nav-link text-white menu-item 
+                    {{ request()->is('finance/purchase-invoices*') && request('status') === 'failed' ? 'active' : '' }}"
+                   href="{{ route('finance.purchase_invoices.index', ['status' => 'failed']) }}">
+                    Failed Invoice
                 </a>
             </li>
                     </ul>
                 </details>
             </li>
             @endif
-
-
+            
+            
             {{-- MASTERS --}}
             @if($items && $items->can_menu)
             <li>

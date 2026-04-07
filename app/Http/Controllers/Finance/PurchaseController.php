@@ -22,11 +22,55 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use App\Exports\PurchasesExport;
 use Maatwebsite\Excel\Facades\Excel;
 
 class PurchaseController extends Controller
 {
+    private function lastManualFetchCacheKey(): string
+    {
+        $userId = (int) (Auth::id() ?? 0);
+        return 'purchase_invoices:last_manual_fetch_at:user:' . $userId;
+    }
+
+    private function lastFetchStatusCacheKey(): string
+    {
+        $userId = (int) (Auth::id() ?? 0);
+        return 'purchase_invoices:last_fetch_status:user:' . $userId;
+    }
+
+    private function cacheFetchStatus(int $exitCode, string $output, int $mailReadDays): void
+    {
+        $cleanOutput = trim(strip_tags($output));
+        $message = 'Mail checked.';
+        $level = $exitCode === 0 ? 'info' : 'error';
+
+        if ($exitCode !== 0) {
+            $lines = preg_split('/\r\n|\r|\n/', $cleanOutput) ?: [];
+            $message = trim((string) collect($lines)->filter()->last()) ?: 'Mail fetch failed.';
+        } elseif (Str::contains($cleanOutput, 'Purchase Invoice created')) {
+            $created = substr_count($cleanOutput, 'Purchase Invoice created');
+            $level = 'success';
+            $message = $created . ' invoice(s) imported from the last ' . $mailReadDays . ' day(s).';
+        } elseif (Str::contains($cleanOutput, 'No emails found in mailbox')) {
+            $message = 'Mailbox reachable, but no emails were found.';
+        } elseif (Str::contains($cleanOutput, 'No new emails to process')) {
+            $message = 'Mail checked successfully, but no new emails matched the read window.';
+        } elseif (Str::contains($cleanOutput, 'No supported invoice attachments found')) {
+            $message = 'Emails were read, but no supported invoice attachments were found.';
+        } elseif (Str::contains($cleanOutput, 'Done! 0 invoice(s) created.')) {
+            $message = 'Mail checked successfully, but no invoice could be created from the emails.';
+        }
+
+        Cache::put($this->lastFetchStatusCacheKey(), [
+            'level' => $level,
+            'message' => $message,
+            'checked_at' => now()->toDateTimeString(),
+            'output' => $cleanOutput,
+        ], now()->addDays(30));
+    }
+
     private function getInvoiceMailReadDays(): int
     {
         $companySetting = $this->resolveInvoiceCompanySetting();
@@ -39,18 +83,12 @@ class PurchaseController extends Controller
         $mailReadDays = $this->getInvoiceMailReadDays();
         $this->autoFetchGmailInvoices($mailReadDays);
 
-        $status = trim((string) $request->input('status', ''));
         $purchasesQuery = PurchaseInvoice::with(['vendor', 'deliverable.feasibility.client'])->latest();
         $fromDate = now()->subDays($mailReadDays)->startOfDay();
-        // Show all invoice statuses (including draft) so newly auto-read mails are visible.
-        $purchasesQuery->where(function ($query) use ($fromDate) {
-            $query->where('created_at', '>=', $fromDate)
-                ->orWhere('updated_at', '>=', $fromDate);
-        });
-
-        if ($status !== '') {
-            $purchasesQuery->where('status', $status);
-        }
+        $purchasesQuery->where('created_at', '>=', $fromDate)
+            // Hide 'draft' & 'failed' invoices — draft stays in Auto Invoice Processing, failed goes to Failed Invoices
+            ->where('status', '!=', 'draft')
+            ->where('status', '!=', 'failed');
 
         $purchases = $purchasesQuery->get();
 
@@ -85,12 +123,23 @@ class PurchaseController extends Controller
         }
 
         try {
-            Artisan::call('invoice:fetch-gmail', [
+            $exitCode = Artisan::call('invoice:fetch-gmail', [
                 '--recent' => true,
                 '--days' => $mailReadDays,
             ]);
+            $output = trim(Artisan::output());
+            $this->cacheFetchStatus($exitCode, $output, $mailReadDays);
+            if ($exitCode === 0) {
+                Cache::put($this->lastManualFetchCacheKey(), now()->toDateTimeString(), now()->addDays(30));
+            }
             Cache::put($cooldownKey, 1, now()->addMinutes(1)); // 1 minute cooldown after completion
         } catch (\Throwable $e) {
+            Cache::put($this->lastFetchStatusCacheKey(), [
+                'level' => 'error',
+                'message' => 'Mail fetch failed: ' . $e->getMessage(),
+                'checked_at' => now()->toDateTimeString(),
+                'output' => $e->getMessage(),
+            ], now()->addDays(30));
             Log::warning('Auto Gmail invoice fetch failed on purchases index.', ['error' => $e->getMessage()]);
         } finally {
             Cache::forget($runningKey);
@@ -996,22 +1045,67 @@ private function updateImage($request, $oldFile, $field, $folder)
 
     public function autoInvoiceIndex(Request $request)
     {
-        // Ensure email imports are refreshed even when user opens Auto Invoice page directly.
+        $status  = $request->input('status');
         $mailReadDays = $this->getInvoiceMailReadDays();
         $this->autoFetchGmailInvoices($mailReadDays);
 
-        $status  = $request->input('status');
-        // Auto Invoice Processing should list only invoices imported from email.
-        $query   = PurchaseInvoice::with('vendor')
+        // Auto Invoice Processing shows invoices imported from email that are being processed
+        $query   = PurchaseInvoice::with(['vendor', 'emailLog'])
             ->whereNotNull('email_log_id')
             ->latest();
 
-        if ($status) {
+        if ($status === 'failed') {
+            // Failed tab should include explicit failed status AND records carrying failure details.
+            $invoices = $query->get()
+                ->filter(fn (PurchaseInvoice $invoice) => $this->isFailedAutoInvoice($invoice))
+                ->values();
+        } elseif ($status) {
             $query->where('status', $status);
+            $invoices = $query->get();
+        } else {
+            // By default, show draft, needs_review, verified status (invoices being processed)
+            // Hide approved, paid, failed from default auto-processing list.
+            $invoices = $query
+                ->whereIn('status', ['draft', 'needs_review', 'verified'])
+                ->get();
         }
 
-        $invoices = $query->get();
-        return view('finance.purchase_invoices.index', compact('invoices'));
+        $latestImportedMailAt = EmailLog::latest()->value('created_at');
+        $lastManualFetchAt = Cache::get($this->lastManualFetchCacheKey());
+
+        $lastMailReadAt = $latestImportedMailAt;
+        if (!empty($lastManualFetchAt) && (empty($lastMailReadAt) || strtotime((string) $lastManualFetchAt) > strtotime((string) $lastMailReadAt))) {
+            $lastMailReadAt = $lastManualFetchAt;
+        }
+
+        $lastFetchStatus = Cache::get($this->lastFetchStatusCacheKey());
+
+        return view('finance.purchase_invoices.index', compact('invoices', 'lastMailReadAt', 'lastFetchStatus'));
+    }
+
+    private function isFailedAutoInvoice(PurchaseInvoice $invoice): bool
+    {
+        $status = strtolower(trim((string) ($invoice->status ?? '')));
+        if ($status === 'failed') {
+            return true;
+        }
+
+        $raw = is_array($invoice->raw_json) ? $invoice->raw_json : [];
+        $failureReason = trim((string) (
+            data_get($raw, 'import_failure_reason')
+            ?? data_get($raw, 'parse_error')
+            ?? data_get($raw, 'error')
+            ?? ''
+        ));
+
+        if ($failureReason !== '') {
+            return true;
+        }
+
+        $emailLogStatus = strtolower(trim((string) optional($invoice->emailLog)->status));
+        $emailLogError = trim((string) optional($invoice->emailLog)->error_message);
+
+        return $emailLogStatus === 'failed' || $emailLogError !== '';
     }
 
     public function showAutoInvoice($id)
@@ -1083,7 +1177,7 @@ private function updateImage($request, $oldFile, $field, $folder)
         // After approving, send to Auto Invoice Processing (approved tab)
         return redirect()
             ->route('finance.purchase_invoices.index', ['status' => 'approved'])
-            ->with('success', 'Invoice approved and moved to Auto Invoice Processing.');
+            ->with('success', 'Auto Invoice Processing approved and moved to Invoice.');
     }
 
     public function verify($id)
@@ -1479,11 +1573,21 @@ public function fetchGmail(Request $request)
         ]);
         $output   = trim(Artisan::output());
         $created  = substr_count($output, 'Purchase Invoice created');
+        $this->cacheFetchStatus($exitCode, $output, $mailReadDays);
 
-        return redirect()->route('finance.purchases.index')
+        if ($exitCode === 0) {
+            Cache::put($this->lastManualFetchCacheKey(), now()->toDateTimeString(), now()->addDays(30));
+        }
+
+        if ($exitCode !== 0) {
+            return redirect()->route('finance.purchase_invoices.index')
+                ->with('error', 'Gmail fetch failed. Please check the fetch status shown on this page.');
+        }
+
+        return redirect()->route('finance.purchase_invoices.index')
             ->with('success', 'Gmail check complete (last ' . $mailReadDays . ' days). ' . $created . ' new invoice(s) imported.');
     } catch (\Exception $e) {
-        return redirect()->route('finance.purchases.index')
+        return redirect()->route('finance.purchase_invoices.index')
             ->with('error', 'Gmail fetch failed: ' . $e->getMessage());
     }
 }
@@ -1503,15 +1607,19 @@ public function testInvoiceEmailConnection(Request $request)
     try {
         $companySetting = $this->resolveInvoiceCompanySetting();
 
-        $username = trim((string) (env('IMAP_USERNAME')
-            ?: $companySetting?->invoice_mail_username
+        $username = trim((string) (
+            $companySetting?->invoice_mail_username
             ?: $companySetting?->invoice_mail_from_address
-            ?: env('MAIL_USERNAME')));
-        $password = (string) (env('IMAP_PASSWORD')
-            ?: $companySetting?->invoice_mail_password
-            ?: env('MAIL_PASSWORD'));
-        $imapPath = $this->buildImapMailboxPathFromEnv()
-            ?: $this->buildImapMailboxPath($companySetting);
+            ?: env('IMAP_USERNAME')
+            ?: env('MAIL_USERNAME')
+        ));
+        $password = (string) (
+            $companySetting?->invoice_mail_password
+            ?: env('IMAP_PASSWORD')
+            ?: env('MAIL_PASSWORD')
+        );
+        $imapPath = $this->buildImapMailboxPath($companySetting)
+            ?: $this->buildImapMailboxPathFromEnv();
 
         if (!$imapPath || !$username || !$password) {
             return response()->json([
@@ -1681,39 +1789,4 @@ private function normalizeImapServerSettings(string $host, string $port, string 
         return Excel::download(new PurchasesExport($records), 'purchases.xlsx');
     }
 
-
-public function excelDownloadPage(Request $request)
-{
-    $perPage = $request->input('per_page', 10);
-    $search = $request->input('search', '');
-
-    $query = \App\Models\PurchaseInvoice::with(['vendor'])->latest();
-
-    if ($search) {
-        $query->where(function($q) use ($search) {
-            $q->orWhere('invoice_number', 'like', "%$search%")
-              ->orWhere('amount', 'like', "%$search%")
-              ->orWhere('status', 'like', "%$search%")
-              ->orWhereHas('vendor', function($q2) use ($search) {
-                  $q2->where('vendor_name', 'like', "%$search%");
-              });
-        });
-    }
-
-    $purchases = $query->paginate($perPage);
-    return view('finance.purchases.excel_download', compact('purchases'));
-}
-
-    public function exportExcel(Request $request)
-    {
-        $ids = $request->input('selected', []);
-        $query = \App\Models\PurchaseInvoice::query();
-        if (!empty($ids)) {
-            $query->whereIn('id', $ids);
-        }
-        $purchases = $query->with(['vendor'])->get();
-
-        // Use your export logic/package here. Example with Maatwebsite\Excel:
-        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\PurchasesExport($purchases), 'purchases.xlsx');
-    }
 }

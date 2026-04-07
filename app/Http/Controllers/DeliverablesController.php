@@ -28,6 +28,17 @@ use Carbon\Carbon;
 
 class DeliverablesController extends Controller
 {
+    private static $stateAbbr = [
+        'Andhra Pradesh' => 'AP', 'Arunachal Pradesh' => 'AR', 'Assam' => 'AS', 'Bihar' => 'BR',
+        'Chhattisgarh' => 'CG', 'Goa' => 'GA', 'Gujarat' => 'GJ', 'Haryana' => 'HR', 'Himachal Pradesh' => 'HP',
+        'Jammu and Kashmir' => 'JK', 'Jharkhand' => 'JH', 'Karnataka' => 'KA', 'Kerala' => 'KL', 'Madhya Pradesh' => 'MP',
+        'Maharashtra' => 'MH', 'Manipur' => 'MN', 'Meghalaya' => 'ML', 'Mizoram' => 'MZ', 'Nagaland' => 'NL',
+        'Orissa' => 'OR', 'Punjab' => 'PB', 'Rajasthan' => 'RJ', 'Sikkim' => 'SK', 'Tamil Nadu' => 'TN', 'Tripura' => 'TR',
+        'Uttarakhand' => 'UK', 'Uttar Pradesh' => 'UP', 'West Bengal' => 'WB', 'Telangana' => 'TS',
+        'Andaman and Nicobar Islands' => 'AN', 'Chandigarh' => 'CH', 'Dadra and Nagar Haveli' => 'DH', 'Daman and Diu' => 'DD',
+        'Delhi' => 'DL', 'Lakshadweep' => 'LD', 'Pondicherry' => 'PY',
+    ];
+
     /**
      * AJAX: Calculate subnet/network details for a given IP and subnet mask.
      * Route: /calculate-subnet (GET)
@@ -372,14 +383,18 @@ class DeliverablesController extends Controller
             if (!$salesInvoice) {
                 $salesInvoice = new \App\Models\SalesInvoice();
                 $salesInvoice->deliverable_id = $deliverable->id;
-                $salesInvoice->invoice_no = 'INV-' . $deliverable->id;
+                $salesInvoice->invoice_no = $this->generateAutoSalesInvoiceNumber($deliverable);
                 $isNewSalesInvoice = true;
             } else {
                 $isNewSalesInvoice = false;
             }
             // Only set invoice_no if new
             if ($isNewSalesInvoice) {
-                $salesInvoice->invoice_no = 'INV-' . $deliverable->id;
+                $salesInvoice->invoice_no = $this->generateAutoSalesInvoiceNumber($deliverable);
+            }
+            // Backfill legacy format like INV-00003 to new format when this flow runs.
+            if (!empty($salesInvoice->invoice_no) && preg_match('/^INV-\d+$/i', $salesInvoice->invoice_no)) {
+                $salesInvoice->invoice_no = $this->generateAutoSalesInvoiceNumber($deliverable);
             }
             $salesInvoice->company_id = $company->id ?? null;
             $salesInvoice->invoice_date = $firstPlan && $firstPlan->date_of_activation ? $firstPlan->date_of_activation : now()->format('Y-m-d');
@@ -609,23 +624,39 @@ if (!$companySetting) {
                 Log::error('No client found for deliverable ID: ' . $deliverable->id);
                 return back()->with('error', 'Client not found for this deliverable.');
             }
-            $to = $client->delivered_email;
-            $cc = $client->delivered_cc;
+            $toRaw = $client->delivered_email;
+            $ccRaw = $client->delivered_cc;
+            // Fallback recipients: if delivered_email is empty/invalid, use support/billing SPOC emails.
+            $fallbackRaw = implode(';', array_filter([
+                $client->support_spoc_email ?? null,
+                $client->billing_spoc_email ?? null,
+            ]));
        // $templateKey = 'deliverable_delivered'; // Use your event_key from Template Master
             // $client = $deliverable->feasibility->client_i;
             $company = $deliverable->feasibility->company_name;
 
-            $to = is_string($to)
-                ? array_map('trim', preg_split('/[;,]/', $to))
-                : (array) $to;
+            $to = is_string($toRaw)
+                ? array_map('trim', preg_split('/[;,]/', $toRaw))
+                : (array) $toRaw;
 
-            $cc = is_string($cc)
-                ? array_map('trim', preg_split('/[;,]/', $cc))
-                : (array) $cc;
+            $cc = is_string($ccRaw)
+                ? array_map('trim', preg_split('/[;,]/', $ccRaw))
+                : (array) $ccRaw;
+
+            $fallbackTo = is_string($fallbackRaw)
+                ? array_map('trim', preg_split('/[;,]/', $fallbackRaw))
+                : (array) $fallbackRaw;
 
             $to = array_values(array_filter($to, function ($email) {
                 return is_string($email) && $email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL);
             }));
+
+            // Apply fallback only when primary delivered_email list has no valid addresses.
+            if (empty($to)) {
+                $to = array_values(array_filter($fallbackTo, function ($email) {
+                    return is_string($email) && $email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL);
+                }));
+            }
 
             $cc = array_values(array_filter($cc, function ($email) {
                 return is_string($email) && $email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL);
@@ -687,8 +718,12 @@ if (!$companySetting) {
                     if (empty($to)) {
                         Log::warning('Delivery email skipped: no valid recipient', [
                             'deliverable_id' => $deliverable->id,
-                            'raw_to' => $client->delivered_email ?? null,
-                            'raw_cc' => $client->delivered_cc ?? null,
+                            'client_id' => $client->id ?? null,
+                            'raw_to' => $toRaw,
+                            'raw_cc' => $ccRaw,
+                            'fallback_raw' => $fallbackRaw,
+                            'support_spoc_email' => $client->support_spoc_email ?? null,
+                            'billing_spoc_email' => $client->billing_spoc_email ?? null,
                         ]);
                     } else {
                         Log::info('Delivery email recipients prepared', [
@@ -803,6 +838,32 @@ if (!$companySetting) {
             'records' => $records,
             'permissions' => TemplateHelper::getUserMenuPermissions('operations Deliverables'),
         ]);
+    }
+
+    private function generateAutoSalesInvoiceNumber(Deliverables $deliverable): string
+    {
+        $company = $deliverable->feasibility->company ?? null;
+        $client = $deliverable->feasibility->client ?? null;
+
+        $companyShort = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $company->short_name ?? $company->company_name ?? 'CO'), 0, 4));
+        $clientShort = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $client->short_name ?? $client->client_name ?? 'CL'), 0, 4));
+
+        $state = trim($client->state ?? '');
+        $stateCode = self::$stateAbbr[$state] ?? strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $state), 0, 2));
+        if (empty($stateCode)) {
+            $stateCode = 'XX';
+        }
+
+        $now = now();
+        $fyStart = $now->month >= 4 ? $now->year : $now->year - 1;
+        $fyEnd = $fyStart + 1;
+        $year = substr((string)$fyStart, 2) . '-' . substr((string)$fyEnd, 2);
+
+        $prefix = $companyShort . '/' . $clientShort . '/' . $stateCode . '/' . $year . '/';
+        $count = \App\Models\SalesInvoice::where('invoice_no', 'like', $prefix . '%')->count();
+        $serial = str_pad((string)($count + 1), 4, '0', STR_PAD_LEFT);
+
+        return $prefix . $serial;
     }
 
     // Acceptance page for a specific deliverable

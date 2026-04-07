@@ -88,14 +88,14 @@ class SalesController extends Controller
 
     $sales = new SalesInvoice();
     $sales->company_id = $request->company_id;
-    $sales->invoice_no = $request->invoice_no;
+    $sales->invoice_no = $this->generateInvoiceNumber($deliverable);
     $sales->invoice_date = $request->invoice_date;
     $sales->due_date = $request->due_date;
-    $sales->customer_name = $request->customer_name;
-    $sales->customer_email = $request->customer_email;
-    $sales->customer_phone = $request->customer_phone;
-    $sales->customer_address = $request->customer_address;
-    $sales->customer_gstin = $request->customer_gstin;
+    $sales->client_name = $request->client_name;
+    $sales->client_email = $request->client_email;
+    $sales->client_phone = $request->client_phone;
+    $sales->client_address = $request->client_address;
+    $sales->client_gstin = $request->client_gstin;
     $sales->sub_total = $request->sub_total ?? 0;
     $sales->cgst_total = $request->cgst_total ?? 0;
     $sales->sgst_total = $request->sgst_total ?? 0;
@@ -168,30 +168,46 @@ public function submit($id)
         ->with('success','Invoice Submitted Successfully');
 }
 
-private function getCompanyCode($name)
+private static $stateAbbr = [
+    'Andhra Pradesh' => 'AP', 'Arunachal Pradesh' => 'AR', 'Assam' => 'AS', 'Bihar' => 'BR',
+    'Chhattisgarh' => 'CG', 'Goa' => 'GA', 'Gujarat' => 'GJ', 'Haryana' => 'HR', 'Himachal Pradesh' => 'HP',
+    'Jammu and Kashmir' => 'JK', 'Jharkhand' => 'JH', 'Karnataka' => 'KA', 'Kerala' => 'KL', 'Madhya Pradesh' => 'MP',
+    'Maharashtra' => 'MH', 'Manipur' => 'MN', 'Meghalaya' => 'ML', 'Mizoram' => 'MZ', 'Nagaland' => 'NL',
+    'Orissa' => 'OR', 'Punjab' => 'PB', 'Rajasthan' => 'RJ', 'Sikkim' => 'SK', 'Tamil Nadu' => 'TN', 'Tripura' => 'TR',
+    'Uttarakhand' => 'UK', 'Uttar Pradesh' => 'UP', 'West Bengal' => 'WB', 'Telangana' => 'TS',
+    'Andaman and Nicobar Islands' => 'AN', 'Chandigarh' => 'CH', 'Dadra and Nagar Haveli' => 'DH', 'Daman and Diu' => 'DD',
+    'Delhi' => 'DL', 'Lakshadweep' => 'LD', 'Pondicherry' => 'PY',
+];
+
+private function generateInvoiceNumber(Deliverables $deliverable): string
 {
-    return strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $name), 0, 3));
-}
+    $company  = $deliverable->feasibility->company ?? null;
+    $client   = $deliverable->feasibility->client  ?? null;
 
-private function getNextInvoiceNumber($ourCompany, $clientCompany)
-{
-    $ourCode = $this->getCompanyCode($ourCompany);
-    $clientCode = $this->getCompanyCode($clientCompany);
+    // Company short name (up to 4 uppercase letters, no spaces/special chars)
+    $companyShort = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $company->short_name ?? $company->company_name ?? 'CO'), 0, 4));
 
-    $prefix = $ourCode . '-' . $clientCode . '-';
+    // Client short name (up to 4 uppercase letters)
+    $clientShort = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $client->short_name ?? $client->client_name ?? 'CL'), 0, 4));
 
-    $lastInvoice = SalesInvoice::where('invoice_no','like',$prefix.'%')
-                    ->orderBy('id','desc')
-                    ->first();
+    // State abbreviation from client state
+    $state = trim($client->state ?? '');
+    $stateCode = self::$stateAbbr[$state] ?? strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $state), 0, 2)) ?: 'XX';
 
-    if ($lastInvoice) {
-        $lastNumber = intval(substr($lastInvoice->invoice_no,-6));
-        $nextNumber = str_pad($lastNumber + 1,6,'0',STR_PAD_LEFT);
-    } else {
-        $nextNumber = '000001';
-    }
+    // Financial year: e.g. Apr 2025 → "25-26"
+    $now = now();
+    $fyStart = $now->month >= 4 ? $now->year : $now->year - 1;
+    $fyEnd   = $fyStart + 1;
+    $year    = substr($fyStart, 2) . '-' . substr($fyEnd, 2); // e.g. "25-26"
 
-    return $prefix.$nextNumber;
+    // Prefix for this combination
+    $prefix = $companyShort . '/' . $clientShort . '/' . $stateCode . '/' . $year . '/';
+
+    // Serial: count existing invoices with same prefix, padded 4 digits
+    $count = SalesInvoice::where('invoice_no', 'like', $prefix . '%')->count();
+    $serial = str_pad($count + 1, 4, '0', STR_PAD_LEFT);
+
+    return $prefix . $serial;
 }
 
 }

@@ -28,9 +28,6 @@
                     </a>
 
                 </li>
-                        </ul>
-                    </div>
-                </li>
                 <?php endif; ?>
 
                  <?php if($reportdashboard && $reportdashboard->can_menu): ?>
@@ -43,9 +40,6 @@
 
                     </a>
 
-                </li>
-                        </ul>
-                    </div>
                 </li>
                 <?php endif; ?>
 
@@ -144,7 +138,6 @@
                     </div>
 
                 </li>
-
             <?php endif; ?>
 
 
@@ -985,7 +978,7 @@
             <?php endif; ?>
 
 
-            
+
             <?php if($purchase && $purchase->can_menu): ?>
 
             <li>
@@ -996,19 +989,17 @@
                     </summary>
                     <ul class="nav flex-column ms-3 mt-1">
                         <li>
-
-                        <a class="nav-link text-white menu-item 
-                    <?php echo e(request()->is('finance/purchases') ? 'active' : ''); ?>"
-                   href="<?php echo e(route('finance.purchases.index')); ?>"> 
+                            <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/purchase-invoices*') ? 'active' : ''); ?>"
+                               href="<?php echo e(route('finance.purchase_invoices.index')); ?>">
                                 Auto Invoice Processing
                             </a>
                         </li>
 
                         
-
             <li>
-                <a class="nav-link text-white menu-item <?php echo e(request()->is('finance/purchase-invoices*') ? 'active' : ''); ?>"
-                               href="<?php echo e(route('finance.purchase_invoices.index')); ?>">
+                <a class="nav-link text-white menu-item 
+                    <?php echo e(request()->is('finance/purchases*') ? 'active' : ''); ?>"
+                   href="<?php echo e(route('finance.purchases.index')); ?>">
                     Purchase Invoices
                 </a>
             </li>
@@ -1016,17 +1007,25 @@
              
             <li>
                 <a class="nav-link text-white menu-item 
-                    <?php echo e(request()->is('finance/purchases/excel-download-page') ? 'active' : ''); ?>"
-                   href="<?php echo e(route('finance.purchases.excelDownloadPage')); ?>">
+                    <?php echo e(request()->is('finance/purchases/download-excel') ? 'active' : ''); ?>"
+                   href="<?php echo e(route('finance.purchases.downloadExcel')); ?>">
                     Excel Download
+                </a>
+            </li>
+
+            <li>
+                <a class="nav-link text-white menu-item 
+                    <?php echo e(request()->is('finance/purchase-invoices*') && request('status') === 'failed' ? 'active' : ''); ?>"
+                   href="<?php echo e(route('finance.purchase_invoices.index', ['status' => 'failed'])); ?>">
+                    Failed Invoice
                 </a>
             </li>
                     </ul>
                 </details>
             </li>
             <?php endif; ?>
-
-
+            
+            
             
             <?php if($items && $items->can_menu): ?>
             <li>

@@ -37,13 +37,8 @@ class FetchGmailInvoicesCommand extends Command
         $host     = $mailboxConfig['host'];
         $username = $mailboxConfig['username'];
         $password = $mailboxConfig['password'];
-        $allowedRecipientEmails = $this->resolveAllowedRecipientEmails($companySetting, $mailboxConfig);
-        $strictRecipientFilter = (bool) env('INVOICE_FETCH_STRICT_RECIPIENT', false);
 
         $this->info("Connecting to Gmail: {$username}");
-        if ($strictRecipientFilter && !empty($allowedRecipientEmails)) {
-            $this->info('Allowed recipient email(s): ' . implode(', ', $allowedRecipientEmails));
-        }
 
         $inbox = @imap_open($host, $username, $password);
 
@@ -128,18 +123,33 @@ class FetchGmailInvoicesCommand extends Command
             $mailDate = $this->extractHeaderDate($header);
             $subjectHasInvoiceHint = $this->isInvoiceKeywordText($subject); // for logging only
 
-            // Optional strict recipient filter (disabled by default).
-            if ($strictRecipientFilter && !empty($allowedRecipientEmails) && !$this->isMailAddressedToAllowedRecipients($header, $allowedRecipientEmails)) {
-                $this->line('  ⏭ Skipped mail not addressed to configured invoice email.');
-                continue;
-            }
-
             $this->line("→ Email: [{$subject}] from [{$from}]");
 
             $structure = imap_fetchstructure($inbox, $emailNum);
+            if (!$structure) {
+                $this->warn('  ⚠ Could not fetch email structure, skipping.');
+                continue;
+            }
+
+            $this->line("  Structure: type={$structure->type} subtype={$structure->subtype} parts=" . (isset($structure->parts) ? count($structure->parts) : '0'));
+
             $parts     = [];
             if (isset($structure->parts)) {
                 $this->collectParts($structure->parts, $parts, $emailNum, '');
+            }
+
+            $hasInvoiceAttachmentHint = false;
+            foreach ($parts as $partMeta) {
+                $partFilename = (string) ($partMeta['filename'] ?? '');
+                if ($partFilename !== '' && $this->isInvoiceKeywordText($partFilename)) {
+                    $hasInvoiceAttachmentHint = true;
+                    break;
+                }
+            }
+
+            if (empty($parts)) {
+                $this->line('  ⏭ Skipped email (no parts found).');
+                continue;
             }
 
             $attachmentsFound = 0;
@@ -148,7 +158,7 @@ class FetchGmailInvoicesCommand extends Command
                 $filename = $part['filename'] ?? '';
                 $subtype  = strtolower($part['subtype'] ?? '');
 
-                if (!$this->isSupportedInvoiceAttachment($filename, $subtype)) {
+                if (!$this->isSupportedInvoiceAttachmentPart($part)) {
                     continue;
                 }
 
@@ -197,6 +207,12 @@ class FetchGmailInvoicesCommand extends Command
                 $invoiceDate = $invoiceData['invoice_date'] ?? $mailDate ?? now()->toDateString();
 
                 if (isset($invoiceData['error'])) {
+                    if (!$subjectHasInvoiceHint && !$fileHasInvoiceHint) {
+                        $this->warn('  ⏭ Parse failed for non-invoice-looking attachment. Skipping.');
+                        @unlink($tempFile);
+                        continue;
+                    }
+
                     $this->error('  ✗ Parse failed: ' . $invoiceData['error']);
 
                     // Always store any supported attachment for manual review regardless of keywords.
@@ -240,12 +256,15 @@ class FetchGmailInvoicesCommand extends Command
                                 'grand_total'     => 0,
                                 'total_amount'    => 0,
                                 'po_invoice_file' => $savedFile,
-                                'status'          => 'needs_review',
+                                'status'          => 'failed',
                                 'arc_amount'      => 0,
                                 'otc_amount'      => 0,
                                 'static_amount'   => 0,
                                 'raw_json'        => [
                                     'parse_error' => $invoiceData['error'],
+                                    'import_failure_reason' => $invoiceData['error'],
+                                    'failure_stage' => 'parse',
+                                    'failure_source' => 'gmail_import',
                                     'mail_uid'    => $emailUid,
                                 ],
                                 'email_log_id'    => $emailLog->id,
@@ -286,7 +305,7 @@ class FetchGmailInvoicesCommand extends Command
                     continue;
                 }
 
-                if (!$subjectHasInvoiceHint && !$fileHasInvoiceHint && empty($invoiceData['is_invoice'])) {
+                if (!$subjectHasInvoiceHint && !$fileHasInvoiceHint && empty($invoiceData['is_invoice']) && !$this->hasMeaningfulInvoiceData($invoiceData)) {
                     $this->warn('  ⏭ Attachment skipped because it does not look like an invoice.');
                     @unlink($tempFile);
                     continue;
@@ -354,7 +373,10 @@ class FetchGmailInvoicesCommand extends Command
                 $confidence = $this->combineConfidence($parserConfidence, $matchResult['score'] ?? 0);
 
                 $pdfVendorName = trim((string) ($invoiceData['vendor_name'] ?? ''));
-                $finalVendorName = $pdfVendorName !== '' ? $pdfVendorName : $this->extractName($from);
+                $masterVendorName = trim((string) ($matchResult['vendor_master_name'] ?? $vendor?->vendor_name ?? ''));
+                $finalVendorName = $masterVendorName !== ''
+                    ? $masterVendorName
+                    : ($pdfVendorName !== '' ? $pdfVendorName : $this->extractName($from));
                 $vendorFailureReason = $this->resolveVendorValidationFailure($pdfVendorName, $vendor, $matchResult);
 
                 if ($vendorFailureReason) {
@@ -414,7 +436,7 @@ class FetchGmailInvoicesCommand extends Command
                     'gst_number'     => $gst,
                     'vendor_gstin'   => $gst,
                     'po_invoice_file'=> $savedFile,
-                    'status'         => 'draft',
+                    'status'         => 'needs_review',
                     'confidence_score'=> $confidence,
                     'arc_amount'     => $arc,
                     'otc_amount'     => $otc,
@@ -431,10 +453,107 @@ class FetchGmailInvoicesCommand extends Command
             }
 
             if ($attachmentsFound === 0) {
-                $this->line('  No supported invoice attachments found in this email.');
+                $this->line('  ⊘ No file attachments. Trying email body as invoice...');
+
+                // Fallback: parse email body (text/html/plain) directly as invoice
+                $bodyText = $this->extractEmailBodyText($inbox, $emailNum, $parts);
+
+                if ($bodyText !== '') {
+                    if (!$subjectHasInvoiceHint && !$this->isInvoiceDocument($bodyText)) {
+                        $this->warn('  ⏭ Body text does not look like an invoice. Skipping email.');
+                        imap_setflag_full($inbox, (string)$emailNum, '\\Seen');
+                        continue;
+                    }
+
+                    $invoiceData = $this->extractFromText($bodyText);
+
+                    if ($this->hasMeaningfulInvoiceData($invoiceData)) {
+                        $this->info('  ✓ Invoice data found in email body text.');
+
+                        $gst       = $invoiceData['gst'] ?? null;
+                        $invoiceNo = $invoiceData['invoice_number'] ?? null;
+                        $invoiceDate = $invoiceData['invoice_date'] ?? $mailDate ?? now()->toDateString();
+
+                        $emailLog = EmailLog::create([
+                            'sender'          => $from,
+                            'subject'         => $subject,
+                            'body'            => substr($bodyText, 0, 2000),
+                            'attachment_path' => null,
+                            'status'          => 'processed',
+                            'file_hash'       => hash('sha256', $from . $subject . substr($bodyText, 0, 500)),
+                        ]);
+
+                        $resolver = app(VendorResolverService::class);
+                        $matchResult = $resolver->resolveMatch([
+                            'gstin' => $gst,
+                            'vendor_name' => $invoiceData['vendor_name'] ?? $this->extractName($from),
+                        ]);
+                        $vendor = $matchResult['vendor'];
+                        if (!$vendor) {
+                            $fromEmail = $this->extractEmail($from);
+                            if ($fromEmail) {
+                                $vendor = Vendor::where('contact_person_email', $fromEmail)->first();
+                            }
+                        }
+
+                        $arc    = $invoiceData['arc']    ?? 0;
+                        $otc    = $invoiceData['otc']    ?? 0;
+                        $static = $invoiceData['static'] ?? 0;
+                        $total  = ($arc + $otc + $static) > 0
+                                ? ($arc + $otc + $static)
+                                : ($invoiceData['total'] ?? 0);
+
+                        $parserConfidence = $this->calculateParserConfidence($invoiceData);
+                        $confidence = $this->combineConfidence($parserConfidence, $matchResult['score'] ?? 0);
+                        $pdfVendorName = trim((string) ($invoiceData['vendor_name'] ?? ''));
+                        $masterVendorName = trim((string) ($matchResult['vendor_master_name'] ?? $vendor?->vendor_name ?? ''));
+                        $finalVendorName = $masterVendorName !== ''
+                            ? $masterVendorName
+                            : ($pdfVendorName !== '' ? $pdfVendorName : $this->extractName($from));
+                        $vendorFailureReason = $this->resolveVendorValidationFailure($pdfVendorName, $vendor, $matchResult);
+                        $finalInvoiceNo = $invoiceNo ?: $this->generateFallbackInvoiceNo($gst, $invoiceDate, $total, $finalVendorName);
+                        $existingInvoice = $this->findExistingInvoiceForImport($finalInvoiceNo, $gst, $invoiceDate, $total, $finalVendorName);
+
+                        if (!$existingInvoice) {
+                            $pi = PurchaseInvoice::create([
+                                'type'            => 'purchase',
+                                'vendor_id'       => $vendor?->id,
+                                'vendor_name'     => $finalVendorName,
+                                'vendor_name_raw' => $finalVendorName,
+                                'invoice_no'      => $finalInvoiceNo,
+                                'invoice_date'    => $invoiceDate,
+                                'amount'          => $total,
+                                'grand_total'     => $total,
+                                'total_amount'    => $total,
+                                'gstin'           => $gst,
+                                'gst_number'      => $gst,
+                                'vendor_gstin'    => $gst,
+                                'po_invoice_file' => null,
+                                'status'          => 'needs_review',
+                                'confidence_score' => $confidence,
+                                'arc_amount'      => $arc,
+                                'otc_amount'      => $otc,
+                                'static_amount'   => $static,
+                                'raw_json'        => $this->attachImportFailureReason(
+                                    $this->withMatchDetails($invoiceData, $matchResult, $parserConfidence, $confidence),
+                                    $vendorFailureReason
+                                ),
+                                'email_log_id'    => $emailLog->id,
+                            ]);
+                            $this->info("  ✅ Purchase Invoice created from body! ID: {$pi->id} | Invoice: {$finalInvoiceNo}");
+                            $processed++;
+                        } else {
+                            $this->warn("  ⚠ Duplicate invoice [{$finalInvoiceNo}] already exists.");
+                        }
+                    } else {
+                        $this->warn('  ⊘ Email body has no meaningful invoice data (no GST/invoice no/total found).');
+                    }
+                } else {
+                    $this->warn('  ⊘ Could not extract any text from email body.');
+                }
             }
 
-            // Mark only invoice-candidate emails as read.
+            // Mark email as read.
             imap_setflag_full($inbox, (string)$emailNum, '\\Seen');
         }
 
@@ -450,24 +569,107 @@ class FetchGmailInvoicesCommand extends Command
 
     // ─── Helpers ────────────────────────────────────────────────────────────
 
+    private function extractEmailBodyText($inbox, int $emailNum, array $parts): string
+    {
+        $htmlText = '';
+        $plainText = '';
+
+        foreach ($parts as $part) {
+            $subtype = strtolower($part['subtype'] ?? '');
+            $type    = (int) ($part['type'] ?? -1);
+            $filename = trim((string) ($part['filename'] ?? ''));
+
+            // Only grab text/* parts with no filename (body parts, not attachments)
+            if ($type !== 0 || $filename !== '') {
+                continue;
+            }
+
+            $raw = imap_fetchbody($inbox, $emailNum, $part['partnum']);
+            $encoding = (int) ($part['encoding'] ?? 0);
+
+            if ($encoding === 3) {
+                $raw = base64_decode($raw);
+            } elseif ($encoding === 4) {
+                $raw = quoted_printable_decode($raw);
+            }
+
+            $charset = 'UTF-8';
+            foreach (($part['parameters'] ?? []) as $p) {
+                if (strtolower($p->attribute ?? '') === 'charset') {
+                    $charset = strtoupper($p->value ?? 'UTF-8');
+                    break;
+                }
+            }
+
+            if ($charset !== 'UTF-8' && $charset !== '') {
+                $converted = @iconv($charset, 'UTF-8//IGNORE', (string) $raw);
+                if ($converted !== false) {
+                    $raw = $converted;
+                }
+            }
+
+            if ($subtype === 'html') {
+                $htmlText .= strip_tags((string) $raw) . "\n";
+            } else {
+                $plainText .= ((string) $raw) . "\n";
+            }
+        }
+
+        // Prefer plain text; fall back to HTML-stripped
+        $text = trim($plainText !== '' ? $plainText : $htmlText);
+
+        // If no body parts found, fetch raw body (single-part email)
+        if ($text === '') {
+            $raw = imap_body($inbox, $emailNum);
+            $structure = imap_fetchstructure($inbox, $emailNum);
+            $encoding = (int) ($structure->encoding ?? 0);
+            if ($encoding === 3) {
+                $raw = base64_decode($raw);
+            } elseif ($encoding === 4) {
+                $raw = quoted_printable_decode($raw);
+            }
+            $text = trim(strip_tags((string) $raw));
+        }
+
+        return $text;
+    }
+
     private function collectParts(array $parts, array &$result, $emailNum, string $prefix): void
     {
         foreach ($parts as $i => $part) {
             $partnum  = $prefix !== '' ? "{$prefix}." . ($i + 1) : (string)($i + 1);
             $filename = null;
+            $nameSegments = [];
 
             foreach (($part->dparameters ?? []) as $param) {
-                if (strtolower($param->attribute) === 'filename') {
+                $attribute = strtolower((string) ($param->attribute ?? ''));
+                if ($attribute === 'filename') {
                     $filename = $param->value;
                 }
+                if (str_starts_with($attribute, 'filename*')) {
+                    $nameSegments[$attribute] = (string) ($param->value ?? '');
+                }
             }
+
             if (!$filename) {
                 foreach (($part->parameters ?? []) as $param) {
-                    if (strtolower($param->attribute) === 'name') {
+                    $attribute = strtolower((string) ($param->attribute ?? ''));
+                    if ($attribute === 'name') {
                         $filename = $param->value;
+                    }
+                    if (str_starts_with($attribute, 'name*')) {
+                        $nameSegments[$attribute] = (string) ($param->value ?? '');
                     }
                 }
             }
+
+            if (!$filename && !empty($nameSegments)) {
+                ksort($nameSegments);
+                $filename = implode('', $nameSegments);
+            }
+
+            $filename = $this->decodeMimeFilename($filename);
+            $disposition = strtolower((string) ($part->disposition ?? ''));
 
             $result[] = [
                 'type'     => $part->type,
@@ -475,6 +677,7 @@ class FetchGmailInvoicesCommand extends Command
                 'encoding' => $part->encoding ?? 0,
                 'partnum'  => $partnum,
                 'filename' => $filename,
+                'disposition' => $disposition,
             ];
 
             if (!empty($part->parts)) {
@@ -565,7 +768,7 @@ class FetchGmailInvoicesCommand extends Command
 
     private function isSupportedInvoiceAttachment(string $filename, string $subtype): bool
     {
-        // Do not trust generic plain-text MIME parts with empty names (common in forwarded mails).
+        // Do not trust generic plain-text MIME parts with empty names unless marked as attachments.
         $supportedBySubtype = in_array($subtype, ['pdf', 'octet-stream', 'csv', 'vnd.ms-excel', 'vnd.openxmlformats-officedocument.spreadsheetml.sheet']);
         $lower = strtolower($filename);
         $supportedByName = str_ends_with($lower, '.pdf')
@@ -581,11 +784,54 @@ class FetchGmailInvoicesCommand extends Command
         return $supportedBySubtype || $supportedByName;
     }
 
+    private function isSupportedInvoiceAttachmentPart(array $part): bool
+    {
+        $filename = trim((string) ($part['filename'] ?? ''));
+        $subtype = strtolower(trim((string) ($part['subtype'] ?? '')));
+        $disposition = strtolower(trim((string) ($part['disposition'] ?? '')));
+        $type = (int) ($part['type'] ?? -1);
+
+        if ($this->isSupportedInvoiceAttachment($filename, $subtype)) {
+            return true;
+        }
+
+        if (in_array($disposition, ['attachment', 'inline'], true) && in_array($type, [3, 5, 7], true)) {
+            return in_array($subtype, ['pdf', 'octet-stream', 'plain', 'csv', 'vnd.ms-excel', 'vnd.openxmlformats-officedocument.spreadsheetml.sheet'], true);
+        }
+
+        return false;
+    }
+
+    private function decodeMimeFilename(?string $value): string
+    {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return '';
+        }
+
+        if (function_exists('imap_mime_header_decode')) {
+            $decodedParts = @imap_mime_header_decode($value);
+            if (is_array($decodedParts) && !empty($decodedParts)) {
+                $decoded = '';
+                foreach ($decodedParts as $part) {
+                    $decoded .= (string) ($part->text ?? '');
+                }
+                $value = $decoded !== '' ? $decoded : $value;
+            }
+        }
+
+        $value = preg_replace("/^[^']*''/", '', $value) ?? $value;
+        $decodedUrl = rawurldecode($value);
+
+        return trim($decodedUrl !== '' ? $decodedUrl : $value, "\"'");
+    }
+
     private function hasMeaningfulInvoiceData(array $invoiceData): bool
     {
         $invoiceNo   = trim((string) ($invoiceData['invoice_number'] ?? ''));
         $gst         = trim((string) ($invoiceData['gst'] ?? ''));
         $vendorName  = trim((string) ($invoiceData['vendor_name'] ?? ''));
+        $invoiceDate = trim((string) ($invoiceData['invoice_date'] ?? ''));
         $total       = (float) ($invoiceData['total'] ?? 0);
         $isInvoiceFlag = (bool) ($invoiceData['is_invoice'] ?? false);
 
@@ -594,12 +840,7 @@ class FetchGmailInvoicesCommand extends Command
             return true;
         }
 
-        if ($isInvoiceFlag && $vendorName !== '') {
-            return true;
-        }
-
-        // Even if we can't fully parse amounts, save it for manual review if vendor name found
-        if ($vendorName !== '') {
+        if ($isInvoiceFlag && ($invoiceNo !== '' || $gst !== '' || $total > 0 || ($vendorName !== '' && $invoiceDate !== ''))) {
             return true;
         }
 
@@ -656,8 +897,7 @@ class FetchGmailInvoicesCommand extends Command
 
     private function resolveMailboxConfig(?CompanySetting $companySetting): array
     {
-        // Priority: Company Settings invoice mailbox > .env fallback > defaults.
-        // This ensures only configured company invoice mailbox is used for auto-read.
+        // Priority: Company Settings invoice mail config > IMAP_* env > MAIL_* env > defaults
         $host = $this->buildImapHost($companySetting)
             ?: $this->buildImapHostFromEnv()
             ?: env('IMAP_HOST', '{imap.gmail.com:993/imap/ssl/novalidate-cert}[Gmail]/All Mail');
@@ -665,14 +905,14 @@ class FetchGmailInvoicesCommand extends Command
         $username = trim((string) (
             $companySetting?->invoice_mail_username
             ?: $companySetting?->invoice_mail_from_address
-            ?: env('MAIL_USERNAME')
             ?: env('IMAP_USERNAME')
+            ?: env('MAIL_USERNAME')
         ));
 
         $password = (string) (
             $companySetting?->invoice_mail_password
-            ?: env('MAIL_PASSWORD')
             ?: env('IMAP_PASSWORD')
+            ?: env('MAIL_PASSWORD')
         );
 
         return [
@@ -731,84 +971,6 @@ class FetchGmailInvoicesCommand extends Command
             ->orderByDesc('is_default')
             ->orderByDesc('updated_at')
             ->first();
-    }
-
-    private function resolveAllowedRecipientEmails(?CompanySetting $companySetting, array $mailboxConfig): array
-    {
-        $emails = [];
-
-        $candidateTexts = [
-            (string) ($companySetting?->invoice_mail_from_address ?? ''),
-            (string) ($companySetting?->invoice_mail_username ?? ''),
-            (string) ($mailboxConfig['username'] ?? ''),
-        ];
-
-        foreach ($candidateTexts as $text) {
-            foreach ($this->extractEmailsFromText($text) as $email) {
-                $emails[$email] = true;
-            }
-        }
-
-        return array_keys($emails);
-    }
-
-    private function extractEmailsFromText(string $text): array
-    {
-        preg_match_all('/[\w.+\-]+@[\w\-]+\.[\w.\-]+/', strtolower($text), $matches);
-        $emails = $matches[0] ?? [];
-        $emails = array_map('trim', $emails);
-        $emails = array_filter($emails, fn ($email) => $email !== '');
-
-        return array_values(array_unique($emails));
-    }
-
-    private function isMailAddressedToAllowedRecipients(object $header, array $allowedRecipientEmails): bool
-    {
-        $recipientEmails = $this->collectHeaderRecipientEmails($header);
-
-        // Some providers do not return recipient details in IMAP headers.
-        // In that case, do not block processing to avoid false negatives.
-        if (empty($recipientEmails)) {
-            return true;
-        }
-
-        $allowedMap = array_fill_keys(array_map('strtolower', $allowedRecipientEmails), true);
-        foreach ($recipientEmails as $recipientEmail) {
-            if (isset($allowedMap[strtolower($recipientEmail)])) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private function collectHeaderRecipientEmails(object $header): array
-    {
-        $emails = [];
-
-        foreach (['to', 'cc', 'reply_to'] as $field) {
-            $entries = $header->{$field} ?? [];
-            if (!is_array($entries)) {
-                continue;
-            }
-
-            foreach ($entries as $entry) {
-                $mailbox = trim((string) ($entry->mailbox ?? ''));
-                $host = trim((string) ($entry->host ?? ''));
-                if ($mailbox !== '' && $host !== '') {
-                    $email = strtolower($mailbox . '@' . $host);
-                    $emails[$email] = true;
-                }
-            }
-        }
-
-        foreach (['toaddress', 'ccaddress', 'reply_toaddress'] as $textField) {
-            foreach ($this->extractEmailsFromText((string) ($header->{$textField} ?? '')) as $email) {
-                $emails[strtolower($email)] = true;
-            }
-        }
-
-        return array_keys($emails);
     }
 
     private function buildImapHost(?CompanySetting $companySetting): ?string
@@ -987,15 +1149,26 @@ class FetchGmailInvoicesCommand extends Command
 
     private function sanitizeVendorCandidate(string $candidate): ?string
     {
-        $candidate = trim(preg_replace('/\s+/', ' ', $candidate));
-        $candidate = preg_split('/\b(?:gst|gstin|invoice|bill|phone|mobile|email|terms|place\s*of\s*supply)\b/i', $candidate)[0] ?? $candidate;
+        $candidate = trim((string) preg_replace('/\s+/', ' ', $candidate));
+        $candidate = preg_split('/\b(?:gst|gstin|invoice|bill|phone|mobile|email|terms|place\s*of\s*supply|address|pin\s*code|pincode|state|country)\b/i', $candidate)[0] ?? $candidate;
+        $candidate = preg_split('/\b(?:road|rd\.?|street|st\.?|nagar|lane|ln\.?|floor|flr|district|city|village|near|opp\.?|opposite)\b/i', $candidate)[0] ?? $candidate;
+        $candidate = explode(',', $candidate)[0] ?? $candidate;
         $candidate = trim((string) $candidate, " \t\n\r\0\x0B:,-");
+        $candidate = trim((string) preg_replace('/\s{2,}/', ' ', $candidate));
 
         if (strlen($candidate) < 4) {
             return null;
         }
 
+        if (strlen($candidate) > 90 || str_word_count($candidate) > 8) {
+            return null;
+        }
+
         if (preg_match('/^(invoice|tax|total|ship\s*to|bill\s*to)$/i', $candidate)) {
+            return null;
+        }
+
+        if (preg_match('/\b(?:transaction|subject|jurisdiction|courts|details\s+on\s+this\s+form|provided\s+by\s+me\/us)\b/i', $candidate)) {
             return null;
         }
 
@@ -1409,6 +1582,10 @@ class FetchGmailInvoicesCommand extends Command
             'status' => $invoice->status,
         ];
 
+        if (in_array(strtolower((string) $invoice->status), ['draft', 'needs_review', 'failed'], true)) {
+            $newPayload['status'] = $vendorFailureReason ? 'failed' : 'draft';
+        }
+
         $incomingInvoiceNo = trim((string) ($newPayload['invoice_no'] ?? ''));
         if ($incomingInvoiceNo !== '' && strcasecmp(trim((string) $invoice->invoice_no), $incomingInvoiceNo) !== 0) {
             $conflictExists = PurchaseInvoice::query()
@@ -1522,13 +1699,19 @@ class FetchGmailInvoicesCommand extends Command
     private function resolveVendorValidationFailure(?string $extractedVendorName, ?Vendor $vendor, array $matchResult): ?string
     {
         $invoiceVendorName = trim((string) $extractedVendorName);
+        $isGstMatch = (bool) ($matchResult['gst_match'] ?? false);
 
-        if ($invoiceVendorName === '') {
-            return 'Vendor name missing in invoice.';
+        // If GST is matched to a vendor, treat it as authoritative and avoid name mismatch noise.
+        if ($vendor && $isGstMatch) {
+            return null;
         }
 
         if (!$vendor) {
             return 'Vendor name mismatch with Vendor Master.';
+        }
+
+        if ($invoiceVendorName === '') {
+            return null;
         }
 
         $isNameMatch = (bool) ($matchResult['name_match'] ?? false);

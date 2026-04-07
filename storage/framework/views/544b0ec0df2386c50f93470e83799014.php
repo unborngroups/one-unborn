@@ -31,7 +31,7 @@
                     <tr>
                         <th>#</th>
                         <th>Invoice No</th>
-                        <th>Customer</th>
+                        <th>Client</th>
                         <th>Date</th>
                         <th>Total Amount</th>
                         <th width="180">Action</th>
@@ -51,7 +51,7 @@
                         </td>
 
                         <td>
-                            <?php echo e($sale->client->name ?? '-'); ?>
+                            <?php echo e($client->client_name ?? '-'); ?>
 
                         </td>
 

@@ -41,7 +41,7 @@
             <div class="inv-company-block">
                 <div class="inv-logo-wrap">
                     <?php if($logo && file_exists(public_path('images/companylogos/' . $logo))): ?>
-                        <img src="<?php echo e(asset('images/companylogos/' . $logo)); ?>" alt="Logo">
+                        <img src="<?php echo e(asset('images/companylogos/' . $logo)); ?>" alt="Logo" width="550px" height="550px">
                     <?php else: ?>
                         <div class="inv-logo-placeholder">LOGO</div>
                     <?php endif; ?>
@@ -56,6 +56,7 @@
                         <?php if($comp->company_email ?? ''): ?><?php echo e($comp->company_email); ?><?php endif; ?>
                         <?php if($comp->website ?? ''): ?> &nbsp;|&nbsp; <?php echo e($comp->website); ?><?php endif; ?>
                     </div>
+                    <div class="inv-company-meta"> MSME:<?php echo e($comp->msme_id ?? ''); ?></div>
                 </div>
             </div>
             <div class="inv-title-block">

@@ -43,7 +43,7 @@
             <div class="inv-company-block">
                 <div class="inv-logo-wrap">
                     @if($logo && file_exists(public_path('images/companylogos/' . $logo)))
-                        <img src="{{ asset('images/companylogos/' . $logo) }}" alt="Logo">
+                        <img src="{{ asset('images/companylogos/' . $logo) }}" alt="Logo" width="550px" height="550px">
                     @else
                         <div class="inv-logo-placeholder">LOGO</div>
                     @endif
@@ -58,6 +58,7 @@
                         @if($comp->company_email ?? ''){{ $comp->company_email }}@endif
                         @if($comp->website ?? '') &nbsp;|&nbsp; {{ $comp->website }}@endif
                     </div>
+                    <div class="inv-company-meta"> MSME:{{ $comp->msme_id ?? '' }}</div>
                 </div>
             </div>
             <div class="inv-title-block">

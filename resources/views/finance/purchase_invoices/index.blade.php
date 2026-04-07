@@ -19,15 +19,90 @@
         </div>
     @endif
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0">Purchase Invoices</h2>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        
+        
+    </div>
 
-        <div class="d-flex gap-2 align-items-center">
-            <a href="{{ route('finance.purchases.create') }}"
-               class="btn btn-sm btn-info p-2 text-white">
-                <h2 class="mb-0">+ create invoice</h2>
-            </a>
+    @if(!empty($lastFetchStatus))
+    <div class="alert alert-{{ $lastFetchStatus['level'] === 'error' ? 'danger' : ($lastFetchStatus['level'] === 'success' ? 'success' : 'info') }} py-2 mb-3" role="alert">
+        <div class="fw-semibold">Mail Fetch Status: {{ $lastFetchStatus['message'] ?? 'Mail checked.' }}</div>
+        @if(!empty($lastFetchStatus['checked_at']))
+        <div class="small mt-1">
+            Checked at: {{ \Carbon\Carbon::parse($lastFetchStatus['checked_at'])->format('d-M-Y h:i A') }}
         </div>
+        @endif
+    </div>
+    @endif
+
+    <div class="mb-2">
+        <h4 class="mb-0">
+            @if(request('status') === 'failed')
+                Failed Invoices
+            @elseif(request('status') === 'needs_review')
+                Needs Review
+            @elseif(request('status') === 'verified')
+                Verified Invoices
+            @elseif(request('status') === 'approved')
+                Approved Invoices
+            @elseif(request('status') === 'paid')
+                Paid Invoices
+            @else
+                Purchase Invoice Automation
+            @endif
+        </h4>
+    </div>
+
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-4">
+
+            @if(isset($lastMailReadAt) && $lastMailReadAt)
+            <span class="text-muted small me-2">
+                <i class="bi bi-envelope-check"></i>
+                Last mail read: <strong>{{ \Carbon\Carbon::parse($lastMailReadAt)->format('d-M-Y h:i A') }}</strong>
+            </span>
+            @else
+            <span class="text-muted small me-2"><i class="bi bi-envelope"></i> No mail read yet</span>
+            @endif
+
+            <a href="{{ route('finance.purchase_invoices.index', ['status' => 'needs_review']) }}"
+               class="btn btn-warning btn-sm {{ request('status') === 'needs_review' ? 'active' : '' }}">
+                Needs Review
+            </a>
+
+            <a href="{{ route('finance.purchase_invoices.index', ['status' => 'verified']) }}"
+               class="btn btn-info btn-sm {{ request('status') === 'verified' ? 'active' : '' }}">
+                Verified
+            </a>
+
+            <a href="{{ route('finance.purchase_invoices.index', ['status' => 'approved']) }}"
+               class="btn btn-success btn-sm {{ request('status') === 'approved' ? 'active' : '' }}">
+                Approved
+            </a>
+
+            <a href="{{ route('finance.purchase_invoices.index', ['status' => 'paid']) }}"
+               class="btn btn-dark btn-sm {{ request('status') === 'paid' ? 'active' : '' }}">
+                Paid
+            </a>
+
+            <a href="{{ route('finance.purchase_invoices.index', ['status' => 'failed']) }}"
+                    class="btn btn-danger btn-sm {{ request('status') === 'failed' ? 'active' : '' }}">
+                Failed
+            </a>
+
+            <a href="{{ route('finance.purchase_invoices.index') }}"
+               class="btn btn-secondary btn-sm {{ request('status') === null ? 'active' : '' }}">
+                All
+            </a>
+
+            <form action="{{ route('finance.purchases.fetch-gmail') }}" method="POST" id="fetchGmailForm" class="d-inline-block">
+            @csrf
+            <button type="submit" class="btn btn-primary btn-sm" id="fetchNowBtn" onclick="fetchNowLoading()">
+                <i class="bi bi-envelope-arrow-down" id="fetchIcon"></i>
+                <span class="spinner-border spinner-border-sm d-none" id="fetchSpinner" role="status"></span>
+                <span id="fetchBtnText">Fetch Now</span>
+            </button>
+        </form>
+
     </div>
 
     <div class="card shadow-sm">
@@ -36,15 +111,22 @@
             <table class="table table-bordered table-hover align-middle">
                 <thead class="table-dark-primary">
                     <tr>
-                        <th>#</th>
-                        <th>Invoice No</th>
-                        <th>Vendor</th>
-                        <th>GSTIN</th>
-                        <th>Date</th>
-                        <th>Total</th>
-                        <th>Accuracy</th>
-                        <th>Status</th>
-                        <th width="250">Action</th>
+                        @if(request('status') === 'failed')
+                            <th>#</th>
+                            <th>Vendor Name</th>
+                            <th>GST Number</th>
+                            <th>Failure Details</th>
+                        @else
+                            <th>#</th>
+                            <th>Invoice No</th>
+                            <th>Vendor</th>
+                            <th>GSTIN</th>
+                            <th>Date</th>
+                            <th>Total</th>
+                            <th>Accuracy</th>
+                            <th>Status</th>
+                            <th width="250">Action</th>
+                        @endif
                     </tr>
                 </thead>
 
@@ -53,14 +135,16 @@
                         <tr>
                             <td>{{ $loop->iteration }}</td>
 
+                            @php
+                                $invoiceNoDisplay = trim((string) ($invoice->invoice_no ?? ''));
+                                $rawInvoiceNo = trim((string) data_get($invoice->raw_json, 'invoice_number', ''));
+                                if ($invoiceNoDisplay !== '' && str_starts_with(strtoupper($invoiceNoDisplay), 'GMAIL-') && $rawInvoiceNo !== '') {
+                                    $invoiceNoDisplay = $rawInvoiceNo;
+                                }
+                            @endphp
+
+                            @if(request('status') !== 'failed')
                             <td>
-                                @php
-                                    $invoiceNoDisplay = trim((string) ($invoice->invoice_no ?? ''));
-                                    $rawInvoiceNo = trim((string) data_get($invoice->raw_json, 'invoice_number', ''));
-                                    if ($invoiceNoDisplay !== '' && str_starts_with(strtoupper($invoiceNoDisplay), 'GMAIL-') && $rawInvoiceNo !== '') {
-                                        $invoiceNoDisplay = $rawInvoiceNo;
-                                    }
-                                @endphp
                                 {{ $invoiceNoDisplay !== '' ? $invoiceNoDisplay : '-' }}
                             </td>
 
@@ -112,11 +196,239 @@
                                         @case('approved') bg-success @break
                                         @case('paid') bg-dark @break
                                         @case('duplicate') bg-danger @break
+                                        @case('failed') bg-danger @break
                                     @endswitch">
                                     {{ ucfirst(str_replace('_',' ', $invoice->status)) }}
                                 </span>
                             </td>
+                            @endif
 
+                            @if(request('status') === 'failed')
+                            <td>
+                                {{ data_get($invoice->raw_json, 'vendor_name') ?? $invoice->vendor_name_raw ?? $invoice->vendor_name ?? optional($invoice->vendor)->vendor_name ?? '-' }}
+                            </td>
+
+                            <td>{{ $invoice->gstin ?? $invoice->gst_number ?? $invoice->vendor_gstin ?? '-' }}</td>
+
+                            <td>
+                                @php
+                                    $failureReason = trim((string) (
+                                        data_get($invoice->raw_json, 'import_failure_reason')
+                                        ?? data_get($invoice->raw_json, 'parse_error')
+                                        ?? data_get($invoice->raw_json, 'error')
+                                        ?? optional($invoice->emailLog)->error_message
+                                        ?? ''
+                                    ));
+
+                                    $failureStage = trim((string) (data_get($invoice->raw_json, 'failure_stage') ?? ''));
+                                    $failureSource = trim((string) (data_get($invoice->raw_json, 'failure_source') ?? ''));
+                                @endphp
+
+                                @if($failureReason !== '')
+                                    <div class="small text-danger fw-semibold">{{ $failureReason }}</div>
+                                    @if($failureStage !== '' || $failureSource !== '')
+                                        <div class="small text-muted">
+                                            {{ $failureStage !== '' ? 'Stage: ' . ucfirst($failureStage) : '' }}
+                                            {{ $failureSource !== '' ? ($failureStage !== '' ? ' | ' : '') . 'Source: ' . str_replace('_', ' ', ucfirst($failureSource)) : '' }}
+                                        </div>
+                                    @endif
+                                    <button class="btn btn-link btn-sm text-danger" data-bs-toggle="modal" data-bs-target="#failureModal{{ $invoice->id }}">
+                                        <i class="bi bi-info-circle"></i> Full Details
+                                    </button>
+
+                                    <!-- Failure Details Modal -->
+                                    <div class="modal fade" id="failureModal{{ $invoice->id }}" tabindex="-1" aria-labelledby="failureModalLabel{{ $invoice->id }}" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-danger text-white">
+                                                    <h5 class="modal-title" id="failureModalLabel{{ $invoice->id }}">Invoice Failure Details - {{ $invoiceNoDisplay }}</h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="row mb-3">
+                                                        <div class="col-md-6">
+                                                            <label class="fw-semibold">Invoice No:</label>
+                                                            <p>{{ $invoiceNoDisplay !== '' ? $invoiceNoDisplay : '-' }}</p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="fw-semibold">Status:</label>
+                                                            <p><span class="badge bg-danger">{{ ucfirst(str_replace('_', ' ', $invoice->status)) }}</span></p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row mb-3">
+                                                        <div class="col-md-6">
+                                                            <label class="fw-semibold">Vendor:</label>
+                                                            <p>{{ data_get($invoice->raw_json, 'vendor_name') ?? $invoice->vendor_name_raw ?? $invoice->vendor_name ?? optional($invoice->vendor)->vendor_name ?? '-' }}</p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="fw-semibold">GSTIN:</label>
+                                                            <p>{{ $invoice->gstin ?? $invoice->gst_number ?? $invoice->vendor_gstin ?? '-' }}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <hr>
+
+                                                    <h6 class="fw-bold text-danger mb-3">Failure Information</h6>
+
+                                                    <div class="mb-3">
+                                                        <label class="fw-semibold">Primary Reason:</label>
+                                                        <p class="text-danger">{{ $failureReason !== '' ? $failureReason : '-' }}</p>
+                                                    </div>
+
+                                                    @if($failureStage !== '')
+                                                        <div class="mb-3">
+                                                            <label class="fw-semibold">Failure Stage:</label>
+                                                            <p>{{ ucfirst($failureStage) }}</p>
+                                                        </div>
+                                                    @endif
+
+                                                    @if($failureSource !== '')
+                                                        <div class="mb-3">
+                                                            <label class="fw-semibold">Failure Source:</label>
+                                                            <p>{{ str_replace('_', ' ', ucfirst($failureSource)) }}</p>
+                                                        </div>
+                                                    @endif
+
+                                                    @if(optional($invoice->emailLog)->sender)
+                                                        <div class="mb-3">
+                                                            <label class="fw-semibold">Email From:</label>
+                                                            <p>{{ optional($invoice->emailLog)->sender }}</p>
+                                                        </div>
+                                                    @endif
+
+                                                    @if(optional($invoice->emailLog)->subject)
+                                                        <div class="mb-3">
+                                                            <label class="fw-semibold">Email Subject:</label>
+                                                            <p>{{ optional($invoice->emailLog)->subject }}</p>
+                                                        </div>
+                                                    @endif
+
+                                                    @php
+                                                        $attachmentPath = trim((string) (optional($invoice->emailLog)->attachment_path ?? ''));
+                                                        if ($attachmentPath === '' && !empty($invoice->po_invoice_file)) {
+                                                            $attachmentPath = 'images/poinvoice_files/' . $invoice->po_invoice_file;
+                                                        }
+
+                                                        $attachmentName = $attachmentPath !== '' ? basename($attachmentPath) : '-';
+                                                        $attachmentExt = strtolower((string) pathinfo($attachmentName, PATHINFO_EXTENSION));
+                                                        $attachmentType = match ($attachmentExt) {
+                                                            'pdf' => 'PDF',
+                                                            'txt', 'log' => 'Text',
+                                                            'csv', 'xls', 'xlsx' => 'Excel',
+                                                            default => ($attachmentExt !== '' ? strtoupper($attachmentExt) : '-'),
+                                                        };
+                                                    @endphp
+
+                                                    <div class="mb-3">
+                                                        <label class="fw-semibold">Attachment Type:</label>
+                                                        <p>{{ $attachmentType }}</p>
+                                                    </div>
+
+                                                    <div class="mb-3">
+                                                        <label class="fw-semibold">Attachment File:</label>
+                                                        <p>{{ $attachmentName }}</p>
+                                                    </div>
+
+                                                    <hr>
+
+                                                    @php
+                                                        $rawJson = is_array($invoice->raw_json) ? $invoice->raw_json : [];
+                                                        $readInvoiceNo = trim((string) (
+                                                            data_get($rawJson, 'invoice_number')
+                                                            ?? $invoice->invoice_no
+                                                            ?? ''
+                                                        ));
+                                                        $readInvoiceDate = trim((string) (
+                                                            data_get($rawJson, 'invoice_date')
+                                                            ?? ($invoice->invoice_date ? \Carbon\Carbon::parse($invoice->invoice_date)->format('d-m-Y') : '')
+                                                        ));
+                                                        $readVendor = trim((string) (
+                                                            data_get($rawJson, 'vendor_name')
+                                                            ?? $invoice->vendor_name_raw
+                                                            ?? $invoice->vendor_name
+                                                            ?? ''
+                                                        ));
+                                                        $readGstin = trim((string) (
+                                                            data_get($rawJson, 'gst')
+                                                            ?? data_get($rawJson, 'gstin')
+                                                            ?? $invoice->gstin
+                                                            ?? $invoice->gst_number
+                                                            ?? $invoice->vendor_gstin
+                                                            ?? ''
+                                                        ));
+                                                        $readArc = (float) (data_get($rawJson, 'arc', $invoice->arc_amount ?? 0));
+                                                        $readOtc = (float) (data_get($rawJson, 'otc', $invoice->otc_amount ?? 0));
+                                                        $readStatic = (float) (data_get($rawJson, 'static', $invoice->static_amount ?? 0));
+                                                        $readTotal = (float) (data_get($rawJson, 'total', $invoice->total_amount ?? $invoice->grand_total ?? $invoice->amount ?? 0));
+                                                        $readConfidence = data_get($rawJson, 'matching.combined_confidence', $invoice->confidence_score);
+                                                    @endphp
+
+                                                    <h6 class="fw-bold mb-2">Invoice Read Data:</h6>
+                                                    <div class="table-responsive" style="max-height: 260px; overflow-y: auto;">
+                                                        <table class="table table-sm table-bordered mb-0">
+                                                            <tbody>
+                                                                <tr>
+                                                                    <th style="width: 180px;">Invoice Number</th>
+                                                                    <td>{{ $readInvoiceNo !== '' ? $readInvoiceNo : '-' }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Invoice Date</th>
+                                                                    <td>{{ $readInvoiceDate !== '' ? $readInvoiceDate : '-' }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Vendor Read</th>
+                                                                    <td>{{ $readVendor !== '' ? $readVendor : '-' }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>GST Read</th>
+                                                                    <td>{{ $readGstin !== '' ? $readGstin : '-' }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>ARC Read</th>
+                                                                    <td>₹ {{ number_format($readArc, 2) }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>OTC Read</th>
+                                                                    <td>₹ {{ number_format($readOtc, 2) }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Static Read</th>
+                                                                    <td>₹ {{ number_format($readStatic, 2) }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Total Read</th>
+                                                                    <td>₹ {{ number_format($readTotal, 2) }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Read Accuracy</th>
+                                                                    <td>{{ !is_null($readConfidence) ? rtrim(rtrim(number_format((float) $readConfidence, 2), '0'), '.') . '%' : '-' }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Source File</th>
+                                                                    <td>
+                                                                        <a href="{{ route('finance.purchases.download-source-pdf', $invoice->id) }}" class="btn btn-sm btn-outline-primary">
+                                                                            Open Attachment
+                                                                        </a>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
+                            @endif
+
+                            @if(request('status') !== 'failed')
                             <td>
 
                                 <a href="{{ route('finance.purchase_invoices.show', $invoice->id) }}"
@@ -163,10 +475,11 @@
                                 @endif
 
                             </td>
+                            @endif
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="text-center">
+                                <td colspan="{{ request('status') === 'failed' ? 4 : 9 }}" class="text-center">
                                 No Purchase Invoices Found.
                             </td>
                         </tr>
@@ -178,5 +491,14 @@
     </div>
 
 </div>
+
+<script>
+function fetchNowLoading() {
+    document.getElementById('fetchIcon').classList.add('d-none');
+    document.getElementById('fetchSpinner').classList.remove('d-none');
+    document.getElementById('fetchBtnText').textContent = 'Fetching...';
+    document.getElementById('fetchNowBtn').disabled = true;
+}
+</script>
 
 @endsection
