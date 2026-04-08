@@ -19,7 +19,11 @@ class RenewalController extends Controller
         $perPage = (int) $request->get('per_page', 10);
        $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
 
-       $query = Renewal::query();
+       // Show only latest renewal row per deliverable in listing.
+       $latestRenewalIds = Renewal::selectRaw('MAX(id) as id')
+           ->groupBy('deliverable_id');
+
+       $query = Renewal::whereIn('id', $latestRenewalIds);
        if ($request->filled('search')) {
            $search = $request->search;
            $query->where(function($q) use ($search) {
@@ -38,10 +42,6 @@ class RenewalController extends Controller
 
 if ($filter === 'expired') {
 
-    $latestRenewalIds = Renewal::select('circuit_id', DB::raw('MAX(id) as latest_id'))
-        ->groupBy('circuit_id')
-        ->pluck('latest_id');
-
     $renewals = Renewal::with('deliverable')
         ->whereIn('id', $latestRenewalIds)
         ->where('new_expiry_date', '<', now())
@@ -58,6 +58,8 @@ if ($filter === 'expired') {
             }
             $renewals = $query->latest()->paginate($perPage);
         }
+
+        $this->syncDisplayedRenewalCircuitIds($renewals);
 
         $permissions = TemplateHelper::getUserMenuPermissions('Renewals') ?? (object)[
             'can_menu'   => true,
@@ -78,6 +80,24 @@ if ($filter === 'expired') {
             'operations.renewals.index',
             compact('renewals', 'today', 'tomorrow', 'week', 'permissions')
         );
+    }
+
+    private function syncDisplayedRenewalCircuitIds($renewals): void
+    {
+        $collection = $renewals->getCollection();
+        $collection->loadMissing('deliverable.deliverablePlans');
+
+        foreach ($collection as $renewal) {
+            $latestPlan = optional($renewal->deliverable?->deliverablePlans)
+                ->sortBy('link_number')
+                ->first();
+
+            $latestCircuitId = $latestPlan?->circuit_id;
+            if ($latestCircuitId && $renewal->circuit_id !== $latestCircuitId) {
+                $renewal->circuit_id = $latestCircuitId;
+                $renewal->save();
+            }
+        }
     }
 
     public function show($id)
@@ -119,14 +139,16 @@ if ($filter === 'expired') {
         $deliverablePlan = DeliverablePlan::where('deliverable_id', $deliverable->id)->first();
         $circuitId = $deliverablePlan ? $deliverablePlan->circuit_id : null;
 
-        Renewal::create([
-            'deliverable_id'   => $request->deliverable_id,
-            'circuit_id'       => $circuitId,
-            'date_of_renewal'  => $renewalDate->format('Y-m-d'),
-            'renewal_months'   => $request->renewal_months,
-            'new_expiry_date'  => $expiry->format('Y-m-d'),
-            'alert_date'       => $alertDate->format('Y-m-d'),
-        ]);
+        Renewal::updateOrCreate(
+            ['deliverable_id' => $request->deliverable_id],
+            [
+                'circuit_id'       => $circuitId,
+                'date_of_renewal'  => $renewalDate->format('Y-m-d'),
+                'renewal_months'   => $request->renewal_months,
+                'new_expiry_date'  => $expiry->format('Y-m-d'),
+                'alert_date'       => $alertDate->format('Y-m-d'),
+            ]
+        );
 
         return redirect()
             ->route('operations.renewals.index')
@@ -160,9 +182,14 @@ if ($filter === 'expired') {
 
         $alertDate = $expiry->copy()->subDay();
 
+        $deliverable = Deliverables::findOrFail($request->deliverable_id);
+        $deliverablePlan = DeliverablePlan::where('deliverable_id', $deliverable->id)->first();
+        $circuitId = $deliverablePlan ? $deliverablePlan->circuit_id : null;
+
         $renewal = Renewal::findOrFail($id);
         $renewal->update([
             'deliverable_id'   => $request->deliverable_id,
+            'circuit_id'       => $circuitId,
             'date_of_renewal'  => $renewalDate->format('Y-m-d'),
             'renewal_months'   => $request->renewal_months,
             'new_expiry_date'  => $expiry->format('Y-m-d'),
@@ -182,6 +209,41 @@ if ($filter === 'expired') {
         return redirect()
             ->route('operations.renewals.index')
             ->with('success', 'Renewal deleted successfully');
+    }
+
+    public function quickRenew($id)
+    {
+        $renewal = Renewal::findOrFail($id);
+
+        $months = max(1, (int) $renewal->renewal_months);
+        $baseDate = $renewal->new_expiry_date
+            ? Carbon::parse($renewal->new_expiry_date)->addDay()
+            : today();
+
+        $expiry = $baseDate->copy()->addDays($months * 30)->subDay();
+        $alertDate = $expiry->copy()->subDay();
+
+        $renewal->update([
+            'date_of_renewal' => $baseDate->format('Y-m-d'),
+            'new_expiry_date' => $expiry->format('Y-m-d'),
+            'alert_date' => $alertDate->format('Y-m-d'),
+            'status' => 'Active',
+        ]);
+
+        if (request()->ajax() || request()->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'id' => $renewal->id,
+                'date_of_renewal' => $renewal->date_of_renewal,
+                'new_expiry_date' => Carbon::parse($renewal->new_expiry_date)->format('d-m-Y'),
+                'status' => $renewal->status,
+                'message' => 'Renewal updated successfully',
+            ]);
+        }
+
+        return redirect()
+            ->route('operations.renewals.index')
+            ->with('success', 'Renewal updated successfully');
     }
 
     // Active or Inactive button

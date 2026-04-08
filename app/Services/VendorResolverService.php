@@ -5,9 +5,12 @@ namespace App\Services;
 use App\Models\Vendor;
 use App\Models\VendorLearningLog;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class VendorResolverService
 {
+    private ?bool $learningTableAvailable = null;
+
     public function resolve($invoiceData)
     {
         return $this->resolveMatch($invoiceData)['vendor'];
@@ -47,6 +50,10 @@ class VendorResolverService
 
     private function resolveViaLearnedGSTIN($gstin)
     {
+        if (!$this->isLearningTableAvailable()) {
+            return null;
+        }
+
         $learning = VendorLearningLog::where('gstin', $gstin)
             ->where('is_verified', true)
             ->orderBy('created_at', 'desc')
@@ -61,6 +68,10 @@ class VendorResolverService
 
     private function resolveViaLearnedName($vendorName)
     {
+        if (!$this->isLearningTableAvailable()) {
+            return null;
+        }
+
         $normalizedName = $this->normalize($vendorName);
 
         $learning = VendorLearningLog::whereRaw(
@@ -127,6 +138,10 @@ class VendorResolverService
 
     public function recordLearning($vendorNameRaw, $gstin, $vendorId, $confidence = 1.0, $isVerified = false)
     {
+        if (!$this->isLearningTableAvailable()) {
+            return false;
+        }
+
         try {
             VendorLearningLog::create([
                 'vendor_name_raw' => $vendorNameRaw,
@@ -147,6 +162,10 @@ class VendorResolverService
 
     public function verifyLearning($vendorLearningId)
     {
+        if (!$this->isLearningTableAvailable()) {
+            return false;
+        }
+
         try {
             $learning = VendorLearningLog::find($vendorLearningId);
             if ($learning) {
@@ -177,6 +196,22 @@ class VendorResolverService
         $normalized = preg_replace('/[^a-z0-9]/', '', $normalized);
         
         return $normalized;
+    }
+
+    private function isLearningTableAvailable(): bool
+    {
+        if ($this->learningTableAvailable !== null) {
+            return $this->learningTableAvailable;
+        }
+
+        try {
+            $this->learningTableAvailable = Schema::hasTable('vendor_learning_logs');
+        } catch (\Throwable $e) {
+            $this->learningTableAvailable = false;
+            Log::warning('Vendor learning table availability check failed', ['error' => $e->getMessage()]);
+        }
+
+        return $this->learningTableAvailable;
     }
 
     private function buildMatchResult($vendor, ?string $gstin, ?string $vendorName, string $matchedBy, int $baseScore, ?float $presetSimilarity = null): array

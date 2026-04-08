@@ -140,6 +140,29 @@
                 </li>
             <?php endif; ?>
 
+            <li class="nav-item">
+                <details class="sidebar-dropdown" <?php echo e(request()->is('contacts/*') ? 'open' : ''); ?>>
+                    <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-person-lines-fill"></i> Contact</span>
+                        <i class="bi bi-chevron-down arrow-icon"></i>
+                    </summary>
+                    <ul class="nav flex-column ms-3 mt-1">
+                        <li>
+                            <a class="nav-link text-white menu-item <?php echo e(request()->is('contacts/vendor*') ? 'active' : ''); ?>"
+                               href="<?php echo e(route('contacts.vendor.index')); ?>">
+                                Vendor Contact
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link text-white menu-item <?php echo e(request()->is('contacts/support*') ? 'active' : ''); ?>"
+                               href="<?php echo e(route('contacts.support.index')); ?>">
+                                Support Contact
+                            </a>
+                        </li>
+                    </ul>
+                </details>
+            </li>
+
 
 
             

@@ -25,6 +25,12 @@ class MenuSeeder extends Seeder
             ['module_name' => 'Masters', 'user_type' => 'superadmin', 'name' => 'Client Master', 'sub_section' => null , 'route' => 'client.index', 'icon' => 'bi bi-person-badge', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             ['module_name' => 'Masters', 'user_type' => 'superadmin', 'name' => 'Vendor Master', 'sub_section' => null , 'route' => 'vendor.index', 'icon' => 'bi bi-truck', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
             ['module_name' => 'Masters', 'user_type' => 'superadmin', 'name' => 'Company Details', 'sub_section' => null , 'route' => 'company.index', 'icon' => 'bi bi-building', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
+
+                // Contact module
+                ['module_name' => 'Contact', 'user_type' => 'superadmin', 'name' => 'Contact', 'sub_section' => null, 'route' => null, 'icon' => 'bi bi-person-lines-fill', 'can_add' => 0, 'can_edit' => 0, 'can_delete' => 0, 'can_view' => 1],
+                ['module_name' => 'Contact', 'user_type' => 'superadmin', 'name' => 'Contact', 'sub_section' => 'Vendor Contact', 'route' => 'contacts.vendor.index', 'icon' => 'bi bi-person-vcard', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
+                ['module_name' => 'Contact', 'user_type' => 'superadmin', 'name' => 'Contact', 'sub_section' => 'Support Contact', 'route' => 'contacts.support.index', 'icon' => 'bi bi-headset', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],
+
         //    Masters - Asset Master sub-menus
            ['module_name' => 'Masters', 'user_type' => 'superadmin', 'name' => 'Asset Master', 'sub_section' => null , 'route' => null, 'icon' => 'bi bi-box-seam', 'can_add' => 0, 'can_edit' => 0, 'can_delete' => 0, 'can_view' => 1],           /* 🔽 Add main group for Asset Master */
            ['module_name' => 'Masters', 'user_type' => 'superadmin', 'name' => 'Asset Master', 'sub_section' => 'Asset Type' , 'route' => 'assetmaster.asset_type.index', 'icon' => 'bi bi-tag', 'can_add' => 1, 'can_edit' => 1, 'can_delete' => 1, 'can_view' => 1],

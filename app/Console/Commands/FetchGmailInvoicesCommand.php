@@ -868,6 +868,10 @@ class FetchGmailInvoicesCommand extends Command
     private function parseViaLocalPdf(string $filePath): array
     {
         try {
+            if (!class_exists(Parser::class)) {
+                return ['error' => 'smalot/pdfparser package not installed'];
+            }
+
             $pdf  = (new Parser())->parseFile($filePath);
             $text = $pdf->getText();
             if (!$text) {

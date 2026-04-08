@@ -77,12 +77,13 @@
 
                     @forelse($renewals as $key => $renewal)
                         @php
-$plan = optional($renewal->deliverable)
-    ?->deliverablePlans
-    ?->where('circuit_id', $renewal->circuit_id)
-    ->first();
+                            $plan = optional($renewal->deliverable)
+                                ?->deliverablePlans
+                                ?->sortBy('link_number')
+                                ->first();
+                            $displayCircuitId = $plan->circuit_id ?? $renewal->circuit_id ?? '-';
                         @endphp
-                        <tr>
+                        <tr data-renewal-row-id="{{ $renewal->id }}">
                             <td class="text-center">{{ $key+1 }}</td>
                             <td class="text-center d-flex justify-content-center gap-1">
                                 {{-- Edit --}}
@@ -92,9 +93,12 @@ $plan = optional($renewal->deliverable)
                                     </a>
                                 @endif
                                 {{-- Renew --}}
-                                <a href="{{ route('operations.renewals.create', ['deliverable_id' => $renewal->deliverable_id]) }}" class="btn btn-sm btn-success">
-                                    <i class="bi bi-arrow-repeat"></i> Renew
-                                </a>
+                                <form action="{{ route('operations.renewals.quick-renew', $renewal->id) }}" method="POST" class="d-inline quick-renew-form" data-renewal-id="{{ $renewal->id }}">
+                                    @csrf
+                                    <button type="submit" class="btn btn-sm btn-success quick-renew-btn">
+                                        <i class="bi bi-arrow-repeat"></i> Renew
+                                    </button>
+                                </form>
                                 {{-- Delete --}}
                                 @if($permissions->can_delete && $renewal->id)
                                     <form action="{{ route('operations.renewals.destroy',$renewal) }}" method="POST" class="d-inline">
@@ -125,10 +129,10 @@ $plan = optional($renewal->deliverable)
                                 
                             <td>{{ $renewal->deliverable->feasibility->client->client_name ?? '-' }}</td>
                             <td>{{ $renewal->deliverable->feasibility->area ?? '-' }}, {{ $renewal->deliverable->feasibility->state ?? '-' }}</td>
-                            <td>{{ $renewal->circuit_id ?? (\App\Models\DeliverablePlan::where('deliverable_id', $renewal->deliverable_id)->value('circuit_id') ?? '-') }}</td>
-                            <td>{{ $renewal->date_of_renewal ? \Carbon\Carbon::parse($renewal->date_of_renewal)->format('Y-m-d') : '-' }}</td>
+                            <td>{{ $displayCircuitId }}</td>
+                            <td class="renewal-date-cell">{{ $renewal->date_of_renewal ? \Carbon\Carbon::parse($renewal->date_of_renewal)->format('Y-m-d') : '-' }}</td>
                     
-                            <td>
+                            <td class="renewal-expiry-cell">
                                     @if($renewal->new_expiry_date)
                                         <span class="text-green-600">{{ \Carbon\Carbon::parse($renewal->new_expiry_date)->format('d-m-Y') }}</span>
                                     @elseif(isset($renewal->deliverablePlan) && $renewal->deliverablePlan->expiry_date)
@@ -138,7 +142,7 @@ $plan = optional($renewal->deliverable)
                                     @endif
                                 </td>
                            
-                            <td>
+                            <td class="renewal-status-cell">
                                 @if($renewal->id)
                                     <form action="{{ route('operations.renewals.toggle-status', $renewal->id) }}" method="POST" class="d-inline">
                                         @csrf
@@ -239,13 +243,16 @@ $plan = optional($renewal->deliverable)
 
 });
 
-document.getElementById('selectAll').addEventListener('change', function(){
-    let isChecked = this.checked;
-    document.querySelectorAll('.rowCheckbox').forEach(cb => {
-        cb.checked = isChecked;
+const selectAll = document.getElementById('selectAll');
+if (selectAll) {
+    selectAll.addEventListener('change', function(){
+        let isChecked = this.checked;
+        document.querySelectorAll('.rowCheckbox').forEach(cb => {
+            cb.checked = isChecked;
+        });
+        updateDeleteButtonVisibility();
     });
-    updateDeleteButtonVisibility();
-});
+}
 
 document.getElementById('deleteSelectedBtn')?.addEventListener('click', function () {
     const selectedIds = Array.from(document.querySelectorAll('.rowCheckbox:checked')).map(cb => cb.value);
@@ -289,6 +296,65 @@ document.querySelectorAll('.rowCheckbox').forEach(cb => {
 
 // Keep the delete button state correct on page load
 updateDeleteButtonVisibility();
+
+document.querySelectorAll('.quick-renew-form').forEach(form => {
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const btn = form.querySelector('.quick-renew-btn');
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Renewing...';
+
+        const tokenInput = form.querySelector('input[name="_token"]');
+
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': tokenInput ? tokenInput.value : ''
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Request failed');
+            }
+
+            const data = await response.json();
+            if (!data.ok) {
+                throw new Error(data.message || 'Unable to renew');
+            }
+
+            const row = form.closest('tr');
+            if (!row) return;
+
+            const dateCell = row.querySelector('.renewal-date-cell');
+            const expiryCell = row.querySelector('.renewal-expiry-cell');
+            const statusCell = row.querySelector('.renewal-status-cell button');
+
+            if (dateCell) {
+                dateCell.textContent = data.date_of_renewal || '-';
+            }
+
+            if (expiryCell) {
+                expiryCell.innerHTML = '<span class="text-green-600">' + (data.new_expiry_date || '-') + '</span>';
+            }
+
+            if (statusCell) {
+                statusCell.textContent = data.status || 'Active';
+                statusCell.classList.remove('btn-secondary');
+                statusCell.classList.add('btn-success');
+            }
+        } catch (error) {
+            alert('Direct renew failed. Please refresh and try again.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+    });
+});
 </script>
 
 

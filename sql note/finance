@@ -286,3 +286,10 @@ ALTER TABLE companies
 
  ALTER TABLE feasibilities
  ADD COLUMN client_state VARCHAR(50) NULL AFTER company_id;
+
+ 
+ALTER TABLE contacts
+ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at,
+ADD COLUMN created_by BIGINT UNSIGNED NULL AFTER deleted_at,
+ADD COLUMN updated_by BIGINT UNSIGNED NULL AFTER created_by,
+ADD COLUMN deleted_by BIGINT UNSIGNED NULL AFTER updated_by;

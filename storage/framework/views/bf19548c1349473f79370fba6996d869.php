@@ -9,6 +9,10 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="mb-0">Purchase Invoice Automation</h2>
         <div class="d-flex gap-2 align-items-center">
+            <a href="<?php echo e(route('finance.purchase_invoices.index', ['status' => 'draft'])); ?>"
+               class="btn btn-secondary btn-sm">
+                Draft
+            </a>
             <a href="<?php echo e(route('finance.purchase_invoices.index', ['status' => 'needs_review'])); ?>"
                class="btn btn-warning btn-sm">
                 Needs Review
@@ -25,6 +29,10 @@
                class="btn btn-dark btn-sm">
                 Paid
             </a>
+            <a href="<?php echo e(route('finance.purchase_invoices.index')); ?>"
+               class="btn btn-primary btn-sm">
+                All
+            </a>
         </div>
     </div>
 
@@ -38,6 +46,20 @@
         <div class="alert alert-danger">
             <?php echo e(session('error')); ?>
 
+        </div>
+    <?php endif; ?>
+
+    <?php
+        $vendorNameFailedCount = $purchases->filter(function ($purchase) {
+            $reason = strtolower((string) data_get($purchase->raw_json, 'import_failure_reason', ''));
+            return strtolower((string) ($purchase->status ?? '')) === 'failed'
+                && str_contains($reason, 'vendor name');
+        })->count();
+    ?>
+
+    <?php if($vendorNameFailedCount > 0): ?>
+        <div class="alert alert-danger">
+            <?php echo e($vendorNameFailedCount); ?> invoice(s) failed: Vendor name mistake. Please correct vendor name in Vendor Master.
         </div>
     <?php endif; ?>
 

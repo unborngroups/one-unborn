@@ -510,10 +510,16 @@ DB::commit();
 
             for ($i = 1; $i <= $linkCount; $i++) {
                 $vendorSnapshot = $linkVendorsForSave[$i] ?? null;
-                // Preserve circuit_id if editing, only generate if missing
                 $existingPlan = $existingPlansMap->get($i);
-                $circuitId = $existingPlan ? $existingPlan->circuit_id : $this->generateCircuitId($companyName, $clientShortName, $state, $year, $serial);
-                if (!$existingPlan) {
+                $requestedCircuitId = trim((string) $request->input('circuit_id_' . $i));
+
+                // Priority: user-edited value > existing value > auto-generated value.
+                if ($requestedCircuitId !== '') {
+                    $circuitId = $requestedCircuitId;
+                } elseif ($existingPlan && !empty($existingPlan->circuit_id)) {
+                    $circuitId = $existingPlan->circuit_id;
+                } else {
+                    $circuitId = $this->generateCircuitId($companyName, $clientShortName, $state, $year, $serial);
                     $serial++; // Only increment serial if a new circuit_id is generated
                 }
 
@@ -766,30 +772,30 @@ if (!$companySetting) {
             } else {
                 Log::info('Delivery email disabled via settings');
             }
-            // Auto-create renewal entry if not exists\
-            $deliverable->load('deliverablePlans');
+            // Keep only one default renewal row per deliverable.
+            // On every save, update same row instead of creating multiple rows.
+            $primaryPlan = $deliverable->deliverablePlans()->orderBy('link_number')->first();
+            if ($primaryPlan && $primaryPlan->date_of_activation && $primaryPlan->no_of_months_renewal && $primaryPlan->circuit_id) {
+                $renewalDate = \Carbon\Carbon::parse($primaryPlan->date_of_activation);
+                $months = (int) $primaryPlan->no_of_months_renewal;
+                $expiry = $renewalDate->copy()->addMonths($months)->subDay();
+                $alertDate = $expiry->copy()->subDay();
 
-
-            foreach ($deliverable->deliverablePlans as $plan) {
-                $activation = $plan->date_of_activation;
-                $months = $plan->no_of_months_renewal;
-                $circuitId = $plan->circuit_id;
-                $existingRenewal = \App\Models\Renewal::where('deliverable_id', $deliverable->id)
-                    ->where('circuit_id', $circuitId)
-                    ->first();
-                if (!$existingRenewal && $activation && $months && $circuitId) {
-                    $renewalDate = \Carbon\Carbon::parse($activation);
-                    $expiry = $renewalDate->copy()->addMonths((int)$months)->subDay();
-                    $alertDate = $expiry->copy()->subDay();
-                    \App\Models\Renewal::create([
-                        'deliverable_id' => $deliverable->id,
-                        'circuit_id' => $circuitId,
+                $renewal = \App\Models\Renewal::updateOrCreate(
+                    ['deliverable_id' => $deliverable->id],
+                    [
+                        'circuit_id' => $primaryPlan->circuit_id,
                         'date_of_renewal' => $renewalDate->format('Y-m-d'),
                         'renewal_months' => $months,
                         'new_expiry_date' => $expiry->format('Y-m-d'),
                         'alert_date' => $alertDate->format('Y-m-d'),
-                    ]);
-                }
+                    ]
+                );
+
+                // Remove any old duplicate rows for this deliverable.
+                \App\Models\Renewal::where('deliverable_id', $deliverable->id)
+                    ->where('id', '!=', $renewal->id)
+                    ->delete();
             }
             // Redirect logic for Delivery
             if ($serviceType === 'ILL') {

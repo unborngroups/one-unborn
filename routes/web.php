@@ -9,6 +9,7 @@ use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\MenuController;
@@ -257,6 +258,21 @@ Route::get('/company/fetch/{pan}', [CompanyController::class, 'fetchByPan'])->na
     Route::post('/vendors/fetch-gstin-by-pan', [VendorController::class, 'fetchGstinByPan'])->name('vendors.fetch-gstin-by-pan');
     Route::post('/vendors/save-selected-gstins', [VendorController::class, 'saveSelectedGstins'])->name('vendors.save-selected-gstins');
 
+    // Contact module (Vendor Contact / Support Contact)
+    Route::prefix('contacts')->name('contacts.')->group(function () {
+        Route::get('/vendor', [ContactController::class, 'vendorIndex'])->name('vendor.index');
+        Route::get('/support', [ContactController::class, 'supportIndex'])->name('support.index');
+
+        Route::get('/{type}/create', [ContactController::class, 'create'])->name('create');
+        Route::post('/{type}', [ContactController::class, 'store'])->name('store');
+
+        Route::get('/{type}/{contact}/show', [ContactController::class, 'show'])->name('show');
+        Route::get('/{type}/{contact}/edit', [ContactController::class, 'edit'])->name('edit');
+        Route::put('/{type}/{contact}', [ContactController::class, 'update'])->name('update');
+        Route::delete('/{type}/{contact}', [ContactController::class, 'destroy'])->name('destroy');
+        Route::patch('/{type}/{contact}/toggle-status', [ContactController::class, 'toggleStatus'])->name('toggle-status');
+    });
+
     // vendor makes (API)
 Route::get('vendor-makes/{id}', [\App\Http\Controllers\VendorMakeController::class, 'show'])->name('vendor-makes.show');
 Route::get('/get-make-details/{id}', [VendorController::class, 'getMakeDetails']);
@@ -329,10 +345,11 @@ Route::get('/test-email', function () {
     route::post('/operations/renewals', [RenewalController::class, 'store'])->name('operations.renewals.store');
     Route::get('/operations/renewals/{id}/edit', [RenewalController::class, 'edit'])->name('operations.renewals.edit');
     Route::put('/operations/renewals/{id}', [RenewalController::class, 'update'])->name('operations.renewals.update');
+    Route::post('/operations/renewals/{id}/quick-renew', [RenewalController::class, 'quickRenew'])->name('operations.renewals.quick-renew');
     Route::delete('/operations/renewals/{id}', [RenewalController::class, 'destroy'])->name('operations.renewals.destroy');
     Route::get('/operations/renewals/{id}/view', [RenewalController::class, 'view'])->name('operations.renewals.view');
     Route::patch('/operations/renewals/{id}/toggle-status', [RenewalController::class, 'toggleStatus'])->name('operations.renewals.toggle-status');
-    
+        
 Route::get('/operations/assets/next-asset-id', [AssetController::class, 'nextAssetID']);
 Route::post('/operations/asset/import', [AssetController::class, 'import'])->name('operations.asset.import');
 Route::get('/operations/assets/export', [AssetController::class, 'exportAssets'])->name('operations.asset.export');
