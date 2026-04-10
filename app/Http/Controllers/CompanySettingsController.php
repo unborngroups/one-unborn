@@ -77,6 +77,8 @@ class CompanySettingsController extends Controller
             'invoice_mail_footer' => 'nullable|string|max:500',
             'invoice_mail_signature' => 'nullable|string|max:500',
             'invoice_mail_read_days' => 'nullable|integer|min:1|max:365',
+            'sales_invoice_mail_from_name' => 'nullable|string|max:100',
+            'sales_invoice_mail_from_address' => 'nullable|email',
         ]);
         
         // ✅ FORCE boolean (this is key)

@@ -9,16 +9,34 @@ use App\Models\Client;
 use App\Models\Items;
 use Illuminate\Support\Facades\DB;
 use App\Models\Deliverables;
+use App\Models\CompanySetting;
+use App\Models\EmailLog;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class SalesController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $sales = SalesInvoice::latest()->get();
-        return view('finance.sales.index', compact('sales'));
+        $selectedClient = null;
+
+        $sales = SalesInvoice::with(['deliverable.feasibility.client'])
+            ->when($request->filled('client_id'), function ($query) use ($request, &$selectedClient) {
+                $clientId = (int) $request->client_id;
+                $selectedClient = Client::find($clientId);
+
+                $query->whereHas('deliverable.feasibility', function ($q) use ($clientId) {
+                    $q->where('client_id', $clientId);
+                });
+            })
+            ->latest()
+            ->get();
+
+        return view('finance.sales.index', compact('sales', 'selectedClient'));
     }
 
     /**
@@ -168,6 +186,118 @@ public function submit($id)
         ->with('success','Invoice Submitted Successfully');
 }
 
+public function sendEmail(string $id)
+{
+    $sales = SalesInvoice::with([
+        'deliverable.feasibility.company',
+        'deliverable.feasibility.client',
+        'deliverable.purchaseOrder',
+        'company',
+        'client',
+    ])->findOrFail($id);
+
+    $deliverables = $sales->deliverable;
+    $feasibility = $deliverables->feasibility ?? null;
+    $company = $feasibility->company ?? $sales->company;
+    $client = $feasibility->client ?? $sales->client;
+
+    $to = $this->normalizeEmails($client->invoice_email ?? $sales->client_email ?? null);
+    $cc = $this->normalizeEmails($client->invoice_cc ?? null);
+
+    $subject = 'Sales Invoice ' . ($sales->invoice_no ?? ('INV-' . str_pad($sales->id, 5, '0', STR_PAD_LEFT)));
+
+    $emailLog = EmailLog::create([
+        'sender' => null,
+        'subject' => $subject,
+        'body' => json_encode([
+            'sales_invoice_id' => $sales->id,
+            'invoice_no' => $sales->invoice_no,
+            'to' => $to,
+            'cc' => $cc,
+            'status' => 'pending',
+        ]),
+        'status' => 'pending',
+    ]);
+
+    if (empty($to)) {
+        $emailLog->update([
+            'status' => 'failed',
+            'error_message' => 'Client invoice_email is empty.',
+        ]);
+
+        return back()->with('error', 'Client invoice email not found. Please update Client Master invoice_email.');
+    }
+
+    try {
+        $companySetting = $this->resolveInvoiceCompanySetting($company?->id);
+        $this->applyInvoiceMailConfig($companySetting);
+
+        $fromAddress = trim((string) (
+            $companySetting?->sales_invoice_mail_from_address
+            ?: $companySetting?->invoice_mail_from_address
+            ?: config('mail.from.address')
+        ));
+        $fromName = trim((string) (
+            $companySetting?->sales_invoice_mail_from_name
+            ?: $companySetting?->invoice_mail_from_name
+            ?: config('mail.from.name', 'Unborn')
+        ));
+
+        $mailBody = view('emails.sales_invoice', [
+            'sales' => $sales,
+            'deliverables' => $deliverables,
+            'feasibility' => $feasibility,
+            'company' => $company,
+            'client' => $client,
+        ])->render();
+
+        Mail::send([], [], function ($message) use ($to, $cc, $subject, $mailBody, $fromAddress, $fromName) {
+            $message->to($to)->subject($subject);
+            if (!empty($cc)) {
+                $message->cc($cc);
+            }
+            if (!empty($fromAddress)) {
+                $message->from($fromAddress, $fromName ?: $fromAddress);
+            }
+            $message->html($mailBody);
+        });
+
+        $emailLog->update([
+            'sender' => $fromAddress ?: null,
+            'status' => 'processed',
+            'error_message' => null,
+            'body' => json_encode([
+                'sales_invoice_id' => $sales->id,
+                'invoice_no' => $sales->invoice_no,
+                'to' => $to,
+                'cc' => $cc,
+                'status' => 'processed',
+            ]),
+        ]);
+
+        return back()->with('success', 'Sales invoice email sent successfully.');
+    } catch (\Throwable $e) {
+        Log::error('Sales invoice email send failed', [
+            'sales_invoice_id' => $sales->id,
+            'message' => $e->getMessage(),
+        ]);
+
+        $emailLog->update([
+            'status' => 'failed',
+            'error_message' => $e->getMessage(),
+            'body' => json_encode([
+                'sales_invoice_id' => $sales->id,
+                'invoice_no' => $sales->invoice_no,
+                'to' => $to,
+                'cc' => $cc,
+                'status' => 'failed',
+            ]),
+        ]);
+
+        return back()->with('error', 'Failed to send sales invoice email: ' . $e->getMessage());
+    }
+}
+
 private static $stateAbbr = [
     'Andhra Pradesh' => 'AP', 'Arunachal Pradesh' => 'AR', 'Assam' => 'AS', 'Bihar' => 'BR',
     'Chhattisgarh' => 'CG', 'Goa' => 'GA', 'Gujarat' => 'GJ', 'Haryana' => 'HR', 'Himachal Pradesh' => 'HP',
@@ -208,6 +338,65 @@ private function generateInvoiceNumber(Deliverables $deliverable): string
     $serial = str_pad($count + 1, 4, '0', STR_PAD_LEFT);
 
     return $prefix . $serial;
+}
+
+private function resolveInvoiceCompanySetting(?int $companyId): ?CompanySetting
+{
+    if ($companyId) {
+        $byCompany = CompanySetting::where('company_id', $companyId)->first();
+        if ($byCompany) {
+            return $byCompany;
+        }
+    }
+
+    return CompanySetting::query()
+        ->orderByDesc('is_default')
+        ->orderBy('id')
+        ->first();
+}
+
+private function applyInvoiceMailConfig(?CompanySetting $setting): void
+{
+    if (!$setting) {
+        return;
+    }
+
+    $host = $setting->invoice_mail_host ?: $setting->mail_host;
+    $port = (int) ($setting->invoice_mail_port ?: $setting->mail_port ?: 587);
+    $username = $setting->invoice_mail_username ?: $setting->mail_username;
+    $password = $setting->invoice_mail_password ?: $setting->mail_password;
+    $encryption = strtolower((string) ($setting->invoice_mail_encryption ?: $setting->mail_encryption ?: 'tls'));
+    $fromAddress = $setting->invoice_mail_from_address ?: $setting->mail_from_address;
+    $fromName = $setting->invoice_mail_from_name ?: $setting->mail_from_name;
+
+    if (empty($host) || empty($username) || empty($password) || empty($fromAddress)) {
+        return;
+    }
+
+    Config::set('mail.default', 'smtp');
+    Config::set('mail.mailers.smtp.transport', 'smtp');
+    Config::set('mail.mailers.smtp.host', $host);
+    Config::set('mail.mailers.smtp.port', $port);
+    Config::set('mail.mailers.smtp.encryption', $encryption);
+    Config::set('mail.mailers.smtp.username', $username);
+    Config::set('mail.mailers.smtp.password', $password);
+    Config::set('mail.from.address', $fromAddress);
+    Config::set('mail.from.name', $fromName ?: 'Unborn');
+
+    Mail::purge();
+}
+
+private function normalizeEmails($emails): array
+{
+    if (!$emails) {
+        return [];
+    }
+
+    if (is_array($emails)) {
+        return array_values(array_filter(array_map('trim', $emails)));
+    }
+
+    return array_values(array_filter(array_map('trim', preg_split('/[,;]/', (string) $emails))));
 }
 
 }

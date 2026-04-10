@@ -12,11 +12,23 @@
 
     </div>
 
+    @if(!empty($selectedClient))
+        <div class="alert alert-info">
+            Showing invoices for client: <strong>{{ $selectedClient->client_name }}</strong>
+        </div>
+    @endif
+
 
     {{-- Success Message --}}
     @if(session('success'))
         <div class="alert alert-success">
             {{ session('success') }}
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
         </div>
     @endif
 
@@ -33,7 +45,7 @@
                         <th>Client</th>
                         <th>Date</th>
                         <th>Total Amount</th>
-                        <th width="180">Action</th>
+                        <th width="270">Action</th>
                     </tr>
                 </thead>
 
@@ -49,7 +61,7 @@
                         </td>
 
                         <td>
-                            {{ $client->client_name ?? '-' }}
+                            {{ $sale->deliverable->feasibility->client->client_name ?? $sale->client_name ?? '-' }}
                         </td>
 
                         <td>
@@ -57,7 +69,7 @@
                         </td>
 
                         <td>
-                            ₹ {{ number_format($sale->total_amount,2) }}
+                            ₹ {{ number_format((float) ($sale->grand_total ?? $sale->total_amount ?? 0),2) }}
                         </td>
 
                         <td>
@@ -84,6 +96,13 @@
                                 <button class="btn btn-danger btn-sm"
                                         onclick="return confirm('Delete this invoice?')">
                                     Delete
+                                </button>
+                            </form>
+
+                            <form action="{{ route('finance.sales.send-email', $sale->id) }}" method="POST" style="display:inline;">
+                                @csrf
+                                <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Send invoice email to client now?')">
+                                    Click Here to Send Email
                                 </button>
                             </form>
 

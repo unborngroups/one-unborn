@@ -982,14 +982,14 @@
                     <ul class="nav flex-column ms-3 mt-1">
 
                         <li>
-                            <a class="nav-link text-white menu-item {{ request()->is('finance/sales*') ? 'active' : '' }}"
+                            <a class="nav-link text-white menu-item {{ request()->is('finance/sales*') && !request()->is('finance/sales/recurring-invoice*') ? 'active' : '' }}"
                                href="{{ route('finance.sales.index') }}">
                                 Auto Sales Invoices
                             </a>
                         </li>
 
                         <li>
-                            <a class="nav-link text-white menu-item {{ request()->is('finance/sales/recurring-invoice') ? 'active' : '' }}"
+                            <a class="nav-link text-white menu-item {{ request()->is('finance/sales/recurring-invoice*') ? 'active' : '' }}"
                                href="{{ route('finance.sales.recurring-invoice.index') }}">
                                 Recurring Invoice
                             </a>

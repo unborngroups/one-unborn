@@ -119,9 +119,26 @@ class ContactController extends Controller
             'can_view' => true,
         ];
 
-        $contacts = Contact::where('contact_type', $type)
+        $perPage = (int) $request->get('per_page', 10);
+        $perPage = in_array($perPage, [10, 25, 50, 100], true) ? $perPage : 10;
+
+        $search = trim((string) $request->get('search', ''));
+
+        $query = Contact::where('contact_type', $type);
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('area', 'like', '%' . $search . '%')
+                    ->orWhere('state', 'like', '%' . $search . '%')
+                    ->orWhere('contact1', 'like', '%' . $search . '%')
+                    ->orWhere('contact2', 'like', '%' . $search . '%');
+            });
+        }
+
+        $contacts = $query
             ->latest('id')
-            ->paginate(10)
+            ->paginate($perPage)
             ->withQueryString();
 
         return view('contact.index', [

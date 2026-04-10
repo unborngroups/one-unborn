@@ -506,6 +506,28 @@
 
             </div>
 
+        {{-- =================================== --}}
+        {{-- 📧 Invoice Sender Quick Fields --}}
+        {{-- =================================== --}}
+        <hr>
+        <h5 class="text-primary fw-bold mb-3">📧 Invoice Sender (Quick Access)</h5>
+        <div class="row mb-3">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Invoice Mail From Name</label>
+                <input type="text" name="sales_invoice_mail_from_name" class="form-control"
+                       value="{{ old('sales_invoice_mail_from_name', $company->sales_invoice_mail_from_name ?? '') }}"
+                       placeholder="Example: Unborn Billing">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Invoice Mail From Address</label>
+                <input type="email" name="sales_invoice_mail_from_address" class="form-control"
+                       value="{{ old('sales_invoice_mail_from_address', $company->sales_invoice_mail_from_address ?? '') }}"
+                       placeholder="Example: billing@unborn.co.in">
+                <small class="text-muted">Sales Invoice email action uses this From email id.</small>
+            </div>
+        </div>
+
 {{-- Submit Button --}}
 
         <button type="submit" class="btn btn-primary">Save Settings</button>

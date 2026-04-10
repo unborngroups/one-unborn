@@ -94,6 +94,8 @@
                         <th class="col">Technical SPOC</th>
                         <th class="col">Technical SPOC Email</th>
                         <th class="col">Technical SPOC Mobile</th>
+                        <th class="col">Sales Invoice</th>
+                        <th class="col">Recurring Invoice</th>
 
 
                         <th>Status</th>
@@ -198,6 +200,22 @@
                             <td class="col">{{ $client->support_spoc_name ?? '-' }}</td>
                             <td class="col">{{ $client->support_spoc_email ?? '-' }}</td>
                             <td class="col">{{ $client->support_spoc_mobile ?? '-' }}</td>
+
+                            <td class="text-center">
+                                @if((int) ($client->sales_invoice_count ?? 0) > 0)
+                                    <a href="{{ route('finance.sales.index', ['client_id' => $client->id]) }}" class="btn btn-link btn-sm p-0">Click Here</a>
+                                @else
+                                    <span class="text-muted">N/A</span>
+                                @endif
+                            </td>
+
+                            <td class="text-center">
+                                @if((int) ($client->recurring_invoice_count ?? 0) > 0)
+                                    <a href="{{ route('finance.sales.recurring-invoice.index', ['client_id' => $client->id]) }}" class="btn btn-link btn-sm p-0">Click Here</a>
+                                @else
+                                    <span class="text-muted">N/A</span>
+                                @endif
+                            </td>
 
                             <td>
 

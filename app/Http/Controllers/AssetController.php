@@ -197,55 +197,97 @@ class AssetController extends Controller
         'file' => 'required|file|mimes:csv,txt,xlsx,xls,ods',
     ]);
 
-    $extension = $request->file->getClientOriginalExtension();
-    $filepath = $request->file->getRealPath();
+    try {
+        $uploadedFile = $request->file('file');
+        $extension = strtolower((string) $uploadedFile->getClientOriginalExtension());
+        $filepath = $uploadedFile->getRealPath();
 
-    $rows = [];
+        $rows = [];
+        $errors = [];
+        $failedRows = [];
+        $originalHeaders = [];
 
-    // =======================
-    // CASE 1 → CSV or TXT
-    // =======================
-    if (in_array($extension, ['csv', 'txt'])) {
-        $handle = fopen($filepath, 'r');
-        $header = fgetcsv($handle);
-
-        while (($data = fgetcsv($handle)) !== false) {
-            $rows[] = array_combine($header, $data);
-        }
-
-        fclose($handle);
-    }
-
-    // =======================
-    // CASE 2 → XLSX / XLS / ODS
-    // =======================
-    else {
-        if (!$xlsx = SimpleXLSX::parse($filepath)) {
-            return back()->with('error', SimpleXLSX::parseError());
-        }
-
-        $sheet = $xlsx->rows();
-        $header = array_map('trim', $sheet[0]);
-
-        for ($i = 1; $i < count($sheet); $i++) {
-            if (count($header) !== count($sheet[$i])) {
-                // Optionally log or collect error for this row
-                continue; // Skip this row
+        // =======================
+        // CASE 1 -> CSV or TXT
+        // =======================
+        if (in_array($extension, ['csv', 'txt'], true)) {
+            $handle = fopen($filepath, 'r');
+            if ($handle === false) {
+                return back()->with('error', 'Unable to open uploaded file.');
             }
-            $rows[] = array_combine($header, $sheet[$i]);
+
+            $header = fgetcsv($handle);
+            if ($header === false || empty($header)) {
+                fclose($handle);
+                return back()->with('error', 'Uploaded file is empty or header row is missing.');
+            }
+
+            $header = array_map(function ($value) {
+                return trim((string) $value);
+            }, $header);
+
+            $originalHeaders = $header;
+            $rowNumber = 1;
+
+            while (($data = fgetcsv($handle)) !== false) {
+                $rowNumber++;
+
+                if (count($header) !== count($data)) {
+                    $assoc = [];
+                    foreach ($header as $idx => $head) {
+                        $assoc[$head] = $data[$idx] ?? '';
+                    }
+                    $assoc['Error Reason'] = 'Column count mismatch in row';
+                    $failedRows[] = $assoc;
+                    $errors[] = "Row $rowNumber: Column count mismatch in uploaded file.";
+                    continue;
+                }
+
+                $rows[] = array_combine($header, $data);
+            }
+
+            fclose($handle);
+        } else {
+            // =======================
+            // CASE 2 -> XLSX / XLS / ODS
+            // =======================
+            if (!$xlsx = SimpleXLSX::parse($filepath)) {
+                return back()->with('error', 'Unable to parse file: ' . SimpleXLSX::parseError());
+            }
+
+            $sheet = $xlsx->rows();
+            if (empty($sheet) || empty($sheet[0])) {
+                return back()->with('error', 'Uploaded sheet is empty or header row is missing.');
+            }
+
+            $header = array_map(function ($value) {
+                return trim((string) $value);
+            }, $sheet[0]);
+            $originalHeaders = $header;
+
+            for ($i = 1; $i < count($sheet); $i++) {
+                $rowNumber = $i + 1;
+                if (count($header) !== count($sheet[$i])) {
+                    $assoc = [];
+                    foreach ($header as $idx => $head) {
+                        $assoc[$head] = $sheet[$i][$idx] ?? '';
+                    }
+                    $assoc['Error Reason'] = 'Column count mismatch in row';
+                    $failedRows[] = $assoc;
+                    $errors[] = "Row $rowNumber: Column count mismatch in uploaded file.";
+                    continue;
+                }
+                $rows[] = array_combine($header, $sheet[$i]);
+            }
         }
-    }
 
-    // =======================
-    // PROCESS INSERT LOGIC
-    // =======================
+        // =======================
+        // PROCESS INSERT LOGIC
+        // =======================
 
-    $imported = 0;
-    $importedRows = [];
-    $failedRows = [];
-    $originalHeaders = !empty($rows) ? array_keys($rows[0]) : [];
-    $sessionHeaders = array_merge($originalHeaders, ['Error Reason']);
-    $errors = [];
+        $imported = 0;
+        $importedRows = [];
+        $sessionHeaders = array_merge($originalHeaders, ['Error Reason']);
 
     foreach ($rows as $index => $row) {
         $rowNumber = $index + 2; // because row 1 is header
@@ -347,6 +389,15 @@ class AssetController extends Controller
     }
 
     return $response;
+    } catch (\Throwable $e) {
+        Log::error('Asset import failed unexpectedly.', [
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ]);
+
+        return back()->with('error', 'Asset import failed: ' . $e->getMessage());
+    }
 }
 
 private function normalizePurchaseDate(mixed $value): ?string

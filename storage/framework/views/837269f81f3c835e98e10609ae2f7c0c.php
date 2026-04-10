@@ -7,18 +7,80 @@
             <h5 class="mb-0"><i class="bi bi-repeat me-2"></i>Recurring Invoices</h5>
         </div>
         <div class="card-body">
-            <div class="alert alert-info">Recurring Invoice listing will appear here.<br>
-                <ul>
-                    <li>Recurrence: Monthly, Quarterly, Yearly, Half-yearly</li>
-                    <li>Auto-send invoice 30 days before due date</li>
-                    <li>Show all relevant recurring invoice data here</li>
-                </ul>
-            </div>
-            <?php if(empty($recurringInvoices)): ?>
+            <?php if(!empty($selectedClient)): ?>
+                <div class="alert alert-info">
+                    Showing recurring entries for client: <strong><?php echo e($selectedClient->client_name); ?></strong>
+                </div>
+            <?php endif; ?>
+
+            <?php if(!empty($summary)): ?>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <div class="p-2 border rounded bg-light">
+                            <small class="text-muted d-block">Total ARC Component</small>
+                            <strong><?php echo e(number_format($summary['total_arc_component'] ?? 0, 2)); ?></strong>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-2 border rounded bg-light">
+                            <small class="text-muted d-block">Total Static Component</small>
+                            <strong><?php echo e(number_format($summary['total_static_component'] ?? 0, 2)); ?></strong>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-2 border rounded bg-light">
+                            <small class="text-muted d-block">Total Formula Amount</small>
+                            <strong><?php echo e(number_format($summary['total_formula_amount'] ?? 0, 2)); ?></strong>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <?php if(($invoiceRows ?? collect())->isNotEmpty()): ?>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Client</th>
+                                <th>Circuit ID</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Months</th>
+                                <th>Days</th>
+                                <th>ARC (Annual)</th>
+                                <th>Static (Annual)</th>
+                                <th>Total (Annual)</th>
+                                <th>Day Rate</th>
+                                <th>Formula Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php $__currentLoopData = $invoiceRows; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $row): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <tr>
+                                    <td><?php echo e($loop->iteration); ?></td>
+                                    <td><?php echo e($row['client_name']); ?></td>
+                                    <td><?php echo e($row['circuit_id']); ?></td>
+                                    <td><?php echo e($row['start_date']); ?></td>
+                                    <td><?php echo e($row['end_date']); ?></td>
+                                    <td><?php echo e($row['renewal_months']); ?></td>
+                                    <td><?php echo e($row['billable_days']); ?></td>
+                                    <td><?php echo e(number_format($row['annual_arc'], 2)); ?></td>
+                                    <td><?php echo e(number_format($row['annual_static'], 2)); ?></td>
+                                    <td><?php echo e(number_format($row['annual_total'], 2)); ?></td>
+                                    <td><?php echo e(number_format($row['day_rate'], 6)); ?></td>
+                                    <td><strong><?php echo e(number_format($row['formula_amount'], 2)); ?></strong></td>
+                                </tr>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php else: ?>
                 <div class="text-center py-5">
                     <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
                     <h5 class="text-muted mt-3">No Recurring Invoices Found</h5>
                 </div>
+            </div>
             <?php endif; ?>
         </div>
     </div>

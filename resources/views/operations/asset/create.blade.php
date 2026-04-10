@@ -3,6 +3,10 @@
 @section('content')
 <div class="container">
 
+    @php
+        $showImportBox = session('error') || session('import_errors') || $errors->has('file');
+    @endphp
+
     <h4 class="mb-3">Add Asset</h4>
 
 
@@ -118,7 +122,7 @@
         <div class="row g-3 mb-3">
             <div class="col-md-12">
                 <button class="btn btn-info mb-2" type="button" onclick="toggleImportAsset()">Import Assets via Excel</button>
-                <div id="importAssetBox" style="display:none;">
+                <div id="importAssetBox" style="display:{{ $showImportBox ? 'block' : 'none' }};">
                     <div class="card border-info">
                         <div class="card-body">
                             <p class="mb-3 small text-muted">Download the sample format, populate it with Asset data, and then upload it via Import Excel.</p>
@@ -129,6 +133,11 @@
                                     <a href="{{ asset('images/assets/assets (10).xlsx') }}" target="_blank" class="btn btn-outline-secondary" title="Download asset sample">Download Format</a>
                                     <button type="submit" class="btn btn-primary">Import Excel</button>
                                 </div>
+                                @if($errors->has('file'))
+                                    <div class="text-danger mt-2 small">
+                                        {{ $errors->first('file') }}
+                                    </div>
+                                @endif
                             </form>
                         </div>
                     </div>
@@ -182,17 +191,4 @@
     </form>
 
 </div>
-@endsection
-
-@section('scripts')
-<script>
-    // Open the import box only on first click, do not toggle closed
-    document.getElementById('importExcelBtn')?.addEventListener('click', function () {
-        var importCard = document.getElementById('importCard');
-        if (importCard && !importCard.classList.contains('show')) {
-            var collapse = bootstrap.Collapse.getOrCreateInstance(importCard);
-            collapse.show();
-        }
-    });
-</script>
 @endsection

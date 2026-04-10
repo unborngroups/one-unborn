@@ -3,6 +3,10 @@
 <?php $__env->startSection('content'); ?>
 <div class="container">
 
+    <?php
+        $showImportBox = session('error') || session('import_errors') || $errors->has('file');
+    ?>
+
     <h4 class="mb-3">Add Asset</h4>
 
 
@@ -120,7 +124,7 @@
         <div class="row g-3 mb-3">
             <div class="col-md-12">
                 <button class="btn btn-info mb-2" type="button" onclick="toggleImportAsset()">Import Assets via Excel</button>
-                <div id="importAssetBox" style="display:none;">
+                <div id="importAssetBox" style="display:<?php echo e($showImportBox ? 'block' : 'none'); ?>;">
                     <div class="card border-info">
                         <div class="card-body">
                             <p class="mb-3 small text-muted">Download the sample format, populate it with Asset data, and then upload it via Import Excel.</p>
@@ -131,6 +135,12 @@
                                     <a href="<?php echo e(asset('images/assets/assets (10).xlsx')); ?>" target="_blank" class="btn btn-outline-secondary" title="Download asset sample">Download Format</a>
                                     <button type="submit" class="btn btn-primary">Import Excel</button>
                                 </div>
+                                <?php if($errors->has('file')): ?>
+                                    <div class="text-danger mt-2 small">
+                                        <?php echo e($errors->first('file')); ?>
+
+                                    </div>
+                                <?php endif; ?>
                             </form>
                         </div>
                     </div>
@@ -186,16 +196,4 @@
 </div>
 <?php $__env->stopSection(); ?>
 
-<?php $__env->startSection('scripts'); ?>
-<script>
-    // Open the import box only on first click, do not toggle closed
-    document.getElementById('importExcelBtn')?.addEventListener('click', function () {
-        var importCard = document.getElementById('importCard');
-        if (importCard && !importCard.classList.contains('show')) {
-            var collapse = bootstrap.Collapse.getOrCreateInstance(importCard);
-            collapse.show();
-        }
-    });
-</script>
-<?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\operations\asset\create.blade.php ENDPATH**/ ?>

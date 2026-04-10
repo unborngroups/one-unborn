@@ -69,6 +69,8 @@ class CompanySetting extends Model
         'invoice_mail_footer',
         'invoice_mail_signature',
         'invoice_mail_read_days',
+        'sales_invoice_mail_from_name',
+        'sales_invoice_mail_from_address',
         
     ];
 

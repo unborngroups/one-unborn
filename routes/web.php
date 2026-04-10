@@ -563,6 +563,7 @@ Route::prefix('finance/sales')->name('finance.sales.')->group(function () {
     Route::put('/{id}', [SalesController::class, 'update'])->name('update');
     Route::delete('/{id}', [SalesController::class, 'destroy'])->name('destroy');
     Route::get('/{id}/print', [SalesController::class, 'print'])->name('print');
+    Route::post('/{id}/send-email', [SalesController::class, 'sendEmail'])->name('send-email');
     Route::post('/finance/sales/{id}/submit',[SalesController::class,'submit'])->name('finance.sales.submit');
 });
 // Recurring Invoice

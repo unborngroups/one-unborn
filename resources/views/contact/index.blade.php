@@ -20,6 +20,29 @@
         </div>
     @endif
 
+    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+        <form method="GET" action="{{ route('contacts.' . $type . '.index') }}" class="d-flex align-items-center gap-2">
+            <label class="mb-0">Show</label>
+            <select name="per_page" class="form-select form-select-sm" style="width:80px;" onchange="this.form.submit()">
+                @foreach([10, 25, 50, 100] as $size)
+                    <option value="{{ $size }}" {{ (int) request('per_page', 10) === $size ? 'selected' : '' }}>{{ $size }}</option>
+                @endforeach
+            </select>
+            <label class="mb-0">entries</label>
+            <input type="hidden" name="search" value="{{ request('search') }}">
+        </form>
+
+        <form method="GET" action="{{ route('contacts.' . $type . '.index') }}" class="d-flex align-items-center gap-2">
+            <label class="mb-0">Search:</label>
+            <input type="text" name="search" class="form-control form-control-sm" style="width:240px;" value="{{ request('search') }}" placeholder="Search...">
+            <input type="hidden" name="per_page" value="{{ (int) request('per_page', 10) }}">
+            <button type="submit" class="btn btn-primary btn-sm">Go</button>
+            @if(request('search'))
+                <a href="{{ route('contacts.' . $type . '.index', ['per_page' => (int) request('per_page', 10)]) }}" class="btn btn-secondary btn-sm">Clear</a>
+            @endif
+        </form>
+    </div>
+
     <div class="card shadow-sm">
         <div class="card-body table-responsive">
             <table class="table table-bordered table-hover align-middle mb-0">
@@ -88,8 +111,13 @@
         </div>
     </div>
 
-    <div class="mt-3">
-        {{ $contacts->links() }}
+    <div class="mt-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            Showing {{ $contacts->firstItem() ?? 0 }} to {{ $contacts->lastItem() ?? 0 }} of {{ $contacts->total() }} entries
+        </div>
+        <div>
+            {{ $contacts->links() }}
+        </div>
     </div>
 </div>
 @endsection

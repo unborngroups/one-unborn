@@ -7,18 +7,80 @@
             <h5 class="mb-0"><i class="bi bi-repeat me-2"></i>Recurring Invoices</h5>
         </div>
         <div class="card-body">
-            <div class="alert alert-info">Recurring Invoice listing will appear here.<br>
-                <ul>
-                    <li>Recurrence: Monthly, Quarterly, Yearly, Half-yearly</li>
-                    <li>Auto-send invoice 30 days before due date</li>
-                    <li>Show all relevant recurring invoice data here</li>
-                </ul>
-            </div>
-            @if(empty($recurringInvoices))
+            @if(!empty($selectedClient))
+                <div class="alert alert-info">
+                    Showing recurring entries for client: <strong>{{ $selectedClient->client_name }}</strong>
+                </div>
+            @endif
+
+            @if(!empty($summary))
+                <div class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <div class="p-2 border rounded bg-light">
+                            <small class="text-muted d-block">Total ARC Component</small>
+                            <strong>{{ number_format($summary['total_arc_component'] ?? 0, 2) }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-2 border rounded bg-light">
+                            <small class="text-muted d-block">Total Static Component</small>
+                            <strong>{{ number_format($summary['total_static_component'] ?? 0, 2) }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-2 border rounded bg-light">
+                            <small class="text-muted d-block">Total Formula Amount</small>
+                            <strong>{{ number_format($summary['total_formula_amount'] ?? 0, 2) }}</strong>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            @if(($invoiceRows ?? collect())->isNotEmpty())
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Client</th>
+                                <th>Circuit ID</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Months</th>
+                                <th>Days</th>
+                                <th>ARC (Annual)</th>
+                                <th>Static (Annual)</th>
+                                <th>Total (Annual)</th>
+                                <th>Day Rate</th>
+                                <th>Formula Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($invoiceRows as $row)
+                                <tr>
+                                    <td>{{ $loop->iteration }}</td>
+                                    <td>{{ $row['client_name'] }}</td>
+                                    <td>{{ $row['circuit_id'] }}</td>
+                                    <td>{{ $row['start_date'] }}</td>
+                                    <td>{{ $row['end_date'] }}</td>
+                                    <td>{{ $row['renewal_months'] }}</td>
+                                    <td>{{ $row['billable_days'] }}</td>
+                                    <td>{{ number_format($row['annual_arc'], 2) }}</td>
+                                    <td>{{ number_format($row['annual_static'], 2) }}</td>
+                                    <td>{{ number_format($row['annual_total'], 2) }}</td>
+                                    <td>{{ number_format($row['day_rate'], 6) }}</td>
+                                    <td><strong>{{ number_format($row['formula_amount'], 2) }}</strong></td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
                 <div class="text-center py-5">
                     <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
                     <h5 class="text-muted mt-3">No Recurring Invoices Found</h5>
                 </div>
+            </div>
             @endif
         </div>
     </div>

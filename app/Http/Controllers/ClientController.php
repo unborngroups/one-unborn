@@ -12,6 +12,7 @@ use App\Models\Gstin;
 use App\Services\SurepassService;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 
 class ClientController extends Controller
@@ -33,7 +34,24 @@ class ClientController extends Controller
 
         $perPage = $request->input('per_page', 10); // default 10
         $perPage = in_array($perPage, [10,25,50,100]) ? $perPage : 10;
-        $query = Client::query();
+        $query = Client::query()
+            ->select('clients.*')
+            ->selectSub(
+                DB::table('sales_invoices as si')
+                    ->join('deliverables as d', 'd.id', '=', 'si.deliverable_id')
+                    ->join('feasibilities as f', 'f.id', '=', 'd.feasibility_id')
+                    ->selectRaw('COUNT(*)')
+                    ->whereColumn('f.client_id', 'clients.id'),
+                'sales_invoice_count'
+            )
+            ->selectSub(
+                DB::table('renewals as r')
+                    ->join('deliverables as d', 'd.id', '=', 'r.deliverable_id')
+                    ->join('feasibilities as f', 'f.id', '=', 'd.feasibility_id')
+                    ->selectRaw('COUNT(*)')
+                    ->whereColumn('f.client_id', 'clients.id'),
+                'recurring_invoice_count'
+            );
         if ($request->filled('search')) {
                         $search = $request->search;
                         $query->where(function($q) use ($search) {

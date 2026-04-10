@@ -293,3 +293,7 @@ ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at,
 ADD COLUMN created_by BIGINT UNSIGNED NULL AFTER deleted_at,
 ADD COLUMN updated_by BIGINT UNSIGNED NULL AFTER created_by,
 ADD COLUMN deleted_by BIGINT UNSIGNED NULL AFTER updated_by;
+
+ALTER TABLE company_settings
+ADD COLUMN sales_invoice_mail_from_name VARCHAR(255) NULL AFTER invoice_mail_read_days,
+ADD COLUMN sales_invoice_mail_from_address VARCHAR(255) NULL AFTER sales_invoice_mail_from_name;
