@@ -72,6 +72,12 @@ class CompanySetting extends Model
         'sales_invoice_mail_from_name',
         'sales_invoice_mail_from_address',
         
+        'sales_invoice_mail_host',
+        'sales_invoice_mail_port',
+        'sales_invoice_mail_username',
+        'sales_invoice_mail_password',
+        'sales_invoice_mail_encryption',
+
     ];
 
 

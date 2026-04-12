@@ -14,6 +14,7 @@ use App\Models\EmailLog;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class SalesController extends Controller
 {
@@ -155,8 +156,8 @@ class SalesController extends Controller
     $sales = SalesInvoice::findOrFail($id);
 
     // Update this section to use only the sales invoice data as needed
-    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
-        'finance.saless.pdf',
+    $pdf = Pdf::loadView(
+        'finance.sales.pdf',
         compact('sales')
     );
     return $pdf->stream('sales-invoice-'.$sales->invoice_no.'.pdf');
@@ -229,6 +230,7 @@ public function sendEmail(string $id)
     }
 
     try {
+
         $companySetting = $this->resolveInvoiceCompanySetting($company?->id);
         $this->applyInvoiceMailConfig($companySetting);
 
@@ -251,7 +253,18 @@ public function sendEmail(string $id)
             'client' => $client,
         ])->render();
 
-        Mail::send([], [], function ($message) use ($to, $cc, $subject, $mailBody, $fromAddress, $fromName) {
+        // Generate PDF from Blade view (requires barryvdh/laravel-dompdf)
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('finance.sales.pdf', [
+            'sales' => $sales,
+            'deliverables' => $deliverables,
+            'feasibility' => $feasibility,
+            'company' => $company,
+            'client' => $client,
+        ]);
+        $pdfContent = $pdf->output();
+        $pdfFileName = 'sales-invoice-' . ($sales->invoice_no ?? $sales->id) . '.pdf';
+
+        Mail::send([], [], function ($message) use ($to, $cc, $subject, $mailBody, $fromAddress, $fromName, $pdfContent, $pdfFileName) {
             $message->to($to)->subject($subject);
             if (!empty($cc)) {
                 $message->cc($cc);
@@ -260,6 +273,9 @@ public function sendEmail(string $id)
                 $message->from($fromAddress, $fromName ?: $fromAddress);
             }
             $message->html($mailBody);
+            $message->attachData($pdfContent, $pdfFileName, [
+                'mime' => 'application/pdf',
+            ]);
         });
 
         $emailLog->update([
@@ -361,13 +377,14 @@ private function applyInvoiceMailConfig(?CompanySetting $setting): void
         return;
     }
 
-    $host = $setting->invoice_mail_host ?: $setting->mail_host;
-    $port = (int) ($setting->invoice_mail_port ?: $setting->mail_port ?: 587);
-    $username = $setting->invoice_mail_username ?: $setting->mail_username;
-    $password = $setting->invoice_mail_password ?: $setting->mail_password;
-    $encryption = strtolower((string) ($setting->invoice_mail_encryption ?: $setting->mail_encryption ?: 'tls'));
-    $fromAddress = $setting->invoice_mail_from_address ?: $setting->mail_from_address;
-    $fromName = $setting->invoice_mail_from_name ?: $setting->mail_from_name;
+    // Sales/Recurring Invoice SMTP takes priority over Purchase Invoice SMTP
+    $host       = $setting->sales_invoice_mail_host       ?: $setting->invoice_mail_host       ?: $setting->mail_host;
+    $port       = (int) ($setting->sales_invoice_mail_port ?: $setting->invoice_mail_port       ?: $setting->mail_port ?: 587);
+    $username   = $setting->sales_invoice_mail_username   ?: $setting->invoice_mail_username   ?: $setting->mail_username;
+    $password   = $setting->sales_invoice_mail_password   ?: $setting->invoice_mail_password   ?: $setting->mail_password;
+    $encryption = strtolower((string) ($setting->sales_invoice_mail_encryption ?: $setting->invoice_mail_encryption ?: $setting->mail_encryption ?: 'tls'));
+    $fromAddress = $setting->sales_invoice_mail_from_address ?: $setting->invoice_mail_from_address ?: $setting->mail_from_address;
+    $fromName    = $setting->sales_invoice_mail_from_name    ?: $setting->invoice_mail_from_name    ?: $setting->mail_from_name;
 
     if (empty($host) || empty($username) || empty($password) || empty($fromAddress)) {
         return;

@@ -43,18 +43,18 @@
         <!-- LEFT SIDE -->
         <td style="width:50%; text-align: left;" >
             
-            <strong>Invoice #</strong> : <span><?php echo e($purchase->invoice_no); ?></span> <br>
-            <strong>Invoice Date</strong> : <span><?php echo e($purchase->invoice_date); ?> </span> <br>
+            <strong>Invoice #</strong> : <span><?php echo e($sales->invoice_no); ?></span> <br>
+            <strong>Invoice Date</strong> : <span><?php echo e($sales->invoice_date); ?> </span> <br>
             <strong>Terms</strong> : <span>Net 30</span><br>
-            <strong>Due Date</strong> : <span><?php echo e($purchase->due_date); ?></span> <br>
+            <strong>Due Date</strong> : <span><?php echo e($sales->due_date); ?></span> <br>
             <strong>P.O #</strong> : <span><?php echo e($deliverables->purchaseOrder->po_number ?? ''); ?></span>
         </td>
 
         <!-- RIGHT SIDE -->
         <td style="width:50%; text-align: left;">
             <strong>Place Of Supply</strong> : <?php echo e($feasibility->client->state ?? ''); ?> <br>
-            <strong>Service ID</strong> : <?php echo e($purchase->service_id ?? ''); ?> <br>
-            <strong>UNBORN Service ID/Circuit_id</strong> : <?php echo e($purchase->service_id ?? ''); ?> | <?php echo e($deliverablePlan->circuit_id ?? ''); ?> <br>
+            <strong>Service ID</strong> : <?php echo e($sales->service_id ?? ''); ?> <br>
+            <strong>UNBORN Service ID/Circuit_id</strong> : <?php echo e($sales->service_id ?? ''); ?> | <?php echo e($deliverablePlan->circuit_id ?? ''); ?> <br>
             <strong>Feasibility ID</strong> : <?php echo e($deliverables->feasibility->feasibility_request_id ?? ''); ?> <br>
             <strong>client ID</strong> : <?php echo e($deliverablePlan->client_code ?? ''); ?>
 
@@ -97,7 +97,7 @@
             
             <p>
                 <strong>Subject:</strong>
-                Invoice for Order ID: <?php echo e($purchase->order_id ?? ''); ?>
+                Invoice for Order ID: <?php echo e($sales->order_id ?? ''); ?>
 
                 | client Code: <?php echo e($deliverables->deliverablePlan->client_code ?? ''); ?>
 
@@ -136,7 +136,7 @@
 ?>
 <!-- 995423 -->
                     <tbody>
-                      <?php $__currentLoopData = $purchase->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                      <?php $__currentLoopData = $sales->items ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <tr>
                             <td>1</td>
                             <td><?php echo e($item ? $item->item_name : 'N/A'); ?></td>
@@ -162,7 +162,7 @@
                 <!-- LEFT -->
                 <div class="left-box">
                     <p><strong>Total in Words</strong><br>
-                    <?php echo e($purchase->total_in_words ?? '---'); ?></p>
+                    <?php echo e($sales->total_in_words ?? '---'); ?></p>
 
                     <p><strong>Notes</strong><br>
                     Thanks for your business.</p>
@@ -184,11 +184,11 @@
             <table style="width:100%;">
                 <tr>
                     <td>Total</td>
-                    <td class="text-end"><strong><?php echo e(number_format($purchase->total_amount,2)); ?></strong></td>
+                    <td class="text-end"><strong><?php echo e(number_format($sales->total_amount,2)); ?></strong></td>
                 </tr>
                 <tr>
                     <td><strong>Balance Due</strong></td>
-                    <td class="text-end"><strong><?php echo e(number_format($purchase->total_amount,2)); ?></strong></td>
+                    <td class="text-end"><strong><?php echo e(number_format($sales->total_amount,2)); ?></strong></td>
                 </tr>
                 <tr>
                     <td colspan="2" style="height:80px; text-align:center; vertical-align:bottom;">

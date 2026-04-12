@@ -77,8 +77,13 @@ class CompanySettingsController extends Controller
             'invoice_mail_footer' => 'nullable|string|max:500',
             'invoice_mail_signature' => 'nullable|string|max:500',
             'invoice_mail_read_days' => 'nullable|integer|min:1|max:365',
-            'sales_invoice_mail_from_name' => 'nullable|string|max:100',
+            'sales_invoice_mail_from_name'    => 'nullable|string|max:100',
             'sales_invoice_mail_from_address' => 'nullable|email',
+            'sales_invoice_mail_host'         => 'nullable|string|max:255',
+            'sales_invoice_mail_port'         => 'nullable|integer',
+            'sales_invoice_mail_username'     => 'nullable|string|max:255',
+            'sales_invoice_mail_password'     => 'nullable|string|max:255',
+            'sales_invoice_mail_encryption'   => 'nullable|string|in:tls,ssl,',
         ]);
         
         // ✅ FORCE boolean (this is key)

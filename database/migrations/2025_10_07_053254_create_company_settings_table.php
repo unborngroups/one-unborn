@@ -67,7 +67,7 @@ return new class extends Migration
             $table->string('delivery_mail_signature')->nullable();
 
             $table->boolean('delivery_email_check')->default(0);
-            // Invoice Sending
+            //purchase Invoice Sending
             $table->string('invoice_mail_host')->nullable();
             $table->string('invoice_mail_port')->nullable();
             $table->string('invoice_mail_username')->nullable();
@@ -79,6 +79,14 @@ return new class extends Migration
             $table->string('invoice_mail_signature')->nullable();
             $table->integer('invoice_mail_read_days')->default(0);
 
+            // Sales Invoice Sending
+            $table->string('sales_invoice_mail_from_name')->nullable();
+            $table->string('sales_invoice_mail_from_address')->nullable();
+            $table->string('sales_invoice_mail_host')->nullable();
+            $table->string('sales_invoice_mail_port')->nullable();
+            $table->string('sales_invoice_mail_username')->nullable();
+            $table->string('sales_invoice_mail_password')->nullable();
+            $table->string('sales_invoice_mail_encryption')->nullable();
             $table->timestamps();
         });
     }

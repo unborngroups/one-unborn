@@ -296,4 +296,11 @@ ADD COLUMN deleted_by BIGINT UNSIGNED NULL AFTER updated_by;
 
 ALTER TABLE company_settings
 ADD COLUMN sales_invoice_mail_from_name VARCHAR(255) NULL AFTER invoice_mail_read_days,
-ADD COLUMN sales_invoice_mail_from_address VARCHAR(255) NULL AFTER sales_invoice_mail_from_name;
+ADD COLUMN sales_invoice_mail_from_address VARCHAR(255) NULL AFTER sales_invoice_mail_from_name,
+ADD COLUMN sales_invoice_mail_host VARCHAR(255) NULL AFTER sales_invoice_mail_from_address,
+ADD COLUMN sales_invoice_mail_port VARCHAR(255) NULL AFTER sales_invoice_mail_host,
+ADD COLUMN sales_invoice_mail_username VARCHAR(255) NULL AFTER sales_invoice_mail_port,
+ADD COLUMN sales_invoice_mail_password VARCHAR(255) NULL AFTER sales_invoice_mail_username,
+ADD COLUMN sales_invoice_mail_encryption VARCHAR(255) NULL AFTER sales_invoice_mail_password;
+
+

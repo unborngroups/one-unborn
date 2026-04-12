@@ -338,7 +338,7 @@
 <hr>
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-header bg-success text-white">
-        <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Invoice Sending</h5>
+        <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Purchase Invoice Sending</h5>
     </div>
     <div class="card-body bg-light">
         <div class="row g-3">
@@ -389,6 +389,67 @@
         </div>
     </div>
 </div>
+
+
+        {{-- =================================== --}}
+        {{-- 📧 Sales Invoice Mail Settings --}}
+        {{-- =================================== --}}
+        <hr>
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-envelope-check me-2"></i>Sales &amp; Recurring Invoice Mail Settings</h5>
+            </div>
+            <div class="card-body bg-light">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">SMTP Server Address</label>
+                        <input type="text" name="sales_invoice_mail_host" class="form-control"
+                               value="{{ old('sales_invoice_mail_host', $company->sales_invoice_mail_host ?? '') }}"
+                               placeholder="smtp.gmail.com">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">SMTP Username</label>
+                        <input type="text" name="sales_invoice_mail_username" class="form-control"
+                               value="{{ old('sales_invoice_mail_username', $company->sales_invoice_mail_username ?? '') }}"
+                               placeholder="your-email@gmail.com">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">SMTP Password / App Password</label>
+                        <input type="password" name="sales_invoice_mail_password" class="form-control"
+                               value="{{ old('sales_invoice_mail_password', $company->sales_invoice_mail_password ?? '') }}"
+                               placeholder="Gmail: use App Password (16 chars)">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">SMTP Port</label>
+                        <input type="text" name="sales_invoice_mail_port" class="form-control"
+                               value="{{ old('sales_invoice_mail_port', $company->sales_invoice_mail_port ?? '') }}"
+                               placeholder="587">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Encryption Type</label>
+                        <select name="sales_invoice_mail_encryption" class="form-select">
+                            <option value="">Select Encryption Type</option>
+                            <option value="ssl" {{ old('sales_invoice_mail_encryption', $company->sales_invoice_mail_encryption ?? '') == 'ssl' ? 'selected' : '' }}>SSL</option>
+                            <option value="tls" {{ old('sales_invoice_mail_encryption', $company->sales_invoice_mail_encryption ?? '') == 'tls' ? 'selected' : '' }}>TLS</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Mail From Name</label>
+                        <input type="text" name="sales_invoice_mail_from_name" class="form-control"
+                               value="{{ old('sales_invoice_mail_from_name', $company->sales_invoice_mail_from_name ?? '') }}"
+                               placeholder="Unborn Billing">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Mail From Address</label>
+                        <input type="email" name="sales_invoice_mail_from_address" class="form-control"
+                               value="{{ old('sales_invoice_mail_from_address', $company->sales_invoice_mail_from_address ?? '') }}"
+                               placeholder="billing@unborn.co.in">
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+
 
         {{-- ===================================== --}}
         {{-- 🌐 SOCIAL MEDIA LINKS SECTION --}}
@@ -505,28 +566,6 @@
                 <small class="text-muted">Exception emails from Feasibility (SM) will be sent to this address.</small>
 
             </div>
-
-        {{-- =================================== --}}
-        {{-- 📧 Invoice Sender Quick Fields --}}
-        {{-- =================================== --}}
-        <hr>
-        <h5 class="text-primary fw-bold mb-3">📧 Invoice Sender (Quick Access)</h5>
-        <div class="row mb-3">
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Invoice Mail From Name</label>
-                <input type="text" name="sales_invoice_mail_from_name" class="form-control"
-                       value="{{ old('sales_invoice_mail_from_name', $company->sales_invoice_mail_from_name ?? '') }}"
-                       placeholder="Example: Unborn Billing">
-            </div>
-
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Invoice Mail From Address</label>
-                <input type="email" name="sales_invoice_mail_from_address" class="form-control"
-                       value="{{ old('sales_invoice_mail_from_address', $company->sales_invoice_mail_from_address ?? '') }}"
-                       placeholder="Example: billing@unborn.co.in">
-                <small class="text-muted">Sales Invoice email action uses this From email id.</small>
-            </div>
-        </div>
 
 {{-- Submit Button --}}
 

@@ -7,6 +7,14 @@
             <h5 class="mb-0"><i class="bi bi-repeat me-2"></i>Recurring Invoices</h5>
         </div>
         <div class="card-body">
+            <?php if(session('success')): ?>
+                <div class="alert alert-success"><?php echo e(session('success')); ?></div>
+            <?php endif; ?>
+
+            <?php if(session('error')): ?>
+                <div class="alert alert-danger"><?php echo e(session('error')); ?></div>
+            <?php endif; ?>
+
             <?php if(!empty($selectedClient)): ?>
                 <div class="alert alert-info">
                     Showing recurring entries for client: <strong><?php echo e($selectedClient->client_name); ?></strong>
@@ -53,6 +61,7 @@
                                 <th>Total (Annual)</th>
                                 <th>Day Rate</th>
                                 <th>Formula Amount</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -70,6 +79,14 @@
                                     <td><?php echo e(number_format($row['annual_total'], 2)); ?></td>
                                     <td><?php echo e(number_format($row['day_rate'], 6)); ?></td>
                                     <td><strong><?php echo e(number_format($row['formula_amount'], 2)); ?></strong></td>
+                                    <td>
+                                        <form action="<?php echo e(route('finance.sales.recurring-invoice.send-email', $row['renewal']->id)); ?>" method="POST" class="d-inline">
+                                            <?php echo csrf_field(); ?>
+                                            <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Send recurring invoice email to client now?')">
+                                                Click Here to Send Email
+                                            </button>
+                                        </form>
+                                    </td>
                                 </tr>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </tbody>

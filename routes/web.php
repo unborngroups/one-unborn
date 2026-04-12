@@ -569,6 +569,7 @@ Route::prefix('finance/sales')->name('finance.sales.')->group(function () {
 // Recurring Invoice
 Route::prefix('finance/sales/recurring-invoice')->name('finance.sales.recurring-invoice.')->group(function () {
     Route::get('/', [\App\Http\Controllers\Finance\RecurringInvoiceController::class, 'index'])->name('index');
+    Route::post('/{id}/send-email', [\App\Http\Controllers\Finance\RecurringInvoiceController::class, 'sendEmail'])->name('send-email');
     // Add more routes as needed (create, edit, etc.)
 });
 

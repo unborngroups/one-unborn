@@ -125,6 +125,9 @@ class FeasibilityExcelController extends Controller
         if (empty($rowData['location_id'])) {
             $rowErrors[] = "Location ID is required (column: location_id)";
         }
+        if (empty($rowData['client_state'])) {
+            $rowErrors[] = "Client State is required (column: client_state)";
+        }
         if (empty($rowData['longitude'])) {
             $rowErrors[] = "Longitude is required (column: longitude)";
         }
@@ -194,6 +197,7 @@ if ($address !== null) {
         $prepared = [
             'type_of_service' => $rowData['type_of_service'],
             'company_id' => $companyId,
+            'client_state' => $rowData['client_state'],
             'client_id' => $clientId,
             'delivery_company_name' => $rowData['delivery_company_name'],
             'location_id' => $rowData['location_id'],
@@ -325,7 +329,7 @@ if ($address !== null) {
             'location_id', 'longitude', 'latitude', 'pincode', 'state',
             'district', 'area', 'address', 'spoc_name', 'spoc_contact1',
             'no_of_links', 'vendor_type', 'speed', 'static_ip',
-            'expected_delivery', 'expected_activation',
+            'expected_delivery', 'expected_activation', 'client_state', 
         ];
 
         foreach ($required as $field) {

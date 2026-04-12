@@ -4,9 +4,14 @@ namespace App\Http\Controllers\Finance;
 
 use App\Http\Controllers\Controller;
 use App\Models\Client;
+use App\Models\CompanySetting;
+use App\Models\EmailLog;
 use App\Models\Renewal;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class RecurringInvoiceController extends Controller
 {
@@ -117,5 +122,159 @@ class RecurringInvoiceController extends Controller
         }
 
         return 90; // JFM
+    }
+
+    public function sendEmail(string $id)
+    {
+        $renewal = Renewal::with(['deliverable.feasibility.client', 'deliverable.feasibility.company'])
+            ->findOrFail($id);
+
+        $deliverable = $renewal->deliverable;
+        $client = $deliverable->feasibility->client ?? null;
+        $company = $deliverable->feasibility->company ?? null;
+
+        $to = $this->normalizeEmails($client->invoice_email ?? null);
+        $cc = $this->normalizeEmails($client->invoice_cc ?? null);
+        $subject = 'Recurring Invoice - ' . ($renewal->circuit_id ?? ('Renewal #' . $renewal->id));
+
+        $emailLog = EmailLog::create([
+            'sender' => null,
+            'subject' => $subject,
+            'body' => json_encode([
+                'renewal_id' => $renewal->id,
+                'circuit_id' => $renewal->circuit_id,
+                'to' => $to,
+                'cc' => $cc,
+                'status' => 'pending',
+            ]),
+            'status' => 'pending',
+        ]);
+
+        if (empty($to)) {
+            $emailLog->update([
+                'status' => 'failed',
+                'error_message' => 'Client invoice_email is empty.',
+            ]);
+
+            return back()->with('error', 'Client invoice email not found. Please update Client Master invoice_email.');
+        }
+
+        try {
+            $companySetting = $this->resolveInvoiceCompanySetting($company?->id);
+            $this->applyInvoiceMailConfig($companySetting);
+
+            $fromAddress = trim((string) (
+                $companySetting?->sales_invoice_mail_from_address
+                ?: $companySetting?->invoice_mail_from_address
+                ?: config('mail.from.address')
+            ));
+            $fromName = trim((string) (
+                $companySetting?->sales_invoice_mail_from_name
+                ?: $companySetting?->invoice_mail_from_name
+                ?: config('mail.from.name', 'Unborn')
+            ));
+
+            $mailBody = view('emails.recurring_invoice', [
+                'renewal' => $renewal,
+                'deliverable' => $deliverable,
+                'client' => $client,
+                'company' => $company,
+                'formula' => $this->buildFormulaRow($renewal),
+            ])->render();
+
+            Mail::send([], [], function ($message) use ($to, $cc, $subject, $mailBody, $fromAddress, $fromName) {
+                $message->to($to)->subject($subject);
+                if (!empty($cc)) {
+                    $message->cc($cc);
+                }
+                if (!empty($fromAddress)) {
+                    $message->from($fromAddress, $fromName ?: $fromAddress);
+                }
+                $message->html($mailBody);
+            });
+
+            $emailLog->update([
+                'sender' => $fromAddress ?: null,
+                'status' => 'processed',
+                'error_message' => null,
+                'body' => json_encode([
+                    'renewal_id' => $renewal->id,
+                    'circuit_id' => $renewal->circuit_id,
+                    'to' => $to,
+                    'cc' => $cc,
+                    'status' => 'processed',
+                ]),
+            ]);
+
+            return back()->with('success', 'Recurring invoice email sent successfully.');
+        } catch (\Throwable $e) {
+            Log::error('Recurring invoice email send failed', [
+                'renewal_id' => $renewal->id,
+                'message' => $e->getMessage(),
+            ]);
+
+            $emailLog->update([
+                'status' => 'failed',
+                'error_message' => $e->getMessage(),
+            ]);
+
+            return back()->with('error', 'Failed to send recurring invoice email: ' . $e->getMessage());
+        }
+    }
+
+    private function resolveInvoiceCompanySetting(?int $companyId): ?CompanySetting
+    {
+        if ($companyId) {
+            $byCompany = CompanySetting::where('company_id', $companyId)->first();
+            if ($byCompany) {
+                return $byCompany;
+            }
+        }
+
+        return CompanySetting::query()->orderByDesc('is_default')->orderBy('id')->first();
+    }
+
+    private function applyInvoiceMailConfig(?CompanySetting $setting): void
+    {
+        if (!$setting) {
+            return;
+        }
+
+        $host = $setting->sales_invoice_mail_host ?: $setting->invoice_mail_host ?: $setting->mail_host;
+        $port = (int) ($setting->sales_invoice_mail_port ?: $setting->invoice_mail_port ?: $setting->mail_port ?: 587);
+        $username = $setting->sales_invoice_mail_username ?: $setting->invoice_mail_username ?: $setting->mail_username;
+        $password = $setting->sales_invoice_mail_password ?: $setting->invoice_mail_password ?: $setting->mail_password;
+        $encryption = strtolower((string) ($setting->sales_invoice_mail_encryption ?: $setting->invoice_mail_encryption ?: $setting->mail_encryption ?: 'tls'));
+        $fromAddress = $setting->sales_invoice_mail_from_address ?: $setting->invoice_mail_from_address ?: $setting->mail_from_address;
+        $fromName = $setting->sales_invoice_mail_from_name ?: $setting->invoice_mail_from_name ?: $setting->mail_from_name;
+
+        if (empty($host) || empty($username) || empty($password) || empty($fromAddress)) {
+            return;
+        }
+
+        Config::set('mail.default', 'smtp');
+        Config::set('mail.mailers.smtp.transport', 'smtp');
+        Config::set('mail.mailers.smtp.host', $host);
+        Config::set('mail.mailers.smtp.port', $port);
+        Config::set('mail.mailers.smtp.encryption', $encryption);
+        Config::set('mail.mailers.smtp.username', $username);
+        Config::set('mail.mailers.smtp.password', $password);
+        Config::set('mail.from.address', $fromAddress);
+        Config::set('mail.from.name', $fromName ?: 'Unborn');
+
+        Mail::purge();
+    }
+
+    private function normalizeEmails($emails): array
+    {
+        if (!$emails) {
+            return [];
+        }
+
+        if (is_array($emails)) {
+            return array_values(array_filter(array_map('trim', $emails)));
+        }
+
+        return array_values(array_filter(array_map('trim', preg_split('/[,;]/', (string) $emails))));
     }
 }

@@ -7,6 +7,14 @@
             <h5 class="mb-0"><i class="bi bi-repeat me-2"></i>Recurring Invoices</h5>
         </div>
         <div class="card-body">
+            @if(session('success'))
+                <div class="alert alert-success">{{ session('success') }}</div>
+            @endif
+
+            @if(session('error'))
+                <div class="alert alert-danger">{{ session('error') }}</div>
+            @endif
+
             @if(!empty($selectedClient))
                 <div class="alert alert-info">
                     Showing recurring entries for client: <strong>{{ $selectedClient->client_name }}</strong>
@@ -53,6 +61,7 @@
                                 <th>Total (Annual)</th>
                                 <th>Day Rate</th>
                                 <th>Formula Amount</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -70,6 +79,14 @@
                                     <td>{{ number_format($row['annual_total'], 2) }}</td>
                                     <td>{{ number_format($row['day_rate'], 6) }}</td>
                                     <td><strong>{{ number_format($row['formula_amount'], 2) }}</strong></td>
+                                    <td>
+                                        <form action="{{ route('finance.sales.recurring-invoice.send-email', $row['renewal']->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Send recurring invoice email to client now?')">
+                                                Click Here to Send Email
+                                            </button>
+                                        </form>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

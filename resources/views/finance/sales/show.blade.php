@@ -462,7 +462,7 @@
 .inv-items th {
     background:  #b5b8be ;
     color: #0a0909 ;
-    border: 1px solid #445783;
+    border: 1px solid #555;
     font-size: 10px;
     font-weight: 700;
     padding: 4px 4px;
