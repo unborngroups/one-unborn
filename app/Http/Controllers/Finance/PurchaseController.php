@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Finance;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\Vendor;
+use App\Models\Gstin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\PurchaseInvoice;
@@ -25,6 +26,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Exports\PurchasesExport;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Services\SurepassService;
 
 class PurchaseController extends Controller
 {
@@ -471,11 +473,15 @@ private function parseSourcePdfForEdit(PurchaseInvoice $purchase): array
         $grandTotal = $this->extractMoneyValue($normalized, '/\bGrand\s*Total\s*[^0-9]*([\d,]+\.\d{2})/i');
     }
 
+    // Extract PAN from text
+    $pan = $this->extractPANFromText($text);
+
     return [
         'vendor_name' => $vendorName,
         'invoice_no' => $invoiceNo,
         'invoice_date' => $invoiceDate,
         'gstin' => $gstin,
+        'pan' => $pan,
         'sub_total' => $subTotal,
         'cgst_total' => $cgstTotal,
         'sgst_total' => $sgstTotal,
@@ -1142,13 +1148,31 @@ private function updateImage($request, $oldFile, $field, $folder)
             'due_date'     => 'nullable|date',
         ]);
 
+        // Enhanced vendor lookup with PAN and GSTIN
+        $vendorId = $request->vendor_id ?: null;
+        $gstin = $request->gstin ? strtoupper(trim($request->gstin)) : null;
+        
+        // If no vendor selected, try to find by PAN from invoice parsing
+        if (!$vendorId && $request->has('raw_json') && $request->raw_json) {
+            $rawData = is_array($request->raw_json) ? $request->raw_json : json_decode($request->raw_json, true);
+            $pan = $rawData['pan'] ?? null;
+            
+            if ($pan) {
+                $vendor = $this->findVendorByPANAndGSTIN($pan, $gstin);
+                if ($vendor) {
+                    $vendorId = $vendor->id;
+                    $gstin = $gstin ?: $vendor->gstin;
+                }
+            }
+        }
+
         $invoice->update([
-            'vendor_id'    => $request->vendor_id ?: null,
+            'vendor_id'    => $vendorId,
             'vendor_name'  => $request->vendor_name,
             'vendor_name_raw' => $request->vendor_name,
-            'gstin'        => $request->gstin ? strtoupper(trim($request->gstin)) : null,
-            'gst_number'   => $request->gstin ? strtoupper(trim($request->gstin)) : null,
-            'vendor_gstin' => $request->gstin ? strtoupper(trim($request->gstin)) : null,
+            'gstin'        => $gstin,
+            'gst_number'   => $gstin,
+            'vendor_gstin' => $gstin,
             'invoice_no'   => $request->invoice_no,
             'invoice_date' => $request->invoice_date,
             'due_date'     => $request->due_date ?: null,
@@ -1244,6 +1268,185 @@ public function print($id)
         // $deliverables = Deliverable::find($purchase->deliverable_id);
 
     return view('finance.purchases.print', compact('purchase'));
+}
+
+/**
+ * Validate PAN number format
+ */
+private function validatePANFormat(string $pan): array
+{
+    $pan = strtoupper(trim($pan));
+    
+    // PAN format: 5 letters + 4 digits + 1 letter
+    if (!preg_match('/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/', $pan)) {
+        return [
+            'valid' => false,
+            'error' => 'Invalid PAN format. Should be 5 letters + 4 digits + 1 letter (e.g., ABCDE1234F)'
+        ];
+    }
+    
+    return ['valid' => true, 'pan' => $pan];
+}
+
+/**
+ * Extract PAN number from invoice text
+ */
+private function extractPANFromText(string $text): ?string
+{
+    // PAN patterns in various formats
+    $patterns = [
+        '/\bPAN\s*[:\-]?\s*([A-Z]{5}[0-9]{4}[A-Z]{1})\b/i',
+        '/\bPermanent\s*Account\s*Number\s*[:\-]?\s*([A-Z]{5}[0-9]{4}[A-Z]{1})\b/i',
+        '/\b(?:P\.?A\.?N\.?|Pan)\s*[:\-]?\s*([A-Z]{5}[0-9]{4}[A-Z]{1})\b/i',
+        '/\([A-Z]{5}[0-9]{4}[A-Z]{1}\)/i',
+    ];
+
+    foreach ($patterns as $pattern) {
+        if (preg_match($pattern, $text, $matches)) {
+            return strtoupper(trim($matches[1]));
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Find vendor by PAN number
+ */
+private function findVendorByPAN(string $pan): ?Vendor
+{
+    return Vendor::where('pan_no', $pan)
+        ->orWhereHas('gstins', function ($query) use ($pan) {
+            // Extract PAN from GSTIN (5th to 9th characters)
+            $query->whereRaw('SUBSTRING(UPPER(gstin), 5, 5) = ?', [substr($pan, 0, 5)]);
+        })
+        ->first();
+}
+
+/**
+ * Verify PAN with Surepass API
+ */
+private function verifyPANWithSurepass(string $pan): array
+{
+    try {
+        $surepassService = new SurepassService();
+        $response = $surepassService->verifyPAN($pan);
+        
+        if ($response['success'] ?? false) {
+            return [
+                'valid' => true,
+                'verified' => true,
+                'data' => $response['data'] ?? []
+            ];
+        }
+        
+        return [
+            'valid' => false,
+            'verified' => false,
+            'error' => $response['message'] ?? 'PAN verification failed'
+        ];
+        
+    } catch (\Exception $e) {
+        Log::error('PAN verification failed', [
+            'pan' => $pan,
+            'error' => $e->getMessage()
+        ]);
+        
+        return [
+            'valid' => false,
+            'verified' => false,
+            'error' => 'Verification service unavailable'
+        ];
+    }
+}
+
+/**
+ * API endpoint to validate PAN
+ */
+public function validatePAN(Request $request)
+{
+    $request->validate([
+        'pan' => 'required|string|max:10'
+    ]);
+
+    $pan = $request->input('pan');
+    $validation = $this->validatePANFormat($pan);
+    
+    if (!$validation['valid']) {
+        return response()->json([
+            'success' => false,
+            'error' => $validation['error']
+        ]);
+    }
+
+    // Try to find vendor by PAN
+    $vendor = $this->findVendorByPAN($validation['pan']);
+    
+    return response()->json([
+        'success' => true,
+        'pan' => $validation['pan'],
+        'vendor_exists' => $vendor ? true : false,
+        'vendor' => $vendor ? [
+            'id' => $vendor->id,
+            'name' => $vendor->vendor_name,
+            'gstin' => $vendor->gstin
+        ] : null
+    ]);
+}
+
+/**
+ * API endpoint to verify PAN with Surepass
+ */
+public function verifyPAN(Request $request)
+{
+    $request->validate([
+        'pan' => 'required|string|max:10'
+    ]);
+
+    $pan = $request->input('pan');
+    $validation = $this->validatePANFormat($pan);
+    
+    if (!$validation['valid']) {
+        return response()->json([
+            'success' => false,
+            'error' => $validation['error']
+        ]);
+    }
+
+    $verification = $this->verifyPANWithSurepass($validation['pan']);
+    
+    return response()->json($verification);
+}
+
+/**
+ * Enhanced vendor lookup with PAN and GSTIN
+ */
+private function findVendorByPANAndGSTIN(string $pan, string $gstin): ?Vendor
+{
+    // First try direct PAN match
+    $vendor = Vendor::where('pan_no', $pan)->first();
+    if ($vendor) {
+        return $vendor;
+    }
+    
+    // Try GSTIN match
+    if ($gstin) {
+        $vendor = Vendor::where('gstin', $gstin)->first();
+        if ($vendor) {
+            return $vendor;
+        }
+    }
+    
+    // Try PAN extracted from GSTIN
+    if (strlen($gstin) >= 15) {
+        $panFromGSTIN = substr($gstin, 2, 10);
+        $vendor = Vendor::where('pan_no', $panFromGSTIN)->first();
+        if ($vendor) {
+            return $vendor;
+        }
+    }
+    
+    return null;
 }
 
 public function downloadSourcePdf($id)

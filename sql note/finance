@@ -304,3 +304,13 @@ ADD COLUMN sales_invoice_mail_password VARCHAR(255) NULL AFTER sales_invoice_mai
 ADD COLUMN sales_invoice_mail_encryption VARCHAR(255) NULL AFTER sales_invoice_mail_password;
 
 
+ALTER TABLE contacts
+ADD COLUMN remarks VARCHAR(255) NULL AFTER contact2;
+
+
+-- --------------------------------------------
+
+ALTER TABLE feasibilities
+MODIFY spoc_name VARCHAR(225) default NULL,
+MODIFY spoc_contact1 VARCHAR(225) default NULL;
+

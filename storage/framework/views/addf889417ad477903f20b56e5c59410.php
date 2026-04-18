@@ -343,7 +343,8 @@
                                     <option value="PPPoE" <?php echo e($selectedMode === 'PPPoE' ? 'selected' : ''); ?>>PPPoE</option>
                                     <option value="DHCP" <?php echo e($selectedMode === 'DHCP' ? 'selected' : ''); ?>>DHCP</option>
                                     <option value="P2P" <?php echo e($selectedMode === 'P2P' ? 'selected' : ''); ?>>P2P</option>
-                                    <!-- <option value="Static IP" <?php echo e(in_array($selectedMode, ['Static IP', 'Static']) ? 'selected' : ''); ?>>Static IP</option> -->
+                                    <option value="ILL" <?php echo e($selectedMode === 'ILL' ? 'selected' : ''); ?>>ILL</option>
+                                     <!-- <option value="Static IP" <?php echo e(in_array($selectedMode, ['Static IP', 'Static']) ? 'selected' : ''); ?>>Static IP</option> -->
                                     <!-- <option value="PAYMENTS" <?php echo e($selectedMode === 'PAYMENTS' ? 'selected' : ''); ?>>PAYMENTS</option> -->
 
                                 </select>

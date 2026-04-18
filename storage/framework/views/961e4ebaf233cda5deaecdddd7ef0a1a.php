@@ -419,17 +419,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 <!-- SPOC Name -->
                 <div class="col-md-3">
 
-                    <label class="form-label fw-semibold">SPOC Name <span class="text-danger">*</span></label>
+                    <label class="form-label fw-semibold">SPOC Name </label>
 
-                    <input type="text" name="spoc_name" class="form-control" value="<?php echo e(old('spoc_name', $importRow['spoc_name'] ?? '')); ?>" required>
+                    <input type="text" name="spoc_name" class="form-control" value="<?php echo e(old('spoc_name', $importRow['spoc_name'] ?? '')); ?>" >
 
                 </div>
                 <!-- SPOC Contact 1-->
                 <div class="col-md-3">
 
-                    <label class="form-label fw-semibold">SPOC Contact 1 <span class="text-danger">*</span></label>
+                    <label class="form-label fw-semibold">SPOC Contact 1 </label>
 
-                    <input type="text" name="spoc_contact1" class="form-control" value="<?php echo e(old('spoc_contact1', $importRow['spoc_contact1'] ?? '')); ?>" required>
+                    <input type="text" name="spoc_contact1" class="form-control" value="<?php echo e(old('spoc_contact1', $importRow['spoc_contact1'] ?? '')); ?>" >
 
                 </div>
                 <!-- SPOC Contact2 -->
@@ -568,6 +568,7 @@ document.addEventListener('DOMContentLoaded', function() {
         'input[name="type_of_service"]',
         'select[name="type_of_service"]',
         'select[name="company_id"]',
+        'select[name="client_state"]',
         'select[name="client_id"]',
         'input[name="delivery_company_name"]',
         'input[name="location_id"]',
@@ -784,17 +785,17 @@ if (f.hardware_details) {
                 <!-- Expected Delivery -->
                 <div class="col-md-3">
 
-                    <label class="form-label fw-semibold">Expected Delivery <span class="text-danger">*</span></label>
+                    <label class="form-label fw-semibold">Expected Delivery </label>
 
-                    <input type="date" name="expected_delivery" class="form-control" value="<?php echo e(old('expected_delivery', $importRow['expected_delivery'] ?? date('Y-m-d'))); ?>" required>
+                    <input type="date" name="expected_delivery" class="form-control" value="<?php echo e(old('expected_delivery', $importRow['expected_delivery'] ?? date('Y-m-d'))); ?>" >
 
                 </div>
                 <!-- Expected Activation -->
                 <div class="col-md-3">
 
-                    <label class="form-label fw-semibold">Expected Activation <span class="text-danger">*</span></label>
+                    <label class="form-label fw-semibold">Expected Activation </label>
 
-                    <input type="date" name="expected_activation" class="form-control" value="<?php echo e(old('expected_activation', $importRow['expected_activation'] ?? date('Y-m-d'))); ?>" required>
+                    <input type="date" name="expected_activation" class="form-control" value="<?php echo e(old('expected_activation', $importRow['expected_activation'] ?? date('Y-m-d'))); ?>" >
 
                 </div>
                 <!-- Hardware Required -->

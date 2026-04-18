@@ -33,6 +33,10 @@
                     <div class="fw-semibold"><?php echo e($contact->contact2 ?: '-'); ?></div>
                 </div>
                 <div class="col-md-6">
+                        <label for="form-label fw-semibold">Remarks</label>
+                        <div class="fw-semibold"><?php echo e($contact->remarks ?: '-'); ?></div>
+                </div>
+                <div class="col-md-6">
                     <label class="form-label text-muted">Status</label>
                     <div>
                         <span class="badge <?php echo e(strtolower($contact->status) === 'active' ? 'bg-success' : 'bg-secondary'); ?>">

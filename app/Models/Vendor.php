@@ -57,6 +57,11 @@ class Vendor extends Model
         'bank_account_no',
         'ifsc_code',
         'status',
+        'payment_terms_days',
+        'razorpay_vendor_id',
+        'auto_payment_enabled',
+        'monthly_payment_limit',
+        'payment_notes',
     ];
 
     // Relationship with GSTINs
@@ -72,6 +77,18 @@ class Vendor extends Model
 public function invoices()
     {
         return $this->hasMany(PurchaseInvoice::class);
+    }
+
+    public function paymentBatches()
+    {
+        return $this->hasManyThrough(PaymentBatch::class, PurchaseInvoice::class);
+    }
+
+    public function pendingPayments()
+    {
+        return $this->hasMany(PurchaseInvoice::class)
+            ->where('payment_status', 'pending')
+            ->where('auto_payment_enabled', true);
     }
     
 }

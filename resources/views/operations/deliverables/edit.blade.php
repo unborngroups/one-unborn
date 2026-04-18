@@ -322,7 +322,8 @@
                                     <option value="PPPoE" {{ $selectedMode === 'PPPoE' ? 'selected' : '' }}>PPPoE</option>
                                     <option value="DHCP" {{ $selectedMode === 'DHCP' ? 'selected' : '' }}>DHCP</option>
                                     <option value="P2P" {{ $selectedMode === 'P2P' ? 'selected' : '' }}>P2P</option>
-                                    <!-- <option value="Static IP" {{ in_array($selectedMode, ['Static IP', 'Static']) ? 'selected' : '' }}>Static IP</option> -->
+                                    <option value="ILL" {{ $selectedMode === 'ILL' ? 'selected' : '' }}>ILL</option>
+                                     <!-- <option value="Static IP" {{ in_array($selectedMode, ['Static IP', 'Static']) ? 'selected' : '' }}>Static IP</option> -->
                                     <!-- <option value="PAYMENTS" {{ $selectedMode === 'PAYMENTS' ? 'selected' : '' }}>PAYMENTS</option> -->
 
                                 </select>

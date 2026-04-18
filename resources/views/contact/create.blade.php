@@ -48,6 +48,10 @@
                         <label class="form-label fw-semibold">Contact2</label>
                         <input type="text" name="contact2" class="form-control" value="{{ old('contact2') }}" placeholder="Enter alternate number">
                     </div>
+                    <div class="col-md-6">
+                        <label for="form-label fw-semibold">Remarks</label>
+                        <input type="text" name="remarks" class="form-control" value="{{ old('remarks') }}" placeholder="Enter remarks">
+                    </div>
                 </div>
 
                 <div class="mt-4 d-flex gap-2">

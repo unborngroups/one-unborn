@@ -140,12 +140,12 @@ class FeasibilityExcelController extends Controller
         if (empty($rowData['address'])) {
             $rowErrors[] = "Address is required (column: address)";
         }
-        if (empty($rowData['spoc_name'])) {
-            $rowErrors[] = "SPOC Name is required (column: spoc_name)";
-        }
-        if (empty($rowData['spoc_contact1'])) {
-            $rowErrors[] = "SPOC Contact 1 is required (column: spoc_contact1)";
-        }
+        // if (empty($rowData['spoc_name'])) {
+        //     $rowErrors[] = "SPOC Name is required (column: spoc_name)";
+        // }
+        // if (empty($rowData['spoc_contact1'])) {
+        //     $rowErrors[] = "SPOC Contact 1 is required (column: spoc_contact1)";
+        // }
         if (empty($rowData['no_of_links']) || !is_numeric($rowData['no_of_links'])) {
             $rowErrors[] = "No. of Links is required and must be numeric (column: no_of_links)";
         }

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('state')->nullable();
             $table->string('contact1', 20);
             $table->string('contact2', 20)->nullable();
+            $table->string('remarks')->nullable();
             $table->string('status', 20)->default('active');
             $table->timestamps();
             $table->softDeletes();

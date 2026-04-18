@@ -23,7 +23,7 @@
 
                     <a class="nav-link text-white menu-item <?php echo e(request()->is('welcome') ? 'active' : ''); ?>" href="<?php echo e(url('/welcome')); ?>"> 
 
-                        <i class="bi bi-speedometer2"></i> Dashboard
+                        <i class="bi bi-grid-1x2-fill"></i> Dashboard
 
                     </a>
 
@@ -49,48 +49,25 @@
 
                 <li class="nav-item">
 
-                    <details class="master sidebar-dropdown" <?php echo e(request()->is('companies*') || request()->is('users*') || request()->is('usertypetable*') || request()->is('clients*') || request()->is('vendors*') ? 'open' : ''); ?>>
+                    <details class="sidebar-module master" <?php echo e(request()->is('companies*') || request()->is('users*') || request()->is('usertypetable*') || request()->is('clients*') || request()->is('vendors*') ? 'open' : ''); ?>>
 
-                        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
-
-                            <span><i class="bi bi-collection"></i> Masters</span>
-
-                            <i class="bi bi-chevron-down arrow-icon"></i>
-
-                        </summary>
-
-                        <ul class="nav flex-column ms-3 mt-2">
-
-                            <?php if($company && $company->can_menu): ?>
-
-                                <li><a class="nav-link text-white menu-item <?php echo e(request()->is('companies*') ? 'active' : ''); ?>" href="<?php echo e(route('companies.index')); ?>"><i class="bi bi-building"></i> Company Details</a></li>
-
-                            <?php endif; ?>
-
-                            <!-- <?php if($users && $users->can_menu): ?>
-
-                                <li><a class="nav-link text-white menu-item <?php echo e(request()->is('users*') ? 'active' : ''); ?>" href="<?php echo e(route('users.index')); ?>"><i class="bi bi-people"></i> Manage User</a></li>
-
-                            <?php endif; ?> -->
-
-                            <?php if($userType && $userType->can_menu): ?>
-
-                                <li><a class="nav-link text-white menu-item <?php echo e(request()->is('usertypetable*') ? 'active' : ''); ?>" href="<?php echo e(route('usertypetable.index')); ?>"><i class="bi bi-person-badge"></i> User Type</a></li>
-
-                            <?php endif; ?>
-
-                            <?php if($client && $client->can_menu): ?>
-
-                                <li><a class="nav-link text-white menu-item <?php echo e(request()->is('clients*') ? 'active' : ''); ?>" href="<?php echo e(route('clients.index')); ?>"><i class="bi bi-person-workspace"></i> Client Master</a></li>
-
-                            <?php endif; ?>
-
-                            <?php if($vendor && $vendor->can_menu): ?>
-
-                                <li><a class="nav-link text-white menu-item <?php echo e(request()->is('vendors*') ? 'active' : ''); ?>" href="<?php echo e(route('vendors.index')); ?>"><i class="bi bi-truck"></i> Vendor Master</a></li>
-
-                            <?php endif; ?>
-
+                        <summary class="nav-link d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-database-fill"></i> <span class="ms-2">Masters</span></span>
+                    <i class="bi bi-chevron-right arrow-icon"></i>
+                </summary>
+                <ul class="nav flex-column ms-3 mt-1 submenu">
+                    <?php if($company && $company->can_menu): ?>
+                        <li><a class="nav-link menu-item <?php echo e(request()->is('companies*') ? 'active' : ''); ?>" href="<?php echo e(route('companies.index')); ?>"><i class="bi bi-building"></i> Company Details</a></li>
+                    <?php endif; ?>
+                    <?php if($userType && $userType->can_menu): ?>
+                        <li><a class="nav-link menu-item <?php echo e(request()->is('usertypetable*') ? 'active' : ''); ?>" href="<?php echo e(route('usertypetable.index')); ?>"><i class="bi bi-person-badge"></i> User Type</a></li>
+                    <?php endif; ?>
+                    <?php if($client && $client->can_menu): ?>
+                        <li><a class="nav-link menu-item <?php echo e(request()->is('clients*') ? 'active' : ''); ?>" href="<?php echo e(route('clients.index')); ?>"><i class="bi bi-person-workspace"></i> Client Master</a></li>
+                    <?php endif; ?>
+                    <?php if($vendor && $vendor->can_menu): ?>
+                        <li><a class="nav-link menu-item <?php echo e(request()->is('vendors*') ? 'active' : ''); ?>" href="<?php echo e(route('vendors.index')); ?>"><i class="bi bi-truck"></i> Vendor Master</a></li>
+                    <?php endif; ?>
                             <!--  -->
                         <?php
                             $assetMasterRoutesAvailable = Route::has('assetmaster.asset_type.index') || Route::has('assetmaster.make_type.index') || Route::has('assetmaster.model_type.index');
@@ -1077,6 +1054,36 @@
             </li>
             <?php endif; ?>
 
+            
+            <li>
+                <details <?php echo e(request()->is('payments/*') ? 'open' : ''); ?>">
+                    <summary class="nav-link text-white">
+                        <span><i class="bi bi-credit-card me-2"></i> Payments</span>
+                        <i class="bi bi-chevron-down arrow-icon"></i>
+                    </summary>
+                    <ul class="nav flex-column ms-3 mt-1">
+                        <li>
+                            <a class="nav-link text-white menu-item <?php echo e(request()->is('payments/dashboard') ? 'active' : ''); ?>"
+                               href="<?php echo e(route('payments.dashboard')); ?>">
+                                <i class="bi bi-speedometer2 me-2"></i> Payments Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link text-white menu-item <?php echo e(request()->is('payments/batches*') ? 'active' : ''); ?>"
+                               href="<?php echo e(route('payments.batches')); ?>">
+                                <i class="bi bi-collection me-2"></i> Payment Batches
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link text-white menu-item <?php echo e(request()->is('payments/pending-invoices*') ? 'active' : ''); ?>"
+                               href="<?php echo e(route('payments.pending-invoices')); ?>">
+                                <i class="bi bi-file-invoice me-2"></i> Pending Invoices
+                            </a>
+                        </li>
+                    </ul>
+                </details>
+            </li>
+
 
             
             <?php if($reports && $reports->can_menu): ?>
@@ -1443,7 +1450,7 @@ function collapseSidebar() {
 <style>
 /* Sidebar wrapper for expand/collapse */
 .sidebar-wrapper {
-    width: 64px;
+    width: 80px;
     background: #0a1857;
     min-height: 100vh;
     transition: width 0.25s cubic-bezier(.4,2,.6,1);
@@ -1452,7 +1459,7 @@ function collapseSidebar() {
     position: relative;
 }
 .sidebar-wrapper.sidebar-expanded {
-    width: 240px;
+    width: 300px;
 }
 .sidebar-wrapper .menu-text {
     display: none;
@@ -1661,4 +1668,93 @@ function collapseSidebar() {
 }
 </style>
 
-<?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\layouts\partials\fullmenu.blade.php ENDPATH**/ ?>
+
+
+
+
+
+
+<style>
+    /* --- Module Accent Indicators --- */
+    .sidebar-module {
+        border-radius: 12px;
+        margin-bottom: 6px;
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent !important; /* Clean accent indicator */
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Color Coding - Left Border Accents */
+    .sidebar-module.master { border-left-color: #ef4444 !important; }    /* Red */
+    .sidebar-module.sm { border-left-color: #0ea5e9 !important; }        /* Blue */
+    .sidebar-module.operation { border-left-color: #22c55e !important; } /* Green */
+    .sidebar-module.finance { border-left-color: #f59e0b !important; }   /* Amber */
+    .sidebar-module.hr { border-left-color: #ec4899 !important; }        /* Pink */
+    .sidebar-module.system { border-left-color: #6366f1 !important; }    /* Indigo */
+    .sidebar-module.report { border-left-color: #a855f7 !important; }    /* Purple */
+
+    .sidebar-module:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .sidebar-module[open] {
+        background: rgba(255, 255, 255, 0.04);
+        padding-bottom: 8px;
+    }
+
+    /* --- Submenu Logic --- */
+    .submenu {
+        padding-left: 10px;
+        animation: slideIn 0.25s ease-out;
+    }
+
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .inner-dropdown summary {
+        font-size: 0.85rem;
+        color: #94a3b8 !important;
+        cursor: pointer;
+        list-style: none;
+    }
+
+    /* --- Navigation Links --- */
+    .nav-link {
+        color: #cbd5e1 !important;
+        font-size: 0.9rem;
+        padding: 10px 14px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .nav-link:hover {
+        color: #fff !important;
+        transform: translateX(4px);
+    }
+
+    .menu-item.active {
+        background: #3b82f6 !important;
+        color: #fff !important;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        font-weight: 600;
+    }
+
+    /* --- Icons & Arrows --- */
+    .arrow-icon {
+        font-size: 0.75rem;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        opacity: 0.5;
+    }
+
+    details[open] > summary .arrow-icon {
+        transform: rotate(90deg);
+        opacity: 1;
+    }
+
+    .bi { vertical-align: middle; }
+
+    /* Hide text during collapse if using slim-sidebar logic */
+    .sidebar-collapsed .ms-2 { display: none; }
+</style><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\layouts\partials\fullmenu.blade.php ENDPATH**/ ?>

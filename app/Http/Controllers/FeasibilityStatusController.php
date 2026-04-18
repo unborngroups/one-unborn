@@ -766,20 +766,27 @@ public function editSave(Request $request, $id)
         $record->update($data);
 
         // ✅ Get circuit_id from current feasibility
-    $circuit_id = $record->feasibility->circuit_id ?? null;
+        $circuit_id = $record->feasibility->circuit_id ?? null;
 
-    $previous = null;
+        $previous = null;
+        $deliverable = null;
 
-    if ($circuit_id) {
-        $previous = FeasibilityStatus::whereHas('feasibility', function($q) use ($circuit_id) {
-                $q->where('circuit_id', $circuit_id);
-            })
-            ->where('id', '!=', $record->id) // avoid current record
-            ->latest()
-            ->first();
-    }
+        if ($circuit_id) {
+            // Get previous feasibility status record
+            $previous = FeasibilityStatus::whereHas('feasibility', function($q) use ($circuit_id) {
+                    $q->where('circuit_id', $circuit_id);
+                })
+                ->where('id', '!=', $record->id) // avoid current record
+                ->latest()
+                ->first();
+                
+            // Get deliverable plan for existing links
+            if ($record->feasibility && $record->feasibility->link_type === 'existing') {
+                $deliverable = \App\Models\DeliverablePlan::where('circuit_id', $circuit_id)->first();
+            }
+        }
         
-        return view('operations.feasibility.edit', compact('record', 'vendors', 'previous'));
+        return view('operations.feasibility.edit', compact('record', 'vendors', 'previous', 'deliverable'));
     }
 
    // ============================

@@ -1,0 +1,55 @@
+ALTER TABLE vendors
+ADD COLUMN payment_terms_days INT DEFAULT 15 AFTER ifsc_code,
+ADD COLUMN razorpay_vendor_id VARCHAR(100) NULL AFTER payment_terms_days,
+ADD COLUMN auto_payment_enabled TINYINT(1) DEFAULT 0 AFTER razorpay_vendor_id,
+ADD COLUMN monthly_payment_limit DECIMAL(15,2) DEFAULT 500000.00 AFTER auto_payment_enabled,
+ADD COLUMN payment_notes TEXT NULL AFTER monthly_payment_limit;
+
+
+
+ALTER TABLE purchase_invoices
+ADD COLUMN payment_status ENUM('pending','processing','completed','failed','refunded','partial') DEFAULT 'pending' AFTER gst_number,
+ADD COLUMN razorpay_payment_id VARCHAR(100) NULL AFTER payment_status,
+ADD COLUMN payment_batch_id BIGINT UNSIGNED NULL AFTER razorpay_payment_id,
+ADD COLUMN auto_payment_enabled TINYINT(1) DEFAULT 0 AFTER payment_batch_id,
+ADD COLUMN paid_amount DECIMAL(15,2) DEFAULT 0 AFTER auto_payment_enabled,
+ADD COLUMN payment_processed_at TIMESTAMP NULL AFTER paid_amount,
+ADD COLUMN payment_failure_reason TEXT NULL AFTER payment_processed_at;
+
+ALTER TABLE purchase_invoices
+ADD CONSTRAINT fk_payment_batch
+FOREIGN KEY (payment_batch_id)
+REFERENCES payment_batches(id)
+ON DELETE SET NULL;
+
+CREATE INDEX idx_payment_status ON purchase_invoices(payment_status);
+CREATE INDEX idx_auto_payment_enabled ON purchase_invoices(auto_payment_enabled);
+CREATE INDEX idx_due_date_payment_status ON purchase_invoices(due_date, payment_status);
+
+
+ALTER TABLE finance_approvals
+ADD COLUMN approval_level ENUM('accountant','finance_manager') NULL AFTER status,
+ADD COLUMN approved_at TIMESTAMP NULL AFTER checker_id;
+
+
+ALTER TABLE finance_approvals
+MODIFY remarks TEXT NULL;
+
+CREATE INDEX idx_model_type_model_id_level 
+ON finance_approvals(model_type, model_id, approval_level);
+
+CREATE INDEX idx_level_status 
+ON finance_approvals(approval_level, status);
+
+ALTER TABLE email_logs
+ADD COLUMN file_hash VARCHAR(255) NULL AFTER error_message,
+ADD COLUMN source VARCHAR(255) DEFAULT 'gmail' AFTER file_hash,
+ADD COLUMN is_active TINYINT(1) DEFAULT 1 AFTER source,
+ADD COLUMN company_id BIGINT UNSIGNED NULL AFTER id;
+
+ALTER TABLE email_logs
+ADD CONSTRAINT fk_email_logs_company
+FOREIGN KEY (company_id)
+REFERENCES companies(id)
+ON DELETE SET NULL;
+

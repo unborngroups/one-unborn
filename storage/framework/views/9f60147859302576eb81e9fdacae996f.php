@@ -7,7 +7,7 @@
 <style>
     .dashboard-card {
         padding: 5px;
-        border-radius: 3px;
+        border-radius: 10px;
         color: white;
         margin-bottom: 25px;
         box-shadow: 0 5px 15px rgba(0,0,0,0.2);
@@ -20,7 +20,7 @@
         box-shadow: 0 10px 20px rgba(0,0,0,0.3);
     }
     .dashboard-title {
-        font-size: 20px;
+        font-size: 10px;
         font-weight: bold;
     }
     .icon-box {

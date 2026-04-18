@@ -1,130 +1,170 @@
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-light shadow-sm">
-  <div class="container-fluid px-2" style="min-height:60px;">
-    <!-- Sidebar toggle + Logo -->
-    <div class="d-flex align-items-center flex-shrink-0">
-      <button class="btn btn-dark me-2" id="sidebarToggle" style="border: none; font-size: 1.4rem; padding: 6px 10px; min-width: 40px; min-height: 40px;">
-        <i id="sidebarToggleIcon" class="bi bi-chevron-left" style="color: white;"></i>
-      </button>
-      <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ url('/') }}">
-        <img src="{{ asset('images/logo1.png') }}" alt="One-Unborn" class="navbar-logo"
-          style="height:40px; max-width:120px; object-fit:contain; border-radius:4px; margin-right:6px;">
-      </a>
+<nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+        
+        <div class="navbar-left d-flex align-items-center">
+            <button class="btn-sidebar-toggle" id="sidebarToggle" aria-label="Toggle Sidebar">
+                <i id="sidebarToggleIcon" class="bi bi-list"></i>
+            </button>
+            <a class="navbar-brand-custom" href="{{ url('/') }}">
+                <img src="{{ asset('images/logo1.png') }}" alt="Unborn Logo">
+            </a>
+        </div>
+
+        <div class="navbar-center d-none d-lg-flex">
+            @auth
+            <div id="onlineStatusTicker" class="time-badge">
+                <span class="status-indicator"></span>
+                <span class="time-text">
+                    <i class="bi bi-clock me-1"></i>
+                    <span id="onlineSinceValue">{{ $clockDisplay ?? 'Loading...' }}</span>
+                    <span class="duration-label ms-1" id="onlineDurationLabel">({{ $onlineDurationLabel ?? '0s' }})</span>
+                </span>
+            </div>
+            @endauth
+        </div>
+
+        <div class="navbar-right">
+            @auth
+            <div class="dropdown">
+                <a class="profile-pill dropdown-toggle" href="#" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="profile-info d-none d-md-block text-end me-2">
+                        <span class="user-name">{{ Auth::user()->name }}</span>
+                        <span class="user-role">Super Admin</span>
+                    </div>
+                    <img src="{{ asset(optional(Auth::user()->profile)->profile_photo ?? 'images/default.png') }}" alt="Profile" class="avatar">
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end profile-dropdown-menu">
+                    <li><a class="dropdown-item" href="{{ route('profile.view') }}"><i class="bi bi-person me-2"></i> Profile</a></li>
+                    <li><a class="dropdown-item" href="{{ route('profile.edit') }}"><i class="bi bi-gear me-2"></i> Settings</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button class="dropdown-item text-danger"><i class="bi bi-power me-2"></i> Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+            @endauth
+        </div>
     </div>
-    <!-- Centered Time (on mobile, moves to right on desktop) -->
-    @auth
-    @if(isset($clockDisplay) || isset($onlineSince))
-      <span id="onlineStatusTicker" class="mx-2 fw-semibold text-white text-nowrap" style="font-size: 15px;">
-        ⏱
-        @if(isset($clockDisplay))
-          <span id="onlineSinceValue">{{ $clockDisplay }}</span>
-        @else
-          <span id="onlineSinceValue">Online since {{ $onlineSince }}</span>
-        @endif
-        @if(!empty($onlineDurationLabel))
-          (<span id="onlineDurationLabel">{{ $onlineDurationLabel }}</span>)
-        @else
-          (<span id="onlineDurationLabel">0s</span>)
-        @endif
-      </span>
-    @endif
-    <!-- Profile Dropdown -->
-    <div class="dropdown ms-2 flex-shrink-0">
-      <a class="d-flex align-items-center text-decoration-none dropdown-toggle" href="#" role="button"
-        id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-        <img src="{{ asset(optional(Auth::user()->profile)->profile_photo 
-          ? Auth::user()->profile->profile_photo 
-          : 'images/default.png') }}"
-          alt="Profile" class="rounded-circle" width="35" height="35"
-          style="object-fit: cover; border: 2px solid #e7eaeeff;">
-        <span class="ms-2 fw-semibold text-white d-none d-md-inline">{{ Auth::user()->name }}</span>
-      </a>
-      <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
-        <li><a class="dropdown-item" href="{{ route('profile.view') }}"><i class="bi bi-person me-2"></i> View Profile</a></li>
-        <li><a class="dropdown-item" href="{{ route('profile.edit') }}"><i class="bi bi-pencil-square me-2"></i> Edit Profile</a></li>
-        <li><hr class="dropdown-divider"></li>
-        <li>
-          <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i> Logout</button>
-          </form>
-        </li>
-      </ul>
-    </div>
-    @endauth
-  </div>
 </nav>
-<!-- Responsive Navbar/Profile/Time CSS for Mobile -->
+
 <style>
-@media (max-width: 767px) {
-  .navbar .container-fluid {
-    flex-wrap: nowrap !important;
+  /* --- Global Navbar Polish --- */
+.navbar {
+    background: #031d58 !important;
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid #031d58;
+    height: 65px;
+    padding: 0 1rem;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1040;
+    color: #ffffff !important;
+}
+
+/* --- Left Side: Logo & Toggle --- */
+.btn-sidebar-toggle {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #ffffff;
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
     display: flex;
-    flex-direction: row;
     align-items: center;
-    justify-content: space-between;
-  }
-  .navbar .navbar-brand {
-    margin-right: 0 !important;
-  }
-  #onlineStatusTicker {
-    order: 3;
-    margin-left: auto !important;
-    margin-right: 0 !important;
+    justify-content: center;
+    transition: all 0.2s;
+    margin-right: 15px;
+}
+
+.btn-sidebar-toggle:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+.navbar-brand-custom img {
+    height: 32px;
+    width: auto;
+}
+
+/* --- Center: Time Badge --- */
+.time-badge {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 6px 16px;
+    border-radius: 50px;
     display: flex;
     align-items: center;
-    font-size: 13px !important;
-    background: #00113a;
+    font-size: 0.85rem;
+    color: #ffffff;
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    margin-right: 10px;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+    animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+    70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(34, 197, 94, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* --- Right Side: Profile Pill --- */
+.profile-pill {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    padding: 4px;
+    border-radius: 50px;
+    transition: background 0.2s;
+}
+
+.profile-pill:hover { background: rgba(255, 255, 255, 0.1); }
+
+.user-name {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #ffffff;
+    line-height: 1;
+}
+
+.user-role {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    object-fit: cover;
+}
+
+/* --- Dropdown Polish --- */
+.profile-dropdown-menu {
+    border: none;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    padding: 10px;
+    margin-top: 15px !important;
+}
+
+.dropdown-item {
     border-radius: 6px;
-    padding: 2px 8px;
-  }
-  .navbar .dropdown {
-    order: 4;
-    margin-left: 8px !important;
-  }
-  .navbar .d-flex.align-items-center {
-    order: 1;
-  }
+    padding: 8px 12px;
+    font-size: 0.9rem;
 }
-@media (min-width: 768px) {
-  #onlineStatusTicker {
-    margin-left: 16px !important;
-    font-size: 15px !important;
-    background: transparent;
-    padding: 0;
-  }
-}
+
 </style>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const ticker = document.getElementById('onlineStatusTicker');
-        if (!ticker || !ticker.dataset.loginTime) {
-            return;
-        }
-        const durationSpan = document.getElementById('onlineDurationLabel');
-        const loginTime = new Date(ticker.dataset.loginTime);
-        const formatDuration = (milliseconds) => {
-            const totalSeconds = Math.floor(milliseconds / 1000);
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
-            const parts = [];
-            if (hours) {
-                parts.push(hours + 'h');
-            }
-            if (minutes) {
-                parts.push(minutes + 'm');
-            }
-            parts.push(seconds + 's');
-            return parts.join(' ');
-        };
-        const updateDuration = () => {
-            const elapsed = Math.max(Date.now() - loginTime.getTime(), 0);
-            if (durationSpan) {
-                durationSpan.textContent = formatDuration(elapsed);
-            }
-        };
-        updateDuration();
-        setInterval(updateDuration, 1000);
-    });
-</script>

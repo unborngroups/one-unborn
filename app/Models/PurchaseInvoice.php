@@ -48,6 +48,13 @@ class PurchaseInvoice extends Model
         'created_by',
         'updated_by',
         'deleted_by',
+        'payment_status',
+        'razorpay_payment_id',
+        'payment_batch_id',
+        'auto_payment_enabled',
+        'paid_amount',
+        'payment_processed_at',
+        'payment_failure_reason',
     ];
 
     protected $casts = [
@@ -61,6 +68,9 @@ class PurchaseInvoice extends Model
         'grand_total' => 'float',
         'confidence_score' => 'float',
         'raw_json' => 'array',
+        'auto_payment_enabled' => 'boolean',
+        'paid_amount' => 'float',
+        'payment_processed_at' => 'datetime',
     ];
 
     public function setConfidenceScoreAttribute($value): void
@@ -119,6 +129,31 @@ class PurchaseInvoice extends Model
     public function emailLog(): BelongsTo
     {
         return $this->belongsTo(EmailLog::class);
+    }
+
+    public function paymentBatch(): BelongsTo
+    {
+        return $this->belongsTo(PaymentBatch::class, 'payment_batch_id');
+    }
+
+    public function paymentTransactions(): HasMany
+    {
+        return $this->hasMany(PaymentTransaction::class);
+    }
+
+    public function isPaid(): bool
+    {
+        return $this->payment_status === 'completed' && $this->paid_amount >= $this->grand_total;
+    }
+
+    public function isOverdue(): bool
+    {
+        return $this->due_date->isPast() && !$this->isPaid();
+    }
+
+    public function getRemainingAmount(): float
+    {
+        return max(0, $this->grand_total - $this->paid_amount);
     }
 }
 

@@ -185,3 +185,129 @@ WHERE fs.id = (
 )
 AND fs.status = 'Closed'
 ORDER BY po.id ASC;
+
+
+SELECT * 
+FROM feasibility_statuses 
+WHERE status = 'Open';
+
+SELECT 
+    fs.*, 
+    c.client_name,  
+    f.feasibility_request_id, 
+    f.client_state,
+    f.static_ip,
+    f.no_of_links
+FROM feasibility_statuses fs
+JOIN feasibilities f 
+    ON fs.feasibility_id = f.id
+JOIN clients c
+    ON f.client_id = c.id
+WHERE fs.status = 'Open';
+
+
+INSERT INTO feasibility_statuses (id, status)
+VALUES 
+(22, 'Closed'),
+(23, 'Closed'),
+(24, 'Closed')
+ON DUPLICATE KEY UPDATE 
+status = VALUES(status);
+
+SELECT 
+    fs.*, 
+    c.client_name,  
+    f.feasibility_request_id, 
+    f.client_state,
+    f.no_of_links
+FROM feasibility_statuses fs
+JOIN feasibilities f 
+    ON fs.feasibility_id = f.id
+JOIN clients c
+    ON f.client_id = c.id
+WHERE fs.status = 'Open'
+AND c.client_name = 'tata';
+
+
+
+//delete the feasibilities "open" company name
+
+DELETE fs
+FROM feasibility_statuses fs
+JOIN feasibilities f 
+    ON fs.feasibility_id = f.id
+JOIN clients c 
+    ON f.client_id = c.id
+WHERE fs.status = 'Open'
+AND c.client_name = 'tata';
+
+ASPIRARE COMMUNICATIONS PRIVATE LIMITED
+
+
+
+SELECT *
+FROM feasibility_statuses fs
+JOIN feasibilities f 
+    ON fs.feasibility_id = f.id
+JOIN clients c
+    ON f.client_id = c.id
+WHERE fs.status = 'Open'
+AND c.client_name = 'ASPIRARE COMMUNICATIONS PRIVATE LIMITED';
+
+
+Royal Sundaram General Insurance Co. Limited
+
+UPDATE clients
+SET client_name = 'SUNDARAM HOMES FINANCE LIMITED'
+WHERE client_name = 'SUNDARAM HOMES FIANCE LIMITED';
+
+Tata Communications Limited
+
+
+SELECT 
+    fs.*, 
+    c.client_name,  
+    f.pincode
+FROM feasibility_statuses fs
+JOIN feasibilities f 
+    ON fs.feasibility_id = f.id
+JOIN clients c
+    ON f.client_id = c.id
+WHERE fs.status = 'Closed'
+AND c.client_name = 'ASPIRARE COMMUNICATIONS PRIVATE LIMITED';
+
+
+
+UPDATE feasibilities
+SET static_ip = 'Yes'
+WHERE static_ip = '1';
+
+
+UPDATE feasibilities
+SET static_ip = 'No'
+WHERE static_ip = '0';
+
+UPDATE feasibilities f
+JOIN clients c
+ ON f.client_id = c.id 
+ SET f.client_state = 'Tamil Nadu'
+WHERE c.client_name = 'TATA COMMUNICATIONS LIMITED';
+
+-----deliverable_plans la circuit_id manunal la update pandra code
+
+UPDATE deliverable_plans dp
+JOIN deliverables d 
+    ON dp.deliverable_id = d.id
+JOIN feasibilities f 
+    ON d.feasibility_id = f.id
+SET dp.circuit_id = '24UBNTCLKGI007'
+WHERE f.feasibility_request_id = 'FR-2253';
+
+
+UPDATE deliverable_plans dp
+JOIN deliverables d 
+    ON dp.deliverable_id = d.id
+JOIN feasibilities f 
+    ON d.feasibility_id = f.id
+SET dp.circuit_id = '26UNBTCLTN0002'
+WHERE f.feasibility_request_id = 'FR-6281';

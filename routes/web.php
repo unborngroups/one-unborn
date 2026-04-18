@@ -534,6 +534,8 @@ Route::prefix('finance')->name('finance.')->group(function () {
         Route::get('reports/gst', [ReportController::class, 'gst'])->name('reports.gst');
 
         Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
+        Route::get('settings/gst', [SettingsController::class, 'gst'])->name('settings.gst');
+        Route::get('settings/tds', [SettingsController::class, 'tds'])->name('settings.tds');
 
 });
 
@@ -551,6 +553,10 @@ Route::prefix('finance')->name('finance.')->group(function () {
     // Route::get('/{id}/pdf', [PurchaseController::class, 'pdf'])->name('pdf');
     // Route::get('/{id}/print', [PurchaseController::class, 'print'])->name('print');
     // Route::post('/finance/purchases/{id}/submit',[PurchaseController::class,'submit'])->name('finance.purchases.submit');
+    
+    // PAN Management Routes
+    Route::post('/finance/pan/validate', [PurchaseController::class, 'validatePAN'])->name('finance.pan.validate');
+    Route::post('/finance/pan/verify', [PurchaseController::class, 'verifyPAN'])->name('finance.pan.verify');
 // });
 
 Route::prefix('finance/sales')->name('finance.sales.')->group(function () {
@@ -662,10 +668,34 @@ Route::prefix('chat')
 
 /*
 |--------------------------------------------------------------------------
-| 🟢 Client Portal – Authenticated Routes
+| � Payment Management Routes
 |--------------------------------------------------------------------------
 */
- /* 🟢 Client Portal – AUTH */
+Route::middleware(['auth', \App\Http\Middleware\CheckProfileCreated::class])->prefix('payments')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\PaymentController::class, 'dashboard'])->name('payments.dashboard');
+    Route::get('/batches', [App\Http\Controllers\PaymentController::class, 'batches'])->name('payments.batches');
+    Route::get('/batches/{batch}', [App\Http\Controllers\PaymentController::class, 'batchDetails'])->name('payments.batches.show');
+    Route::post('/batches/create', [App\Http\Controllers\PaymentController::class, 'createBatch'])->name('payments.batches.create');
+    Route::post('/batches/{batch}/submit-accountant', [App\Http\Controllers\PaymentController::class, 'submitForAccountantApproval'])->name('payments.batches.submit-accountant');
+    Route::post('/batches/{batch}/approve-accountant', [App\Http\Controllers\PaymentController::class, 'approveAccountantLevel'])->name('payments.batches.approve-accountant');
+    Route::post('/batches/{batch}/approve-finance-manager', [App\Http\Controllers\PaymentController::class, 'approveFinanceManagerLevel'])->name('payments.batches.approve-finance-manager');
+    Route::post('/batches/{batch}/reject-accountant', [App\Http\Controllers\PaymentController::class, 'rejectAccountantLevel'])->name('payments.batches.reject-accountant');
+    Route::post('/batches/{batch}/reject-finance-manager', [App\Http\Controllers\PaymentController::class, 'rejectFinanceManagerLevel'])->name('payments.batches.reject-finance-manager');
+    Route::post('/batches/{batch}/process', [App\Http\Controllers\PaymentController::class, 'processBatch'])->name('payments.batches.process');
+    Route::get('/batches/{batch}/export', [App\Http\Controllers\PaymentController::class, 'exportBatch'])->name('payments.batches.export');
+    Route::get('/pending-invoices', [App\Http\Controllers\PaymentController::class, 'pendingInvoices'])->name('payments.pending-invoices');
+    Route::post('/run-auto-detection', [App\Http\Controllers\PaymentController::class, 'runAutoDetection'])->name('payments.run-auto-detection');
+});
+
+// Razorpay Webhook Route (Public)
+Route::post('/webhook/razorpay', [App\Http\Controllers\PaymentController::class, 'handleWebhook'])->name('webhook.razorpay');
+
+/*
+|--------------------------------------------------------------------------
+| �� Client Portal – Authenticated Routes
+|--------------------------------------------------------------------------
+*/
+/* 🟢 Client Portal – AUTH */
 Route::get('client/login', [ClientPortalController::class, 'loginPage'])->name('client.login');
 Route::post('client/login', [ClientPortalController::class, 'login'])->name('client.login.submit');
 

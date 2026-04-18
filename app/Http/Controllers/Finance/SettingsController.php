@@ -11,4 +11,14 @@ class SettingsController extends Controller
     {
         return view('finance.settings.index');
     }
+
+    public function gst()
+    {
+        return view('finance.settings.gst');
+    }
+
+    public function tds()
+    {
+        return view('finance.settings.tds');
+    }
 }

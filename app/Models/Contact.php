@@ -17,6 +17,7 @@ class Contact extends Model
         'state',
         'contact1',
         'contact2',
+        'remarks',
         'status',
         'created_by',
         'updated_by',

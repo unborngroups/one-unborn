@@ -45,7 +45,7 @@
             <?php if($records->count() > 0): ?>
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover align-middle text-center" id="open">
-                        <thead class="table-dark text-center align-middle">
+                        <thead class="table-white text-center align-middle">
                             <tr>
                                 <th width="50" class="text-center"><input type="checkbox" id="select_all" style="width: 18px; height: 18px; cursor: pointer;"></th>
                                 

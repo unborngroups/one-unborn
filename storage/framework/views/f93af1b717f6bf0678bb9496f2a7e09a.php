@@ -48,7 +48,7 @@
             <?php if($records->count() > 0): ?>
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover align-middle" id="delivery">
-                        <thead class="table-dark">
+                        <thead class="table-white text-center align-middle">
                             <tr>
                                 <!-- <th width="50"><input type="checkbox" id="select_all"></th> -->
                                 <th width="50">S.No</th>

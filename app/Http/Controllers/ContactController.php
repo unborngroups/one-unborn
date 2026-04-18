@@ -132,7 +132,8 @@ class ContactController extends Controller
                     ->orWhere('area', 'like', '%' . $search . '%')
                     ->orWhere('state', 'like', '%' . $search . '%')
                     ->orWhere('contact1', 'like', '%' . $search . '%')
-                    ->orWhere('contact2', 'like', '%' . $search . '%');
+                    ->orWhere('contact2', 'like', '%' . $search . '%')
+                    ->orWhere('remarks', 'like', '%' . $search . '%');
             });
         }
 
@@ -156,6 +157,7 @@ class ContactController extends Controller
             'state' => 'nullable|string|max:255',
             'contact1' => 'required|string|max:20',
             'contact2' => 'nullable|string|max:20',
+            'remarks' => 'nullable|string|max:255',
             'status' => 'nullable|in:active,inactive',
         ]);
     }

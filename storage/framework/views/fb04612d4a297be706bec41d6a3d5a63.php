@@ -1,773 +1,296 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
-    <!-- ✅ jQuery (required for select2 and any $ usage) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
 
     <title>One-Unborn</title>
 
     <link rel="icon" type="image/png" width="20" height="20" href="<?php echo e(asset('images/logo.jpg')); ?>">
 
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.js']); ?>
 
-    <!-- ✅ Flatpickr CSS -->
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-
-    <!-- ✅ Flatpickr JS -->
-
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
-
-    <!-- <link href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.css" rel="stylesheet"> -->
-
     <link href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.css" rel="stylesheet">
-
-    <!-- ✅ Bootstrap CSS -->
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-
-
-
-    <!-- ✅ Select2 CSS (with Bootstrap 5 theme) -->
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
     <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
-    <!-- style -->
-
-     <style>
-               
-        body{
-            background:#f4f6f9;
-            overflow-y: auto !important;
-            /* background: #f4f6f9; */
-        }
-        /* Ensure main content starts below navbar and status bar on mobile */
-        @media (max-width: 767px) {
-            .content-wrapper {
-                margin-left: 0 !important;
-                width: 100vw !important;
-                padding: 0 !important;
-            }
+    <style>
+        :root {
+            --sidebar-bg: #031d58;
+            /* Slate 900 */
+            --sidebar-hover: #3b82f6;
+            --primary-accent: #3b82f6;
+            /* Modern Blue */
+            --glass-white: rgba(255, 255, 255, 0.85);
+            --border-color: rgba(226, 232, 240, 0.8);
         }
 
-        h1, h2, h3, h4, h5, h6 {
-            font-size: 1.2rem !important;
-            word-break: break-word;
+        body {
+            background: #f8fafc;
+            /* Lighter background for better contrast */
+            font-family: 'Inter', sans-serif;
+            color: #1e293b;
+            overflow-x: hidden;
         }
-        .form-control {
-            font-size: 1rem !important;
-            padding: 8px !important;
-        }
-        label, .form-label {
-            font-size: 0.98rem !important;
-        }
-        /* Fix heading overflow */
-        .page-title, .main-title, .add-client-title {
-            font-size: 1.3rem !important;
-            text-align: center !important;
-            word-break: break-word;
-            margin-top: 1.2rem !important;
-        }
-        /* Sidebar default for large screens */
 
-    #sidebar {
-    width: 260px;
-    min-width: 260px;
-    max-width: 260px;
-    position: fixed;
-    top: 55px; /* same as navbar height */
-    left: 0;
-    height: calc(100vh - 55px);
-    background-color: #061c5c;
-    overflow-y: auto;
-    z-index: 1050;
-}
+        /* --- 🔥 Slim Glass Navbar --- */
+        .navbar {
+            background: var(--glass-white) !important;
+            backdrop-filter: blur(12px);
+            /* Glassmorphism */
+            -webkit-backdrop-filter: blur(12px);
+            height: 60px !important;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1040;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+            padding: 0 1.5rem !important;
+        }
 
-     /* ✅ Active & Hover Colors */
+        /* --- 🛡️ Professional Sidebar --- */
+        #sidebar {
+            width: 300px;
+            position: fixed;
+            top: 0;
+            /* Full height looks more professional */
+            left: 0;
+            height: 100vh;
+            background-color: var(--sidebar-bg);
+            padding-top: 70px;
+            /* Offset for navbar */
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1050;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
+            overflow-y: auto;
+        }
 
+        /* --- 💎 Interactive Navigation --- */
         .nav-link.menu-item {
-
-            padding: 5px 20px;
-
-            border-radius: 6px;
-
-            transition: background-color 0.3s ease;
-
+            padding: 10px 18px;
+            margin: 4px 12px;
+            border-radius: 10px;
+            color: #94a3b8 !important;
+            font-size: 0.92rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
         }
-        /* .navbar {
-    background: #122558ff !important;
-} */
-
-/* 🔥 Slim Professional Navbar */
-.navbar {
-    background: #010144ff !important;
-    padding-top: 6px !important;
-    padding-bottom: 6px !important;
-    height: 55px !important; /* reduced height */
-    /* display: flex; */
-    align-items: center;
-    position: fixed;
-    top: 0;
-    left: 0; /* touch left edge */
-    width: 100%;
-    z-index: 1000;
-    border-bottom: 1px solid rgba(13, 110, 253, 0.15);
-    box-shadow: none !important;
-}
-/* Make the navbar full width and start from left edge */
-
-/* Push the main content down below navbar */
-.navbar .nav-link,
-.navbar-brand,
-.navbar-text {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-}
-
 
         .nav-link.menu-item:hover {
-
-            background-color: #1e40af;
-
+            background-color: var(--sidebar-hover);
             color: #fff !important;
-
+            transform: translateX(5px);
         }
 
         .nav-link.menu-item.active {
-
-            background-color: #0d6efd;
-
+            background-color: var(--primary-accent) !important;
             color: #fff !important;
-
-            font-weight: 600;
-
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
         }
 
-        /* xx  */
-
-        .menu-item.active { 
-
-    background-color: #0d6efd !important;
-
-    border-radius: 6px;
-
-
-     }
-         .nav-item{
-           padding: 1px;
-           transition: background-color 0.3s ease;
-      }
-
-      details > summary {
-    list-style: none;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-details > summary::-webkit-details-marker {
-    display: none;
-}
-
-/* Arrow default */
-.arrow {
-    transition: transform 0.2s ease;
-}
-
-/* When opened → arrow up */
-details[open] .arrow {
-    transform: rotate(180deg);
-}
-
-details > ul {
-    animation: dropdown 0.2s ease-out;
-}
-
-@keyframes dropdown {
-    from {
-        opacity: 0;
-        transform: translateY(-5px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-
-#sidebar .collapse .nav-link {
-
-    font-size: 0.95rem;
-
-    padding-left: 1.8rem;
-
-}
-
-    /* Content shift (desktop, sidebar visible) */
-
-    .content-wrapper {
-        margin-left: 260px;
-        width: calc(100% - 260px);
-        transition: all 0.3s ease;
-    }
-
-    /* Collapsed sidebar on desktop */
-    body.sidebar-collapsed #sidebar {
-        left: -260px;
-    }
-
-    body.sidebar-collapsed .content-wrapper {
-        margin-left: 0;
-        width: 100%;
-    }
-
-    /* Mobile hamburger button */
-
-    @media (max-width: 767px) {
-
-        #sidebarToggle {
-
-            display: inline-block !important;
-
-            visibility: visible !important;
-
-            opacity: 1 !important;
-
-            position: relative !important;
-
-            z-index: 1060 !important;
-
+        /* Replace heavy borders with subtle accents in Sidebar */
+        .master,
+        .sm,
+        .operation,
+        .finance,
+        .hr,
+        .system,
+        .report {
+            border: none !important;
+            border-left: 3px solid transparent !important;
+            margin: 2px 0;
         }
 
-    }
-
-    /* Sidebar collapsed (mobile) - Hide by default */
-
-    @media (max-width: 768px) {
-
-        #sidebar {
-        left: -260px;
-        transform: none;
-    }
-
-    #sidebar.active {
-        left: 0;
-    }
-
-        /* Mobile menu styling improvements */
-
-        #sidebar .nav-link {
-
-            font-size: 0.9rem !important;
-
-            padding: 8px 12px !important;
-
-            min-height: 44px !important;
-
-            display: flex !important;
-
-            align-items: center !important;
-
+        /* Subtle color coding for sections */
+        .master {
+            border-left-color: #ef4444 !important;
         }
 
-        #sidebar h5 {
-
-            font-size: 1.1rem !important;
-
+        .sm {
+            border-left-color: #0ea5e9 !important;
         }
 
-        #sidebar .collapse .nav-link {
-
-            font-size: 0.85rem !important;
-
-            padding-left: 1.5rem !important;
-
+        .operation {
+            border-left-color: #10b981 !important;
         }
 
-        /* Touch-friendly menu items for mobile */
-
-        #sidebar .collapse {
-
-            padding-left: 0 !important;
-
+        .finance {
+            border-left-color: #f59e0b !important;
         }
 
-        #sidebar .collapse .collapse {
+        /* --- 📱 Mobile UI Adjustments --- */
+        @media (max-width: 767px) {
+            .content-wrapper {
+                margin-left: 0 !important;
+                width: 100% !important;
+                padding: 15px !important;
+            }
 
-            padding-left: 10px !important;
+            #sidebar {
+                left: -260px;
+            }
 
+            #sidebar.active {
+                left: 0;
+            }
         }
 
-        /* ✅ Overlay for background dim */
+        /* --- 📊 Main Content Area --- */
+        .content-wrapper {
+            margin-left: 300px;
+            width: calc(100% - 300px);
+            transition: all 0.3s ease;
+            min-height: 100vh;
+        }
 
-        #sidebarOverlay {
+        body.sidebar-collapsed #sidebar {
+            left: -260px;
+        }
 
-            display: none;
-
-            position: fixed;
-
-            top: 55px;
-
-            left: 0;
-
+        body.sidebar-collapsed .content-wrapper {
+            margin-left: 0;
             width: 100%;
-
-            height: calc(100vh - 55px);
-
-            background: rgba(0, 0, 0, 0.25); /* Changed from 0.5 to 0.25 for lighter overlay */
-
-            z-index: 1040;
-
-            transition: background 0.3s;
-
-        }
-         #sidebar.active + #sidebarOverlay {
-
-        display: block;
-
-    }  
-        #sidebarOverlay.show {
-    display: block !important;
-    opacity: 1;
-    background: rgba(0, 0, 0, 0.25); /* Ensure lighter overlay when active */
-}
- 
-        .arrow-icon {
-    transition: transform 0.3s ease;
-   }
-
-.nav-link[aria-expanded="true"] .arrow-icon {
-    transform: rotate(180deg);
-}
-
-        #sidebarOverlay.show {
-
-            display: block !important;
-
-            opacity: 1;
-
         }
 
-    }
-
-    /* Extra small mobile devices */
-
-    @media (max-width: 480px) {
-
-        #sidebar {
-
-            width: 260px !important;
-
-            max-width: 85vw !important;
-
-            left: -260px !important;
-
+        main {
+            margin-top: 65px;
+            padding: 2rem;
         }
 
-    }
-    /* Form input styling */
-    .form-control {
-
-        border-radius: 8px;
-
-        padding: 10px;
-
-    }
-
-    .form-group {
-
-        margin-bottom: 15px;
-
-    }
-
-    /* Fix action button alignment */
-
-.table td .btn {
-
-    vertical-align: middle;
-
-    margin-top: 0 !important;
-
-}
-
-/* Restore alternating row colors (fix for .table-striped + .table-bordered) */
-
-.table-striped tbody tr:nth-of-type(odd) {
-
-    background-color: #f9fafb !important;
-
-}
-
-/* Improve Action button look */
-
-.table td .btn-sm {
-
-    border-radius: 6px;
-
-    padding: 4px 8px;
-
-}
-
-/* ✅ Fix Action button vertical alignment */
-
-.table td {
-
-    vertical-align: middle !important;
-
-}
-
-/* ✅ Center align the Action column */
-
-.table th:nth-child(2),
-
-.table td:nth-child(2) {
-
-    text-align: center;
-
-    vertical-align: middle !important;
-
-}
-
-/* ✅ Keep buttons inline and neat */
-
-.table td .btn {
-
-    margin: 2px 3px;
-    vertical-align: middle;
-
-}
-.table th,  .table td {
-    width: 300px;
-    white-space: nowrap;
-    text-align: center;
-    }
-
-/* Optional: soften button colors to match your previous look */
-
-.btn-primary {
-
-    background-color: #0d6efd !important;
-
-    border-color: #0d6efd !important;
-
-}
-
-.btn-danger {
-
-    background-color: #dc3545 !important;
-
-    border-color: #dc3545 !important;
-
-}
-
-.btn-success {
-
-    background-color: #198754 !important;
-
-    border-color: #198754 !important;
-
-}
-
-.btn-warning {
-
-    background-color: #ffc107 !important;
-
-    border-color: #ffc107 !important;
-
-    color: #000 !important;
-
-}
-
-.btn-info {
-
-    background-color: #0dcaf0 !important;
-
-    border-color: #0dcaf0 !important;
-
-    color: #000 !important;
-
-}
-
-.table-dark-primary {
-
-    background-color: #0A3D62 !important;
-
-    color: white !important;
-
-}
-
-.table-dark-primary th {
-
-    background-color: #0A3D62 !important;
-
-    color: white !important;
-
-}
-
-</style>
-
-<?php if(session('alert')): ?>
-
-  <div class="alert alert-warning text-center"><?php echo e(session('alert')); ?></div>
-
-<?php endif; ?>
-
+        /* --- 📄 Table & UI Components --- */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(149, 227, 15, 0.04);
+        }
+
+        .table thead th {
+            background-color: #f1f5f9 !important;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            color: #64748b;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        /* --- Navbar Responsive to Sidebar --- */
+        body:not(.sidebar-collapsed) .navbar {
+            margin-left: 0px;
+            width: calc(100% - 260px);
+            transition: margin-left 0.3s, width 0.3s;
+        }
+
+        body.sidebar-collapsed .navbar {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        .th,
+        .td {
+            .col {
+                width: 130px;
+                white-space: nowrap;
+
+            }
+
+            .table th,
+            .table td {
+
+                width: 130px;
+
+                white-space: nowrap;
+
+            }
+
+        }
+    </style>
 </head>
 
-<div id="sidebarOverlay"></div>
-
 <body class="d-flex">
+    <div id="sidebarOverlay"></div>
 
     <?php echo $__env->make('layouts.sidebar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <div class="flex-grow-1 content-wrapper">
-
         <?php echo $__env->make('layouts.navbar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
-        <main class="p-4 mt-5">
+        <main>
+            <?php if(session('alert')): ?>
+            <div class="alert alert-warning alert-dismissible fade show text-center rounded-3 shadow-sm border-0 mb-4">
+                <?php echo e(session('alert')); ?>
+
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <?php endif; ?>
 
             <?php echo $__env->yieldContent('content'); ?>
-
             <?php echo $__env->yieldPushContent('scripts'); ?>
-
         </main>
-
     </div>
 
     <?php echo $__env->make('layouts.partials.internal-chat', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.js"></script>
 
-<!-- ✅ jQuery must come before Select2 and before your custom script -->
-
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-
-<!-- ✅ Select2 JS -->
-
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-<!-- ✅ Bootstrap JS (after jQuery is fine) -->
-
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js"></script>
-
-<!-- ✅ Bootstrap Icons -->
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-
-<!-- ✅ Summernote CSS & JS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.js"></script>
-
-<!-- ✅ Internal chat toggle (fallback if Vite chat bundle isn't loaded) -->
-<script src="<?php echo e(asset('js/internal-chat-toggle.js')); ?>"></script>
-
-<!-- ✅ Private chat script -->
-<script src="<?php echo e(asset('js/private-chat.js')); ?>"></script>
-
-<script>
-
-$(document).ready(function() {
-
-    // 🔍 Debug mobile hamburger button
-
-    console.log('Hamburger button exists:', $('#sidebarToggle').length > 0);
-
-    console.log('Hamburger button visible:', $('#sidebarToggle').is(':visible'));
-
-    console.log('Window width:', $(window).width());
-
-    // 📱 Ensure sidebar is hidden on mobile initially and on resize/orientation change
-    function handleSidebarOnResize() {
-        const isMobile = window.matchMedia('(max-width: 767.98px)').matches;
-        if (isMobile) {
-            $('#sidebar').removeClass('active');
-            $('#sidebarOverlay').hide().removeClass('show');
-            console.log('📱 Mobile detected - sidebar hidden');
-        } else {
-            $('#sidebar').removeClass('active');
-            $('#sidebarOverlay').hide().removeClass('show');
-            $('body').removeClass('sidebar-collapsed');
-            $('#sidebarToggleIcon').removeClass('bi-chevron-right').addClass('bi-chevron-left');
-            console.log('💻 Desktop detected - sidebar reset');
-        }
-    }
-    // Initial check
-    handleSidebarOnResize();
-    // On resize and orientation change
-    $(window).on('resize orientationchange', handleSidebarOnResize);
-
-    // ✅ Initialize Select2 for multiple company selection
-
-    $('#company_id').select2({
-
-        theme: 'bootstrap-5',
-
-        placeholder: "Select Companies",
-
-        allowClear: true,
-
-        width: '100%' // ensures full width styling
-
-    });
-
-
-
-    // ✅ Unified sidebar toggle (desktop + mobile)
-    $('#sidebarToggle').on('click', function(e) {
-        e.preventDefault();
-
-        const isMobile = $(window).width() <= 768;
-        const sidebar = $('#sidebar');
-        const overlay = $('#sidebarOverlay');
-        const body = $('body');
-        const icon = $('#sidebarToggleIcon');
-
-        if (isMobile) {
-            console.log('📱 Mobile menu toggle clicked');
-
-            if (sidebar.hasClass('active')) {
-                // Close mobile menu
-                sidebar.removeClass('active');
-                overlay.removeClass('show');
-                setTimeout(() => overlay.hide(), 300); // Hide after animation
-                console.log('📱 Menu closed');
-            } else {
-                // Open mobile menu
-                sidebar.addClass('active');
-                overlay.show().addClass('show');
-                console.log('📱 Menu opened');
-            }
-        } else {
-            console.log('💻 Desktop sidebar toggle clicked');
-            body.toggleClass('sidebar-collapsed');
-
-            const collapsed = body.hasClass('sidebar-collapsed');
-            if (icon && icon.length) {
-                if (collapsed) {
-                    icon.removeClass('bi-chevron-left').addClass('bi-chevron-right');
+    <script>
+        $(document).ready(function() {
+            // Sidebar Toggle Logic
+            $('#sidebarToggle').on('click', function() {
+                const isMobile = window.innerWidth <= 768;
+                if (isMobile) {
+                    $('#sidebar').toggleClass('active');
+                    $('#sidebarOverlay').fadeToggle(300);
                 } else {
-                    icon.removeClass('bi-chevron-right').addClass('bi-chevron-left');
+                    $('body').toggleClass('sidebar-collapsed');
                 }
-            }
-        }
-    });
+            });
 
-// ✅ Close sidebar when overlay is clicked
+            $('#sidebarOverlay').on('click', function() {
+                $('#sidebar').removeClass('active');
+                $(this).fadeOut(300);
+            });
 
-$('#sidebarOverlay').on('click', function() {
+            // Initialize Components
+            $('.select2-tags').select2({
+                theme: 'bootstrap-5',
+                tags: true,
+                placeholder: 'Select or Type...',
+                width: '100%'
+            });
 
-    console.log('📱 Overlay clicked - closing menu');
+            flatpickr("input[type=date]", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "F j, Y",
+            });
+        });
 
-    $('#sidebar').removeClass('active');
+        // Heartbeat logic
+        setInterval(() => {
+            fetch("<?php echo e(url('user/activity/heartbeat')); ?>", {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    'Content-Type': 'application/json'
+                }
+            });
+        }, 120000);
+    </script>
 
-    $(this).removeClass('show');
-
-    setTimeout(() => $(this).hide(), 300);
-
-});
-
-// ✅ Close sidebar when close button is clicked (mobile)
-
-$(document).on('click', '#sidebarClose', function() {
-
-    console.log('📱 Close button clicked');
-
-    $('#sidebar').removeClass('active');
-
-    $('#sidebarOverlay').removeClass('show');
-
-    setTimeout(() => $('#sidebarOverlay').hide(), 300);
-
-});
-// ✅ Close menu when clicking any menu item (mobile)
-
-$(document).on('click', '#sidebar .nav-link', function() {
-
-    if ($(window).width() <= 768) {
-
-        console.log('📱 Menu item clicked - auto closing menu');
-
-        $('#sidebar').removeClass('active');
-
-        $('#sidebarOverlay').removeClass('show');
-
-        setTimeout(() => $('#sidebarOverlay').hide(), 300);
-
-    }
-
-});
-    // ✅ Active menu item highlighting
-
-    
-    flatpickr("input[type=date]", {
-    dateFormat: "Y-m-d", // HTML date input expects YYYY-MM-DD
-    altInput: true,      // shows friendly format
-    altFormat: "F j, Y", // shows “October 6, 2025”
-    allowInput: true,
-    // theme: "dark"      // uncomment for dark mode
-});
-$(document).ready(function () {
-
-    $('.select2-tags').select2({
-
-        theme: 'bootstrap-5',
-
-        tags: true, // ✅ allows typing new values
-
-        placeholder: 'Select or Type',
-
-        allowClear: true,
-
-        width: '100%'
-
-    });
-
-});
-
-});
-</script>
-
-
-<script>
-// Heartbeat: ping server every 2 minutes to update user last activity
-setInterval(function() {
-    fetch("<?php echo e(url('user/activity/heartbeat')); ?>", {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({})
-    });
-}, 2 * 60 * 1000); // 2 minutes
-
-// On tab close, update last_activity and set status to Offline
-window.addEventListener('beforeunload', function (e) {
-    if (navigator.sendBeacon) {
-        navigator.sendBeacon("<?php echo e(url('user/activity/tab-close')); ?>");
-    } else {
-        // fallback for older browsers
-        fetch("<?php echo e(url('user/activity/tab-close')); ?>", {method: 'POST', headers: {'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']').getAttribute('content')}});
-    }
-});
-</script>
-
-<?php echo $__env->yieldContent('scripts'); ?>
-
-
+    <?php echo $__env->yieldContent('scripts'); ?>
+</body>
 
 </html><?php /**PATH F:\xampp\htdocs\multipleuserpage\resources\views\layouts\app.blade.php ENDPATH**/ ?>

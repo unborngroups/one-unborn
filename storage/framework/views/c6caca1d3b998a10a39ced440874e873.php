@@ -43,7 +43,15 @@
 
             </div>
 
+            
 
+            <div class="col-md-3">
+
+                <label class="form-label fw-semibold">Client State</label>
+
+                <p class="form-control-plaintext"><?php echo e($record->feasibility->client_state ?? 'N/A'); ?></p>
+
+            </div>
 
             
 

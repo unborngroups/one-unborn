@@ -43,7 +43,7 @@
             @if($records->count() > 0)
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover align-middle text-center" id="inprogress">
-                        <thead class="table-dark text-center align-middle">
+                        <thead class="table-white text-center align-middle">
                             <tr>
                                 <!-- <th width="50">
                                     <input type="checkbox" id="select_all" class="form-check-input">
