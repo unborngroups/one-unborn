@@ -158,6 +158,8 @@ Route::middleware(['auth', \App\Http\Middleware\CheckProfileCreated::class])->gr
     Route::get('/report-dashboard', [ReportDashboardController::class, 'index'])->name('report_dashboard');
     // AJAX: Dashboard filtered table
     Route::get('/report-dashboard/table', [ReportDashboardController::class, 'table'])->name('report_dashboard.table');
+    // Download Excel for dashboard tables
+    Route::post('/report-dashboard/download-excel', [ReportDashboardController::class, 'downloadExcel'])->name('report_dashboard.downloadExcel');
     //     // 👤 Users (Privilege control)
     // 👤 User routes (Privilege controlled)
 Route::get('users', [UserController::class, 'index'])->middleware(\App\Http\Middleware\CheckPrivilege::class .':view')->name('users.index');

@@ -44,7 +44,7 @@
 
         /* --- 🔥 Slim Glass Navbar --- */
         .navbar {
-            background: var(--glass-white) !important;
+            background: #031d58 !important;
             backdrop-filter: blur(12px);
             /* Glassmorphism */
             -webkit-backdrop-filter: blur(12px);
@@ -53,9 +53,10 @@
             top: 0;
             width: 100%;
             z-index: 1040;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 2px solid #031d58;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
             padding: 0 1.5rem !important;
+            color: #ffffff !important;
         }
 
         /* --- 🛡️ Professional Sidebar --- */
@@ -80,7 +81,7 @@
             padding: 10px 18px;
             margin: 4px 12px;
             border-radius: 10px;
-            color: #94a3b8 !important;
+            color: #f6f4f4 !important;
             font-size: 0.92rem;
             font-weight: 500;
             transition: all 0.2s ease;
@@ -88,7 +89,7 @@
 
         .nav-link.menu-item:hover {
             background-color: var(--sidebar-hover);
-            color: #fff !important;
+            color: #fffbfb !important;
             transform: translateX(5px);
         }
 
@@ -137,7 +138,7 @@
             }
 
             #sidebar {
-                left: -260px;
+                left: -300px;
             }
 
             #sidebar.active {
@@ -154,7 +155,7 @@
         }
 
         body.sidebar-collapsed #sidebar {
-            left: -260px;
+            left: -300px;
         }
 
         body.sidebar-collapsed .content-wrapper {
@@ -175,12 +176,12 @@
         }
 
         .table thead th {
-            background-color: #f1f5f9 !important;
+            background-color: #031d58 !important;
             text-transform: uppercase;
             font-size: 0.75rem;
             letter-spacing: 0.05em;
-            color: #64748b;
-            border-bottom: 2px solid #e2e8f0;
+            color: #ffffff !important;
+            border-bottom: 2px solid #031d58;
         }
 
         /* --- Navbar Responsive to Sidebar --- */

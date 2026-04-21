@@ -1,8 +1,3 @@
-    @php
-        // Ensure $deliverablePlan and $client are defined for PDF context
-        $deliverablePlan = $deliverables->deliverablePlan ?? null;
-        $client = $feasibility->client ?? $sales->client ?? null;
-    @endphp
 @extends('layouts.app')
 
 @section('content')

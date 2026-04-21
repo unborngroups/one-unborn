@@ -138,7 +138,7 @@
             }
 
             #sidebar {
-                left: -260px;
+                left: -300px;
             }
 
             #sidebar.active {
@@ -155,7 +155,7 @@
         }
 
         body.sidebar-collapsed #sidebar {
-            left: -260px;
+            left: -300px;
         }
 
         body.sidebar-collapsed .content-wrapper {

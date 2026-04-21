@@ -92,19 +92,17 @@
                 Failed
             </a>
 
-            <a href="<?php echo e(route('finance.purchase_invoices.index')); ?>"
+            <a href="<?php echo e(route('finance.purchase_invoices.index')); ?>
+
                class="btn btn-secondary btn-sm <?php echo e(request('status') === null ? 'active' : ''); ?>">
                 All
             </a>
 
-            <form action="<?php echo e(route('finance.purchases.fetch-gmail')); ?>" method="POST" id="fetchGmailForm" class="d-inline-block">
-            <?php echo csrf_field(); ?>
-            <button type="submit" class="btn btn-primary btn-sm" id="fetchNowBtn" onclick="fetchNowLoading()">
+            <button type="button" class="btn btn-primary btn-sm" id="fetchNowBtn" onclick="fetchNow()">
                 <i class="bi bi-envelope-arrow-down" id="fetchIcon"></i>
                 <span class="spinner-border spinner-border-sm d-none" id="fetchSpinner" role="status"></span>
                 <span id="fetchBtnText">Fetch Now</span>
             </button>
-        </form>
 
     </div>
 
@@ -500,14 +498,106 @@
         </div>
     </div>
 
+    <!-- Pagination Links -->
+    <?php if(method_exists($invoices, 'links')): ?>
+        <div class="d-flex justify-content-center mt-4">
+            <?php echo e($invoices->links()); ?>
+
+        </div>
+    <?php endif; ?>
+
 </div>
 
 <script>
-function fetchNowLoading() {
-    document.getElementById('fetchIcon').classList.add('d-none');
-    document.getElementById('fetchSpinner').classList.remove('d-none');
-    document.getElementById('fetchBtnText').textContent = 'Fetching...';
-    document.getElementById('fetchNowBtn').disabled = true;
+function fetchNow() {
+    const btn = document.getElementById('fetchNowBtn');
+    const icon = document.getElementById('fetchIcon');
+    const spinner = document.getElementById('fetchSpinner');
+    const btnText = document.getElementById('fetchBtnText');
+    
+    // Show loading state
+    icon.classList.add('d-none');
+    spinner.classList.remove('d-none');
+    btnText.textContent = 'Fetching...';
+    btn.disabled = true;
+    
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+                     document.querySelector('input[name="_token"]')?.value;
+    
+    // Make AJAX request
+    fetch('<?php echo e(route("finance.purchases.fetch-gmail")); ?>', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Reset button state
+        resetFetchButton();
+        
+        // Show appropriate message
+        if (data.success) {
+            showAlert('success', data.message);
+            // Reload page after 2 seconds to show new data
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            showAlert('error', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        resetFetchButton();
+        showAlert('error', 'Fetch failed. Please try again.');
+    });
+    
+    // Safety timeout - reset button after 60 seconds max
+    setTimeout(() => {
+        if (btn.disabled) {
+            resetFetchButton();
+            showAlert('warning', 'Fetch is taking longer than expected. Please check results later.');
+        }
+    }, 60000);
+}
+
+function resetFetchButton() {
+    const btn = document.getElementById('fetchNowBtn');
+    const icon = document.getElementById('fetchIcon');
+    const spinner = document.getElementById('fetchSpinner');
+    const btnText = document.getElementById('fetchBtnText');
+    
+    icon.classList.remove('d-none');
+    spinner.classList.add('d-none');
+    btnText.textContent = 'Fetch Now';
+    btn.disabled = false;
+}
+
+function showAlert(type, message) {
+    // Remove existing alerts
+    const existingAlerts = document.querySelectorAll('.alert');
+    existingAlerts.forEach(alert => alert.remove());
+    
+    // Create new alert
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // Insert at the top of the container
+    const container = document.querySelector('.container-fluid');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // Auto-remove after 10 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 10000);
 }
 </script>
 

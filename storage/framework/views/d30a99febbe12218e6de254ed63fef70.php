@@ -53,22 +53,23 @@
 <style>
   /* --- Global Navbar Polish --- */
 .navbar {
-    background: rgba(255, 255, 255, 0.8) !important;
+    background: #031d58 !important;
     backdrop-filter: blur(10px);
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 2px solid #031d58;
     height: 65px;
     padding: 0 1rem;
     position: fixed;
     top: 0;
     width: 100%;
     z-index: 1040;
+    color: #ffffff !important;
 }
 
 /* --- Left Side: Logo & Toggle --- */
 .btn-sidebar-toggle {
-    background: #f1f5f9;
+    background: rgba(255, 255, 255, 0.1);
     border: none;
-    color: #475569;
+    color: #ffffff;
     border-radius: 8px;
     width: 40px;
     height: 40px;
@@ -80,8 +81,8 @@
 }
 
 .btn-sidebar-toggle:hover {
-    background: #e2e8f0;
-    color: #0f172a;
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
 }
 
 .navbar-brand-custom img {
@@ -91,14 +92,14 @@
 
 /* --- Center: Time Badge --- */
 .time-badge {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     padding: 6px 16px;
     border-radius: 50px;
     display: flex;
     align-items: center;
     font-size: 0.85rem;
-    color: #64748b;
+    color: #ffffff;
 }
 
 .status-indicator {
@@ -127,19 +128,19 @@
     transition: background 0.2s;
 }
 
-.profile-pill:hover { background: #f1f5f9; }
+.profile-pill:hover { background: rgba(255, 255, 255, 0.1); }
 
 .user-name {
     display: block;
     font-weight: 600;
     font-size: 0.9rem;
-    color: #1e293b;
+    color: #ffffff;
     line-height: 1;
 }
 
 .user-role {
     font-size: 0.75rem;
-    color: #64748b;
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .avatar {

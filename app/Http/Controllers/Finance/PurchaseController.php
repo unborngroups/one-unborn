@@ -1053,30 +1053,37 @@ private function updateImage($request, $oldFile, $field, $folder)
     {
         $status  = $request->input('status');
         $mailReadDays = $this->getInvoiceMailReadDays();
-        $this->autoFetchGmailInvoices($mailReadDays);
+        
+        // Remove blocking email fetch - let user trigger manually
+        // $this->autoFetchGmailInvoices($mailReadDays);
 
-        // Auto Invoice Processing shows invoices imported from email that are being processed
-        $query   = PurchaseInvoice::with(['vendor', 'emailLog'])
+        // Optimized query with proper filtering at database level
+        $query = PurchaseInvoice::with(['vendor', 'emailLog'])
             ->whereNotNull('email_log_id')
             ->latest();
 
         if ($status === 'failed') {
-            // Failed tab should include explicit failed status AND records carrying failure details.
-            $invoices = $query->get()
-                ->filter(fn (PurchaseInvoice $invoice) => $this->isFailedAutoInvoice($invoice))
-                ->values();
+            // Filter failed invoices at database level instead of PHP
+            $query->where(function ($q) {
+                $q->where('status', 'failed')
+                  ->orWhereNotNull('raw_json->import_failure_reason')
+                  ->orWhereNotNull('raw_json->parse_error');
+            });
         } elseif ($status) {
             $query->where('status', $status);
-            $invoices = $query->get();
         } else {
-            // By default, show draft, needs_review, verified status (invoices being processed)
-            // Hide approved, paid, failed from default auto-processing list.
-            $invoices = $query
-                ->whereIn('status', ['draft', 'needs_review', 'verified'])
-                ->get();
+            // Default: show only processing invoices
+            $query->whereIn('status', ['draft', 'needs_review', 'verified']);
         }
 
-        $latestImportedMailAt = EmailLog::latest()->value('created_at');
+        // Add pagination for better performance
+        $invoices = $query->paginate(50);
+
+        // Cache expensive queries
+        $latestImportedMailAt = Cache::remember('latest_imported_mail', 300, function () {
+            return EmailLog::latest()->value('created_at');
+        });
+        
         $lastManualFetchAt = Cache::get($this->lastManualFetchCacheKey());
 
         $lastMailReadAt = $latestImportedMailAt;
@@ -1782,6 +1789,22 @@ public function fetchGmail(Request $request)
             Cache::put($this->lastManualFetchCacheKey(), now()->toDateTimeString(), now()->addDays(30));
         }
 
+        // Return JSON response for AJAX
+        if ($request->expectsJson() || $request->ajax()) {
+            if ($exitCode !== 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gmail fetch failed. Please check the fetch status shown on this page.'
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Gmail check complete (last ' . $mailReadDays . ' days). ' . $created . ' new invoice(s) imported.'
+            ]);
+        }
+
+        // Traditional redirect for non-AJAX requests
         if ($exitCode !== 0) {
             return redirect()->route('finance.purchase_invoices.index')
                 ->with('error', 'Gmail fetch failed. Please check the fetch status shown on this page.');
@@ -1790,6 +1813,13 @@ public function fetchGmail(Request $request)
         return redirect()->route('finance.purchase_invoices.index')
             ->with('success', 'Gmail check complete (last ' . $mailReadDays . ' days). ' . $created . ' new invoice(s) imported.');
     } catch (\Exception $e) {
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gmail fetch failed: ' . $e->getMessage()
+            ]);
+        }
+
         return redirect()->route('finance.purchase_invoices.index')
             ->with('error', 'Gmail fetch failed: ' . $e->getMessage());
     }
