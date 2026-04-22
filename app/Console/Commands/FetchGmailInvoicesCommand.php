@@ -1041,6 +1041,7 @@ class FetchGmailInvoicesCommand extends Command
     private function extractGST(string $text): ?string
     {
         // GSTIN: 2-digit state + 5 alpha (PAN) + 4 digits (PAN) + 1 alpha (PAN) + 1 alphanum entity (1-9 or A-Z) + 1 alpha (usually Z) + 1 alphanum check
+<<<<<<< HEAD
         preg_match_all('/\b\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z][A-Z][0-9A-Z]\b/', strtoupper($text), $matches);
         if (!empty($matches[0])) {
             // Return the first valid GSTIN found
@@ -1053,10 +1054,15 @@ class FetchGmailInvoicesCommand extends Command
         }
         Log::warning('GSTIN extraction failed', ['text_snippet' => mb_substr($text, 0, 200)]);
         return null;
+=======
+        preg_match('/\b\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z][A-Z][0-9A-Z]\b/', strtoupper($text), $m);
+        return isset($m[0]) ? strtoupper($m[0]) : null;
+>>>>>>> 90f414630e61a509facbdc18cba07834240feaaf
     }
 
     private function extractInvoiceNumber(string $text): ?string
     {
+<<<<<<< HEAD
         $lines = explode("\n", $text);
         
         foreach ($lines as $line) {
@@ -1088,6 +1094,30 @@ class FetchGmailInvoicesCommand extends Command
             }
         }
         
+=======
+        if (preg_match('/Invoice\s*No\.?\s+Invoice\s*Date\s*\R+\s*([A-Z0-9][A-Z0-9\-\/\.]{2,40})\s+[0-9]{1,2}[\/\-.][0-9]{1,2}[\/\-.][0-9]{2,4}/i', $text, $m)) {
+            $candidate = $this->normalizeInvoiceNumberCandidate((string) ($m[1] ?? ''));
+            if ($candidate !== null) {
+                return $candidate;
+            }
+        }
+
+        $patterns = [
+            '/\b(?:tax\s+)?invoice\s*(?:no\.?|number|#)?\s*[:\-]?\s*([A-Z0-9][A-Z0-9\-\/\.]{2,40})/i',
+            '/\bbill\s*(?:no\.?|number|#)\s*[:\-]?\s*([A-Z0-9][A-Z0-9\-\/\.]{2,40})/i',
+            '/\b(?:ref(?:erence)?\s*no\.?|document\s*no\.?)\s*[:\-]?\s*([A-Z0-9][A-Z0-9\-\/\.]{2,40})/i',
+            '/\b(INV[\-\/]?[A-Z0-9\-\/]{2,30})\b/i',
+        ];
+
+        foreach ($patterns as $p) {
+            if (preg_match($p, $text, $m)) {
+                $candidate = $this->normalizeInvoiceNumberCandidate((string) ($m[1] ?? ''));
+                if ($candidate !== null) {
+                    return $candidate;
+                }
+            }
+        }
+>>>>>>> 90f414630e61a509facbdc18cba07834240feaaf
         return null;
     }
 
@@ -1136,6 +1166,7 @@ class FetchGmailInvoicesCommand extends Command
 
     private function extractVendorName(string $text): ?string
     {
+<<<<<<< HEAD
         $lines = explode("\n", $text);
         
         // Look for company names at document start
@@ -1159,10 +1190,39 @@ class FetchGmailInvoicesCommand extends Command
                     
                     if (strlen($vendorName) >= 5 && strlen($vendorName) <= 100) {
                         return $vendorName;
+=======
+        $linePatterns = [
+            '/\bBill\s*To\b\s*(?:\R|\s)*([A-Z][A-Z0-9&.,()\-\/\s]{3,140})(?=\R|\s+GSTIN|\s+D\.?NO|\s+ST\-|\s+Place\s+Of|\s+Ship\s+To)/mi',
+            '/\b(?:Supplier|Vendor|Bill\s*From|Sold\s*By|From|M\/?S\.?|Messrs)\b\s*[:\-]?\s*(?:\R|\s)*([A-Z][A-Z0-9&.,()\-\/\s]{3,140})(?=\R|\s+GSTIN|\s+Invoice|\s+Date|\s+Address|\s+Phone|\s+Email)/mi',
+        ];
+
+        foreach ($linePatterns as $pattern) {
+            if (preg_match($pattern, $text, $matches)) {
+                $candidate = $this->sanitizeVendorCandidate((string) ($matches[1] ?? ''));
+                if ($candidate !== null) {
+                    return $candidate;
+                }
+            }
+        }
+
+        $singleLine = preg_replace('/\s+/', ' ', $text) ?? '';
+        if ($singleLine !== '') {
+            $fallbackPatterns = [
+                '/\bBill\s*To(?:\s*Ship\s*To)?\s+([A-Z][A-Z0-9&.,()\-\/\s]{3,140}?)(?=\s+GSTIN|\s+D\.?NO|\s+ST\-|\s+Place\s+Of|\s+Invoice\b)/i',
+                '/\b(?:Supplier|Vendor|Bill\s*From|Sold\s*By|M\/?S\.?|Messrs)\s*[:\-]?\s*([A-Z][A-Z0-9&.,()\-\/\s]{3,140}?)(?=\s+GSTIN|\s+Invoice\b|\s+Date\b)/i',
+            ];
+
+            foreach ($fallbackPatterns as $pattern) {
+                if (preg_match($pattern, $singleLine, $matches)) {
+                    $candidate = $this->sanitizeVendorCandidate((string) ($matches[1] ?? ''));
+                    if ($candidate !== null) {
+                        return $candidate;
+>>>>>>> 90f414630e61a509facbdc18cba07834240feaaf
                     }
                 }
             }
         }
+<<<<<<< HEAD
         
         // Look for Bill To sections
         for ($i = 0; $i < count($lines); $i++) {
@@ -1201,6 +1261,9 @@ class FetchGmailInvoicesCommand extends Command
             }
         }
         
+=======
+
+>>>>>>> 90f414630e61a509facbdc18cba07834240feaaf
         return null;
     }
 
@@ -1240,6 +1303,7 @@ class FetchGmailInvoicesCommand extends Command
 
     private function extractTotal(string $text): float
     {
+<<<<<<< HEAD
         $lines = explode("\n", $text);
         $amounts = [];
         
@@ -1276,11 +1340,31 @@ class FetchGmailInvoicesCommand extends Command
             return max($amounts);
         }
         
+=======
+        $strongPatterns = [
+            '/(?:grand\s*total|invoice\s*total|net\s*payable|amount\s*payable|total\s*amount)\s*[:\-]?\s*(?:inr|rs\.?|₹)?\s*([\d,]+(?:\.\d{1,2})?)/i',
+            '/(?:balance\s*due|amount\s*due)\s*[:\-]?\s*(?:inr|rs\.?|₹)?\s*([\d,]+(?:\.\d{1,2})?)/i',
+        ];
+
+        foreach ($strongPatterns as $pattern) {
+            if (preg_match_all($pattern, $text, $matches) && !empty($matches[1])) {
+                $values = array_map(fn ($v) => (float) str_replace(',', '', $v), $matches[1]);
+                return max($values);
+            }
+        }
+
+        if (preg_match_all('/\btotal\b\s*[:\-]?\s*(?:inr|rs\.?|₹)?\s*([\d,]+(?:\.\d{1,2})?)/i', $text, $matches) && !empty($matches[1])) {
+            $values = array_map(fn ($v) => (float) str_replace(',', '', $v), $matches[1]);
+            return max($values);
+        }
+
+>>>>>>> 90f414630e61a509facbdc18cba07834240feaaf
         return 0.0;
     }
 
     private function extractInvoiceDate(string $text): ?string
     {
+<<<<<<< HEAD
         $lines = explode("\n", $text);
         
         foreach ($lines as $line) {
@@ -1304,6 +1388,27 @@ class FetchGmailInvoicesCommand extends Command
             }
         }
         
+=======
+        if (preg_match('/Invoice\s*No\.?\s+Invoice\s*Date\s*\R+\s*[A-Z0-9][A-Z0-9\-\/\.]{2,40}\s+([0-9]{1,2}[\/\-.][0-9]{1,2}[\/\-.][0-9]{2,4})/i', $text, $m)) {
+            return $this->normalizeDateString((string) ($m[1] ?? ''));
+        }
+
+        $patterns = [
+            '/\b(?:invoice\s*date|bill\s*date|date\s*of\s*invoice|dated)\b\s*[:\-]?\s*(\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4})/i',
+            '/\b(?:invoice\s*date|bill\s*date|date)\b\s*[:\-]?\s*(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{2,4})/i',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $text, $m)) {
+                return $this->normalizeDateString($m[1]);
+            }
+        }
+
+        if (preg_match('/\b(\d{4}[\/-]\d{1,2}[\/-]\d{1,2})\b/', $text, $m)) {
+            return $this->normalizeDateString($m[1]);
+        }
+
+>>>>>>> 90f414630e61a509facbdc18cba07834240feaaf
         return null;
     }
 

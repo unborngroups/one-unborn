@@ -10,6 +10,7 @@
             <h4 class="mb-0">Edit Purchase Invoice</h4>
             <small class="text-muted">Auto-received from email — review &amp; save</small>
         </div>
+<<<<<<< HEAD
         <div class="d-flex gap-2">
             @if($invoice->po_invoice_file)
                 <a href="{{ asset('images/poinvoice_files/' . $invoice->po_invoice_file) }}"
@@ -24,6 +25,11 @@
                 &larr; Back
             </a>
         </div>
+=======
+        <a href="{{ route('finance.purchase_invoices.show', $invoice->id) }}" class="btn btn-outline-secondary btn-sm">
+            &larr; Back
+        </a>
+>>>>>>> 90f414630e61a509facbdc18cba07834240feaaf
     </div>
 
     @if($errors->any())
