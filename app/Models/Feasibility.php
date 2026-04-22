@@ -1,0 +1,151 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use App\Models\FeasibilityStatus;
+use App\Models\Client;
+use App\Models\User;
+use App\Models\PurchaseOrder;
+use App\Models\Company;
+use App\Models\DeliverablePlan;
+
+class Feasibility extends Model
+{
+    use HasFactory;
+
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::creating(function ($feasibility) {
+            if (empty($feasibility->feasibility_request_id)) {
+                $feasibility->feasibility_request_id = self::generateRequestId($feasibility->client_id);
+            }
+        });
+    }
+
+    public static function generateRequestId($clientId = null)
+    {
+        return \App\Services\PrefixGenerator::generateFeasibilityId($clientId);
+    }
+
+    protected $fillable = [
+        'feasibility_request_id',
+        'type_of_service',
+        'company_id',
+        'client_state',
+        'client_id',
+        'circuit_id',
+        'link_type',
+        'delivery_company_name',
+        'location_id',
+        'longitude',
+        'latitude',
+        'pincode',
+        'state',
+        'district',
+        'area',
+        'address',
+        'spoc_name',
+        'spoc_contact1',
+        'spoc_contact2',
+        'spoc_email',
+        'no_of_links',
+        'vendor_type',
+        'speed',
+        'static_ip',
+        'static_ip_subnet',
+        'static_ip_duration',
+        'expected_delivery',
+        'expected_activation',
+        'hardware_required',
+         'hardware_details',
+        'status',
+        'existing_links',
+        'created_by',
+        'updated_by',
+        'deleted_by',
+    ];
+
+    protected $casts = [
+        'expected_delivery' => 'date',
+        'expected_activation' => 'date',
+    'hardware_details' => 'array',
+
+    ];
+
+     // 🧩 Relationship — Each Feasibility has one Feasibility Status
+    public function feasibilityStatus()
+    {
+        return $this->hasOne(FeasibilityStatus::class);
+    }
+
+    // 🧩 Relationship — Each Feasibility belongs to one Client
+    public function client()
+{
+    return $this->belongsTo(Client::class, 'client_id');
+}
+    
+public function vendor()
+{
+    return $this->belongsTo(Client::class, 'client_id');
+}
+
+
+public function createdBy()
+{
+    return $this->belongsTo(User::class, 'created_by');
+}
+
+public function updatedUser()
+{
+    return $this->belongsTo(User::class,'updated_by');
+}
+
+public function deletedUser()
+{
+    return $this->belongsTo(User::class,'deleted_by');
+}
+
+
+    // Provide alias for existing controllers referencing createdByUser
+    public function createdByUser()
+    {
+        return $this->createdBy();
+    }
+
+// 🧩 Relationship — Each Feasibility can have multiple Purchase Orders
+public function purchaseOrders()
+{
+    return $this->hasMany(PurchaseOrder::class);
+}
+public function company() {
+    return $this->belongsTo(Company::class);
+}
+
+public function deliverablePlans()
+{
+    return $this->hasMany(DeliverablePlan::class, 'feasibility_id');
+}
+
+
+public function companies()
+{
+    return $this->belongsToMany(Company::class, 'company_user', 'user_id', 'company_id');
+}
+
+    protected static function booted()
+    {
+        parent::booted();
+        static::deleting(function ($feasibility) {
+            // Force delete all related purchase orders, including soft deleted ones
+            foreach ($feasibility->purchaseOrders()->withTrashed()->get() as $po) {
+                $po->forceDelete();
+            }
+        });
+    }
+
+    
+}

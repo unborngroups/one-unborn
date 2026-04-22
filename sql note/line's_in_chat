@@ -1,0 +1,13 @@
+Finance
+ ├─ Accounts
+ │   ├─ Customers
+ │   ├─ Invoices        ✅  ← INGATHAAN
+ │   ├─ Receipts
+ │   ├─ Journals
+ │   └─ Chart of Accounts
+ ├─ Purchases
+ ├─ Banking
+ ├─ Reports
+ └─ Settings
+
+

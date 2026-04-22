@@ -1,0 +1,740 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\OtpController;
+use App\Http\Controllers\UserTypeController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\EmailTemplateController;
+use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\ClientController;
+use App\Http\Controllers\VendorController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\MenuController;
+use App\Http\Controllers\CompanySettingsController;
+use App\Http\Controllers\TaxInvoiceSettingsController;
+use App\Http\Controllers\FeasibilityStatusController;
+use App\Http\Controllers\Finance\EmailController;
+use App\Http\Controllers\ReportDashboardController;
+
+
+use App\Http\Controllers\Report\DeliverableController;
+
+use App\Http\Controllers\TerminationController;
+use App\Http\Controllers\RenewalController;
+// use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\PincodeLookupController;
+use App\Http\Controllers\SystemSettingsController;
+use App\Http\Controllers\FeasibilityController;
+use App\Http\Controllers\PurchaseOrderController;
+use App\Http\Controllers\FeasibilityExcelController;
+
+use App\Http\Controllers\Finance\CustomerController;
+use App\Http\Controllers\Finance\SalesController;
+use App\Http\Controllers\Finance\SettingsController;
+use App\Http\Controllers\Finance\PurchaseController;
+use App\Http\Controllers\Finance\EmailInvoiceController;
+use App\Http\Controllers\Finance\BankingController;
+use App\Http\Controllers\Finance\AccountController;
+use App\Http\Controllers\Finance\ReportController;
+use App\Http\Controllers\Finance\FinanceGstController;
+use App\Http\Controllers\Finance\FinanceTdsController;
+use App\Http\Controllers\Finance\VendorInvoiceController;
+use App\Http\Controllers\Finance\InvoiceController;
+use App\Http\Controllers\Finance\ExpenseController;
+use App\Http\Controllers\Finance\ItemController;
+use App\Http\Controllers\Finance\DebitNoteController;
+
+use App\Http\Controllers\ClientPortalController;
+use App\Http\Controllers\ModelTypeController;
+use App\Http\Controllers\SlaReportController;
+use App\Http\Controllers\MikrotikController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\DeliverablesController;
+use App\Http\Controllers\ForgotPasswordController;
+use App\Http\Controllers\PrivateChatController;
+
+use App\Http\Controllers\AssetController;
+use App\Http\Controllers\ProposalController;
+use App\Http\Controllers\hrController;
+use App\Http\Controllers\LeaveTypeController;
+use App\Http\Controllers\ComplianceController;
+use App\Http\Controllers\Asset_typeController;
+use App\Http\Controllers\Make_typeController;
+use App\Http\Controllers\VendorMakeController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\TrainingController;
+use App\Http\Controllers\StrategyController;
+use App\Http\Controllers\AssuranceController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Artisan;
+use App\Models\Vendor;
+use Carbon\Carbon;
+use App\Models\Company;
+use App\Http\Middleware\ClientAuth;
+   
+
+
+
+// OTP routes for login (must be above fallback and client portal)
+Route::post('/otp/send', [OtpController::class, 'send'])->name('otp.send');
+Route::post('/otp/verify', [OtpController::class, 'verify'])->name('otp.verify');
+
+// 📧 Email Webhook for Invoice Processing (Public - No Auth Required)
+Route::post('/webhook/email/invoice', [EmailInvoiceController::class, 'receiveEmailWebhook'])->name('webhook.email.invoice');
+Route::get('/webhook/email/test', [EmailInvoiceController::class, 'testWebhook'])->name('webhook.email.test');
+
+// Internal chat APIs used by the floating widget
+Route::prefix('chat')
+    ->middleware(['auth', \App\Http\Middleware\CheckProfileCreated::class])
+    ->group(function () {
+                // Route::get('/group/{id}/messages', [App\Http\Controllers\ChatController::class,'fetchMessages'])->name('chat.messages');
+                // Route::post('/send', [App\Http\Controllers\ChatController::class,'send'])->name('chat.send');
+                // Route::get('/group/{id}/online-users', [App\Http\Controllers\ChatController::class,'onlineUsers'])->name('chat.online-users');
+                // Route::get('/all-users', [App\Http\Controllers\ChatController::class, 'allOnlineUsers'])->name('chat.all-online-users');
+                // Route::post('/typing', [App\Http\Controllers\ChatController::class,'typing'])->name('chat.typing');
+                // Route::get('/bootstrap', [App\Http\Controllers\ChatController::class,'bootstrap'])->name('chat.bootstrap');
+    });
+
+    // Private chat APIs for one-to-one chat
+    Route::prefix('private-chat')
+    ->middleware(['auth', \App\Http\Middleware\CheckProfileCreated::class])
+    ->group(function () {
+        Route::get('/users/online', [PrivateChatController::class, 'onlineUsers'])->name('private-chat.online-users');
+        Route::get('/messages/{userId}', [PrivateChatController::class, 'fetchMessages'])->name('private-chat.messages');
+        Route::post('/send', [PrivateChatController::class, 'sendMessage'])->name('private-chat.send');
+    });
+
+// Heartbeat route for user activity
+Route::post('/user/activity/heartbeat', [\App\Http\Controllers\UserActivityController::class, 'heartbeat'])->middleware(['auth']);
+// Tab close route for user activity
+Route::post('/user/activity/tab-close', [\App\Http\Controllers\UserActivityController::class, 'tabClose'])->middleware(['auth']);
+
+
+Route::get('/', function () {
+    if (Auth::check()) {
+        return redirect()->route('welcome'); // logged-in users → dashboard
+    }
+    return redirect()->route('login'); // guests → login
+}); 
+//
+// 🔐 AUTH ROUTES
+//
+Route::middleware('guest')->group(function () {
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
+});
+// Logout route
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+// Password forgot Routes
+Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotForm']);
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink']);
+// reset password routes
+Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm']);
+Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword']);
+
+// 👤 Profile Routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+    Route::get('/profile/create', [ProfileController::class, 'create'])->name('profile.create');
+    Route::post('/profile', [ProfileController::class, 'store'])->name('profile.store');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile/{id}', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/view', [ProfileController::class, 'view'])->name('profile.view');
+});
+
+//
+// 🚫 MAIN APP ACCESS — only if profile created (or superadmin)
+//
+Route::middleware(['auth', \App\Http\Middleware\CheckProfileCreated::class])->group(function () {
+    // 🏠 Dashboard
+    Route::get('/welcome', [DashboardController::class, 'index'])->name('welcome');
+    Route::get('/report-dashboard', [ReportDashboardController::class, 'index'])->name('report_dashboard');
+    // AJAX: Dashboard filtered table
+    Route::get('/report-dashboard/table', [ReportDashboardController::class, 'table'])->name('report_dashboard.table');
+    // Download Excel for dashboard tables
+    Route::post('/report-dashboard/download-excel', [ReportDashboardController::class, 'downloadExcel'])->name('report_dashboard.downloadExcel');
+    //     // 👤 Users (Privilege control)
+    // 👤 User routes (Privilege controlled)
+Route::get('users', [UserController::class, 'index'])->middleware(\App\Http\Middleware\CheckPrivilege::class .':view')->name('users.index');
+Route::get('users/create', [UserController::class, 'create'])->middleware(\App\Http\Middleware\CheckPrivilege::class .':add')->name('users.create');
+Route::post('users', [UserController::class, 'store'])->middleware(\App\Http\Middleware\CheckPrivilege::class .':add')->name('users.store');
+Route::get('users/{user}/edit', [UserController::class, 'edit'])->middleware(\App\Http\Middleware\CheckPrivilege::class .':edit')->name('users.edit');
+Route::put('users/{user}', [UserController::class, 'update'])->middleware(\App\Http\Middleware\CheckPrivilege::class .':edit')->name('users.update');
+Route::delete('users/{user}', [UserController::class, 'destroy'])->middleware(\App\Http\Middleware\CheckPrivilege::class .':delete')->name('users.destroy');
+Route::patch('/users/{id}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
+   
+
+
+    // 👤 Users, Companies, Vendors, Clients, Emails, etc.
+    Route::resources([
+        // 'users' => UserController::class,
+        'companies' => CompanyController::class,
+        'vendors' => VendorController::class,
+        'clients' => ClientController::class,
+        'emails' => EmailTemplateController::class,
+    ]);
+    // bulk delete routes
+    Route::post('/clients/bulk-delete', [ClientController::class, 'bulkDestroy'])->name('clients.bulk-delete');
+    Route::post('/vendors/bulk-delete', [VendorController::class, 'bulkDestroy'])->name('vendors.bulk-delete');
+    Route::post('/users/bulk-delete', [UserController::class, 'bulkDestroy'])->name('users.bulk-delete');
+    Route::post('/usertypetable/bulk-delete', [UserTypeController::class, 'bulkDestroy'])->name('usertypetable.bulk-delete');
+    Route::post('/companies/bulk-delete', [CompanyController::class, 'bulkDestroy'])->name('companies.bulk-delete');
+    Route::post('/sm/purchaseorder/bulk-delete', [PurchaseOrderController::class, 'bulkDestroy'])->name('sm.purchaseorder.bulk-delete');
+    Route::post('/operations/asset/bulk-delete', [AssetController::class, 'bulkDestroy'])->name('operations.asset.bulk-delete');
+    Route::post('/operations/asset/bulk-print', [AssetController::class, 'bulkPrint'])->name('operations.asset.bulk-print');
+    Route::post('/assetmaster/asset_type/bulk-delete', [Asset_typeController::class, 'bulkDestroy'])->name('assetmaster.asset_type.bulk-delete');
+    Route::post('/assetmaster/make_type/bulk-delete', [Make_typeController::class, 'bulkDestroy'])->name('assetmaster.make_type.bulk-delete');
+    Route::post('/assetmaster/model_type/bulk-delete', [ModelTypeController::class, 'bulkDestroy'])->name('assetmaster.model_type.bulk-delete');
+    Route::post('/hr/leavetype/bulk-delete', [LeaveTypeController::class, 'bulkDelete'])->name('hr.leavetype.bulk-delete');
+    Route::post('/operations/termination/bulk-delete', [TerminationController::class, 'bulkDestroy'])->name('operations.termination.bulk-delete');
+    Route::post('/operations/feasibility/bulk-delete', [FeasibilityStatusController::class, 'bulkDestroy'])->name('operations.feasibility.bulk-delete');
+    Route::post('/operations/deliverables/bulk-delete', [DeliverablesController::class, 'bulkDestroy'])->name('operations.deliverables.bulk-delete');
+    Route::post('/finance/items/bulk-delete', [ItemController::class, 'bulkDestroy'])->name('finance.items.bulk-delete');
+    
+    //view path
+    Route::get('/users/{id}/view', [UserController::class, 'view'])->name('users.view');
+    Route::get('/usertypetable/{id}/view', [App\Http\Controllers\UserTypeController::class, 'view'])->name('usertypetable.view');
+    Route::get('/companies/{id}/view', [App\Http\Controllers\CompanyController::class, 'view'])->name('companies.view');
+    Route::get('/clients/{id}/view', [App\Http\Controllers\ClientController::class, 'view'])->name('clients.view');
+    Route::get('/vendors/{id}/view', [App\Http\Controllers\VendorController::class, 'view'])->name('vendors.view');
+
+    // ⚙️ Settings Routes
+   Route::get('/company-settings', [CompanySettingsController::class, 'index'])->name('settings.company');
+    Route::put('/company-settings', [CompanySettingsController::class, 'update'])->name('company.settings.update');
+    Route::post('/finance/test-invoice-email', [PurchaseController::class, 'testInvoiceEmailConnection'])->name('finance.test-invoice-email');
+    Route::get('/tax-invoice-settings', [TaxInvoiceSettingsController::class, 'index'])->name('settings.tax.invoice');
+    Route::put('/tax-invoice-settings', [TaxInvoiceSettingsController::class, 'update'])->name('settings.tax.invoice.update');
+    Route::get('/system-settings', [SystemSettingsController::class, 'index'])->name('settings.system');
+    Route::post('/system-settings', [SystemSettingsController::class, 'update'])->name('settings.system.update');
+    
+    // 📱 WhatsApp Settings
+    Route::get('/whatsapp-settings', [App\Http\Controllers\WhatsAppSettingsController::class, 'index'])->name('settings.whatsapp');
+    Route::post('/whatsapp-settings', [App\Http\Controllers\WhatsAppSettingsController::class, 'update'])->name('settings.whatsapp.update');
+    Route::get('/whatsapp-test', [App\Http\Controllers\WhatsAppSettingsController::class, 'showTestForm'])->name('settings.whatsapp.test');
+    Route::post('/whatsapp-test', [App\Http\Controllers\WhatsAppSettingsController::class, 'sendTestMessage'])->name('settings.whatsapp.test.send');
+
+     // 📋 Menus (secured inside main app)
+    
+Route::get('/menus', [MenuController::class, 'index'])->name('menus.index');
+Route::get('/menus/create', [MenuController::class, 'create'])->name('menus.create');
+Route::post('/menus', [MenuController::class, 'store'])->name('menus.store');
+Route::get('/menus/{menu}/edit', [MenuController::class, 'edit'])->name('menus.edit');
+Route::put('/menus/{menu}', [MenuController::class, 'update'])->name('menus.update');
+Route::delete('/menus/{menu}', [MenuController::class, 'destroy'])->name('menus.destroy');
+
+// ✅ User Privileges
+Route::get('/menus/privileges/{userId}', [MenuController::class, 'editPrivileges'])->name('menus.editPrivileges');
+Route::post('/menus/privileges/{userId}', [MenuController::class, 'updatePrivileges'])->name('menus.updatePrivileges');
+Route::get('/get-privileges/{usertype}', [UserController::class, 'getPrivileges']);
+
+// ✅ User Type Privileges 
+Route::get('/menus/usertype-privileges/{userTypeId}', [MenuController::class, 'editUserTypePrivileges'])->name('menus.editUserTypePrivileges');
+Route::post('/menus/usertype-privileges/{userTypeId}', [MenuController::class, 'updateUserTypePrivileges'])->name('menus.updateUserTypePrivileges');
+
+// 🧩 User Type Master
+Route::resource('usertypetable', UserTypeController::class);
+Route::patch('/usertypetable/{id}/toggle-status', [UserTypeController::class, 'toggleStatus'])->name('usertypetable.toggle-status');
+
+Route::patch('/companies/{company}/toggle-status', [CompanyController::class, 'toggleStatus'])->name('companies.toggle-status');
+Route::get('/companies/{id}/email-config', [CompanyController::class, 'emailConfig'])->name('companies.email.config');
+Route::post('/companies/{id}/email-config', [CompanyController::class, 'saveEmailConfig'])->name('companies.save.email.config');
+    
+// 🔍 Company PAN Fetch for Client Form
+Route::get('/company/fetch/{pan}', [CompanyController::class, 'fetchByPan'])->name('company.fetch-by-pan');
+
+// 📧 Template Toggle
+    Route::patch('/templates/{id}/toggle-status', [EmailTemplateController::class, 'toggleStatus'])->name('templates.toggle-status');
+    Route::patch('/clients/{id}/toggle-status', [ClientController::class, 'toggleStatus'])->name('clients.toggle-status');
+    Route::patch('/vendors/{id}/toggle-status', [VendorController::class, 'toggleStatus'])->name('vendors.toggle-status');
+
+    // 🏢 GSTIN by PAN API Routes
+    Route::post('/clients/fetch-gstin-by-pan', [ClientController::class, 'fetchGstinByPan'])->name('clients.fetch-gstin-by-pan');
+    Route::post('/clients/save-selected-gstins', [ClientController::class, 'saveSelectedGstins'])->name('clients.save-selected-gstins');
+    Route::post('/vendors/fetch-gstin-by-pan', [VendorController::class, 'fetchGstinByPan'])->name('vendors.fetch-gstin-by-pan');
+    Route::post('/vendors/save-selected-gstins', [VendorController::class, 'saveSelectedGstins'])->name('vendors.save-selected-gstins');
+
+    // Contact module (Vendor Contact / Support Contact)
+    Route::prefix('contacts')->name('contacts.')->group(function () {
+        Route::get('/vendor', [ContactController::class, 'vendorIndex'])->name('vendor.index');
+        Route::get('/support', [ContactController::class, 'supportIndex'])->name('support.index');
+
+        Route::get('/{type}/create', [ContactController::class, 'create'])->name('create');
+        Route::post('/{type}', [ContactController::class, 'store'])->name('store');
+
+        Route::get('/{type}/{contact}/show', [ContactController::class, 'show'])->name('show');
+        Route::get('/{type}/{contact}/edit', [ContactController::class, 'edit'])->name('edit');
+        Route::put('/{type}/{contact}', [ContactController::class, 'update'])->name('update');
+        Route::delete('/{type}/{contact}', [ContactController::class, 'destroy'])->name('destroy');
+        Route::patch('/{type}/{contact}/toggle-status', [ContactController::class, 'toggleStatus'])->name('toggle-status');
+    });
+
+    // vendor makes (API)
+Route::get('vendor-makes/{id}', [\App\Http\Controllers\VendorMakeController::class, 'show'])->name('vendor-makes.show');
+Route::get('/get-make-details/{id}', [VendorController::class, 'getMakeDetails']);
+Route::get('/get-models/{make}', [FeasibilityController::class, 'getModels']);
+
+// vendors store/update
+Route::resource('vendors', \App\Http\Controllers\VendorController::class);
+
+// barcode image
+Route::get('vendors/{assetId}/barcode.png', [\App\Http\Controllers\VendorController::class, 'barcode'])->name('vendors.barcode');
+Route::get('vendor-makes', [\App\Http\Controllers\VendorMakeController::class, 'index'])->name('vendor-makes.index'); // optional
+
+//
+// 📧 TEST EMAIL ROUTE
+//
+Route::get('/test-email', function () {
+    Mail::raw('This is a test email from Laravel!', function ($message) {
+        $message->to('your_email@example.com')->subject('Test Email');
+    });
+    return 'Email sent!';
+});
+    // 🧾 GST & PAN Fetch Routes
+    // Route::get('/gst/fetch/{gstin}', [GSTController::class, 'fetch']);
+    // Route::get('/company/fetch/{pan}', [GSTController::class, 'fetchByPAN']);
+
+    // ✅ Sales & Marketing Feasibility Routes
+    Route::get('/sm/feasibility/open', [FeasibilityStatusController::class, 'smOpen'])->name('sm.feasibility.open');
+    Route::get('/sm/feasibility/inprogress', [FeasibilityStatusController::class, 'smInProgress'])->name('sm.feasibility.inprogress');
+    Route::get('/sm/feasibility/closed', [FeasibilityStatusController::class, 'smClosed'])->name('sm.feasibility.closed');
+    Route::get('/sm/feasibility/{id}/view', [FeasibilityStatusController::class, 'smView'])->name('sm.feasibility.view');
+    Route::get('/sm/feasibility/{id}/edit', [FeasibilityStatusController::class, 'smEdit'])->name('sm.feasibility.edit');
+    Route::post('/sm/feasibility/{id}/save', [FeasibilityStatusController::class, 'smSave'])->name('sm.feasibility.save');
+    Route::post('/sm/feasibility/{id}/submit', [FeasibilityStatusController::class, 'smSubmit'])->name('sm.feasibility.submit');
+    Route::post('/sm/feasibility/{id}/exception', [FeasibilityStatusController::class, 'smSendException'])->name('sm.feasibility.exception');
+
+    // ✅ operations Feasibility Routes (Full functionality like S&M)
+    Route::get('/operations/feasibility/open', [FeasibilityStatusController::class, 'operationsOpen'])->name('operations.feasibility.open');
+    Route::post('/operations/feasibility/{id}/notfeasible', [FeasibilityStatusController::class, 'operationsNotFeasible'])->name('operations.feasibility.notfeasible');
+    Route::post('/operations/feasibility/{id}/makefeasible', [FeasibilityStatusController::class, 'operationsMakeFeasible'])->name('operations.feasibility.makefeasible');
+    Route::get('/operations/feasibility/notfeasible', [FeasibilityStatusController::class, 'operationsNotFeasibleList'])->name('operations.feasibility.notfeasible.list');
+    Route::get('/operations/feasibility/inprogress', [FeasibilityStatusController::class, 'operationsInProgress'])->name('operations.feasibility.inprogress');
+    Route::get('/operations/feasibility/closed', [FeasibilityStatusController::class, 'operationsClosed'])->name('operations.feasibility.closed');
+
+}); // <-- Close the main middleware group here
+    Route::get('/operations/feasibility/{id}/view', [FeasibilityStatusController::class, 'operationsView'])->name('operations.feasibility.view');
+    Route::get('/operations/feasibility/{id}/edit', [FeasibilityStatusController::class, 'operationsEdit'])->name('operations.feasibility.edit');
+    Route::post('/operations/feasibility/{id}/save', [FeasibilityStatusController::class, 'operationsSave'])->name('operations.feasibility.save');
+    Route::post('/operations/feasibility/{id}/submit', [FeasibilityStatusController::class, 'operationsSubmit'])->name('operations.feasibility.submit');
+    Route::post('/operations/feasibility/{id}/exception', [FeasibilityStatusController::class, 'operationsSendException'])->name('operations.feasibility.exception');
+
+
+    // ✅ operations Feasibility Routes (Full functionality like S&M)
+    Route::get('/operations/deliverables/open', [DeliverablesController::class, 'operationsOpen'])->name('operations.deliverables.open');
+    Route::get('/operations/deliverables/inprogress', [DeliverablesController::class, 'operationsInProgress'])->name('operations.deliverables.inprogress');
+    Route::get('/operations/deliverables/delivery', [DeliverablesController::class, 'operationsDelivery'])->name('operations.deliverables.delivery');
+    // Acceptance list page (no specific deliverable)
+    Route::get('/operations/deliverables/acceptance', [DeliverablesController::class, 'operationsAcceptance'])->name('operations.deliverables.acceptance');
+    // Acceptance page for a specific deliverable
+    Route::get('/operations/deliverables/{id}/acceptance', [DeliverablesController::class, 'operationsAcceptanceShow'])->name('operations.deliverables.acceptance.show');
+    Route::get('/operations/deliverables/{id}/view', [DeliverablesController::class, 'operationsView'])->name('operations.deliverables.view');
+    Route::get('/operations/deliverables/{id}/edit', [DeliverablesController::class, 'operationsEdit'])->name('operations.deliverables.edit');
+    Route::post('/operations/deliverables/{id}/save', [DeliverablesController::class, 'operationsSave'])->name('operations.deliverables.save');
+    Route::post('/operations/deliverables/{id}/submit', [DeliverablesController::class, 'operationsSubmit'])->name('operations.deliverables.submit');
+    Route::get('/operations/deliverables/create-from-feasibility/{feasibilityId}', [DeliverablesController::class, 'createFromFeasibility'])->name('operations.deliverables.create-from-feasibility');
+    Route::get('/calculate-subnet', [DeliverablesController::class, 'calculateSubnet'])->name('calculate.subnet');
+    Route::delete('/operations/deliverables/{id}', [DeliverablesController::class, 'destroy'])->name('operations.deliverables.destroy');
+    // renewal
+    route::get('/operations/renewals', [RenewalController::class, 'index'])->name('operations.renewals.index');
+    route::get('/operations/renewals/create', [RenewalController::class, 'create'])->name('operations.renewals.create');
+    route::post('/operations/renewals', [RenewalController::class, 'store'])->name('operations.renewals.store');
+    Route::get('/operations/renewals/{id}/edit', [RenewalController::class, 'edit'])->name('operations.renewals.edit');
+    Route::put('/operations/renewals/{id}', [RenewalController::class, 'update'])->name('operations.renewals.update');
+    Route::post('/operations/renewals/{id}/quick-renew', [RenewalController::class, 'quickRenew'])->name('operations.renewals.quick-renew');
+    Route::delete('/operations/renewals/{id}', [RenewalController::class, 'destroy'])->name('operations.renewals.destroy');
+    Route::get('/operations/renewals/{id}/view', [RenewalController::class, 'view'])->name('operations.renewals.view');
+    Route::patch('/operations/renewals/{id}/toggle-status', [RenewalController::class, 'toggleStatus'])->name('operations.renewals.toggle-status');
+        
+Route::get('/operations/assets/next-asset-id', [AssetController::class, 'nextAssetID']);
+Route::post('/operations/asset/import', [AssetController::class, 'import'])->name('operations.asset.import');
+Route::get('/operations/assets/export', [AssetController::class, 'exportAssets'])->name('operations.asset.export');
+Route::get('/operations/asset', [AssetController::class, 'index'])->name('operations.asset.index');     // list page
+Route::get('/operations/asset/create', [AssetController::class, 'create'])->name('operations.asset.create'); // add page
+Route::post('/operations/asset/store', [AssetController::class, 'store'])->name('operations.asset.store'); // store action
+Route::get('/operations/asset/{asset}/view', [AssetController::class, 'view'])->name('operations.asset.view');
+Route::get('/operations/asset/{id}/edit', [AssetController::class, 'edit'])->name('operations.asset.edit'); // edit page
+Route::put('/operations/asset/{id}', [AssetController::class, 'update'])->name('operations.asset.update'); // update action   
+Route::delete('/operations/asset/{asset}', [AssetController::class, 'destroy'])->name('operations.asset.destroy');
+Route::get('/operations/asset/{id}/print', [AssetController::class, 'print'])->name('operations.asset.print');
+
+    route::get('/operations/termination', [TerminationController::class, 'index'])->name('operations.termination.index');
+    route::get('/operations/termination/create', [TerminationController::class, 'create'])->name('operations.termination.create');
+    route::post('/operations/termination', [TerminationController::class, 'store'])->name('operations.termination.store');
+    Route::get('/operations/termination/{id}/edit', [TerminationController::class, 'edit'])->name('operations.termination.edit');
+    Route::put('/operations/termination/{id}', [TerminationController::class, 'update'])->name('operations.termination.update');
+    Route::delete('/operations/termination/{termination}', [TerminationController::class, 'destroy'])->name('operations.termination.destroy');
+    Route::get('/operations/termination/{id}/view', [TerminationController::class, 'view'])->name('operations.termination.view');
+    // Route::patch('/operations/termination/{id}/toggle-status', [TerminationController::class, 'toggleStatus'])->name('operations.termination.toggle-status');
+    
+            // Route::get('renewals/{id}/view', [RenewalController::class, 'view'])->name('renewals.view');
+
+    // ✅ Sales & Marketing Deliverables keep their own URLs but reuse the operations controller
+    Route::get('/sm/deliverables/open', [DeliverablesController::class, 'smOpen'])->name('sm.deliverables.open');
+    Route::get('/sm/deliverables/inprogress', [DeliverablesController::class, 'smInProgress'])->name('sm.deliverables.inprogress');
+    Route::get('/sm/deliverables/delivery', [DeliverablesController::class, 'smDelivery'])->name('sm.deliverables.delivery');
+    Route::get('/sm/deliverables/acceptance', [DeliverablesController::class, 'operationsAcceptance'])->name('sm.deliverables.acceptance');
+
+    // ✅ Legacy operations Feasibility Status Routes (Keep for backward compatibility)
+    Route::get('/feasibility/status/{status}', [FeasibilityStatusController::class, 'index'])->name('feasibility.status');
+    
+    Route::prefix('feasibility/feasibility-status')->group(function () {
+    Route::get('/{status?}', [App\Http\Controllers\FeasibilityStatusController::class, 'index'])->name('feasibility.status.index');
+    Route::get('/show/{id}', [App\Http\Controllers\FeasibilityStatusController::class, 'show'])->name('feasibility.status.show');
+    
+    // Route::put('feasibility/feasibility-status/update/{id}', [FeasibilityStatusController::class, 'update'])->name('feasibility.status.update');
+    Route::get('/edit/{id}', [App\Http\Controllers\FeasibilityStatusController::class, 'edit'])->name('feasibility.status.edit');
+    Route::post('feasibility/feasibility-status/edit-save/{id}', [FeasibilityStatusController::class, 'editSave'])->name('feasibility.status.editSave');
+});
+// AJAX route for autofill feasibility by circuit_id
+
+    Route::get('/feasibility/by-circuit/{circuit_id}', [FeasibilityController::class, 'getFeasibilityByCircuit']);
+    Route::get('/feasibility/mark/{id}/{status}', [FeasibilityController::class, 'mark'])->name('feasibility.mark');
+    // ✅ Feasibility Module (Resource routes should come after specific routes)
+    Route::resource('feasibility', FeasibilityController::class);
+   // Export all users to Excel
+    Route::get('/export-feasibility', [FeasibilityExcelController::class, 'export'])->name('feasibility.export');
+    // Feasibility import failed rows download
+    Route::post('/feasibility/import/failed-rows', [App\Http\Controllers\FeasibilityExcelController::class, 'downloadFailedRows'])->name('feasibility.downloadFailedRows');
+    Route::post('/import-feasibility', [FeasibilityExcelController::class, 'import'])->name('feasibility.import');
+    Route::get('/get-client-details/{id}', [ClientController::class, 'getDetails']);
+
+    // ✅ Purchase Order Routes (SM Section)
+    Route::prefix('sm/purchaseorder')->name('sm.purchaseorder.')->group(function () {
+        Route::get('/', [PurchaseOrderController::class, 'index'])->name('index');
+        Route::get('/create', [PurchaseOrderController::class, 'create'])->name('create');
+        Route::post('/store', [PurchaseOrderController::class, 'store'])->name('store');
+        Route::get('/{id}', [PurchaseOrderController::class, 'show'])->name('show');
+        Route::get('/{id}/view', [PurchaseOrderController::class, 'show'])->name('view');
+        Route::get('/{id}/edit', [PurchaseOrderController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [PurchaseOrderController::class, 'update'])->name('update');
+        Route::delete('/{id}', [PurchaseOrderController::class, 'destroy'])->name('destroy');
+        Route::get('/feasibility/{id}/details', [PurchaseOrderController::class, 'getFeasibilityDetails'])->name('feasibility.details');
+        Route::patch('/{id}/toggle-status', [PurchaseOrderController::class, 'toggleStatus'])->name('toggle-status');
+        // Route::get('/check-po-number', [PurchaseOrderController::class, 'checkPoNumber'])->name('check-po-number');
+        Route::get('/purchase-order/check-po-number', [PurchaseOrderController::class, 'checkPoNumber'])->name('check-po-number');
+        // API: Fetch PO by number (for autofill)
+        Route::get('/fetch-by-number/{po_number}', [PurchaseOrderController::class, 'fetchByNumber'])->name('fetch-by-number');
+    });
+
+    Route::prefix('sm')->name('sm.')->middleware(['auth'])->group(function () {
+
+    Route::prefix('proposal')->name('proposal.')->group(function () {
+
+        Route::get('/', [ProposalController::class, 'index'])
+            ->name('index');
+
+    });
+
+});
+    
+
+// HR module - list users with profiles and view/edit via profile controller
+
+    Route::get('/hr', [hrController::class, 'index'])->name('hr.index');
+// Employee index (HR) - reuses the same listing as HR index
+Route::get('/hr/employee', [hrController::class, 'index'])->name('hr.employee.index');
+Route::get('/hr/{id}/view', [hrController::class, 'show'])->name('hr.view');
+Route::get('/hr/{id}/edit', [hrController::class, 'edit'])->name('hr.edit');
+Route::prefix('hr/leavetype')->name('hr.leavetype.')->group(function () {
+    Route::get('/', [LeaveTypeController::class, 'index'])->name('index');
+    Route::get('/create', [LeaveTypeController::class, 'create'])->name('create');
+    Route::post('/', [LeaveTypeController::class, 'store'])->name('store');
+    Route::get('/{id}/edit', [LeaveTypeController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [LeaveTypeController::class, 'update'])->name('update');
+    Route::delete('/{id}', [LeaveTypeController::class, 'destroy'])->name('destroy');
+    Route::get('/{id}/view', [LeaveTypeController::class, 'view'])->name('view');
+});
+
+
+Route::get('/compliance', [ComplianceController::class, 'index'])->name('compliance.index');
+Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
+Route::get('/training', [TrainingController::class, 'index'])->name('training.index');
+Route::get('/strategy', [StrategyController::class, 'index'])->name('strategy.index');
+Route::get('/assurance', [AssuranceController::class, 'index'])->name('assurance.index');
+ 
+Route::prefix('assetmaster/asset_type')->name('assetmaster.asset_type.')->group(function () {
+    Route::get('/', [Asset_typeController::class, 'index'])->name('index');
+    Route::get('/create', [Asset_typeController::class, 'create'])->name('create');
+    Route::post('/', [Asset_typeController::class, 'store'])->name('store');
+    Route::get('/{assetType}/edit', [Asset_typeController::class, 'edit'])->name('edit');
+    Route::put('/{assetType}', [Asset_typeController::class, 'update'])->name('update');
+    Route::delete('/{assetType}', [Asset_typeController::class, 'destroy'])->name('destroy');
+});
+Route::prefix('assetmaster/make_type')->name('assetmaster.make_type.')->group(function () {
+    Route::get('/', [Make_typeController::class, 'index'])->name('index');
+    Route::get('/create', [Make_typeController::class, 'create'])->name('create');
+    Route::post('/', [Make_typeController::class, 'store'])->name('store');
+    Route::get('/{makeType}/edit', [Make_typeController::class, 'edit'])->name('edit');
+    Route::put('/{makeType}', [Make_typeController::class, 'update'])->name('update');
+    Route::delete('/{makeType}', [Make_typeController::class, 'destroy'])->name('destroy');
+    Route::get('/generate-id/{company}/{brand}', [AssetController::class, 'generateAssetId']);
+});
+Route::prefix('assetmaster/model_type')->name('assetmaster.model_type.')->group(function () {
+    Route::get('/', [ModelTypeController::class, 'index'])->name('index');
+    Route::get('/create', [ModelTypeController::class, 'create'])->name('create');
+    Route::post('/', [ModelTypeController::class, 'store'])->name('store');
+    Route::get('/{modelType}/edit', [ModelTypeController::class, 'edit'])->name('edit');
+    Route::put('/{modelType}', [ModelTypeController::class, 'update'])->name('update');
+    Route::delete('/{modelType}', [ModelTypeController::class, 'destroy'])->name('destroy');
+});
+
+// Finance Module Routes
+Route::prefix('finance')->name('finance.')->group(function () {
+//            // accounts
+    Route::get('accounts',[AccountController::class,'index'])->name('accounts.index');
+    Route::get('accounts/create',[AccountController::class,'create'])->name('accounts.create');
+    Route::post('accounts/store',[AccountController::class,'store'])->name('accounts.store');
+    Route::get('accounts/{id}/edit',[AccountController::class,'edit'])->name('accounts.edit');
+    Route::put('accounts/{account}',[AccountController::class,'update'])->name('accounts.update');
+    Route::patch('accounts/{account}/toggle',[AccountController::class,'toggle'])->name('accounts.toggle');
+    Route::post('accounts/{account}/submit',[AccountController::class,'submitForApproval'])->name('accounts.submit');
+    Route::post('accounts/{account}/approve',[AccountController::class,'approve'])->name('accounts.approve');
+    Route::post('accounts/{account}/reject',[AccountController::class,'reject'])->name('accounts.reject');
+
+    Route::get('/items', [ItemController::class,'index'])->name('items.index');
+    Route::get('/items/create', [ItemController::class,'create'])->name('items.create');
+    Route::post('/items', [ItemController::class,'store'])->name('items.store');
+    Route::get('/items/{id}', [ItemController::class,'view'])->name('items.view');
+    Route::get('/items/{id}/edit', [ItemController::class,'edit'])->name('items.edit');
+    Route::put('/items/{id}', [ItemController::class,'update'])->name('items.update');
+    Route::delete('/items/{id}', [ItemController::class,'destroy'])->name('items.destroy');
+    Route::patch('/items/{id}/toggle-status', [ItemController::class, 'toggleStatus'])->name('items.toggle-status');
+
+ 
+    // banking
+    Route::get('banking',[BankingController::class,'index'])->name('banking.index');
+    Route::get('banking/create',[BankingController::class,'create'])->name('banking.create');
+    Route::post('banking/store',[BankingController::class,'store'])->name('banking.store');
+    Route::get('banking/{id}/transactions',[BankingController::class,'transactions'])->name('banking.transactions');
+    Route::post('banking/transaction/store',[BankingController::class,'storeTransaction'])->name('banking.transaction.store');
+    Route::get('banking/reconcile/{txn}',[BankingController::class,'reconcile'])->name('banking.reconcile');
+
+    
+  
+        // Route::prefix('purchases')->name('purchases.')->group(function () {
+        // Route::resource('vendors', VendorController::class);});
+
+        Route::resource('/sales/customers',CustomerController::class)->names('finance.sales.customers');
+
+        // Route::resource('sales', SalesController::class);
+        // Route::resource('purchases', PurchaseController::class);
+
+        // Route::resource('customers', CustomerController::class);
+        // Route::resource('vendors', VendorController::class);
+
+        // Route::resource('accounts', AccountController::class);
+
+        Route::get('reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
+        Route::get('reports/purchase', [ReportController::class, 'purchase'])->name('reports.purchase');
+        Route::get('reports/gst', [ReportController::class, 'gst'])->name('reports.gst');
+
+        Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
+        Route::get('settings/gst', [SettingsController::class, 'gst'])->name('settings.gst');
+        Route::get('settings/tds', [SettingsController::class, 'tds'])->name('settings.tds');
+
+});
+
+// Route::prefix('finance/sales')->name('finance.sales.')->group(function () {
+
+    // Route::get('/', [SalesController::class, 'index'])->name('index');
+    // Route::get('/create', [SalesController::class, 'create'])->name('create');
+    // Route::post('/', [SalesController::class, 'store'])->name('store');
+
+    // Route::get('/{id}', [PurchaseController::class, 'show'])->name('show');
+    // Route::get('/{id}/edit', [PurchaseController::class, 'edit'])->name('edit');
+    // Route::put('/{id}', [PurchaseController::class, 'update'])->name('update');
+    // Route::delete('/{id}', [PurchaseController::class, 'destroy'])->name('destroy');
+
+    // Route::get('/{id}/pdf', [PurchaseController::class, 'pdf'])->name('pdf');
+    // Route::get('/{id}/print', [PurchaseController::class, 'print'])->name('print');
+    // Route::post('/finance/purchases/{id}/submit',[PurchaseController::class,'submit'])->name('finance.purchases.submit');
+    
+    // PAN Management Routes
+    Route::post('/finance/pan/validate', [PurchaseController::class, 'validatePAN'])->name('finance.pan.validate');
+    Route::post('/finance/pan/verify', [PurchaseController::class, 'verifyPAN'])->name('finance.pan.verify');
+// });
+
+Route::prefix('finance/sales')->name('finance.sales.')->group(function () {
+    Route::get('/', [SalesController::class, 'index'])->name('index');
+    Route::get('/create', [SalesController::class, 'create'])->name('create');
+    Route::post('/', [SalesController::class, 'store'])->name('store');
+    Route::get('/{id}/pdf', [SalesController::class, 'pdf'])->name('pdf');
+    Route::get('/{id}/show', [SalesController::class, 'show'])->name('show');
+    Route::get('/{id}/edit', [SalesController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [SalesController::class, 'update'])->name('update');
+    Route::delete('/{id}', [SalesController::class, 'destroy'])->name('destroy');
+    Route::get('/{id}/print', [SalesController::class, 'print'])->name('print');
+    Route::post('/{id}/send-email', [SalesController::class, 'sendEmail'])->name('send-email');
+    Route::post('/finance/sales/{id}/submit',[SalesController::class,'submit'])->name('finance.sales.submit');
+});
+// Recurring Invoice
+Route::prefix('finance/sales/recurring-invoice')->name('finance.sales.recurring-invoice.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Finance\RecurringInvoiceController::class, 'index'])->name('index');
+    Route::post('/{id}/send-email', [\App\Http\Controllers\Finance\RecurringInvoiceController::class, 'sendEmail'])->name('send-email');
+    // Add more routes as needed (create, edit, etc.)
+});
+
+Route::prefix('finance/sales-invoices')->name('finance.sales_invoices.')->group(function () {
+    Route::get('/', [SalesController::class, 'index'])->name('index');
+    Route::get('/{id}', [SalesController::class, 'show'])->name('show');
+    Route::post('/{id}/verify', [SalesController::class, 'verify'])->name('verify');
+    Route::post('/{id}/approve', [SalesController::class, 'approve'])->name('approve');
+    Route::post('/{id}/mark-paid', [SalesController::class, 'markPaid'])->name('markPaid');
+});
+
+Route::prefix('finance/purchases')->name('finance.purchases.')->group(function () {
+        // Export selected or all purchases to Excel
+        Route::post('/export-excel', [PurchaseController::class, 'exportExcel'])->name('exportExcel');
+    Route::get('/', [PurchaseController::class, 'index'])->name('index');
+    Route::get('/download-excel', [PurchaseController::class, 'downloadExcel'])->name('downloadExcel');
+    // New: Excel Table Page (not download)
+    Route::get('/excel-download-page', [PurchaseController::class, 'excelDownloadPage'])->name('excelDownloadPage');
+    Route::get('/{id}/show', [PurchaseController::class, 'show'])->name('show');
+    Route::get('/{id}/edit', [PurchaseController::class, 'edit'])->name('edit');
+    Route::get('/{id}/download-source-pdf', [PurchaseController::class, 'downloadSourcePdf'])->name('download-source-pdf');
+    Route::get('/create', [PurchaseController::class, 'create'])->name('create');
+    Route::put('/{id}', [PurchaseController::class, 'update'])->name('update');
+    Route::post('/', [PurchaseController::class, 'store'])->name('store');
+    Route::delete('/{id}', [PurchaseController::class, 'destroy'])->name('destroy');
+    Route::post('/{id}/approve', [PurchaseController::class, 'approve'])->name('approve');
+    Route::get('/{id}/pdf', [PurchaseController::class, 'pdf'])->name('pdf');
+    Route::get('/{id}/print', [PurchaseController::class, 'print'])->name('print');
+    Route::post('/finance/purchases/{id}/submit',[PurchaseController::class,'submit'])->name('finance.purchases.submit');
+    // web.php
+    Route::post('/parse-invoice', [PurchaseController::class, 'parseInvoice'])->name('parse-invoice');
+    Route::post('/email-pdf', [PurchaseController::class, 'createInvoiceFromEmailPDF'])->name('email-pdf');
+    Route::get('/get-po-data/{vendorId}', [PurchaseController::class, 'getPoData']);
+
+    // ✅ Manual Gmail IMAP fetch trigger
+    Route::post('/fetch-gmail', [PurchaseController::class, 'fetchGmail'])->name('fetch-gmail');
+    // ✅ Test email connection
+     Route::post('/test-email', [PurchaseController::class, 'testInvoiceEmailConnection'])->name('test-email');
+
+});
+
+Route::prefix('finance/purchase-invoices')->name('finance.purchase_invoices.')->group(function () {
+
+    Route::get('/', [PurchaseController::class, 'autoInvoiceIndex'])->name('index');
+    Route::get('/{id}/edit', [PurchaseController::class, 'editAutoInvoice'])->name('edit');
+    Route::put('/{id}', [PurchaseController::class, 'updateAutoInvoice'])->name('update');
+    Route::get('/{id}', [PurchaseController::class, 'showAutoInvoice'])->name('show');
+    Route::post('/{id}/verify', [PurchaseController::class, 'verify'])->name('verify');
+    Route::post('/{id}/approve', [PurchaseController::class, 'approve'])->name('approve');
+    Route::post('/{id}/mark-paid', [PurchaseController::class, 'markPaid'])->name('markPaid');
+});
+
+Route::prefix('report/deliverable')->name('report.deliverable.')->group(function () {
+    Route::get('open', [DeliverableController::class, 'open'])->name('open');
+    Route::get('inprogress', [DeliverableController::class, 'inprogress'])->name('inprogress');
+    Route::get('delivery', [DeliverableController::class, 'delivery'])->name('delivery');
+    Route::post('download-excel', [DeliverableController::class, 'downloadExcel'])->name('downloadExcel');
+});
+
+
+
+
+// Fallback route to handle undefined routes (should be last, outside all groups)
+Route::fallback(function () {
+    return redirect('/welcome');
+});
+
+
+
+// ...existing code...
+// OTP routes for login (must be above fallback and client portal)
+Route::post('/otp/send', [OtpController::class, 'send'])->name('otp.send');
+Route::post('/otp/verify', [OtpController::class, 'verify'])->name('otp.verify');
+// Internal chat APIs used by the floating widget
+Route::prefix('chat')
+    ->middleware(['auth', \App\Http\Middleware\CheckProfileCreated::class])
+    ->group(function () {
+        Route::get('/group/{id}/messages', [PrivateChatController::class,'fetchMessages'])->name('chat.messages');
+        Route::post('/send', [PrivateChatController::class,'send'])->name('chat.send');
+        Route::get('/group/{id}/online-users', [PrivateChatController::class,'onlineUsers'])->name('chat.online-users');
+        Route::get('/all-users', [PrivateChatController::class, 'allOnlineUsers'])->name('chat.all-online-users');
+        Route::post('/typing', [PrivateChatController::class,'typing'])->name('chat.typing');
+        Route::get('/bootstrap', [PrivateChatController::class,'bootstrap'])->name('chat.bootstrap');
+    });
+// ...existing code...
+// Route::post('/finance/invoices/{id}/update-item', [InvoiceController::class, 'updateInvoiceItem'])
+//     ->name('finance.invoices.updateItem')
+//     ->middleware(['auth', App\Http\Middleware\CheckProfileCreated::class]);
+    
+
+/*
+|--------------------------------------------------------------------------
+| � Payment Management Routes
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', \App\Http\Middleware\CheckProfileCreated::class])->prefix('payments')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\PaymentController::class, 'dashboard'])->name('payments.dashboard');
+    Route::get('/batches', [App\Http\Controllers\PaymentController::class, 'batches'])->name('payments.batches');
+    Route::get('/batches/{batch}', [App\Http\Controllers\PaymentController::class, 'batchDetails'])->name('payments.batches.show');
+    Route::post('/batches/create', [App\Http\Controllers\PaymentController::class, 'createBatch'])->name('payments.batches.create');
+    Route::post('/batches/{batch}/submit-accountant', [App\Http\Controllers\PaymentController::class, 'submitForAccountantApproval'])->name('payments.batches.submit-accountant');
+    Route::post('/batches/{batch}/approve-accountant', [App\Http\Controllers\PaymentController::class, 'approveAccountantLevel'])->name('payments.batches.approve-accountant');
+    Route::post('/batches/{batch}/approve-finance-manager', [App\Http\Controllers\PaymentController::class, 'approveFinanceManagerLevel'])->name('payments.batches.approve-finance-manager');
+    Route::post('/batches/{batch}/reject-accountant', [App\Http\Controllers\PaymentController::class, 'rejectAccountantLevel'])->name('payments.batches.reject-accountant');
+    Route::post('/batches/{batch}/reject-finance-manager', [App\Http\Controllers\PaymentController::class, 'rejectFinanceManagerLevel'])->name('payments.batches.reject-finance-manager');
+    Route::post('/batches/{batch}/process', [App\Http\Controllers\PaymentController::class, 'processBatch'])->name('payments.batches.process');
+    Route::get('/batches/{batch}/export', [App\Http\Controllers\PaymentController::class, 'exportBatch'])->name('payments.batches.export');
+    Route::get('/pending-invoices', [App\Http\Controllers\PaymentController::class, 'pendingInvoices'])->name('payments.pending-invoices');
+    Route::post('/run-auto-detection', [App\Http\Controllers\PaymentController::class, 'runAutoDetection'])->name('payments.run-auto-detection');
+});
+
+// Razorpay Webhook Route (Public)
+Route::post('/webhook/razorpay', [App\Http\Controllers\PaymentController::class, 'handleWebhook'])->name('webhook.razorpay');
+
+/*
+|--------------------------------------------------------------------------
+| �� Client Portal – Authenticated Routes
+|--------------------------------------------------------------------------
+*/
+/* 🟢 Client Portal – AUTH */
+Route::get('client/login', [ClientPortalController::class, 'loginPage'])->name('client.login');
+Route::post('client/login', [ClientPortalController::class, 'login'])->name('client.login.submit');
+
+/* 🟢 Client Portal – PROTECTED */
+Route::middleware(ClientAuth::class)->prefix('client')->group(function () {
+    Route::get('/dashboard', [ClientPortalController::class, 'dashboard'])->name('client.dashboard');
+    Route::get('/links', [ClientPortalController::class, 'links'])->name('client.links');
+    Route::get('/link/{id}', [ClientPortalController::class, 'linkDetails'])->name('client.link.details');
+    
+Route::get('/notifications/settings', function () {
+    return "Notifications page coming soon!";
+})->name('client.notifications.settings');
+
+Route::get('/client/sla-reports/{id}', [ClientPortalController::class, 'slaReports'])
+    ->name('client.sla.reports');
+
+     Route::get('/client/live-traffic/{id}', [ClientPortalController::class, 'liveTraffic'])
+    ->name('client.live.traffic');
+
+    Route::post('/client/send-password', [ClientPortalController::class, 'sendPassword'])->name('client.sendPassword');
+
+
+    // logout
+    Route::get('/logout', function () {
+        auth()->guard('client')->logout();
+        return redirect()->route('client.login');
+    })->name('client.logout');
+});
+
+
+Route::get('/fix-env', function () {
+    Artisan::call('config:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('config:cache');
+
+    return "✅ ENV and CONFIG refreshed successfully.";
+});
+
+// 📧 Test IMAP Email Fetch Route
+Route::get('/fetch-emails', [EmailController::class, 'fetchEmails']);

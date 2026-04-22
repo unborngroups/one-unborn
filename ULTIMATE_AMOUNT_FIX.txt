@@ -1,0 +1,90 @@
+ULTIMATE SOLUTION FOR WRONG AMOUNT EXTRACTION FROM INVOICE PDFs
+
+PROBLEM ANALYSIS:
+1. The extractTotal function in FetchGmailInvoicesCommand.php has unicode regex issues
+2. Missing filtering to exclude small amounts that aren't totals
+3. Limited fallback patterns for different invoice formats
+4. The function may be picking up wrong amounts from the OCR text
+
+CURRENT ISSUE:
+- Invoice shows wrong amount values despite having correct data in PDF
+- The extractTotal function needs to be more robust and accurate
+
+SOLUTION:
+Replace the extractTotal function in app/Console/Commands/FetchGmailInvoicesCommand.php (lines 1188-1208) with this enhanced version:
+
+```php
+private function extractTotal(string $text): float
+{
+    // Enhanced patterns for better amount extraction
+    $strongPatterns = [
+        // Strong patterns with explicit total keywords
+        '/(?:grand\s*total|invoice\s*total|net\s*payable|amount\s*payable|total\s*amount|total\s*due|balance\s*due|payable\s*amount)\s*[:\-]?\s*(?:inr|rs\.?|Rs|INR)?\s*([\d,]+(?:\.\d{1,2})?)/i',
+        '/(?:balance\s*due|amount\s*due)\s*[:\-]?\s*(?:inr|rs\.?|Rs|INR)?\s*([\d,]+(?:\.\d{1,2})?)/i',
+    ];
+
+    foreach ($strongPatterns as $pattern) {
+        if (preg_match_all($pattern, $text, $matches) && !empty($matches[1])) {
+            $values = array_map(fn ($v) => (float) str_replace(',', '', $v), $matches[1]);
+            // Filter out very small amounts (likely not totals) and return the largest
+            $validAmounts = array_filter($values, fn($v) => $v > 10);
+            if (!empty($validAmounts)) {
+                return max($validAmounts);
+            }
+        }
+    }
+
+    // Enhanced fallback patterns
+    $fallbackPatterns = [
+        '/\btotal\b\s*[:\-]?\s*(?:inr|rs\.?|Rs|INR)?\s*([\d,]+(?:\.\d{1,2})?)/i',
+        '/\b(?:total|amount|payable)\b.*?(?:inr|rs\.?|Rs|INR)?\s*([\d,]+(?:\.\d{1,2})?)/im',
+        '/(?:total\s*amount|invoice\s*amount|net\s*amount)\s*[:\-]?\s*(?:inr|rs\.?|Rs|INR)?\s*([\d,]+(?:\.\d{1,2})?)/i',
+    ];
+
+    foreach ($fallbackPatterns as $pattern) {
+        if (preg_match_all($pattern, $text, $matches) && !empty($matches[1])) {
+            $values = array_map(fn ($v) => (float) str_replace(',', '', $v), $matches[1]);
+            $validAmounts = array_filter($values, fn($v) => $v > 10);
+            if (!empty($validAmounts)) {
+                return max($validAmounts);
+            }
+        }
+    }
+
+    // Final fallback: Look for any amount with currency symbol in the last 20% of the text
+    $textLines = explode("\n", $text);
+    $lastLines = array_slice($textLines, max(0, count($textLines) - round(count($textLines) * 0.2)));
+    $lastText = implode("\n", $lastLines);
+    
+    if (preg_match_all('/(?:inr|rs\.?|Rs|INR)?\s*([\d,]+(?:\.\d{1,2})?)/i', $lastText, $matches) && !empty($matches[1])) {
+        $values = array_map(fn ($v) => (float) str_replace(',', '', $v), $matches[1]);
+        $validAmounts = array_filter($values, fn($v) => $v > 10);
+        if (!empty($validAmounts)) {
+            return max($validAmounts);
+        }
+    }
+
+    return 0.0;
+}
+```
+
+KEY IMPROVEMENTS:
+1. FIXED Unicode Issues - Removed problematic unicode escape sequences that cause PCRE2 errors
+2. Added Smart Filtering - Filters out amounts < 10 (likely not totals)
+3. More Total Keywords - Added "total due", "balance due", "payable amount"
+4. Better Fallbacks - Multiple fallback patterns for different invoice formats
+5. Context-Aware Search - Looks in last 20% of text where totals usually appear
+6. Better Currency Support - Handles Rs, INR variations properly
+
+ADDITIONAL RECOMMENDATIONS:
+1. After applying the fix, reprocess existing invoices to update their amounts
+2. Test with various invoice formats to ensure accuracy
+3. Consider adding logging to track which patterns are matching
+
+TO APPLY THE FIX:
+1. Open app/Console/Commands/FetchGmailInvoicesCommand.php
+2. Replace lines 1188-1208 (the extractTotal function) with the corrected version above
+3. Clear Laravel cache: php artisan cache:clear
+4. Test by reprocessing an invoice: php artisan fetch:invoices
+
+This should resolve the wrong amount reading from invoice PDFs and make the extraction much more accurate and reliable.

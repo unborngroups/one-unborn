@@ -1,0 +1,6 @@
+2025-11-19 05:38:26
+URL: https://wa.unbornsms.in/api/send.php?number=9025012401&type=text&message=welcoe+afgfds&instance_id=691AEEF33256E&access_token=68f9df1ac354c
+HTTP Code: 0
+cURL Error: Could not resolve host: wa.unbornsms.in
+Raw Response: 
+--------------------------------------------------------------------------------

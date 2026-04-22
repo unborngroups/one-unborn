@@ -1,0 +1,90 @@
+FIX FOR AMOUNT EXTRACTION ISSUE
+
+The problem is in the extractTotal function in app/Console/Commands/FetchGmailInvoicesCommand.php (lines 1188-1208).
+
+CURRENT CODE:
+private function extractTotal(string $text): float
+{
+    $strongPatterns = [
+        '/(?:grand\s*total|invoice\s*total|net\s*payable|amount\s*payable|total\s*amount)\s*[:\-]?\s*(?:inr|rs\.?|_rupee|_rupee_|\u20B9)?\s*([\d,]+(?:\.\d{1,2})?)/i',
+        '/(?:balance\s*due|amount\s*due)\s*[:\-]?\s*(?:inr|rs\.?|_rupee|_rupee_|\u20B9)?\s*([\d,]+(?:\.\d{1,2})?)/i',
+    ];
+
+    foreach ($strongPatterns as $pattern) {
+        if (preg_match_all($pattern, $text, $matches) && !empty($matches[1])) {
+            $values = array_map(fn ($v) => (float) str_replace(',', '', $v), $matches[1]);
+            return max($values);
+        }
+    }
+
+    if (preg_match_all('/\btotal\b\s*[:\-]?\s*(?:inr|rs\.?|_rupee|_rupee_|\u20B9)?\s*([\d,]+(?:\.\d{1,2})?)/i', $text, $matches) && !empty($matches[1])) {
+        $values = array_map(fn ($v) => (float) str_replace(',', '', $v), $matches[1]);
+        return max($values);
+    }
+
+    return 0.0;
+}
+
+REPLACE WITH:
+private function extractTotal(string $text): float
+{
+    // Enhanced patterns for better amount extraction
+    $strongPatterns = [
+        // Strong patterns with explicit total keywords (enhanced)
+        '/(?:grand\s*total|invoice\s*total|net\s*payable|amount\s*payable|total\s*amount|total\s*due|balance\s*due|payable\s*amount)\s*[:\-]?\s*(?:inr|rs\.?|Rs|INR|_rupee|_rupee_|\u20B9)?\s*([\d,]+(?:\.\d{1,2})?)/i',
+        '/(?:balance\s*due|amount\s*due)\s*[:\-]?\s*(?:inr|rs\.?|Rs|INR|_rupee|_rupee_|\u20B9)?\s*([\d,]+(?:\.\d{1,2})?)/i',
+    ];
+
+    foreach ($strongPatterns as $pattern) {
+        if (preg_match_all($pattern, $text, $matches) && !empty($matches[1])) {
+            $values = array_map(fn ($v) => (float) str_replace(',', '', $v), $matches[1]);
+            // Filter out very small amounts (likely not totals) and return the largest
+            $validAmounts = array_filter($values, fn($v) => $v > 10);
+            if (!empty($validAmounts)) {
+                return max($validAmounts);
+            }
+        }
+    }
+
+    // Enhanced fallback patterns
+    $fallbackPatterns = [
+        '/\btotal\b\s*[:\-]?\s*(?:inr|rs\.?|Rs|INR|_rupee|_rupee_|\u20B9)?\s*([\d,]+(?:\.\d{1,2})?)/i',
+        '/\b(?:total|amount|payable)\b.*?(?:inr|rs\.?|Rs|INR|_rupee|_rupee_|\u20B9)?\s*([\d,]+(?:\.\d{1,2})?)/im',
+        '/(?:total\s*amount|invoice\s*amount|net\s*amount)\s*[:\-]?\s*(?:inr|rs\.?|Rs|INR|_rupee|_rupee_|\u20B9)?\s*([\d,]+(?:\.\d{1,2})?)/i',
+    ];
+
+    foreach ($fallbackPatterns as $pattern) {
+        if (preg_match_all($pattern, $text, $matches) && !empty($matches[1])) {
+            $values = array_map(fn ($v) => (float) str_replace(',', '', $v), $matches[1]);
+            $validAmounts = array_filter($values, fn($v) => $v > 10);
+            if (!empty($validAmounts)) {
+                return max($validAmounts);
+            }
+        }
+    }
+
+    // Final fallback: Look for any amount with currency symbol in the last 20% of the text
+    $textLines = explode("\n", $text);
+    $lastLines = array_slice($textLines, max(0, count($textLines) - round(count($textLines) * 0.2)));
+    $lastText = implode("\n", $lastLines);
+    
+    if (preg_match_all('/(?:inr|rs\.?|Rs|INR|_rupee|_rupee_|\u20B9)?\s*([\d,]+(?:\.\d{1,2})?)/i', $lastText, $matches) && !empty($matches[1])) {
+        $values = array_map(fn ($v) => (float) str_replace(',', '', $v), $matches[1]);
+        $validAmounts = array_filter($values, fn($v) => $v > 10);
+        if (!empty($validAmounts)) {
+            return max($validAmounts);
+        }
+    }
+
+    return 0.0;
+}
+
+KEY IMPROVEMENTS:
+1. Added more total-related keywords (total due, balance due, payable amount)
+2. Added more currency symbol variations (Rs, INR)
+3. Added filtering to exclude small amounts (< 10) that are likely not totals
+4. Added fallback patterns for different invoice formats
+5. Added final fallback to look in the last 20% of text where totals usually appear
+6. Better pattern matching for amounts at end of lines
+
+This should fix the wrong amount reading from invoice PDFs.

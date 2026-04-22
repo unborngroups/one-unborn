@@ -1,0 +1,1760 @@
+{{-- resources/views/layouts/sidebar.blade.php --}}
+@php
+    use App\Helpers\TemplateHelper;
+    $dashboard = TemplateHelper::getUserMenuPermissions('Dashboard');
+    $reportdashboard = TemplateHelper::getUserMenuPermissions('Report Dashboard');
+
+    // Masters dropdown permissions
+    $company = TemplateHelper::getUserMenuPermissions('Company Details');
+    $users = TemplateHelper::getUserMenuPermissions('Manage User');
+    $userType = TemplateHelper::getUserMenuPermissions('User Type');
+    $client = TemplateHelper::getUserMenuPermissions('Client Master');
+    $vendor = TemplateHelper::getUserMenuPermissions('Vendor Master');
+    $Asset = TemplateHelper::getUserMenuPermissions('Asset Master');
+    $assetType = TemplateHelper::getUserMenuPermissions('Asset Master', 'Asset Type');
+    $makeType = TemplateHelper::getUserMenuPermissions('Asset Master', 'Make Type');
+    $modelType = TemplateHelper::getUserMenuPermissions('Asset Master', 'Model Type');
+
+@endphp
+
+            @if($dashboard && $dashboard->can_menu)
+
+                <li class="nav-item">
+
+                    <a class="nav-link text-white menu-item {{ request()->is('welcome') ? 'active' : '' }}" href="{{ url('/welcome') }}"> 
+
+                        <i class="bi bi-grid-1x2-fill"></i> Dashboard
+
+                    </a>
+
+                </li>
+                @endif
+
+                 @if($reportdashboard && $reportdashboard->can_menu)
+
+                <li class="nav-item">
+
+                    <a class="nav-link text-white menu-item {{ request()->is('report-dashboard') ? 'active' : '' }}" href="{{ route('report_dashboard') }}"> 
+
+                        <i class="bi bi-speedometer2"></i> Report Dashboard
+
+                    </a>
+
+                </li>
+                @endif
+
+                
+
+            @if(($company && $company->can_menu) || ($users && $users->can_menu) || ($userType && $userType->can_menu) || ($client && $client->can_menu) || ($vendor && $vendor->can_menu))
+
+                <li class="nav-item">
+
+                    <details class="sidebar-module master" {{ request()->is('companies*') || request()->is('users*') || request()->is('usertypetable*') || request()->is('clients*') || request()->is('vendors*') ? 'open' : '' }}>
+
+                        <summary class="nav-link d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-database-fill"></i> <span class="ms-2">Masters</span></span>
+                    <i class="bi bi-chevron-right arrow-icon"></i>
+                </summary>
+                <ul class="nav flex-column ms-3 mt-1 submenu">
+                    @if($company && $company->can_menu)
+                        <li><a class="nav-link menu-item {{ request()->is('companies*') ? 'active' : '' }}" href="{{ route('companies.index') }}"><i class="bi bi-building"></i> Company Details</a></li>
+                    @endif
+                    @if($userType && $userType->can_menu)
+                        <li><a class="nav-link menu-item {{ request()->is('usertypetable*') ? 'active' : '' }}" href="{{ route('usertypetable.index') }}"><i class="bi bi-person-badge"></i> User Type</a></li>
+                    @endif
+                    @if($client && $client->can_menu)
+                        <li><a class="nav-link menu-item {{ request()->is('clients*') ? 'active' : '' }}" href="{{ route('clients.index') }}"><i class="bi bi-person-workspace"></i> Client Master</a></li>
+                    @endif
+                    @if($vendor && $vendor->can_menu)
+                        <li><a class="nav-link menu-item {{ request()->is('vendors*') ? 'active' : '' }}" href="{{ route('vendors.index') }}"><i class="bi bi-truck"></i> Vendor Master</a></li>
+                    @endif
+                            <!--  -->
+                        @php
+                            $assetMasterRoutesAvailable = Route::has('assetmaster.asset_type.index') || Route::has('assetmaster.make_type.index') || Route::has('assetmaster.model_type.index');
+                        @endphp
+                        @if($Asset && $Asset->can_menu && $assetMasterRoutesAvailable)
+<li class="nav-item">
+    <details class="sidebar-dropdown" {{ request()->is('assetmaster/*') ? 'open' : '' }}>
+        <summary class="nav-link text-white d-flex justify-content-between align-items-center menu-sales">
+            <span><i class="bi bi-box-seam"></i> Asset Master</span>
+            <i class="bi bi-chevron-down arrow-icon"></i>
+        </summary>
+        <ul class="nav flex-column ms-3 mt-1">
+            @if($assetType && $assetType->can_menu && Route::has('assetmaster.asset_type.index'))
+                <li>
+                    <a href="{{ route('assetmaster.asset_type.index') }}"
+                       class="nav-link text-white menu-item {{ request()->is('assetmaster/asset_type*') ? 'active' : '' }}">
+                        <i class="bi bi-tag"></i> Asset Type
+                    </a>
+                </li>
+            @endif
+            @if($makeType && $makeType->can_menu && Route::has('assetmaster.make_type.index'))
+                <li>
+                    <a href="{{ route('assetmaster.make_type.index') }}"
+                       class="nav-link text-white menu-item {{ request()->is('assetmaster/make_type*') ? 'active' : '' }}">
+                        <i class="bi bi-tools"></i> Make Type
+                    </a>
+                </li>
+            @endif
+            @if($modelType && $modelType->can_menu && Route::has('assetmaster.model_type.index'))
+                <li>
+                    <a href="{{ route('assetmaster.model_type.index') }}"
+                       class="nav-link text-white menu-item {{ request()->is('assetmaster/model_type*') ? 'active' : '' }}">
+                        <i class="bi bi-tools"></i> Model Type
+                    </a>
+                </li>
+            @endif
+        </ul>
+    </details>
+</li>
+
+            @endif
+
+                        </ul>
+
+                    </div>
+
+                </li>
+            @endif
+
+            <li class="nav-item">
+                <details class="sidebar-dropdown" {{ request()->is('contacts/*') ? 'open' : '' }}>
+                    <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-person-lines-fill"></i> Contact</span>
+                        <i class="bi bi-chevron-down arrow-icon"></i>
+                    </summary>
+                    <ul class="nav flex-column ms-3 mt-1">
+                        <li>
+                            <a class="nav-link text-white menu-item {{ request()->is('contacts/vendor*') ? 'active' : '' }}"
+                               href="{{ route('contacts.vendor.index') }}">
+                                Vendor Contact
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link text-white menu-item {{ request()->is('contacts/support*') ? 'active' : '' }}"
+                               href="{{ route('contacts.support.index') }}">
+                                Support Contact
+                            </a>
+                        </li>
+                    </ul>
+                </details>
+            </li>
+
+
+
+            {{-- Sales & Marketing Dropdown --}}
+
+@php
+
+    $feasibilityMaster = TemplateHelper::getUserMenuPermissions('Feasibility Master');
+    // sub-section privileges for Sales & Marketing Feasibility
+    $feasibilityMasterOpen = TemplateHelper::getUserMenuPermissions('Feasibility Master', 'SM Feasibility Open');
+    $feasibilityMasterInProgress = TemplateHelper::getUserMenuPermissions('Feasibility Master', 'SM Feasibility In Progress');
+    $feasibilityMasterClosed = TemplateHelper::getUserMenuPermissions('Feasibility Master', 'SM Feasibility Closed');
+
+
+    $purchaseOrder = TemplateHelper::getUserMenuPermissions('Purchase Order');
+    $proposal = TemplateHelper::getUserMenuPermissions('Proposal');
+    $smDeliverables = TemplateHelper::getUserMenuPermissions('sm Deliverables');
+
+    // sub-section privileges for Sales & Marketing Deliverables
+    $smDeliverablesOpen = TemplateHelper::getUserMenuPermissions('sm Deliverables', 'SM Deliverables Open');
+    $smDeliverablesInProgress = TemplateHelper::getUserMenuPermissions('sm Deliverables', 'SM Deliverables In Progress');
+    $smDeliverablesDelivery = TemplateHelper::getUserMenuPermissions('sm Deliverables', 'SM Deliverables Delivery');
+    $smDeliverablesAcceptance = TemplateHelper::getUserMenuPermissions('sm Deliverables', 'SM Deliverables Acceptance');
+@endphp
+
+@if(($feasibilityMaster && $feasibilityMaster->can_menu) || ($feasibilityMasterOpen && $feasibilityMasterOpen->can_menu) || ($feasibilityMasterInProgress && $feasibilityMasterInProgress->can_menu) || ($feasibilityMasterClosed && $feasibilityMasterClosed->can_menu) 
+|| ($purchaseOrder && $purchaseOrder->can_menu) || ($proposal && $proposal->can_menu) || ($smDeliverables && $smDeliverables->can_menu || ($smDeliverablesOpen && $smDeliverablesOpen->can_menu) || ($smDeliverablesInProgress && $smDeliverablesInProgress->can_menu) 
+|| ($smDeliverablesDelivery && $smDeliverablesDelivery->can_menu) || ($smDeliverablesAcceptance && $smDeliverablesAcceptance->can_menu)))
+<li class="nav-item ">
+
+    <details class="sm sidebar-dropdown" {{ request()->is('sm/feasibility*') || request()->is('sm/purchaseorder*') || request()->is('sm/deliverables*') ? 'open' : '' }}>
+
+        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+
+            <span><i class="bi bi-briefcase"></i> Sales & Marketing</span>
+
+            <i class="bi bi-chevron-down arrow-icon"></i>
+
+        </summary>
+
+        <ul class="nav flex-column ms-3 mt-1">
+
+
+
+            {{-- Feasibility Main Menu --}}
+
+            @if($feasibilityMaster && $feasibilityMaster->can_menu)
+
+            <li class="nav-item">
+
+                <details class="sidebar-dropdown" {{ request()->is('sm/feasibility*') || request()->is('feasibility/create*') ? 'open' : '' }}>
+
+                    <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+
+                        <span><i class="bi bi-diagram-3 me-2"></i> Feasibility</span>
+
+                        <i class="bi bi-chevron-down arrow-icon"></i>
+
+                    </summary>
+
+                    <ul class="nav flex-column ms-3">
+
+                        {{-- Add / Edit Feasibility --}}
+                        @if($feasibilityMaster && $feasibilityMaster->can_menu)
+                        <li>
+
+                            <a class="nav-link text-white menu-item {{ request()->is('feasibility/create*') ? 'active bg-primary fw-bold' : '' }}"
+
+                               href="{{ route('feasibility.create') }}">
+
+                               <i class="bi bi-plus-circle"></i> Add Feasibility
+
+                            </a>
+                            <a class="nav-link text-white menu-item {{ request()->is('feasibility') || request()->is('feasibility/*/edit') ? 'active bg-primary fw-bold' : '' }}"
+
+                               href="{{ route('feasibility.index') }}">
+
+                               <i class="bi bi-pencil"></i> Edit Feasibility
+
+                            </a>
+
+                        </li>
+                        @endif
+                        
+
+                        {{-- Status-based Menu Items --}}   
+
+                        @php
+
+                            // Determine which S&M menu item should be active
+
+                            $isSMOpenActive = false;
+
+                            $isSMInProgressActive = false;
+
+                            $isSMClosedActive = false;
+
+                            
+
+                            // Check for direct S&M page routes
+
+                            if (request()->is('sm/feasibility/open')) {
+
+                                $isSMOpenActive = true;
+
+                            } elseif (request()->is('sm/feasibility/inprogress')) {
+
+                                $isSMInProgressActive = true;
+
+                            } elseif (request()->is('sm/feasibility/closed')) {
+
+                                $isSMClosedActive = true;
+
+                            }
+
+                            
+
+                            // For S&M view and edit pages, check the record status
+
+                            if (request()->is('sm/feasibility/*/view') || request()->is('sm/feasibility/*/edit')) {
+
+                                $recordId = request()->segment(3); // Get the ID from URL
+
+                                if ($recordId) {
+
+                                    try {
+
+                                        $record = \App\Models\FeasibilityStatus::find($recordId);
+
+                                        if ($record && $record->status) {
+
+                                            switch ($record->status) {
+
+                                                case 'Open':
+
+                                                    $isSMOpenActive = true;
+
+                                                    break;
+
+                                                case 'InProgress':
+
+                                                    $isSMInProgressActive = true;
+
+                                                    break;
+
+                                                case 'Closed':
+
+                                                    $isSMClosedActive = true;
+
+                                                    break;
+
+                                            }
+
+                                        }
+
+                                    } catch (Exception $e) {
+
+                                        // Fallback - no active state
+
+                                    }
+
+                                }
+
+                            }
+
+                        @endphp
+
+                        {{-- Open Status --}}
+                        @if($feasibilityMasterOpen && $feasibilityMasterOpen->can_menu)
+
+                        <li>
+
+                            <a class="nav-link text-white menu-item {{ $isSMOpenActive ? 'active' : '' }}"
+
+                               href="{{ route('sm.feasibility.open') }}">
+
+                               <i class="bi bi-hourglass-split me-2"></i> Open
+
+                            </a>
+
+                        </li>
+                        @endif
+
+                        {{-- In Progress Status --}}
+                        @if($feasibilityMasterInProgress && $feasibilityMasterInProgress->can_menu)
+
+                        <li>
+
+                            <a class="nav-link text-white menu-item {{ $isSMInProgressActive ? 'active' : '' }}"
+
+                               href="{{ route('sm.feasibility.inprogress') }}">
+
+                               <i class="bi bi-clock-history me-2"></i> In Progress
+
+                            </a>
+
+                        </li>
+                        @endif
+
+                        {{-- Closed Status --}}
+                        @if($feasibilityMasterClosed && $feasibilityMasterClosed->can_menu)
+
+                        <li>
+
+                            <a class="nav-link text-white menu-item {{ $isSMClosedActive ? 'active' : '' }}"
+
+                               href="{{ route('sm.feasibility.closed') }}">
+
+                               <i class="bi bi-check-circle me-2"></i> Closed
+
+                            </a>
+
+                        </li>
+                        @endif
+
+                    </ul>
+
+                </details>
+
+            </li>
+
+            @endif
+            
+            {{-- Proposal Main Menu --}}
+
+            @if($proposal && $proposal->can_menu)
+
+            <li>
+
+                <a class="nav-link text-white menu-item {{ request()->is('sm/proposal*') ? 'active' : '' }}" href="{{ route('sm.proposal.index') }}">
+
+                    <span><i class="bi bi-receipt me-2"></i> Proposal</span>
+
+                </a>
+
+            </li>
+
+            @endif
+
+            {{-- Purchase Order Main Menu --}}
+
+            @if($purchaseOrder && $purchaseOrder->can_menu)
+
+            <li>
+
+                <a class="nav-link text-white menu-item {{ request()->is('sm/purchaseorder*') ? 'active' : '' }}" href="{{ route('sm.purchaseorder.index') }}">
+
+                    <span><i class="bi bi-receipt me-2"></i> Purchase Order</span>
+
+                </a>
+
+            </li>
+
+            @endif
+
+            @php
+                $isSmDeliverablesOpenActive = false;
+                $isSmDeliverablesInProgressActive = false;
+                $isSmDeliverablesDeliveryActive = false;
+                $isSmDeliverablesAcceptanceActive = false;
+
+                if (request()->is('sm/deliverables/open')) {
+                    $isSmDeliverablesOpenActive = true;
+                } elseif (request()->is('sm/deliverables/inprogress')) {
+                    $isSmDeliverablesInProgressActive = true;
+                } elseif (request()->is('sm/deliverables/delivery')) {
+                    $isSmDeliverablesDeliveryActive = true;
+                } elseif (request()->is('sm/deliverables/acceptance') || request()->is('sm/deliverables/*/acceptance')) {
+                    $isSmDeliverablesAcceptanceActive = true;
+                }
+
+                if (request()->is('sm/deliverables/*/view') || request()->is('sm/deliverables/*/edit')) {
+                    $recordId = request()->segment(3);
+                    if ($recordId) {
+                        try {
+                            $record = \App\Models\Deliverables::find($recordId);
+                            if ($record && $record->status) {
+                                switch ($record->status) {
+                                    case 'Open':
+                                        $isSmDeliverablesOpenActive = true;
+                                        break;
+                                    case 'InProgress':
+                                        $isSmDeliverablesInProgressActive = true;
+                                        break;
+                                    case 'Delivery':
+                                        $isSmDeliverablesDeliveryActive = true;
+                                        break;
+                                }
+                            }
+                        } catch (Exception $e) {
+                            // Fallback - no active state
+                        }
+                    }
+                }
+                $smDeliverablesOpenRoute = url('/sm/deliverables/open');
+                $smDeliverablesInProgressRoute = url('/sm/deliverables/inprogress');
+                $smDeliverablesDeliveryRoute = url('/sm/deliverables/delivery');
+                $smDeliverablesAcceptanceRoute = url('/sm/deliverables/acceptance');
+            @endphp
+
+            {{-- Deliverables Main Menu --}}
+            @if($smDeliverables && $smDeliverables->can_menu)
+            <li class="nav-item">
+
+                <details class="sidebar-dropdown" {{ request()->is('sm/deliverables*') ? 'open' : '' }}>
+
+                    <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+
+                        <span><i class="bi bi-truck me-2"></i> Deliverables</span>
+
+                        <i class="bi bi-chevron-down arrow-icon"></i>
+
+                    </summary>
+
+                    <ul class="nav flex-column ms-3 mt-1">
+
+                        {{-- Open Status --}}
+                        @if($smDeliverablesOpen && $smDeliverablesOpen->can_menu)
+
+                        <li>
+
+                            <a class="nav-link text-white menu-item {{ $isSmDeliverablesOpenActive ? 'active' : '' }}" href="{{ $smDeliverablesOpenRoute }}">
+
+                               <i class="bi bi-hourglass-split me-2"></i> Open
+
+                            </a>
+
+                        </li>
+                        @endif
+
+                        {{-- In Progress Status --}}
+                        @if ($smDeliverablesInProgress && $smDeliverablesInProgress->can_menu)
+                            
+                        <li>
+
+                            <a class="nav-link text-white menu-item {{ $isSmDeliverablesInProgressActive ? 'active' : '' }}" href="{{ $smDeliverablesInProgressRoute }}">
+
+                               <i class="bi bi-clock-history me-2"></i> In Progress
+
+                            </a>
+
+                        </li>
+                        @endif
+
+                        {{-- Accepted Status --}}
+                        @if ($smDeliverablesAcceptance && $smDeliverablesAcceptance->can_menu)
+
+                        <li>
+
+                            <a class="nav-link text-white menu-item {{ $isSmDeliverablesAcceptanceActive ? 'active' : '' }}" href="{{ $smDeliverablesAcceptanceRoute }}">
+                               <i class="bi bi-truck-flatbed me-2"></i> Accepted
+
+                            </a>
+
+                        </li>
+                        @endif
+
+                    </ul>
+
+                </details>
+            </li>
+            @endif
+
+                        {{-- Sales & Marketing Delivered Main Menu --}}
+                        @if($smDeliverablesDelivery && $smDeliverablesDelivery->can_menu)
+                        <li>
+
+                            <a class="nav-link text-white menu-item {{ $isSmDeliverablesDeliveryActive ? 'active' : '' }}" href="{{ $smDeliverablesDeliveryRoute }}">
+
+                               <i class="bi bi-truck-flatbed me-2"></i> Delivered
+
+                            </a>
+
+                        </li>
+                        @endif
+
+        </ul>
+
+    </div>
+
+</li>
+
+@endif
+            {{-- operations Dropdown --}}
+
+@php
+
+    $operationsFeasibility = TemplateHelper::getUserMenuPermissions('operations Feasibility');
+    //sub-section privilege  
+    $operationsFeasibilityOpen = TemplateHelper::getUserMenuPermissions('operations Feasibility', 'Operations Feasibility Open');
+    $operationsFeasibilityInProgress = TemplateHelper::getUserMenuPermissions('operations Feasibility', 'Operations Feasibility In Progress');
+    $operationsFeasibilityClosed = TemplateHelper::getUserMenuPermissions('operations Feasibility', 'Operations Feasibility Closed');
+    
+    $operationsDeliverables = TemplateHelper::getUserMenuPermissions('operations Deliverables');
+    // sub-section privilege  
+    $operationsDeliverablesOpen = TemplateHelper::getUserMenuPermissions('operations Deliverables', 'Operations Deliverables Open');
+    $operationsDeliverablesInProgress = TemplateHelper::getUserMenuPermissions('operations Deliverables', 'Operations Deliverables In Progress');
+    $operationsDeliverablesDelivery = TemplateHelper::getUserMenuPermissions('operations Deliverables', 'Operations Deliverables Delivery');
+    $operationsDeliverablesAcceptance = TemplateHelper::getUserMenuPermissions('operations Deliverables', 'Operations Deliverables Acceptance');
+
+    $operationsAsset = TemplateHelper::getUserMenuPermissions('Asset');
+    $operationsRenewals = TemplateHelper::getUserMenuPermissions('Renewals');
+    $operationsTermination = TemplateHelper::getUserMenuPermissions('Termination');
+
+    // Determine which operations feasibility menu item should be active
+
+    $isFeasibilityOpenActive = false;
+
+    $isFeasibilityInProgressActive = false;
+
+    $isFeasibilityClosedActive = false;
+
+    
+    // Check for direct feasibility page routes
+
+    if (request()->is('operations/feasibility/open')) {
+
+        $isFeasibilityOpenActive = true;
+
+    } elseif (request()->is('operations/feasibility/inprogress')) {
+
+        $isFeasibilityInProgressActive = true;
+
+    } elseif (request()->is('operations/feasibility/closed')) {
+
+        $isFeasibilityClosedActive = true;
+
+    }
+
+    
+    // Determine which operations deliverables menu item should be active
+
+    $isDeliverablesOpenActive = false;
+
+    $isDeliverablesInProgressActive = false;
+
+    $isDeliverablesDeliveryActive = false;
+
+    $isDeliverablesAcceptanceActive = false;
+
+
+    // Check for direct deliverables page routes
+
+    if (request()->is('operations/deliverables/open')) {
+
+        $isDeliverablesOpenActive = true;
+
+    } elseif (request()->is('operations/deliverables/inprogress')) {
+
+        $isDeliverablesInProgressActive = true;
+
+    } elseif (request()->is('operations/deliverables/delivery')) {
+
+        $isDeliverablesDeliveryActive = true;
+
+    } elseif (request()->is('operations/deliverables/acceptance') || request()->is('operations/deliverables/*/acceptance')) {
+
+        $isDeliverablesAcceptanceActive = true;
+
+    }
+
+    
+
+    // For feasibility view/edit pages, check the record status
+
+    if (request()->is('operations/feasibility/*/view') || request()->is('operations/feasibility/*/edit')) {
+
+        $recordId = request()->segment(3); // Get the ID from URL
+
+        if ($recordId) {
+
+            try {
+
+                $record = \App\Models\FeasibilityStatus::find($recordId);
+
+                if ($record && $record->status) {
+
+                    switch ($record->status) {
+
+                        case 'Open':
+
+                            $isFeasibilityOpenActive = true;
+
+                            break;
+
+                        case 'InProgress':
+
+                            $isFeasibilityInProgressActive = true;
+
+                            break;
+
+                        case 'Closed':
+
+                            $isFeasibilityClosedActive = true;
+
+                            break;
+
+                    }
+
+                }
+
+            } catch (Exception $e) {
+
+                // Fallback - no active state
+
+            }
+
+        }
+
+    }
+    // For deliverables view/edit pages, check the record status / type
+
+    if (request()->is('operations/deliverables/*/view') || request()->is('operations/deliverables/*/edit')) {
+
+        $recordId = request()->segment(3); // Get the ID from URL
+
+        if ($recordId) {
+
+            try {
+
+                $record = \App\Models\Deliverables::with('feasibility')->find($recordId);
+
+                if ($record && $record->status) {
+
+                    switch ($record->status) {
+
+                        case 'Open':
+
+                            $isDeliverablesOpenActive = true;
+
+                            break;
+
+                        case 'InProgress':
+
+                            $isDeliverablesInProgressActive = true;
+
+                            break;
+
+                        case 'Delivery':
+
+                            // For ILL service, treat as Accepted in menu
+                            if (optional($record->feasibility)->type_of_service === 'ILL') {
+                                $isDeliverablesAcceptanceActive = true;
+                            } else {
+                                $isDeliverablesDeliveryActive = true;
+                            }
+
+                            break;
+
+                    }
+
+                }
+
+            } catch (Exception $e) {
+
+                // Fallback - no active state
+
+            }
+
+        }
+
+    }
+
+@endphp
+
+@if(($operationsAsset && $operationsAsset->can_menu) || ($operationsRenewals && $operationsRenewals->can_menu) || ($operationsFeasibility && $operationsFeasibility->can_menu) 
+|| ($operationsFeasibilityOpen && $operationsFeasibilityOpen->can_menu) || ($operationsDeliverables && $operationsDeliverables->can_menu) || ($operationsTermination && $operationsTermination->can_menu))
+
+<li class="nav-item ">
+
+    <details class="operation sidebar-dropdown" {{ request()->is('operations/asset*') || request()->is('operations/renewals*') || request()->is('operations/feasibility*') || request()->is('operations/deliverables*') || request()->is('operations/purchaseorder*') || request()->is('operations/termination*') ? 'open' : '' }}>
+        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+
+            <span><i class="bi bi-gear-wide-connected"></i> Operations</span>
+
+            <i class="bi bi-chevron-down arrow-icon"></i>
+
+        </summary>
+
+        <ul class="nav flex-column ms-3 mt-1">
+            
+            <!-- Feasibility Main Menu --> 
+            @if($operationsFeasibility && $operationsFeasibility->can_menu)
+
+            <li class="nav-item">
+
+                <details class="sidebar-dropdown" {{ request()->is('operations/feasibility*') ? 'open' : '' }}>
+
+                    <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+
+                        <span><i class="bi bi-diagram-3 me-2"></i> Feasibility</span>
+
+                        <i class="bi bi-chevron-down arrow-icon"></i>
+
+                    </summary>
+
+        <ul class="nav flex-column ms-3 mt-1">
+
+               <!-- operations feasibility open menu -->
+                @if($operationsFeasibilityOpen && $operationsFeasibilityOpen->can_menu)
+            <li>
+
+                <a class="nav-link text-white menu-item {{ $isFeasibilityOpenActive ? 'active' : '' }}"
+
+                   href="{{ route('operations.feasibility.open') }}">
+
+                   <i class="bi bi-hourglass-split me-2"></i> Open
+
+                </a>
+
+            </li>
+            @endif
+               <!-- operations feasibility In progress menu -->
+                @if($operationsFeasibilityInProgress && $operationsFeasibilityInProgress->can_menu)
+            <li>
+
+                <a class="nav-link text-white menu-item {{ $isFeasibilityInProgressActive ? 'active' : '' }}"
+
+                   href="{{ route('operations.feasibility.inprogress') }}">
+
+                   <i class="bi bi-clock-history me-2"></i> In Progress
+
+                </a>
+
+            </li>
+            @endif
+                <!-- operations feasibility closed menu -->
+            @if($operationsFeasibilityClosed && $operationsFeasibilityClosed->can_menu)
+            <li>
+
+                <a class="nav-link text-white menu-item {{ $isFeasibilityClosedActive ? 'active' : '' }}" href="{{ route('operations.feasibility.closed') }}">
+
+                   <i class="bi bi-check-circle me-2"></i> Closed
+
+                </a>
+
+            </li>
+            @endif  
+
+                <!-- operations feasibility Not-Feasible menu -->
+                @php
+                    $operationsFeasibilityNotFeasible = TemplateHelper::getUserMenuPermissions('operations Feasibility', 'Operations Feasibility Not-Feasible');
+                    $isFeasibilityNotFeasibleActive = request()->is('operations/feasibility/notfeasible');
+                @endphp
+                @if($operationsFeasibilityNotFeasible && $operationsFeasibilityNotFeasible->can_menu)
+                <li>
+                    <a class="nav-link text-white menu-item {{ $isFeasibilityNotFeasibleActive ? 'active' : '' }}" href="{{ route('operations.feasibility.notfeasible.list') }}">
+                       <i class="bi bi-x-octagon me-2"></i> Not-Feasible
+                    </a>
+                </li>
+                @endif
+
+        </ul>
+
+                </details>
+            </li>
+            @endif
+
+
+            <!-- Operations Deliverables Main Menu -->
+            @if($operationsDeliverables && $operationsDeliverables->can_menu)
+            <li class="nav-item">
+
+                <details class="sidebar-dropdown" {{ request()->is('operations/deliverables*') ? 'open' : '' }}>
+
+                    <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+
+                        <span><i class="bi bi-truck me-2"></i> Deliverables</span>
+
+                        <i class="bi bi-chevron-down arrow-icon"></i>
+
+                    </summary>
+
+        <ul class="nav flex-column ms-3 mt-1">
+
+                       <!-- Operations Deliverables open Menu -->
+                        @if($operationsDeliverablesOpen && $operationsDeliverablesOpen->can_menu)
+            <li>
+
+                <a class="nav-link text-white menu-item {{ $isDeliverablesOpenActive ? 'active' : '' }}" href="{{ route('operations.deliverables.open') }}">
+
+                   <i class="bi bi-hourglass-split me-2"></i> Open
+
+                </a>
+
+            </li>
+            @endif
+
+            <!-- Operations Deliverables In Progress Menu -->
+            @if($operationsDeliverablesInProgress && $operationsDeliverablesInProgress->can_menu)
+
+            <li>
+
+                <a class="nav-link text-white menu-item {{ $isDeliverablesInProgressActive ? 'active' : '' }}" href="{{ route('operations.deliverables.inprogress') }}">
+
+                   <i class="bi bi-clock-history me-2"></i> In Progress
+
+                </a>
+
+            </li>
+            @endif
+
+            <!-- Operations Deliverables Delivered Menu (now shown as main menu item below) -->
+
+             <!-- Operations Deliverables Acceptance Menu -->
+            @if($operationsDeliverablesAcceptance && $operationsDeliverablesAcceptance->can_menu)
+            <li>
+
+                <a class="nav-link text-white menu-item {{ $isDeliverablesAcceptanceActive ? 'active' : '' }}"
+                   href="{{ route('operations.deliverables.acceptance') }}">
+
+                   <i class="bi bi-truck-flatbed me-2"></i> Accepted
+                </a>
+            </li>
+            @endif
+        </ul>
+                </details>
+            </li>
+            @endif
+            
+              <!-- Operations Delivered Main Menu -->
+            @if($operationsDeliverablesDelivery && $operationsDeliverablesDelivery->can_menu)
+            <li>
+
+                <a class="nav-link text-white menu-item {{ $isDeliverablesDeliveryActive ? 'active' : '' }}"
+                   href="{{ route('operations.deliverables.delivery') }}">
+
+                   <i class="bi bi-truck-flatbed me-2"></i> Delivered
+                </a>
+            </li>
+            @endif
+
+            
+                <!-- Renewals in operations -->
+                @if($operationsRenewals && $operationsRenewals->can_menu)
+                      <li>
+                        <a class="nav-link text-white menu-item {{ request()->is('operations/renewals*') ? 'active' : '' }}"
+                                   href="{{ route('operations.renewals.index') }}">
+                            <i class="bi bi-receipt me-2"></i> Renewals
+                        </a>
+                        </li>
+                @endif
+
+                <!-- Asset in operations -->
+            @if($operationsAsset && $operationsAsset->can_menu)
+
+        <li class="nav-item">
+
+                    <a class="nav-link text-white menu-item {{ request()->is('operations/asset/*') ? 'active' : '' }}" href="{{ route('operations.asset.index') }}">
+                        <i class="bi bi-gear"></i> Asset
+
+                    </a>
+
+                </li>
+            @endif
+
+                <!-- Termination in operations -->                 
+
+             @if($operationsTermination && $operationsTermination->can_menu)
+
+        <li class="nav-item">
+
+                    <a class="nav-link text-white menu-item {{ request()->is('operations/termination/*') ? 'active' : '' }}" href="{{ route('operations.termination.index') }}">
+                        <i class="bi bi-wallet2"></i> Termination
+
+                    </a>
+
+                </li>
+            @endif
+
+        </ul>
+    </details>
+</li>
+@endif
+
+          
+            <!-- Finance Dropdown -->
+
+            @php
+
+                $finance = TemplateHelper::getUserMenuPermissions('Accounts');
+                $invoice = TemplateHelper::getUserMenuPermissions('Invoice');
+                $items = TemplateHelper::getUserMenuPermissions('Items');
+                $banking = TemplateHelper::getUserMenuPermissions('Banking');
+                $gst = TemplateHelper::getUserMenuPermissions('GST');
+                $purchase = TemplateHelper::getUserMenuPermissions('Purchases');
+                $reports = TemplateHelper::getUserMenuPermissions('Reports');
+                $sales = TemplateHelper::getUserMenuPermissions('Sales');
+                $settings = TemplateHelper::getUserMenuPermissions('Settings');
+                $tds = TemplateHelper::getUserMenuPermissions('TDS');
+                
+
+            @endphp
+
+            {{-- FINANCE DROPDOWN --}}
+@if($finance && $finance->can_menu)
+<li class="nav-item">
+    <details class="finance sidebar-dropdown"
+        {{ request()->is('finance/*') ? 'open' : '' }}>
+        
+        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-cash-coin"></i> Finance</span>
+            <i class="bi bi-chevron-down arrow-icon"></i>
+        </summary>
+
+        <ul class="nav flex-column ms-3 mt-2">
+
+            {{-- SALES --}}
+            @if($sales && $sales->can_menu)
+            <li>
+                <details {{ request()->is('finance/sales*') || request()->is('finance/customers*') ? 'open' : '' }}>
+
+                    <summary class="nav-link text-white d-flex justify-content-between align-items-center menu-sales">
+                        <span><i class="bi bi-graph-up-arrow me-2"></i> Sales</span>
+                              <i class="bi bi-chevron-down arrow-icon"></i>
+                    </summary>
+
+                    <ul class="nav flex-column ms-3 mt-1">
+
+                        <li>
+                            <a class="nav-link text-white menu-item {{ request()->is('finance/sales*') && !request()->is('finance/sales/recurring-invoice*') ? 'active' : '' }}"
+                               href="{{ route('finance.sales.index') }}">
+                                Auto Sales Invoices
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="nav-link text-white menu-item {{ request()->is('finance/sales/recurring-invoice*') ? 'active' : '' }}"
+                               href="{{ route('finance.sales.recurring-invoice.index') }}">
+                                Recurring Invoice
+                            </a>
+                        </li>
+                       
+                    </ul>
+                </details>
+            </li>
+            @endif
+
+
+{{-- Auto Invoice Processing --}}
+            @if($purchase && $purchase->can_menu)
+
+            <li>
+                <details {{ request()->is('finance/purchases*') || request()->is('finance/purchase-invoices*') || request()->is('finance/vendors*') ? 'open' : '' }}>
+                    <summary class="nav-link text-white d-flex justify-content-between align-items-center menu-sales">
+                        <span><i class="bi bi-cart-check me-2"></i> Purchases</span>
+                              <i class="bi bi-chevron-down arrow-icon"></i>
+                    </summary>
+                    <ul class="nav flex-column ms-3 mt-1">
+                        <li>
+                            <a class="nav-link text-white menu-item {{ request()->is('finance/purchase-invoices*') ? 'active' : '' }}"
+                               href="{{ route('finance.purchase_invoices.index') }}">
+                                Auto Invoice Processing
+                            </a>
+                        </li>
+
+                        {{-- Purchase Invoices--}}
+            <li>
+                <a class="nav-link text-white menu-item 
+                    {{ request()->is('finance/purchases*') ? 'active' : '' }}"
+                   href="{{ route('finance.purchases.index') }}">
+                    Purchase Invoices
+                </a>
+            </li>
+
+             {{--  Purchase Excel Download --}}
+            <li>
+                <a class="nav-link text-white menu-item 
+                    {{ request()->is('finance/purchases/download-excel') ? 'active' : '' }}"
+                   href="{{ route('finance.purchases.downloadExcel') }}">
+                    Excel Download
+                </a>
+            </li>
+
+            <li>
+                <a class="nav-link text-white menu-item 
+                    {{ request()->is('finance/purchase-invoices*') && request('status') === 'failed' ? 'active' : '' }}"
+                   href="{{ route('finance.purchase_invoices.index', ['status' => 'failed']) }}">
+                    Failed Invoice
+                </a>
+            </li>
+                    </ul>
+                </details>
+            </li>
+            @endif
+            
+            
+            {{-- MASTERS --}}
+            @if($items && $items->can_menu)
+            <li>
+                <a class="nav-link text-white menu-item {{ request()->is('finance/items*') ? 'active' : '' }}"
+                   href="{{ route('finance.items.index') }}">
+                    <i class="bi bi-box-seam me-2"></i> Items
+                </a>
+            </li>
+            @endif
+
+
+            {{-- ACCOUNTING --}}
+            @if($banking && $banking->can_menu)
+            <li>
+                <a class="nav-link text-white menu-item {{ request()->is('finance/accounts*') ? 'active' : '' }}"
+                   href="{{ route('finance.accounts.index') }}">
+                    <i class="bi bi-journal-text me-2"></i> Accounts
+                </a>
+            </li>
+
+            <li>
+                <a class="nav-link text-white menu-item {{ request()->is('finance/banking*') ? 'active' : '' }}"
+                   href="{{ route('finance.banking.index') }}">
+                    <i class="bi bi-bank me-2"></i> Banking
+                </a>
+            </li>
+            @endif
+
+            {{-- PAYMENTS --}}
+            <li>
+                <details {{ request()->is('payments/*') ? 'open' : '' }}">
+                    <summary class="nav-link text-white">
+                        <span><i class="bi bi-credit-card me-2"></i> Payments</span>
+                        <i class="bi bi-chevron-down arrow-icon"></i>
+                    </summary>
+                    <ul class="nav flex-column ms-3 mt-1">
+                        <li>
+                            <a class="nav-link text-white menu-item {{ request()->is('payments/dashboard') ? 'active' : '' }}"
+                               href="{{ route('payments.dashboard') }}">
+                                <i class="bi bi-speedometer2 me-2"></i> Payments Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link text-white menu-item {{ request()->is('payments/batches*') ? 'active' : '' }}"
+                               href="{{ route('payments.batches') }}">
+                                <i class="bi bi-collection me-2"></i> Payment Batches
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link text-white menu-item {{ request()->is('payments/pending-invoices*') ? 'active' : '' }}"
+                               href="{{ route('payments.pending-invoices') }}">
+                                <i class="bi bi-file-invoice me-2"></i> Pending Invoices
+                            </a>
+                        </li>
+                    </ul>
+                </details>
+            </li>
+
+
+            {{-- REPORTS --}}
+            @if($reports && $reports->can_menu)
+            <li>
+                <details {{ request()->is('finance/reports*') ? 'open' : '' }}>
+                    <summary class="nav-link text-white">
+                        <span><i class="bi bi-bar-chart-line me-2"></i> Reports</span>
+                              <i class="bi bi-chevron-down arrow-icon"></i>
+                    </summary>
+                    <ul class="nav flex-column ms-3 mt-1">
+                        <li>
+                            <a class="nav-link text-white menu-item"
+                               href="{{ route('finance.reports.sales') }}">
+                                Sales Report
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link text-white menu-item"
+                               href="{{ route('finance.reports.purchase') }}">
+                                Purchase Report
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link text-white menu-item"
+                               href="{{ route('finance.reports.gst') }}">
+                                GST Report
+                            </a>
+                        </li>
+                    </ul>
+                </details>
+            </li>
+            @endif
+
+
+            {{-- SETTINGS --}}
+            @if($settings && $settings->can_menu)
+            <li>
+                <a class="nav-link text-white menu-item {{ request()->is('finance/settings*') ? 'active' : '' }}"
+                   href="{{ route('finance.settings.index') }}">
+                    <i class="bi bi-gear me-2"></i> Settings
+                </a>
+            </li>
+            @endif
+
+        </ul>
+    </details>
+</li>
+@endif
+
+                     {{-- Compliance --}}
+
+            @php
+
+                $compliance = TemplateHelper::getUserMenuPermissions('Compliance');
+
+            @endphp
+
+            @if($compliance && $compliance->can_menu)
+                <li class="nav-item">
+
+                    <a class="nav-link text-white menu-item {{ request()->is('compliance/*') ? 'active' : '' }}" href="{{ url('/compliance') }}">
+
+                        <i class="bi bi-shield-check"></i> Compliance
+
+                    </a>
+
+                </li>
+
+            @endif
+
+            {{-- HR --}}
+
+            @php
+
+                $assurance = TemplateHelper::getUserMenuPermissions('Assurance');
+
+            @endphp
+
+            @if($assurance && $assurance->can_menu)
+                <li class="nav-item">
+
+                    <a class="nav-link text-white menu-item {{ request()->is('assurance/*') ? 'active' : '' }}" href="{{ url('/assurance') }}">
+
+                        <i class="bi bi-people-fill"></i> Assurance
+
+                    </a>
+
+                </li>
+
+            @endif
+
+             {{-- HR --}}
+
+            {{-- HR --}}
+
+            @php
+
+                $hr = TemplateHelper::getUserMenuPermissions('HR');
+                $users = TemplateHelper::getUserMenuPermissions('Manage User');
+                $employees = TemplateHelper::getUserMenuPermissions('Employee');
+                $leavetype = TemplateHelper::getUserMenuPermissions('Leave Management');
+
+            @endphp
+
+            @if($hr && $hr->can_menu)
+                <li class="nav-item ">
+                    <details class="hr sidebar-dropdown" {{ request()->is('hr*') || request()->is('users*') ? 'open' : '' }}>
+                        <summary class="nav-link text-white d-flex justify-content-between align-items-center ">
+                            <span><i class="bi bi-people-fill"></i> HR</span>
+                            <i class="bi bi-chevron-down arrow-icon"></i>
+                        </summary>
+
+                        @if($employees && $employees->can_menu)  
+                        <ul class="nav flex-column ms-3">
+                            <li class="nav-item">
+                                <a class="nav-link text-white menu-item {{ request()->is('hr/employee*') ? 'active' : '' }}" href="{{ route('hr.employee.index') }}">
+                                    <i class="bi bi-person-badge"></i> Employee
+                                </a>
+                            </li>
+                            @endif
+
+                            @if($users && $users->can_menu)
+                                <li class="nav-item">
+                                    <a class="nav-link text-white menu-item {{ request()->is('users*') ? 'active' : '' }}" href="{{ route('users.index') }}">
+                                        <i class="bi bi-people"></i> Manage User
+                                    </a>
+                                </li>
+                            @endif
+
+                            {{-- Leave Type Submenu --}}
+                            @if($leavetype && $leavetype->can_menu)
+                            <li class="nav-item">
+                                <a class="nav-link text-white menu-item {{ request()->is('hr/leavetype*') ? 'active' : '' }}" href="{{ route('hr.leavetype.index') }}">
+                                    <i class="bi bi-calendar-check"></i> Leave Type
+                                </a>
+                            </li>
+                            @endif
+
+                        </ul>
+                    </details>
+                </li>
+
+            @endif
+
+             {{-- Training --}}
+
+            @php
+
+                $training = TemplateHelper::getUserMenuPermissions('Training');
+            @endphp
+
+            @if($training && $training->can_menu)
+
+                <li class="nav-item">
+
+                    <a class="nav-link text-white menu-item {{ request()->is('training/*') ? 'active' : '' }}"
+                     href="{{ url('/training') }}">
+                        <i class="bi bi-journal-bookmark"></i> Training
+
+                    </a>
+
+                </li>
+
+            @endif
+
+             {{-- Admin --}}
+
+            @php
+
+                $admin = TemplateHelper::getUserMenuPermissions('Admin');
+            @endphp
+
+            @if($admin && $admin->can_menu)
+
+                <li class="nav-item" >
+
+                    <a class="nav-link text-white menu-item {{ request()->is('admin/*') ? 'active' : '' }}" href="{{ url('/admin') }}">
+
+                        <i class="bi bi-gear-fill"></i> Admin
+
+                    </a>
+
+                </li>
+
+            @endif
+
+           
+             {{-- Strategy --}}
+
+            @php
+
+                $strategy = TemplateHelper::getUserMenuPermissions('Strategy');
+            @endphp
+
+            @if($strategy && $strategy->can_menu)
+
+                <li class="nav-item">
+
+                    <a class="nav-link text-white menu-item {{ request()->is('strategy/*') ? 'active' : '' }}" href="{{ url('/strategy') }}">
+                        <i class="bi bi-graph-up"></i> Strategy
+
+                    </a>
+
+                </li>
+
+            @endif
+
+
+            <!--  -->
+
+            @php
+    $reportDeliverable = TemplateHelper::getUserMenuPermissions('Deliverable Report');
+    $reportDeliverableOpen = TemplateHelper::getUserMenuPermissions('Deliverable Report', 'Open');
+    $reportDeliverableInProgress = TemplateHelper::getUserMenuPermissions('Deliverable Report', 'In Progress');
+    $reportDeliverableDelivery = TemplateHelper::getUserMenuPermissions('Deliverable Report', 'Delivery');
+    $isReportDeliverableOpenActive = request()->is('report/deliverable/open');
+    $isReportDeliverableInProgressActive = request()->is('report/deliverable/inprogress');
+    $isReportDeliverableDeliveryActive = request()->is('report/deliverable/delivery');
+@endphp
+
+@if(($reportDeliverable && $reportDeliverable->can_menu) || ($reportDeliverableOpen && $reportDeliverableOpen->can_menu) || ($reportDeliverableInProgress && $reportDeliverableInProgress->can_menu) || ($reportDeliverableDelivery && $reportDeliverableDelivery->can_menu))
+<li class="nav-item">
+    <details class="report sidebar-dropdown" {{ request()->is('report/deliverable*') ? 'open' : '' }}>
+        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-bar-chart"></i> Deliverables Report</span>
+            <i class="bi bi-chevron-down arrow-icon"></i>
+        </summary>
+        <ul class="nav flex-column ms-3 mt-1">
+            @if($reportDeliverableOpen && $reportDeliverableOpen->can_menu)
+            <li>
+                <a class="nav-link text-white menu-item {{ $isReportDeliverableOpenActive ? 'active' : '' }}" href="{{ route('report.deliverable.open') }}">
+                    <i class="bi bi-hourglass-split me-2"></i> Open
+                </a>
+            </li>
+            @endif
+            @if($reportDeliverableInProgress && $reportDeliverableInProgress->can_menu)
+            <li>
+                <a class="nav-link text-white menu-item {{ $isReportDeliverableInProgressActive ? 'active' : '' }}" href="{{ route('report.deliverable.inprogress') }}">
+                    <i class="bi bi-clock-history me-2"></i> In Progress
+                </a>
+            </li>
+            @endif
+            @if($reportDeliverableDelivery && $reportDeliverableDelivery->can_menu)
+            <li>
+                <a class="nav-link text-white menu-item {{ $isReportDeliverableDeliveryActive ? 'active' : '' }}" href="{{ route('report.deliverable.delivery') }}">
+                    <i class="bi bi-truck-flatbed me-2"></i> Delivery
+                </a>
+            </li>
+            @endif
+        </ul>
+    </details>
+</li>
+@endif
+
+
+
+            <!--  -->
+
+            
+
+            {{-- System Settings Dropdown --}}
+
+            @php
+
+                $template = TemplateHelper::getUserMenuPermissions('Template Masters');
+
+                $menu = TemplateHelper::getUserMenuPermissions('Manage Menu');
+
+                $companySettings = TemplateHelper::getUserMenuPermissions('Company Settings');
+
+                $SystemSettings = TemplateHelper::getUserMenuPermissions('System Settings');
+
+                $whatsappSettings = TemplateHelper::getUserMenuPermissions('WhatsApp Settings');
+
+            @endphp
+
+            @if(($template && $template->can_menu) || ($menu && $menu->can_menu) || ($companySettings && $companySettings->can_menu))
+
+                <li class="nav-item" >
+
+                    <details class="system sidebar-dropdown" {{ request()->is('emails*') || request()->is('menus*') || request()->is('company-settings*') || request()->is('system-settings*') || request()->is('whatsapp-settings*') ? 'open' : '' }}>
+
+                        <summary class="nav-link text-white d-flex justify-content-between align-items-center">
+
+                            <span><i class="bi bi-gear"></i> System</span>
+
+                            <i class="bi bi-chevron-down arrow-icon"></i>
+
+                        </summary>
+
+                        <ul class="nav flex-column ms-3 mt-2">
+
+                            @if($template && $template->can_menu)
+
+                                <li><a class="nav-link text-white menu-item {{ request()->is('emails*') ? 'active' : '' }}" href="{{ route('emails.index') }}"><i class="bi bi-envelope"></i> Template Master</a></li>
+
+                            @endif
+
+                            @if($menu && $menu->can_menu)
+
+                                <li><a class="nav-link text-white menu-item {{ request()->is('menus*') ? 'active' : '' }}" href="{{ route('menus.index') }}"><i class="bi bi-list-check"></i> Manage Menu</a></li>
+
+                            @endif
+
+                            @if($companySettings && $companySettings->can_menu)
+
+                                <li><a class="nav-link text-white menu-item {{ request()->is('company-settings*') ? 'active' : '' }}" href="{{ route('settings.company') }}"><i class="bi bi-building"></i> Company Settings</a></li>
+
+                                 @endif
+
+                            @if($SystemSettings && $SystemSettings->can_menu)
+                            
+
+                                <li><a class="nav-link text-white menu-item {{ request()->is('system-settings*') ? 'active' : '' }}" href="{{ route('settings.system') }}"><i class="bi bi-sliders"></i> System Settings</a></li>
+
+                            @endif
+                            
+                            @if($whatsappSettings && $whatsappSettings->can_menu)
+                                <li><a class="nav-link text-white menu-item {{ request()->is('whatsapp-settings*') ? 'active' : '' }}" href="{{ route('settings.whatsapp') }}"><i class="bi bi-sliders"></i> WhatsApp Settings</a></li>
+                            @endif
+
+
+
+                        </ul>
+                    </details>
+                </li>
+
+            @endif
+            {{-- Logout --}}
+
+            <li class="nav-item mt-4">
+
+                <form method="POST" action="{{ route('logout') }}">
+
+                    @csrf
+
+                    <button type="submit" class="btn btn-danger w-100">
+
+                        <i class="bi bi-box-arrow-right"></i> Logout
+
+                    </button>
+
+                </form>
+
+            </li>
+
+        </ul>
+
+    </div>
+
+<!-- </div> -->
+
+<script>
+function expandSidebar() {
+    document.getElementById('sidebarWrapper').classList.add('sidebar-expanded');
+    document.getElementById('sidebarWrapper').classList.remove('sidebar-collapsed');
+}
+function collapseSidebar() {
+    document.getElementById('sidebarWrapper').classList.remove('sidebar-expanded');
+    document.getElementById('sidebarWrapper').classList.add('sidebar-collapsed');
+}
+</script>
+
+<style>
+/* Sidebar wrapper for expand/collapse */
+.sidebar-wrapper {
+    width: 80px;
+    background: #0a1857;
+    min-height: 100vh;
+    transition: width 0.25s cubic-bezier(.4,2,.6,1);
+    overflow-x: hidden;
+    z-index: 100;
+    position: relative;
+}
+.sidebar-wrapper.sidebar-expanded {
+    width: 300px;
+}
+.sidebar-wrapper .menu-text {
+    display: none;
+    transition: opacity 0.18s;
+    white-space: nowrap;
+}
+.sidebar-wrapper.sidebar-expanded .menu-text {
+    display: inline;
+    opacity: 1;
+    margin-left: 0.5rem;
+}
+.sidebar-wrapper .nav-link, .sidebar-wrapper .menu-item {
+    justify-content: center;
+}
+.sidebar-wrapper.sidebar-expanded .nav-link, .sidebar-wrapper.sidebar-expanded .menu-item {
+    justify-content: flex-start;
+}
+
+/* Hide chevrons and arrows when collapsed */
+.sidebar-wrapper:not(.sidebar-expanded) .arrow-icon,
+.sidebar-wrapper:not(.sidebar-expanded) summary .menu-text {
+    display: none !important;
+}
+
+/* Hide summary text when collapsed */
+.sidebar-wrapper:not(.sidebar-expanded) summary span .menu-text {
+    display: none !important;
+}
+
+/* Hide ul text when collapsed */
+.sidebar-wrapper:not(.sidebar-expanded) ul .menu-text {
+    display: none !important;
+}
+
+/* Hide button text when collapsed */
+.sidebar-wrapper:not(.sidebar-expanded) button .menu-text {
+    display: none !important;
+}
+
+/* Hide form text when collapsed */
+.sidebar-wrapper:not(.sidebar-expanded) form .menu-text {
+    display: none !important;
+}
+</style>
+
+
+
+{{-- Sidebar Styles --}}
+
+<style>
+
+    /* Base link styling */
+    .nav-link {
+        font-size: 0.925rem;
+        padding: 0.55rem 0.9rem;
+        border-radius: 8px;
+        color: #e5ecff;
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        box-shadow: 0 1px 4px 0 rgba(44, 44, 84, 0.08);
+        position: relative;
+        overflow: hidden;
+        transition: 
+            box-shadow 0.25s cubic-bezier(.4,2,.6,1),
+            transform 0.18s cubic-bezier(.4,2,.6,1),
+            background-color 0.18s ease, 
+            color 0.18s ease, 
+            padding-left 0.18s ease;
+    }
+
+    /* Top-level sections a bit bolder */
+    .nav > .nav-item > .nav-link {
+        font-weight: 500;
+    }
+
+    /* Nested menu indentation */
+    .nav .nav .nav-link {
+        font-weight: 400;
+        padding-left: 1.6rem;
+        font-size: 0.9rem;
+    }
+
+
+    /* Active state for menu items */
+    .menu-item.active {
+        background-color: #0d6efd;
+        border-radius: 8px;
+        color: #fff !important;
+        box-shadow: 0 2px 8px 0 rgba(13, 110, 253, 0.18), 0 0 0 1.5px rgba(13, 110, 253, 0.25);
+        transform: scale(1.04);
+    }
+
+
+    /* Hover state - advanced UI, no color change */
+    .nav-link:hover, .menu-item:hover {
+        box-shadow: 0 4px 16px 0 rgba(44, 44, 84, 0.16), 0 0 0 2px #fff2;
+        transform: scale(1.045);
+        color: #fff !important;
+        text-decoration: none;
+    }
+
+    /* Underline effect on hover */
+    .nav-link::after, .menu-item::after {
+        content: '';
+        display: block;
+        position: absolute;
+        left: 18px;
+        right: 18px;
+        bottom: 8px;
+        height: 2.5px;
+        /* background: linear-gradient(90deg, #fff2 0%, #fff 50%, #fff2 100%); */
+        border-radius: 2px;
+        opacity: 0;
+        transform: scaleX(0.7);
+        transition: opacity 0.18s, transform 0.18s;
+        pointer-events: none;
+    }
+    .nav-link:hover::after, .menu-item:hover::after,
+    .menu-item.active::after {
+        opacity: 1;
+        transform: scaleX(1);
+    }
+
+    /* Icons */
+    .nav-link i {
+        font-size: 1rem;
+    }
+
+
+    /* Arrow icon rotation for open groups */
+    .arrow-icon {
+        transition: transform 0.18s cubic-bezier(.4,2,.6,1);
+        font-size: 0.8rem;
+    }
+    .nav-link[aria-expanded="true"] .arrow-icon {
+        transform: rotate(180deg) scale(1.2);
+    }
+
+    /* Spacing between groups */
+    .nav > .nav-item + .nav-item {
+        margin-top: 0.15rem;
+    }
+
+    .nav .collapse .nav-item + .nav-item {
+        margin-top: 0.05rem;
+    }
+
+   
+    .system{
+        border: #ca2da8!important;
+        border-width: 4px!important;
+        border-style: solid!important; 
+    }
+    .hr{
+        border: #f5f3f4!important;
+        border-width: 4px!important;
+        border-style: solid!important; 
+    }
+    .finance{
+        border: orange!important;
+        border-width: 4px!important;
+        border-style: solid!important; 
+    }
+    .operation{
+        border: green!important;
+        border-width: 4px!important;
+        border-style: solid!important; 
+    }
+    .sm{
+        border: #07a4e7!important;
+        border-width: 4px!important;
+        border-style: solid!important; 
+    }
+    .master{
+        border: #f83003!important;
+        border-width: 4px!important;
+        border-style: solid!important;
+    }
+    .report{
+        border: #aa03f8!important;
+        border-width: 4px!important;
+        border-style: solid!important;
+    }
+    </style>
+
+<!-- Responsive Navbar/Profile/Time CSS for Mobile -->
+<style>
+@media (max-width: 767px) {
+  .navbar .container-fluid {
+    flex-wrap: nowrap !important;
+  }
+  .navbar .d-flex.align-items-center {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .navbar .dropdown {
+    margin-left: auto !important;
+  }
+  #onlineStatusTicker {
+    margin-left: auto !important;
+    margin-right: 0 !important;
+    display: flex;
+    align-items: center;
+  }
+}
+</style>
+
+
+
+
+
+
+
+<style>
+    /* --- Module Accent Indicators --- */
+    .sidebar-module {
+        border-radius: 12px;
+        margin-bottom: 6px;
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent !important; /* Clean accent indicator */
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Color Coding - Left Border Accents */
+    .sidebar-module.master { border-left-color: #ef4444 !important; }    /* Red */
+    .sidebar-module.sm { border-left-color: #0ea5e9 !important; }        /* Blue */
+    .sidebar-module.operation { border-left-color: #22c55e !important; } /* Green */
+    .sidebar-module.finance { border-left-color: #f59e0b !important; }   /* Amber */
+    .sidebar-module.hr { border-left-color: #ec4899 !important; }        /* Pink */
+    .sidebar-module.system { border-left-color: #6366f1 !important; }    /* Indigo */
+    .sidebar-module.report { border-left-color: #a855f7 !important; }    /* Purple */
+
+    .sidebar-module:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .sidebar-module[open] {
+        background: rgba(255, 255, 255, 0.04);
+        padding-bottom: 8px;
+    }
+
+    /* --- Submenu Logic --- */
+    .submenu {
+        padding-left: 10px;
+        animation: slideIn 0.25s ease-out;
+    }
+
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .inner-dropdown summary {
+        font-size: 0.85rem;
+        color: #94a3b8 !important;
+        cursor: pointer;
+        list-style: none;
+    }
+
+    /* --- Navigation Links --- */
+    .nav-link {
+        color: #cbd5e1 !important;
+        font-size: 0.9rem;
+        padding: 10px 14px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .nav-link:hover {
+        color: #fff !important;
+        transform: translateX(4px);
+    }
+
+    .menu-item.active {
+        background: #3b82f6 !important;
+        color: #fff !important;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        font-weight: 600;
+    }
+
+    /* --- Icons & Arrows --- */
+    .arrow-icon {
+        font-size: 0.75rem;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        opacity: 0.5;
+    }
+
+    details[open] > summary .arrow-icon {
+        transform: rotate(90deg);
+        opacity: 1;
+    }
+
+    .bi { vertical-align: middle; }
+
+    /* Hide text during collapse if using slim-sidebar logic */
+    .sidebar-collapsed .ms-2 { display: none; }
+</style>

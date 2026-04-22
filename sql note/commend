@@ -1,0 +1,313 @@
+<!-- purchase order ra db la import panna itha terminal la run pannanum -->
+php artisan sync:deliverables-from-pos
+
+php artisan app:sync-renewals-from-deliverable-plans
+
+# invoice pdf generate panna itha terminal la run pannanum
+composer require barryvdh/laravel-dompdf
+
+# queue work panna itha terminal la run pannanum
+php artisan queue:work
+
+F:\xampp\php\php.ini
+;extension=sockets  --> extension=sockets  #update pannanu
+;extension=gd   --> extension=gd  #update pannanu
+;extension=zip  --> extension=zip  #update pannanu
+
+SELECT
+    f.client_id,  
+    f.location_id,
+    f.address,
+    dp.circuit_id,
+    dp.date_of_activation,
+    dp.static_ip_address,
+    dp.static_vlan,
+    dp.network_ip,
+    dp.static_subnet_mask,
+    dp.static_gateway,
+    dp.usable_ips,
+    dp.remarks
+FROM deliverable_plans dp
+JOIN feasibilities f ON dp.feasibility_id = f.id
+
+
+
+SELECT DISTINCT
+    f.client_id AS client_name,
+    f.location_id,
+    f.address,
+    dp.circuit_id,
+    dp.date_of_activation,
+    dp.mode_of_delivery,
+    dp.pppoe_username,
+    dp.pppoe_password,
+    dp.pppoe_vlan,
+    dp.dhcp_ip_address,
+    dp.dhcp_vlan,
+    dp.static_ip_address,
+    dp.static_vlan,
+    dp.network_ip,
+    dp.static_subnet_mask,
+    dp.static_gateway,
+    dp.usable_ips,
+    dp.remarks    
+FROM deliverables d
+JOIN feasibilities f
+    ON f.id = d.feasibility_id
+JOIN deliverable_plans dp
+    ON dp.deliverable_id = d.id
+WHERE d.status = 'Inprogress';
+
+
+
+
+SELECT DISTINCT
+    f.client_id AS client_name,
+    f.location_id,
+    f.address,
+    dp.circuit_id,
+    dp.date_of_activation,
+    dp.mode_of_delivery,
+    dp.pppoe_username,
+    dp.pppoe_password,
+    dp.pppoe_vlan,
+    dp.dhcp_ip_address,
+    dp.dhcp_vlan,
+    dp.static_ip_address,
+    dp.static_vlan,
+    dp.network_ip,
+    dp.static_subnet_mask,
+    dp.static_gateway,
+    dp.usable_ips,
+    dp.remarks    
+FROM deliverables d
+JOIN feasibilities f
+    ON f.id = d.feasibility_id
+JOIN deliverable_plans dp
+    ON dp.deliverable_id = d.id
+WHERE d.status = 'Delivery';
+
+
+SELECT DISTINCT
+    f.feasibility_request_id,
+    dp.id,
+    dp.remarks    
+FROM deliverables d
+JOIN feasibilities f
+    ON f.id = d.feasibility_id
+JOIN deliverable_plans dp
+    ON dp.deliverable_id = d.id
+
+
+SELECT 
+    f.id, 
+    f.feasibility_request_id, 
+    f.address,
+    po.po_number,
+    po.po_date,
+    po.purchase_order_id,
+    po.arc_cost,
+    po.otc_cost,
+    po.static_ip_cost
+FROM feasibilities f
+JOIN feasibility_statuses fs 
+    ON f.id = fs.feasibility_id
+JOIN purchase_orders po 
+    ON f.id = po.feasibility_id
+WHERE fs.status = 'Closed';
+
+
+
+SELECT 
+    f.id, 
+    f.feasibility_request_id, 
+    f.address,
+    f.no_of_links,
+    f.state,
+    c.client_name,
+    po.po_number,
+    po.po_date,
+    po.id,
+    po.arc_per_link,
+    po.otc_per_link,
+    po.static_ip_cost_per_link
+FROM feasibilities f
+JOIN feasibility_statuses fs 
+    ON f.id = fs.feasibility_id
+JOIN purchase_orders po 
+    ON po.id = (
+        SELECT MAX(id) 
+        FROM purchase_orders 
+        WHERE feasibility_id = f.id
+    )
+JOIN clients c 
+    ON f.client_id = c.id
+WHERE fs.id = (
+    SELECT MAX(id) 
+    FROM feasibility_statuses 
+    WHERE feasibility_id = f.id
+)
+AND fs.status = 'Closed'
+ORDER BY po.id ASC;
+
+
+SELECT 
+    f.id, 
+    f.feasibility_request_id, 
+    f.address,
+    f.no_of_links,
+    f.state,
+    c.client_name,
+    v.vendor_name,   -- ✅ from master
+    po.po_number,
+    po.po_date,
+    po.id,
+    po.arc_per_link,
+    po.otc_per_link,
+    po.static_ip_cost_per_link
+FROM feasibilities f
+JOIN feasibility_statuses fs 
+    ON f.id = fs.feasibility_id
+LEFT JOIN vendors v 
+    ON v.vendor_name = fs.vendor1_name   -- ⚠️ match by name
+JOIN purchase_orders po 
+    ON po.id = (
+        SELECT MAX(id) 
+        FROM purchase_orders 
+        WHERE feasibility_id = f.id
+    )
+JOIN clients c 
+    ON f.client_id = c.id
+WHERE fs.id = (
+    SELECT MAX(id) 
+    FROM feasibility_statuses 
+    WHERE feasibility_id = f.id
+)
+AND fs.status = 'Closed'
+ORDER BY po.id ASC;
+
+
+SELECT * 
+FROM feasibility_statuses 
+WHERE status = 'Open';
+
+SELECT 
+    fs.*, 
+    c.client_name,  
+    f.feasibility_request_id, 
+    f.client_state,
+    f.static_ip,
+    f.no_of_links
+FROM feasibility_statuses fs
+JOIN feasibilities f 
+    ON fs.feasibility_id = f.id
+JOIN clients c
+    ON f.client_id = c.id
+WHERE fs.status = 'Open';
+
+
+INSERT INTO feasibility_statuses (id, status)
+VALUES 
+(22, 'Closed'),
+(23, 'Closed'),
+(24, 'Closed')
+ON DUPLICATE KEY UPDATE 
+status = VALUES(status);
+
+SELECT 
+    fs.*, 
+    c.client_name,  
+    f.feasibility_request_id, 
+    f.client_state,
+    f.no_of_links
+FROM feasibility_statuses fs
+JOIN feasibilities f 
+    ON fs.feasibility_id = f.id
+JOIN clients c
+    ON f.client_id = c.id
+WHERE fs.status = 'Open'
+AND c.client_name = 'tata';
+
+
+
+//delete the feasibilities "open" company name
+
+DELETE fs
+FROM feasibility_statuses fs
+JOIN feasibilities f 
+    ON fs.feasibility_id = f.id
+JOIN clients c 
+    ON f.client_id = c.id
+WHERE fs.status = 'Open'
+AND c.client_name = 'tata';
+
+ASPIRARE COMMUNICATIONS PRIVATE LIMITED
+
+
+
+SELECT *
+FROM feasibility_statuses fs
+JOIN feasibilities f 
+    ON fs.feasibility_id = f.id
+JOIN clients c
+    ON f.client_id = c.id
+WHERE fs.status = 'Open'
+AND c.client_name = 'ASPIRARE COMMUNICATIONS PRIVATE LIMITED';
+
+
+Royal Sundaram General Insurance Co. Limited
+
+UPDATE clients
+SET client_name = 'SUNDARAM HOMES FINANCE LIMITED'
+WHERE client_name = 'SUNDARAM HOMES FIANCE LIMITED';
+
+Tata Communications Limited
+
+
+SELECT 
+    fs.*, 
+    c.client_name,  
+    f.pincode
+FROM feasibility_statuses fs
+JOIN feasibilities f 
+    ON fs.feasibility_id = f.id
+JOIN clients c
+    ON f.client_id = c.id
+WHERE fs.status = 'Closed'
+AND c.client_name = 'ASPIRARE COMMUNICATIONS PRIVATE LIMITED';
+
+
+
+UPDATE feasibilities
+SET static_ip = 'Yes'
+WHERE static_ip = '1';
+
+
+UPDATE feasibilities
+SET static_ip = 'No'
+WHERE static_ip = '0';
+
+UPDATE feasibilities f
+JOIN clients c
+ ON f.client_id = c.id 
+ SET f.client_state = 'Tamil Nadu'
+WHERE c.client_name = 'TATA COMMUNICATIONS LIMITED';
+
+-----deliverable_plans la circuit_id manunal la update pandra code
+
+UPDATE deliverable_plans dp
+JOIN deliverables d 
+    ON dp.deliverable_id = d.id
+JOIN feasibilities f 
+    ON d.feasibility_id = f.id
+SET dp.circuit_id = '24UBNTCLKGI007'
+WHERE f.feasibility_request_id = 'FR-2253';
+
+
+UPDATE deliverable_plans dp
+JOIN deliverables d 
+    ON dp.deliverable_id = d.id
+JOIN feasibilities f 
+    ON d.feasibility_id = f.id
+SET dp.circuit_id = '26UNBTCLTN0002'
+WHERE f.feasibility_request_id = 'FR-6281';

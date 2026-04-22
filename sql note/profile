@@ -1,0 +1,329 @@
+/*********************************************************************************************************************************************************************/
+ALTER TABLE companies
+ADD mail_host VARCHAR(255) NULL,
+ADD mail_port VARCHAR(255) NULL,
+ADD mail_username VARCHAR(255) NULL,
+ADD mail_password VARCHAR(255) NULL,
+ADD mail_encryption VARCHAR(255) NULL,
+ADD mail_from_address VARCHAR(255) NULL,
+ADD mail_from_name VARCHAR(255) NULL;
+ADD mail_footer VARCHAR(500) NULL,
+ADD mail_signature VARCHAR(500) NULL;
+
+ALTER TABLE company_settings
+ADD mail_footer VARCHAR(500) NULL,
+ADD mail_signature VARCHAR(500) NULL;
+
+
+/*********************************************************************************15-11-2025*********************************************************************************/
+ALTER TABLE profiles DROP COLUMN email;
+
+
+ALTER TABLE purchase_order_id
+ADD official_email VARCHAR(500) NULL,
+ADD personal_email VARCHAR(500) NULL;
+
+/****************************************************/
+
+ALTER TABLE user_types
+ADD email VARCHAR(500) NULL AFTER name;
+
+/********************************************************************************/
+ALTER TABLE feasibilities 
+ADD COLUMN static_ip_subnet VARCHAR(10) NULL 
+AFTER static_ip;
+
+/*************************************************************************************21/11/2025**********************************************************/
+
+/*************************************************************************24-11-2025**************************************************************************************/
+
+ALTER TABLE companies 
+ADD COLUMN user_name VARCHAR(255) NULL 
+AFTER id;
+
+ALTER TABLE clients 
+ADD COLUMN user_name VARCHAR(255) NULL 
+AFTER id;
+
+
+ALTER TABLE vendors
+ADD COLUMN user_name VARCHAR(255) NULL 
+AFTER id;
+
+
+DELETE FROM menus
+WHERE user_type IN ('admin', 'users');
+
+
+UPDATE menus
+SET module_name = 'Masters'
+WHERE id IN (4, 5, 7, 9, 10, 11);
+
+
+ALTER TABLE deliverables
+ADD COLUMN dhcp_ip_address VARCHAR(255) NULL 
+AFTER pppoe_password;
+
+
+ALTER TABLE deliverables
+ADD COLUMN dhcp_vlan VARCHAR(255) NULL 
+AFTER dhcp_ip_address;
+
+ALTER TABLE deliverables 
+DROP COLUMN circuit_id;
+
+ALTER TABLE deliverables 
+ADD COLUMN circuit_id VARCHAR(255) UNIQUE AFTER feasibility_id;
+
+/***********************************************************************************/
+ALTER TABLE vendors
+ADD COLUMN branch_name VARCHAR(255) NULL 
+AFTER pan_no;
+
+
+ALTER TABLE vendors
+ADD COLUMN bank_name VARCHAR(255) NULL 
+AFTER branch_name;
+
+
+ALTER TABLE menus
+  MODIFY created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  MODIFY updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+
+UPDATE menus
+SET created_at = NOW(), updated_at = NOW()
+WHERE created_at IS NULL OR updated_at IS NULL;
+
+UPDATE menus 
+SET name = 'Company Settings', route = 'settings.company'
+WHERE route = 'settings.index';
+
+DELETE FROM menus
+WHERE id = 31;
+
+
+UPDATE menus 
+SET name = 'System Settings', route = 'settings.system'
+WHERE route = 'system.settings';
+
+
+UPDATE menus 
+SET name = 'Whatsapp Settings', route = 'settings.whatsapp'
+WHERE route = 'whatsapp.settings';
+
+ALTER TABLE purchase_orders
+DROP INDEX purchase_orders_po_number_unique;
+
+ALTER TABLE purchase_orders
+ADD UNIQUE unique_feasibility_po (feasibility_id, po_number);
+
+/*******************************************************************************27-*11********************************************/
+
+ALTER TABLE deliverables
+ADD COLUMN payment_login_url VARCHAR(255) NULL 
+AFTER static_vlan_tag,
+
+ADD COLUMN payment_quick_url VARCHAR(255) NULL 
+AFTER payment_login_url,
+
+ADD COLUMN payment_account_or_username VARCHAR(255) NULL 
+AFTER payment_quick_url,
+
+ADD COLUMN payment_password VARCHAR(255) NULL 
+AFTER payment_account_or_username,
+
+ADD COLUMN date_of_expiry DATE NULL 
+AFTER date_of_activation;
+/****************************************************************************************12-2***************************/
+
+ALTER TABLE `deliverables`
+ADD COLUMN `po_number` VARCHAR(255) NULL AFTER `purchase_order_id`,
+ADD COLUMN `po_date` DATE NULL AFTER `po_number`,
+ADD COLUMN `arc_cost` DECIMAL(12,2) NULL AFTER `po_date`,
+ADD COLUMN `otc_cost` DECIMAL(12,2) NULL AFTER `arc_cost`,
+ADD COLUMN `static_ip_cost` DECIMAL(12,2) NULL AFTER `otc_cost`;
+
+/************************************************/
+
+
+ALTER TABLE `deliverables`
+ADD COLUMN `mtu` VARCHAR(255) NULL AFTER `payment_password`,
+ADD COLUMN `wifi_username` VARCHAR(255) NULL AFTER `mtu`,
+ADD COLUMN `wifi_password` VARCHAR(255) NULL AFTER `wifi_username`,
+ADD COLUMN `lan_ip_1` VARCHAR(255) NULL AFTER `wifi_password`,
+ADD COLUMN `lan_ip_2` VARCHAR(255) NULL AFTER `lan_ip_1`,
+ADD COLUMN `lan_ip_3` VARCHAR(255) NULL AFTER `lan_ip_2`,
+ADD COLUMN `lan_ip_4` VARCHAR(255) NULL AFTER `lan_ip_3`;
+ADD COLUMN `ipsec` ENUM('Yes','No') DEFAULT 'No' AFTER `lan_ip_4`,
+ADD COLUMN `phase_1` VARCHAR(255) NULL AFTER `ipsec`,
+ADD COLUMN `phase_2` VARCHAR(255) NULL AFTER `phase_1`,
+ADD COLUMN `ipsec_interface` VARCHAR(255) NULL AFTER `phase_2`;
+ADD COLUMN `account_id` VARCHAR(255) NULL AFTER `ipsec_interface`;
+
+ADD COLUMN `pppoe_username_1` VARCHAR(255) NULL AFTER `mode_of_delivery`,
+ADD COLUMN `pppoe_password_1` VARCHAR(255) NULL AFTER `pppoe_username_1`,
+ADD COLUMN `pppoe_vlan_1` VARCHAR(255) NULL AFTER `pppoe_password_1`,
+
+ADD COLUMN `pppoe_username_2` VARCHAR(255) NULL AFTER `pppoe_vlan_1`,
+ADD COLUMN `pppoe_password_2` VARCHAR(255) NULL AFTER `pppoe_username_2`,
+ADD COLUMN `pppoe_vlan_2` VARCHAR(255) NULL AFTER `pppoe_password_2`,
+
+ADD COLUMN `pppoe_username_3` VARCHAR(255) NULL AFTER `pppoe_vlan_2`,
+ADD COLUMN `pppoe_password_3` VARCHAR(255) NULL AFTER `pppoe_username_3`,
+ADD COLUMN `pppoe_vlan_3` VARCHAR(255) NULL AFTER `pppoe_password_3`,
+
+ADD COLUMN `pppoe_username_4` VARCHAR(255) NULL AFTER `pppoe_vlan_3`,
+ADD COLUMN `pppoe_password_4` VARCHAR(255) NULL AFTER `pppoe_username_4`,
+ADD COLUMN `pppoe_vlan_4` VARCHAR(255) NULL AFTER `pppoe_password_4`;
+/****************************************************************************************************/
+ALTER TABLE `deliverables`
+DROP COLUMN `pppoe_username`,
+DROP COLUMN `pppoe_password`,
+DROP COLUMN `pppoe_vlan`;
+/****************************************************************************************************/
+ALTER TABLE `vendors`
+ADD COLUMN `product_category` VARCHAR(255) NULL  AFTER `pan_no`,
+ADD `make_id` BIGINT UNSIGNED NULL AFTER `product_category`,
+ADD `company_name` VARCHAR(255) NULL AFTER `make_id`,
+ADD `make_contact_no` VARCHAR(255) NULL AFTER `company_name`,
+ADD `make_email` VARCHAR(255) NULL AFTER `make_contact_no`,
+ADD `model_no` VARCHAR(255) NULL AFTER `make_email`,
+ADD `serial_no` VARCHAR(255) NULL AFTER `model_no`,
+ADD `asset_id` VARCHAR(255) NULL AFTER `serial_no`;
+
+
+ALTER TABLE `vendors`
+ADD CONSTRAINT `vendors_make_id_foreign`
+FOREIGN KEY (`make_id`) REFERENCES `vendor_makes`(`id`)
+ON DELETE SET NULL;
+
+ALTER TABLE `vendors`
+ADD UNIQUE (`asset_id`);
+/****************************************************************************************************/
+
+ALTER TABLE `feasibilities`
+DROP COLUMN `hardware_model_name`,
+ADD COLUMN `hardware_details` JSON NULL AFTER `hardware_required`;
+
+ALTER TABLE `deliverables`
+ADD `export_file` VARCHAR(255) NULL AFTER `otc_bill_file`,
+ADD `asset_id` VARCHAR(255) NULL AFTER `export_file`,
+ADD `asset_serial_no` VARCHAR(255) NULL AFTER `asset_id`;
+
+/*****/
+
+ALTER TABLE `assets`
+DROP COLUMN `warranty_date`;
+
+ADD COLUMN `warranty` VARCHAR(255) NULL AFTER `purchase_date`,
+
+-- login log table
+ALTER TABLE login_logs MODIFY login_time DATETIME NOT NULL;
+
+ALTER TABLE `make_types`
+DROP FOREIGN KEY `make_types_company_id_foreign`;
+ALTER TABLE `make_types`
+DROP COLUMN `company_id`;
+
+ALTER TABLE `asset_types`
+DROP FOREIGN KEY `asset_types_company_id_foreign`;
+ALTER TABLE `asset_types`
+DROP COLUMN `company_id`;
+/****************************************************************************************************/
+ALTER TABLE deliverables
+ADD COLUMN arc_cost DECIMAL(12,2) DEFAULT NULL,
+ADD COLUMN otc_cost DECIMAL(12,2) DEFAULT NULL,
+ADD COLUMN static_ip_cost DECIMAL(12,2) DEFAULT NULL;
+
+-- 1. Add column only if it doesn't exist
+ALTER TABLE deliverables 
+ADD COLUMN purchase_order_id BIGINT UNSIGNED NULL;
+
+-- 2. Add index (ignore if already exists)
+ALTER TABLE deliverables 
+ADD INDEX deliverables_purchase_order_id_index (purchase_order_id);
+
+-- 3. Remove invalid foreign key values
+UPDATE deliverables 
+SET purchase_order_id = NULL
+WHERE purchase_order_id IS NOT NULL
+AND purchase_order_id NOT IN (SELECT id FROM purchase_orders);
+
+-- 4. Add the new foreign key constraint
+ALTER TABLE deliverables
+ADD CONSTRAINT fk_deliverables_purchase_order
+FOREIGN KEY (purchase_order_id)
+REFERENCES purchase_orders(id)
+ON DELETE CASCADE;
+
+
+
+ALTER TABLE login_logs
+ADD COLUMN last_activity TIMESTAMP NULL AFTER logout_time;
+
+ALTER TABLE purchase_orders
+ADD COLUMN reused_from_purchase_order_id BIGINT UNSIGNED NULL AFTER po_number,
+ADD CONSTRAINT purchase_orders_reused_from_purchase_order_id_foreign
+  FOREIGN KEY (reused_from_purchase_order_id)
+  REFERENCES purchase_orders(id)
+  ON DELETE SET NULL;
+
+ALTER TABLE purchase_orders
+DROP INDEX purchase_orders_po_number_unique,
+ADD UNIQUE unique_feasibility_po (feasibility_id, po_number);
+
+-- 
+
+
+ALTER TABLE clients
+DROP FOREIGN KEY clients_company_id_foreign;
+ALTER TABLE clients
+DROP COLUMN company_id,
+DROP COLUMN portal_username;
+ALTER TABLE clients DROP FOREIGN KEY fk_head_office;
+ALTER TABLE clients DROP INDEX fk_head_office;
+ALTER TABLE clients DROP INDEX clients_client_code_unique;
+ALTER TABLE clients DROP INDEX clients_portal_active_index;
+
+
+ALTER TABLE `vendors`
+DROP COLUMN `product_category`,
+DROP COLUMN `company_name`,
+DROP COLUMN `make_contact_no`,
+DROP COLUMN `make_email`, 
+DROP COLUMN `model_no`,
+DROP COLUMN `serial_no`,
+DROP COLUMN `asset_id`;
+ALTER TABLE vendors
+DROP FOREIGN KEY vendors_make_id_foreign;
+ALTER TABLE vendors
+DROP COLUMN make_id;
+
+ALTER TABLE `vendors`
+DROP COLUMN `pan_number`;
+
+/****************************************************************************************************/
+INSERT INTO account_groups (name, type, created_at, updated_at) VALUES
+('Assets', 'Debit', NOW(), NOW()),
+('Liabilities', 'Credit', NOW(), NOW()),
+('Income', 'Credit', NOW(), NOW()),
+('Expenses', 'Debit', NOW(), NOW());
+
+
+ALTER TABLE clients
+ADD office_type VARCHAR(50) NULL AFTER id,
+ADD head_office_id BIGINT NULL AFTER client_code;
+ALTER TABLE clients MODIFY invoice_cc VARCHAR(1000);
+ADD short_name VARCHAR(255) NULL AFTER office_type;
+
+ALTER TABLE clients
+ADD CONSTRAINT fk_head_office
+FOREIGN KEY (head_office_id) REFERENCES clients(id)
+ON DELETE SET NULL;
+
+-- 
+ALTER TABLE deliverables ADD UNIQUE (circuit_id);
+
+ALTER TABLE feasibilities
+ADD COLUMN delivery_company_name VARCHAR(255) NULL AFTER client_id;
+

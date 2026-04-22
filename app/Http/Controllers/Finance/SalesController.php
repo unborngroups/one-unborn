@@ -1,0 +1,419 @@
+<?php
+
+namespace App\Http\Controllers\Finance;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\SalesInvoice;
+use App\Models\Client;
+use App\Models\Items;
+use Illuminate\Support\Facades\DB;
+use App\Models\Deliverables;
+use App\Models\CompanySetting;
+use App\Models\EmailLog;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Barryvdh\DomPDF\Facade\Pdf;
+
+class SalesController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
+    {
+        $selectedClient = null;
+
+        $sales = SalesInvoice::with(['deliverable.feasibility.client'])
+            ->when($request->filled('client_id'), function ($query) use ($request, &$selectedClient) {
+                $clientId = (int) $request->client_id;
+                $selectedClient = Client::find($clientId);
+
+                $query->whereHas('deliverable.feasibility', function ($q) use ($clientId) {
+                    $q->where('client_id', $clientId);
+                });
+            })
+            ->latest()
+            ->get();
+
+        return view('finance.sales.index', compact('sales', 'selectedClient'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create(Request $request)
+    {
+        $clients = Client::all();
+        $items = Items::all();
+        $deliverable = Deliverables::with([
+            'feasibility.company',
+            'feasibility.client',
+            'purchase_order'
+        ])->findOrFail($request->deliverable_id);
+
+        return view('finance.sales.create', compact('clients', 'items', 'deliverable'));
+    }
+
+    /**
+     * show the form for editing the specified resource.
+     */
+    public function show(string $id)
+    {
+        $sales = SalesInvoice::with([
+        
+            'company',
+            'client',
+            'deliverable.feasibility.company',
+            'deliverable.feasibility.client',
+            'deliverable.purchaseOrder',
+      
+         
+        ])->findOrFail($id);
+        $company = $sales->company;
+        $client = $sales->client;
+        $deliverables = $sales->deliverable;
+        $feasibility = $deliverables->feasibility ?? null;
+
+        // $deliverables = Deliverable::find($sales->deliverable_id);
+
+        // If you need related data, add relationships to SalesInvoice model and eager load here
+        return view('finance.sales.show', compact('sales', 'company', 'client', 'deliverables', 'feasibility'));
+    }
+
+    /**
+     * edit the form for editing the specified resource.
+     */
+    public function edit(string $id)
+    {
+        $clients = Client::all();
+        $items = Items::all();
+        $sales = SalesInvoice::findOrFail($id);
+       $deliverables = Deliverables::find($sales->deliverable_id);
+
+        return view('finance.sales.edit', compact('sales', 'clients', 'items'));
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+{
+    $deliverable = Deliverables::with([
+        'feasibility.company',
+        'feasibility.client'
+    ])->findOrFail($request->deliverable_id);
+
+    $sales = new SalesInvoice();
+    $sales->company_id = $request->company_id;
+    $sales->invoice_no = $this->generateInvoiceNumber($deliverable);
+    $sales->invoice_date = $request->invoice_date;
+    $sales->due_date = $request->due_date;
+    $sales->client_name = $request->client_name;
+    $sales->client_email = $request->client_email;
+    $sales->client_phone = $request->client_phone;
+    $sales->client_address = $request->client_address;
+    $sales->client_gstin = $request->client_gstin;
+    $sales->sub_total = $request->sub_total ?? 0;
+    $sales->cgst_total = $request->cgst_total ?? 0;
+    $sales->sgst_total = $request->sgst_total ?? 0;
+    $sales->grand_total = $request->grand_total ?? 0;
+    $sales->status = $request->status ?? 'draft';
+    $sales->notes = $request->notes;
+    $sales->terms = $request->terms;
+    $sales->save();
+
+    return redirect()->route('finance.sales.index')
+        ->with('success', 'Sales Invoice Created Successfully');
+}
+    
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        $sales = SalesInvoice::findOrFail($id);
+        $sales->update($request->all());
+
+        return redirect()->route('finance.sales.index')
+            ->with('success', 'Sales Invoice Updated');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+         $sales = SalesInvoice::findOrFail($id);
+         $sales->delete();
+
+        return back()->with('success', 'Sales Invoice Deleted');
+    }
+
+    public function pdf($id)
+{
+    $sales = SalesInvoice::findOrFail($id);
+
+    // Update this section to use only the sales invoice data as needed
+    $pdf = Pdf::loadView(
+        'finance.sales.pdf',
+        compact('sales')
+    );
+    return $pdf->stream('sales-invoice-'.$sales->invoice_no.'.pdf');
+}
+
+public function print($id)
+{
+    $sales = SalesInvoice::with(['client','items.item'])
+        ->where('type','sales')
+        ->findOrFail($id);
+
+        // $deliverables = Deliverable::find($sales->deliverable_id);
+
+    return view('finance.sales.print', compact('sales'));
+}
+
+public function submit($id)
+{
+    $sales = SalesInvoice::where('type','sales')->findOrFail($id);
+
+    $sales->update([
+        'status' => 'submitted'
+    ]);
+
+    return redirect()
+        ->route('finance.sales.show',$id)
+        ->with('success','Invoice Submitted Successfully');
+}
+
+public function sendEmail(string $id)
+{
+    $sales = SalesInvoice::with([
+        'deliverable.feasibility.company',
+        'deliverable.feasibility.client',
+        'deliverable.purchaseOrder',
+        'company',
+        'client',
+    ])->findOrFail($id);
+
+    $deliverables = $sales->deliverable;
+    $feasibility = $deliverables->feasibility ?? null;
+    $company = $feasibility->company ?? $sales->company;
+    $client = $feasibility->client ?? $sales->client;
+
+    $to = $this->normalizeEmails($client->invoice_email ?? $sales->client_email ?? null);
+    $cc = $this->normalizeEmails($client->invoice_cc ?? null);
+
+    $subject = 'Sales Invoice ' . ($sales->invoice_no ?? ('INV-' . str_pad($sales->id, 5, '0', STR_PAD_LEFT)));
+
+    $emailLog = EmailLog::create([
+        'sender' => null,
+        'subject' => $subject,
+        'body' => json_encode([
+            'sales_invoice_id' => $sales->id,
+            'invoice_no' => $sales->invoice_no,
+            'to' => $to,
+            'cc' => $cc,
+            'status' => 'pending',
+        ]),
+        'status' => 'pending',
+    ]);
+
+    if (empty($to)) {
+        $emailLog->update([
+            'status' => 'failed',
+            'error_message' => 'Client invoice_email is empty.',
+        ]);
+
+        return back()->with('error', 'Client invoice email not found. Please update Client Master invoice_email.');
+    }
+
+    try {
+
+        $companySetting = $this->resolveInvoiceCompanySetting($company?->id);
+        $this->applyInvoiceMailConfig($companySetting);
+
+        $fromAddress = trim((string) (
+            $companySetting?->sales_invoice_mail_from_address
+            ?: $companySetting?->invoice_mail_from_address
+            ?: config('mail.from.address')
+        ));
+        $fromName = trim((string) (
+            $companySetting?->sales_invoice_mail_from_name
+            ?: $companySetting?->invoice_mail_from_name
+            ?: config('mail.from.name', 'Unborn')
+        ));
+
+        $mailBody = view('emails.sales_invoice', [
+            'sales' => $sales,
+            'deliverables' => $deliverables,
+            'feasibility' => $feasibility,
+            'company' => $company,
+            'client' => $client,
+        ])->render();
+
+        // Generate PDF from Blade view (requires barryvdh/laravel-dompdf)
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('finance.sales.pdf', [
+            'sales' => $sales,
+            'deliverables' => $deliverables,
+            'feasibility' => $feasibility,
+            'company' => $company,
+            'client' => $client,
+        ]);
+        $pdfContent = $pdf->output();
+        $pdfFileName = 'sales-invoice-' . ($sales->invoice_no ?? $sales->id) . '.pdf';
+
+        Mail::send([], [], function ($message) use ($to, $cc, $subject, $mailBody, $fromAddress, $fromName, $pdfContent, $pdfFileName) {
+            $message->to($to)->subject($subject);
+            if (!empty($cc)) {
+                $message->cc($cc);
+            }
+            if (!empty($fromAddress)) {
+                $message->from($fromAddress, $fromName ?: $fromAddress);
+            }
+            $message->html($mailBody);
+            $message->attachData($pdfContent, $pdfFileName, [
+                'mime' => 'application/pdf',
+            ]);
+        });
+
+        $emailLog->update([
+            'sender' => $fromAddress ?: null,
+            'status' => 'processed',
+            'error_message' => null,
+            'body' => json_encode([
+                'sales_invoice_id' => $sales->id,
+                'invoice_no' => $sales->invoice_no,
+                'to' => $to,
+                'cc' => $cc,
+                'status' => 'processed',
+            ]),
+        ]);
+
+        return back()->with('success', 'Sales invoice email sent successfully.');
+    } catch (\Throwable $e) {
+        Log::error('Sales invoice email send failed', [
+            'sales_invoice_id' => $sales->id,
+            'message' => $e->getMessage(),
+        ]);
+
+        $emailLog->update([
+            'status' => 'failed',
+            'error_message' => $e->getMessage(),
+            'body' => json_encode([
+                'sales_invoice_id' => $sales->id,
+                'invoice_no' => $sales->invoice_no,
+                'to' => $to,
+                'cc' => $cc,
+                'status' => 'failed',
+            ]),
+        ]);
+
+        return back()->with('error', 'Failed to send sales invoice email: ' . $e->getMessage());
+    }
+}
+
+private static $stateAbbr = [
+    'Andhra Pradesh' => 'AP', 'Arunachal Pradesh' => 'AR', 'Assam' => 'AS', 'Bihar' => 'BR',
+    'Chhattisgarh' => 'CG', 'Goa' => 'GA', 'Gujarat' => 'GJ', 'Haryana' => 'HR', 'Himachal Pradesh' => 'HP',
+    'Jammu and Kashmir' => 'JK', 'Jharkhand' => 'JH', 'Karnataka' => 'KA', 'Kerala' => 'KL', 'Madhya Pradesh' => 'MP',
+    'Maharashtra' => 'MH', 'Manipur' => 'MN', 'Meghalaya' => 'ML', 'Mizoram' => 'MZ', 'Nagaland' => 'NL',
+    'Orissa' => 'OR', 'Punjab' => 'PB', 'Rajasthan' => 'RJ', 'Sikkim' => 'SK', 'Tamil Nadu' => 'TN', 'Tripura' => 'TR',
+    'Uttarakhand' => 'UK', 'Uttar Pradesh' => 'UP', 'West Bengal' => 'WB', 'Telangana' => 'TS',
+    'Andaman and Nicobar Islands' => 'AN', 'Chandigarh' => 'CH', 'Dadra and Nagar Haveli' => 'DH', 'Daman and Diu' => 'DD',
+    'Delhi' => 'DL', 'Lakshadweep' => 'LD', 'Pondicherry' => 'PY',
+];
+
+private function generateInvoiceNumber(Deliverables $deliverable): string
+{
+    $company  = $deliverable->feasibility->company ?? null;
+    $client   = $deliverable->feasibility->client  ?? null;
+
+    // Company short name (up to 4 uppercase letters, no spaces/special chars)
+    $companyShort = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $company->short_name ?? $company->company_name ?? 'CO'), 0, 4));
+
+    // Client short name (up to 4 uppercase letters)
+    $clientShort = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $client->short_name ?? $client->client_name ?? 'CL'), 0, 4));
+
+    // State abbreviation from client state
+    $state = trim($client->state ?? '');
+    $stateCode = self::$stateAbbr[$state] ?? strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $state), 0, 2)) ?: 'XX';
+
+    // Financial year: e.g. Apr 2025 → "25-26"
+    $now = now();
+    $fyStart = $now->month >= 4 ? $now->year : $now->year - 1;
+    $fyEnd   = $fyStart + 1;
+    $year    = substr($fyStart, 2) . '-' . substr($fyEnd, 2); // e.g. "25-26"
+
+    // Prefix for this combination
+    $prefix = $companyShort . '/' . $clientShort . '/' . $stateCode . '/' . $year . '/';
+
+    // Serial: count existing invoices with same prefix, padded 4 digits
+    $count = SalesInvoice::where('invoice_no', 'like', $prefix . '%')->count();
+    $serial = str_pad($count + 1, 4, '0', STR_PAD_LEFT);
+
+    return $prefix . $serial;
+}
+
+private function resolveInvoiceCompanySetting(?int $companyId): ?CompanySetting
+{
+    if ($companyId) {
+        $byCompany = CompanySetting::where('company_id', $companyId)->first();
+        if ($byCompany) {
+            return $byCompany;
+        }
+    }
+
+    return CompanySetting::query()
+        ->orderByDesc('is_default')
+        ->orderBy('id')
+        ->first();
+}
+
+private function applyInvoiceMailConfig(?CompanySetting $setting): void
+{
+    if (!$setting) {
+        return;
+    }
+
+    // Sales/Recurring Invoice SMTP takes priority over Purchase Invoice SMTP
+    $host       = $setting->sales_invoice_mail_host       ?: $setting->invoice_mail_host       ?: $setting->mail_host;
+    $port       = (int) ($setting->sales_invoice_mail_port ?: $setting->invoice_mail_port       ?: $setting->mail_port ?: 587);
+    $username   = $setting->sales_invoice_mail_username   ?: $setting->invoice_mail_username   ?: $setting->mail_username;
+    $password   = $setting->sales_invoice_mail_password   ?: $setting->invoice_mail_password   ?: $setting->mail_password;
+    $encryption = strtolower((string) ($setting->sales_invoice_mail_encryption ?: $setting->invoice_mail_encryption ?: $setting->mail_encryption ?: 'tls'));
+    $fromAddress = $setting->sales_invoice_mail_from_address ?: $setting->invoice_mail_from_address ?: $setting->mail_from_address;
+    $fromName    = $setting->sales_invoice_mail_from_name    ?: $setting->invoice_mail_from_name    ?: $setting->mail_from_name;
+
+    if (empty($host) || empty($username) || empty($password) || empty($fromAddress)) {
+        return;
+    }
+
+    Config::set('mail.default', 'smtp');
+    Config::set('mail.mailers.smtp.transport', 'smtp');
+    Config::set('mail.mailers.smtp.host', $host);
+    Config::set('mail.mailers.smtp.port', $port);
+    Config::set('mail.mailers.smtp.encryption', $encryption);
+    Config::set('mail.mailers.smtp.username', $username);
+    Config::set('mail.mailers.smtp.password', $password);
+    Config::set('mail.from.address', $fromAddress);
+    Config::set('mail.from.name', $fromName ?: 'Unborn');
+
+    Mail::purge();
+}
+
+private function normalizeEmails($emails): array
+{
+    if (!$emails) {
+        return [];
+    }
+
+    if (is_array($emails)) {
+        return array_values(array_filter(array_map('trim', $emails)));
+    }
+
+    return array_values(array_filter(array_map('trim', preg_split('/[,;]/', (string) $emails))));
+}
+
+}

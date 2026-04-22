@@ -1,0 +1,316 @@
+ALTER TABLE account_groups
+ADD parent_id BIGINT UNSIGNED NULL AFTER id,
+ADD status ENUM('draft','pending_checker','approved','rejected','locked')
+    DEFAULT 'draft' AFTER type,
+ADD is_locked TINYINT(1) DEFAULT 0 AFTER status,
+ADD maker_id BIGINT UNSIGNED NULL,
+ADD checker_id BIGINT UNSIGNED NULL,
+ADD approved_at TIMESTAMP NULL;
+
+
+
+-- 
+-- 
+SELECT f.*
+FROM feasibilities f
+JOIN feasibility_statuses fs ON fs.feasibility_id = f.id
+WHERE fs.status = 'Closed'
+AND f.id NOT IN (SELECT feasibility_id FROM purchase_orders);
+
+SELECT d.*
+FROM deliverable_plans d
+JOIN deliverable_plans_statuses ds ON ds.deliverable_plan_id = d.id
+WHERE ds.status = 'Closed';
+
+SELECT f.id, f.feasibility_request_id, f.address
+FROM feasibilities f
+JOIN feasibility_statuses fs ON fs.feasibility_id = f.id
+WHERE fs.status = 'Closed'
+AND f.id NOT IN (SELECT feasibility_id FROM purchase_orders);
+-- /
+-- /
+
+ALTER TABLE purchase_orders
+ADD COLUMN `feasibility_request_id` VARCHAR(255) NULL AFTER 'feasibility_id';
+
+ALTER TABLE deliverables
+CHANGE payment_account_or_username_1 payment_account_1 TEXT NULL,
+ADD COLUMN payment_username_1 TEXT NULL AFTER payment_account_1;
+
+ALTER TABLE deliverables
+CHANGE payment_account_or_username_2 payment_account_2 TEXT NULL,
+ADD COLUMN payment_username_2 TEXT NULL AFTER payment_account_2;
+
+ALTER TABLE deliverables
+CHANGE payment_account_or_username_3 payment_account_3 TEXT NULL,
+ADD COLUMN payment_username_3 TEXT NULL AFTER payment_account_3;
+
+ALTER TABLE deliverables
+CHANGE payment_account_or_username_4 payment_account_4 TEXT NULL,
+ADD COLUMN payment_username_4 TEXT NULL AFTER payment_account_4;
+
+ALTER TABLE deliverable_plans
+CHANGE payment_account_or_username payment_account TEXT NULL,
+ADD COLUMN payment_username TEXT NULL AFTER payment_account;
+
+ALTER TABLE deliverable_plans
+CHANGE payment_account_or_username payment_account TEXT NULL,
+ADD COLUMN payment_username TEXT NULL AFTER payment_account;
+
+ALTER TABLE email_templates
+ADD event_key VARCHAR(255) NULL AFTER company_id;
+
+ALTER TABLE purchase_orders
+ADD COLUMN `feasibility_request_id` VARCHAR(255) NULL AFTER 'feasibility_id';
+
+ALTER TABLE renewals
+ADD COLUMN `circuit_id` VARCHAR(255) NULL AFTER `deliverable_id`;
+
+images/purchaseorder/PO%20ASPTN-121%20%281%29.pdf
+images/purchaseorder/UNBORN%2011%20%282%29.pdf
+
+ALTER TABLE renewals
+ADD COLUMN status VARCHAR(20) DEFAULT 'Active' AFTER alert_date;
+
+ALTER TABLE clients
+ADD COLUMN billing_sequence VARCHAR(225) NULL AFTER billing_spoc_email;
+
+ALTER TABLE terminations
+DROP COLUMN date_of_delivered;
+
+ALTER TABLE terminations MODIFY circuit_id VARCHAR(225);
+
+UPDATE terminations
+SET status = 
+    CASE
+        WHEN termination_date IS NOT NULL THEN 'Terminated'
+        WHEN termination_request_date IS NOT NULL THEN 'Pending'
+        ELSE NULL
+    END;
+
+
+ALTER TABLE feasibilities
+ADD COLUMN circuit_id VARCHAR(255) NULL AFTER delivery_company_name;
+
+
+ALTER TABLE private_messages
+ADD COLUMN `file_path` VARCHAR(255) NULL AFTER `message`,  
+ADD COLUMN `file_type` VARCHAR(100) NULL AFTER `file_path`,  
+ADD COLUMN `original_name` VARCHAR(255) NULL AFTER `file_type`;     
+
+-- To add the column
+ALTER TABLE users ADD COLUMN require_otp_always TINYINT(1) NOT NULL DEFAULT 0 AFTER email;
+
+- -----------------------------------------------------------------------
+--TO add the column
+ALTER TABLE clients 
+ADD COLUMN delivered_email VARCHAR(500) NULL AFTER invoice_cc,
+ADD COLUMN delivered_cc VARCHAR(1000) NULL AFTER delivered_email;
+
+ALTER TABLE deliverables
+ADD COLUMN speed_test_file VARCHAR(255) NULL AFTER export_file,
+ADD COLUMN ping_report_dns_file VARCHAR(255) NULL AFTER speed_test_file,
+ADD COLUMN ping_report_gateway_file VARCHAR(255) NULL AFTER ping_report_dns_file,
+ADD COLUMN onu_ont_device_file VARCHAR(255) NULL AFTER ping_report_gateway_file,
+ADD COLUMN static_ip_file VARCHAR(255) NULL AFTER onu_ont_device_file;
+
+ALTER TABLE company_settings
+ADD COLUMN general_mail_host VARCHAR(255) NULL AFTER mail_signature,
+ADD COLUMN general_mail_port VARCHAR(255) NULL AFTER general_mail_host,
+ADD COLUMN general_mail_username VARCHAR(255) NULL AFTER general_mail_port,
+ADD COLUMN general_mail_password VARCHAR(255) NULL AFTER general_mail_username,
+ADD COLUMN general_mail_encryption VARCHAR(255) NULL AFTER general_mail_password,
+ADD COLUMN general_mail_from_address VARCHAR(255) NULL AFTER general_mail_encryption,
+ADD COLUMN general_mail_from_name VARCHAR(255) NULL AFTER general_mail_from_address,
+ADD COLUMN general_mail_footer VARCHAR(255) NULL AFTER general_mail_from_name,
+ADD COLUMN general_mail_signature VARCHAR(255) NULL AFTER general_mail_footer,
+
+ADD COLUMN delivery_mail_host VARCHAR(255) NULL AFTER general_mail_signature,
+ADD COLUMN delivery_mail_port VARCHAR(255) NULL AFTER delivery_mail_host,
+ADD COLUMN delivery_mail_username VARCHAR(255) NULL AFTER delivery_mail_port,
+ADD COLUMN delivery_mail_password VARCHAR(255) NULL AFTER delivery_mail_username,   
+ADD COLUMN delivery_mail_encryption VARCHAR(255) NULL AFTER delivery_mail_password,
+ADD COLUMN delivery_mail_from_address VARCHAR(255) NULL AFTER delivery_mail_encryption,
+ADD COLUMN delivery_mail_from_name VARCHAR(255) NULL AFTER delivery_mail_from_address,
+ADD COLUMN delivery_mail_footer VARCHAR(255) NULL AFTER delivery_mail_from_name,
+ADD COLUMN delivery_mail_signature VARCHAR(255) NULL AFTER delivery_mail_footer,
+
+ADD COLUMN invoice_mail_host VARCHAR(255) NULL AFTER delivery_mail_signature,
+ADD COLUMN invoice_mail_port VARCHAR(255) NULL AFTER invoice_mail_host,
+ADD COLUMN invoice_mail_username VARCHAR(255) NULL AFTER invoice_mail_port,
+ADD COLUMN invoice_mail_password VARCHAR(255) NULL AFTER invoice_mail_username,
+ADD COLUMN invoice_mail_encryption VARCHAR(255) NULL AFTER invoice_mail_password,
+ADD COLUMN invoice_mail_from_address VARCHAR(255) NULL AFTER invoice_mail_encryption,
+ADD COLUMN invoice_mail_from_name VARCHAR(255) NULL AFTER invoice_mail_from_address,
+ADD COLUMN invoice_mail_footer VARCHAR(255) NULL AFTER invoice_mail_from_name;
+ADD COLUMN invoice_mail_signature VARCHAR(255) NULL AFTER invoice_mail_footer;
+
+
+----------------------------
+
+ALTER TABLE company_settings
+ADD COLUMN delivery_email_check TINYINT(1) NOT NULL DEFAULT 0 AFTER delivery_mail_signature;
+
+ALTER TABLE deliverables
+ADD COLUMN invoice_id BIGINT UNSIGNED NULL AFTER delivery_notes;
+  
+
+  --------------------------------------------
+  ALTER TABLE companies
+  ADD COLUMN company_logo VARCHAR(255) NULL AFTER billing_logo;
+
+  ALTER TABLE purchase_orders
+    ADD COLUMN total_cost  DECIMAL(15,2) NULL AFTER import_file;
+
+    
+ALTER TABLE items
+ADD COLUMN invoice_id BIGINT UNSIGNED NULL AFTER id;
+  
+ALTER TABLE `invoices` ADD `items_id` BIGINT(20) UNSIGNED NULL AFTER `terms`;
+
+
+  -------------------------------------------------------------------
+ALTER TABLE feasibilities MODIFY status VARCHAR(225);
+
+ALTER TABLE invoice_items
+ADD item_id BIGINT UNSIGNED AFTER invoice_id;
+
+----------------------------update pannanu---------------------------------------
+
+ALTER TABLE purchase_orders 
+ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at,
+ADD COLUMN created_by BIGINT UNSIGNED NULL AFTER deleted_at,
+ADD COLUMN updated_by BIGINT UNSIGNED NULL AFTER created_by,
+ADD COLUMN deleted_by BIGINT UNSIGNED NULL AFTER updated_by;
+
+ALTER TABLE feasibilities --added the db
+ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at,
+ADD COLUMN updated_by BIGINT UNSIGNED NULL AFTER created_by,
+ADD COLUMN deleted_by BIGINT UNSIGNED NULL AFTER updated_by;
+
+ALTER TABLE feasibility_statuses --added the db
+ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at,
+ADD COLUMN created_by BIGINT UNSIGNED NULL AFTER deleted_at,
+ADD COLUMN updated_by BIGINT UNSIGNED NULL AFTER created_by,
+ADD COLUMN deleted_by BIGINT UNSIGNED NULL AFTER updated_by;
+
+ALTER TABLE feasibilities 
+MODIFY status ENUM('Active','Inactive','Closed') DEFAULT 'Active'; --added the db
+
+ALTER TABLE feasibilities 
+ADD COLUMN existing_links INT DEFAULT 0 AFTER status;
+
+
+ALTER TABLE deliverable_plans
+ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at,
+ADD COLUMN created_by BIGINT UNSIGNED NULL AFTER deleted_at,
+ADD COLUMN updated_by BIGINT UNSIGNED NULL AFTER created_by,
+ADD COLUMN deleted_by BIGINT UNSIGNED NULL AFTER updated_by;
+
+
+ALTER TABLE deliverables
+ADD COLUMN created_at TIMESTAMP NULL DEFAULT NULL AFTER router_password_4,
+ADD COLUMN updated_at TIMESTAMP NULL DEFAULT NULL AFTER created_at,
+ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at,
+ADD COLUMN created_by BIGINT UNSIGNED NULL AFTER deleted_at,
+ADD COLUMN updated_by BIGINT UNSIGNED NULL AFTER created_by,
+ADD COLUMN deleted_by BIGINT UNSIGNED NULL AFTER updated_by;
+
+ALTER TABLE deliverables 
+MODIFY created_by BIGINT NULL,
+MODIFY updated_by BIGINT NULL,
+MODIFY deleted_by BIGINT NULL;
+
+ALTER TABLE purchase_orders ADD vendor_id BIGINT AFTER po_date;
+
+ALTER TABLE purchase_invoices ADD vendor_id BIGINT AFTER due_date;
+
+ALTER TABLE feasibilities ADD link_type VARCHAR(255) NULL AFTER type_of_service; -- To add the column
+
+
+ALTER TABLE `deliverables`
+ADD COLUMN `p2p_username_1` VARCHAR(255) NULL AFTER `dhcp_vlan_4`,  -- To add the column    
+ADD COLUMN `p2p_username_2` VARCHAR(255) NULL AFTER `p2p_username_1`,
+ADD COLUMN `p2p_username_3` VARCHAR(255) NULL AFTER `p2p_username_2`,
+ADD COLUMN `p2p_username_4` VARCHAR(255) NULL AFTER `p2p_username_3`,
+
+ADD COLUMN `p2p_password_1` VARCHAR(255) NULL AFTER `p2p_username_4`,
+ADD COLUMN `p2p_password_2` VARCHAR(255) NULL AFTER `p2p_password_1`,
+ADD COLUMN `p2p_password_3` VARCHAR(255) NULL AFTER `p2p_password_2`,
+ADD COLUMN `p2p_password_4` VARCHAR(255) NULL AFTER `p2p_password_3`;
+
+ALTER TABLE `deliverable_plans`
+ADD COLUMN `p2p_username` VARCHAR(255) NULL AFTER `dhcp_vlan`,
+ADD COLUMN `p2p_password` VARCHAR(255) NULL AFTER `p2p_username`;  --
+
+ALTER TABLE purchase_orders 
+ADD COLUMN company_id BIGINT UNSIGNED NULL AFTER feasibility_id,
+ADD COLUMN duration VARCHAR(255) NULL AFTER company_id;
+
+
+
+ALTER TABLE `deliverables`
+ADD COLUMN `tunnel_1` VARCHAR(100) NULL AFTER `p2p_password_3`,
+ADD COLUMN `tunnel_2` VARCHAR(100) NULL AFTER `tunnel_1`,
+ADD COLUMN `tunnel_3` VARCHAR(100) NULL AFTER `tunnel_2`,
+ADD COLUMN `tunnel_4` VARCHAR(100) NULL AFTER `tunnel_3`,
+
+ADD COLUMN `tunnel_username_1` VARCHAR(100) NULL AFTER `tunnel_4`,
+ADD COLUMN `tunnel_username_2` VARCHAR(100) NULL AFTER `tunnel_username_1`,
+ADD COLUMN `tunnel_username_3` VARCHAR(100) NULL AFTER `tunnel_username_2`,
+ADD COLUMN `tunnel_username_4` VARCHAR(100) NULL AFTER `tunnel_username_3`,
+
+ADD COLUMN `tunnel_password_1` VARCHAR(100) NULL AFTER `tunnel_username_4`,
+ADD COLUMN `tunnel_password_2` VARCHAR(100) NULL AFTER `tunnel_password_1`,
+ADD COLUMN `tunnel_password_3` VARCHAR(100) NULL AFTER `tunnel_password_2`,
+ADD COLUMN `tunnel_password_4` VARCHAR(100) NULL AFTER `tunnel_password_3`;
+
+ALTER TABLE `deliverable_plans`
+ADD COLUMN `tunnel` VARCHAR(100) NULL AFTER `p2p_password`,
+ADD COLUMN `tunnel_username` VARCHAR(100) NULL AFTER `tunnel`,
+ADD COLUMN `tunnel_password` VARCHAR(100) NULL AFTER `tunnel_username`;
+    
+
+    -- update pannita---------------------------------------
+
+    ALTER TABLE company_settings
+    ADD COLUMN invoice_mail_read_days INT DEFAULT 0 AFTER invoice_mail_signature;
+
+ALTER TABLE companies
+ ADD COLUMN short_name VARCHAR(50) NULL AFTER trade_name,
+ ADD COLUMN msme_id VARCHAR(50) NULL  AFTER gstin,
+ ADD COLUMN pincode VARCHAR(50) NULL AFTER pan_number,
+ ADD COLUMN state VARCHAR(50) NULL  AFTER pincode,
+ ADD COLUMN district VARCHAR(50) NULL AFTER state,
+ ADD COLUMN area VARCHAR(50) NULL AFTER district;
+
+ ALTER TABLE feasibilities
+ ADD COLUMN client_state VARCHAR(50) NULL AFTER company_id;
+
+ 
+ALTER TABLE contacts
+ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at,
+ADD COLUMN created_by BIGINT UNSIGNED NULL AFTER deleted_at,
+ADD COLUMN updated_by BIGINT UNSIGNED NULL AFTER created_by,
+ADD COLUMN deleted_by BIGINT UNSIGNED NULL AFTER updated_by;
+
+ALTER TABLE company_settings
+ADD COLUMN sales_invoice_mail_from_name VARCHAR(255) NULL AFTER invoice_mail_read_days,
+ADD COLUMN sales_invoice_mail_from_address VARCHAR(255) NULL AFTER sales_invoice_mail_from_name,
+ADD COLUMN sales_invoice_mail_host VARCHAR(255) NULL AFTER sales_invoice_mail_from_address,
+ADD COLUMN sales_invoice_mail_port VARCHAR(255) NULL AFTER sales_invoice_mail_host,
+ADD COLUMN sales_invoice_mail_username VARCHAR(255) NULL AFTER sales_invoice_mail_port,
+ADD COLUMN sales_invoice_mail_password VARCHAR(255) NULL AFTER sales_invoice_mail_username,
+ADD COLUMN sales_invoice_mail_encryption VARCHAR(255) NULL AFTER sales_invoice_mail_password;
+
+
+ALTER TABLE contacts
+ADD COLUMN remarks VARCHAR(255) NULL AFTER contact2;
+
+
+-- --------------------------------------------
+
+ALTER TABLE feasibilities
+MODIFY spoc_name VARCHAR(225) default NULL,
+MODIFY spoc_contact1 VARCHAR(225) default NULL;
+

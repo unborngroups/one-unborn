@@ -1,0 +1,166 @@
+@extends('layouts.app') 
+
+{{-- ✅ Extend the base layout (resources/views/layouts/app.blade.php) --}}
+
+
+
+@section('content') 
+
+{{-- ✅ Define the content section to inject into the main layout --}}
+
+
+
+@if ($errors->any())
+
+    {{-- ⚠️ Display validation errors if any exist --}}
+
+    <div class="alert alert-danger">
+
+        <ul class="mb-0">
+
+            @foreach ($errors->all() as $error)
+
+                {{-- ✅ Loop through all validation error messages --}}
+
+                <li>{{ $error }}</li>
+
+            @endforeach
+
+        </ul>
+
+    </div>
+
+@endif
+
+
+
+<div class="container py-4">
+
+    {{-- ✅ Add some vertical padding using Bootstrap spacing --}}
+
+    <h3 class="mb-3">Edit User</h3>
+
+    {{-- ✅ Page heading for clarity --}}
+
+
+
+    <div class="card shadow border-0 p-4">
+
+        {{-- ✅ Card with shadow, no border, and padding for nice layout --}}
+
+
+
+        <form action="{{ route('usertypetable.update', $usertypetable) }}" method="POST">
+
+            {{-- ✅ Submit form to the “update” route, passing the model instance --}}
+
+            <?= csrf_field() ?> 
+
+            {{-- ✅ Include CSRF token for security (same as @csrf) --}}
+
+
+
+            @method('PUT') 
+
+            {{-- ✅ Spoofs HTTP method PUT (required for updating resources) --}}
+
+
+
+            <div class="mb-3">
+
+                <label>Name</label>
+
+                {{-- ✅ Input for user type name --}}
+
+                <input type="text" 
+
+                       name="name" 
+
+                       value="{{ old('name', $usertypetable->name) }}" 
+
+                       class="form-control" 
+
+                       required>
+
+                {{-- ✅ Prefills with old value (if validation fails) or database value --}}
+
+            </div>
+
+            <div class="mb-3">
+
+                <label>Email</label>
+
+                <input type="email" name="email" class="form-control" value="{{ old('email', $usertypetable->email) }}" required>
+
+                {{-- ✅ Input field for user's email (required) --}}
+</div>
+
+
+            <div class="mb-3">
+
+                <label for="">Description</label>
+
+                {{-- ⚠️ Minor fix below: should use $usertypetable->Description (was missing field) --}}
+
+                <input type="text" 
+
+                       name="Description" 
+
+                       value="{{ old('Description', $usertypetable->Description) }}" 
+
+                       class="form-control">
+
+                {{-- ✅ Optional description field --}}
+
+            </div>
+
+
+
+            <!-- <div class="mb-3">
+
+                <label>Status</label>
+
+                <select name="status" class="form-control">
+
+                    {{-- ✅ Dropdown menu with two options --}}
+
+                    <option value="Active" {{ $usertypetable->status == 'Active' ? 'selected' : '' }}>Active</option>
+
+                    <option value="Inactive" {{ $usertypetable->status == 'Inactive' ? 'selected' : '' }}>Inactive</option>
+
+                </select>
+
+                {{-- ✅ Automatically selects the current status --}}
+
+            </div> -->
+
+             {{--  Status Dropdown --}}
+
+            <input type="hidden" name="status" value="Active">
+
+
+
+
+
+            <button class="btn btn-warning">Update</button>
+
+            {{-- ✅ Submit button for updating record --}}
+
+            
+
+            <a href="{{ route('usertypetable.index') }}" class="btn btn-secondary">Back</a>
+
+            {{-- ✅ Button to navigate back to listing page --}}
+
+        </form>
+
+    </div>
+
+</div>
+
+
+
+@endsection 
+
+{{-- ✅ End of content section --}}
+

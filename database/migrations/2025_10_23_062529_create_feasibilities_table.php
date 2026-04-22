@@ -1,0 +1,68 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('feasibilities', function (Blueprint $table) {
+            $table->id();
+            $table->string('type_of_service');
+            $table->string('link_type');
+            $table->string('client_state');
+            $table->foreignId('client_id')->constrained()->onDelete('cascade');
+            $table->string('delivery_company_name')->nullable();
+             $table->string('circuit_id')->nullable();
+            $table->string('location_id')->nullable();
+            $table->string('longitude')->nullable();
+            $table->string('latitude')->nullable();
+            $table->string('pincode');
+            $table->string('state');
+            $table->string('district');
+            $table->string('area');
+            $table->text('address')->nullable();
+            $table->string('spoc_name');
+            $table->string('spoc_contact1');
+            $table->string('spoc_contact2')->nullable();
+            $table->string('spoc_email')->nullable();
+            $table->integer('no_of_links')->nullable();
+            $table->string('vendor_type');
+            $table->string('speed');
+            $table->string('static_ip')->nullable();
+            $table->date('expected_delivery')->nullable();
+            $table->date('expected_activation')->nullable();
+            $table->boolean('hardware_required')->default(false);
+            $table->json('hardware_details')->nullable();
+             $table->integer('existing_links')->default(0);
+            // $table->string('hardware_model')->nullable();
+            $table->enum('status', ['Active', 'Inactive', 'Closed'])->default('Active');
+
+          // ✅ FIXED Foreign key order
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
+
+            $table->string('feasibility_request_id')->unique()->nullable();
+
+
+            $table->timestamps();
+
+            $table->softDeletes();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->unsignedBigInteger('deleted_by')->nullable();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('feasibilities');
+    }
+};
