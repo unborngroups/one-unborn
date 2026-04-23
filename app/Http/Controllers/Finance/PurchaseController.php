@@ -90,27 +90,7 @@ class PurchaseController extends Controller
         $purchasesQuery->where('created_at', '>=', $fromDate)
             // Hide 'draft' & 'failed' invoices — draft stays in Auto Invoice Processing, failed goes to Failed Invoices
             ->where('status', '!=', 'draft')
-<<<<<<< HEAD
-            ->where('status', '!=', 'failed')
-            // Remove duplicates - keep only the latest record for each unique invoice
-            ->whereRaw('id IN (
-                SELECT MAX(id) FROM purchase_invoices 
-                WHERE created_at >= ? AND status NOT IN (?, ?)
-                GROUP BY 
-                    CASE 
-                        WHEN invoice_no IS NOT NULL AND invoice_no != "" THEN invoice_no 
-                        ELSE CONCAT(
-                            COALESCE(vendor_gstin, ""), "_",
-                            COALESCE(vendor_name, ""), "_", 
-                            COALESCE(DATE(invoice_date), ""), "_",
-                            COALESCE(total_amount, ""), "_",
-                            COALESCE(grand_total, "")
-                        )
-                    END
-            )', [$fromDate, 'draft', 'failed']);
-=======
             ->where('status', '!=', 'failed');
->>>>>>> 90f414630e61a509facbdc18cba07834240feaaf
 
         $purchases = $purchasesQuery->get();
 
@@ -1077,19 +1057,9 @@ private function updateImage($request, $oldFile, $field, $folder)
         // Remove blocking email fetch - let user trigger manually
         // $this->autoFetchGmailInvoices($mailReadDays);
 
-<<<<<<< HEAD
-        // Calculate date filter based on mail read days from company settings
-        $fromDate = now()->subDays($mailReadDays)->startOfDay();
-
         // Optimized query with proper filtering at database level
         $query = PurchaseInvoice::with(['vendor', 'emailLog'])
             ->whereNotNull('email_log_id')
-            ->where('created_at', '>=', $fromDate) // Filter by mail read days
-=======
-        // Optimized query with proper filtering at database level
-        $query = PurchaseInvoice::with(['vendor', 'emailLog'])
-            ->whereNotNull('email_log_id')
->>>>>>> 90f414630e61a509facbdc18cba07834240feaaf
             ->latest();
 
         if ($status === 'failed') {
@@ -1106,26 +1076,6 @@ private function updateImage($request, $oldFile, $field, $folder)
             $query->whereIn('status', ['draft', 'needs_review', 'verified']);
         }
 
-<<<<<<< HEAD
-        // Remove duplicates - keep only the latest record for each unique invoice
-        $query->whereRaw('id IN (
-            SELECT MAX(id) FROM purchase_invoices 
-            WHERE created_at >= ? AND email_log_id IS NOT NULL
-            GROUP BY 
-                CASE 
-                    WHEN invoice_no IS NOT NULL AND invoice_no != "" THEN invoice_no 
-                    ELSE CONCAT(
-                        COALESCE(vendor_gstin, ""), "_",
-                        COALESCE(vendor_name, ""), "_", 
-                        COALESCE(DATE(invoice_date), ""), "_",
-                        COALESCE(total_amount, ""), "_",
-                        COALESCE(grand_total, "")
-                    )
-                END
-        )', [$fromDate]);
-
-=======
->>>>>>> 90f414630e61a509facbdc18cba07834240feaaf
         // Add pagination for better performance
         $invoices = $query->paginate(50);
 
@@ -1143,11 +1093,7 @@ private function updateImage($request, $oldFile, $field, $folder)
 
         $lastFetchStatus = Cache::get($this->lastFetchStatusCacheKey());
 
-<<<<<<< HEAD
         return view('finance.purchase_invoices.index', compact('invoices', 'lastMailReadAt', 'lastFetchStatus', 'mailReadDays'));
-=======
-        return view('finance.purchase_invoices.index', compact('invoices', 'lastMailReadAt', 'lastFetchStatus'));
->>>>>>> 90f414630e61a509facbdc18cba07834240feaaf
     }
 
     private function isFailedAutoInvoice(PurchaseInvoice $invoice): bool
