@@ -55,7 +55,6 @@
 
     <div class="d-flex flex-wrap align-items-center gap-2 mb-4">
 
-<<<<<<< HEAD
             @if(isset($mailReadDays))
             <span class="text-info small me-2">
                 <i class="bi bi-calendar-range"></i>
@@ -63,8 +62,6 @@
             </span>
             @endif
 
-=======
->>>>>>> 90f414630e61a509facbdc18cba07834240feaaf
             @if(isset($lastMailReadAt) && $lastMailReadAt)
             <span class="text-muted small me-2">
                 <i class="bi bi-envelope-check"></i>
@@ -448,7 +445,6 @@
                                     <i class="bi bi-pencil-square"></i>
                                 </a>
 
-<<<<<<< HEAD
                                 @if($invoice->po_invoice_file)
                                     <a href="{{ asset('images/poinvoice_files/' . $invoice->po_invoice_file) }}"
                                        download="{{ $invoice->invoice_no ?? 'invoice_' . $invoice->id . '.pdf' }}"
@@ -458,9 +454,6 @@
                                         <i class="bi bi-download"></i>
                                     </a>
                                 @endif
-
-=======
->>>>>>> 90f414630e61a509facbdc18cba07834240feaaf
                                 @if($invoice->status == 'needs_review')
                                     <form action="{{ route('finance.purchase_invoices.verify', $invoice->id) }}"
                                           method="POST"
